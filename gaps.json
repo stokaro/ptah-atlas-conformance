@@ -39,24 +39,37 @@
     "fixture": "directives",
     "stage": "recognize",
     "outcome": "gap",
-    "detail": "Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 10_delimiter_comment.sql",
     "issue": "stokaro/ptah#273"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "migrations/atlasexec-basic",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah recognizes 0/3 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "migrations/postgres-schema",
     "stage": "recognize",
     "outcome": "gap",
-    "detail": "Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql",
     "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "txtar-down",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down",
+    "stage": "20240305171146",
+    "outcome": "ok",
+    "detail": "down.sql reached the SQL execution path"
   },
   {
     "probe": "sum-compat",
@@ -71,7 +84,7 @@
     "fixture": "migrations/atlasexec-basic",
     "stage": "recompute",
     "outcome": "gap",
-    "detail": "Ptah hashes 0 entries here and its dir hash differs from atlas.sum — Ptah only hashes NNNNNNNNNN_desc.(up|down).sql files, so it skips Atlas's",
+    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -86,9 +99,8 @@
     "probe": "lint-parity",
     "fixture": "migrations/atlasexec-basic",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "content findings: DS101"
   },
   {
     "probe": "lint-parity",

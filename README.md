@@ -16,8 +16,11 @@ and each row links the Ptah issue that tracks closing it.
 
 **This is not a full feature-set parity test.** It is a small offline probe over
 a seed corpus, and most of Atlas's open-source surface is not exercised at all.
-[`PARITY.md`](./PARITY.md) states exactly what is and is not tested, and what a
-real parity test would require — read it before quoting any number from here.
+The corpus is mostly vendored Atlas material plus a small first-party
+Atlas-compatible regression fixture for features absent from the current vendored
+sample. [`PARITY.md`](./PARITY.md) states exactly what is and is not tested, and
+what a real parity test would require — read it before quoting any number from
+here.
 
 ## Why this is a separate repository
 
@@ -40,6 +43,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | --- | --- | --- |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas's SQL in its AST? (round-trip / `read-db` / `compare` — **not** apply, which execs raw SQL) | `core/parser` |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | `migration/migrator` |
+| `txtar-down` | Does Ptah load Atlas txtar migrations with an embedded `down.sql` section? | `migration/migrator` |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does Ptah's own hash reproduce it? | `migration/migratesum` |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |
 

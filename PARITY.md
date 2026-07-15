@@ -3,8 +3,8 @@
 **This is not a full feature-set parity test, and no number in this repository
 should be read as one.**
 
-It is a small, offline, structural coverage probe over a **seed corpus of 3
-Atlas fixtures**, run through four narrow entry points of Ptah's public API. It
+It is a small, offline, structural coverage probe over a **seed corpus of Atlas
+and Atlas-compatible fixtures**, run through narrow entry points of Ptah's public API. It
 exists to turn "are we there yet" from an opinion into a number that moves over
 time — but right now it measures a sliver, and the sliver already fails. Treat
 the results as a floor on the distance to Atlas, never a ceiling.

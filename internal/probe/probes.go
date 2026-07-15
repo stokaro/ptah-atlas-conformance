@@ -1,6 +1,8 @@
 package probe
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,6 +19,7 @@ func AllProbes() []Probe {
 	return []Probe{
 		ParseProbe{},
 		MigDirProbe{},
+		AtlasTxtarDownProbe{},
 		SumProbe{},
 		LintProbe{},
 	}
@@ -35,6 +38,9 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		data, err := os.ReadFile(f)
 		if err != nil {
 			out = append(out, Result{"sql-parse", rel, "read", Fail, err.Error(), ""})
+			continue
+		}
+		if strings.Contains(string(data), "-- atlas:txtar") {
 			continue
 		}
 		var stmts int
@@ -82,12 +88,12 @@ func (MigDirProbe) Run(fx Fixture) []Result {
 	if fx.SumFile == "" && !looksVersioned(fx) {
 		return nil // not a migration directory
 	}
-	var matched int
-	for _, f := range fx.SQLFiles {
-		if migrator.ValidateMigrationFileName(filepath.Base(f)) {
-			matched++
-		}
+	files, err := migrator.DiscoverMigrationFiles(os.DirFS(fx.Dir), migrator.MigrationDirFormatAuto)
+	if err != nil {
+		return []Result{{"migdir-ingest", fx.Name, "recognize", Gap,
+			"Ptah cannot discover this Atlas migration directory: " + oneLine(err.Error()), "stokaro/ptah#273"}}
 	}
+	matched := len(files)
 	total := len(fx.SQLFiles)
 	switch {
 	case total == 0:
@@ -103,6 +109,56 @@ func (MigDirProbe) Run(fx Fixture) []Result {
 		return []Result{{"migdir-ingest", fx.Name, "recognize", OK,
 			fmt.Sprintf("all %d files recognized", total), ""}}
 	}
+}
+
+// AtlasTxtarDownProbe verifies that Atlas txtar files with a down.sql section
+// are loaded as migrations with an executable down function. The probe stays
+// offline: it calls Down with a nil connection and treats reaching the execution
+// path as success. A missing down section returns Ptah's typed dynamic-down gap
+// before touching the connection.
+type AtlasTxtarDownProbe struct{}
+
+func (AtlasTxtarDownProbe) Name() string { return "txtar-down" }
+
+func (AtlasTxtarDownProbe) Run(fx Fixture) []Result {
+	if !fixtureContains(fx, "-- atlas:txtar") {
+		return nil
+	}
+
+	var provider *migrator.FSMigrationProvider
+	var err error
+	panicked, pmsg := guard(func() {
+		provider, err = migrator.NewFSMigrationProvider(
+			os.DirFS(fx.Dir),
+			migrator.WithMigrationDirFormat(migrator.MigrationDirFormatAtlas),
+		)
+	})
+	switch {
+	case panicked:
+		return []Result{{"txtar-down", fx.Name, "load", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
+	case err != nil:
+		return []Result{{"txtar-down", fx.Name, "load", Gap, "Ptah cannot load Atlas txtar migration: " + oneLine(err.Error()), "stokaro/ptah#290"}}
+	}
+
+	var out []Result
+	for _, migration := range provider.Migrations() {
+		version := fmt.Sprintf("%d", migration.Version)
+		panicked, pmsg = guard(func() {
+			err = migration.Down(context.Background(), nil)
+		})
+		var noDown *migrator.AtlasDownNotImplementedError
+		switch {
+		case panicked:
+			out = append(out, Result{"txtar-down", fx.Name, version, OK, "down.sql reached the SQL execution path", ""})
+		case errors.As(err, &noDown):
+			out = append(out, Result{"txtar-down", fx.Name, version, Gap, "Atlas txtar migration loaded without down.sql execution support", "stokaro/ptah#290"})
+		case err != nil:
+			out = append(out, Result{"txtar-down", fx.Name, version, OK, "down.sql produced an execution error after loading: " + oneLine(err.Error()), ""})
+		default:
+			out = append(out, Result{"txtar-down", fx.Name, version, OK, "down.sql executed without statements", ""})
+		}
+	}
+	return out
 }
 
 // SumProbe measures distance to atlas.sum: can Ptah parse the file, and does
@@ -158,7 +214,7 @@ func (SumProbe) Run(fx Fixture) []Result {
 		}
 		out = append(out, Result{"sum-compat", fx.Name, "recompute", Gap,
 			fmt.Sprintf("Ptah hashes %s entries here and its dir hash differs from atlas.sum — "+
-				"Ptah only hashes NNNNNNNNNN_desc.(up|down).sql files, so it skips Atlas's", got),
+				"the remaining gap is hash compatibility, not Atlas file discovery", got),
 			"stokaro/ptah#274"})
 	}
 	return out
@@ -175,6 +231,9 @@ func (LintProbe) Name() string { return "lint-parity" }
 
 func (LintProbe) Run(fx Fixture) []Result {
 	if len(fx.SQLFiles) == 0 {
+		return nil
+	}
+	if fixtureContains(fx, "-- atlas:txtar") {
 		return nil
 	}
 	// Skip pure directive fixtures with no migration semantics.
