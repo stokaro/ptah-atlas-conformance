@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 270 unwaived gap(s)
+## Status: NOT DONE — 262 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260715215123-8ef37292ce2b`
-- Outcomes: **145 ok**, **250 gap**, **20 fail**, **0 panic**
-- Gate: **270 unwaived** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260715220357-c1d21d2df758`
+- Outcomes: **153 ok**, **249 gap**, **13 fail**, **0 panic**
+- Gate: **262 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **47 measured**, **111 imported-but-unmeasured**
 
 ## Findings
@@ -34,13 +34,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **fail** | sql-parse | `sql/migrate/testdata/lexescaped/1.my.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 150 | #133 |
 | **RED** | **fail** | sql-parse | `sql/migrate/testdata/lexescaped/2.pg.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 72 | #133 |
 | **RED** | **fail** | sql-parse | `sql/sqltool/testdata/flyway/B2__baseline.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 126 | #133 |
-| **RED** | **fail** | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recompute | no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql | #274 |
-| **RED** | **fail** | sum-compat | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recompute | no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql | #274 |
-| **RED** | **fail** | sum-compat | `atlasexec/testdata/broken` | recompute | no migration files matched format "auto"; unrecognized SQL files: 20231029112426.sql | #274 |
-| **RED** | **fail** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql | #274 |
-| **RED** | **fail** | sum-compat | `cmd/atlas/internal/migrate/testdata/broken` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #274 |
-| **RED** | **fail** | sum-compat | `cmd/atlas/internal/migrate/testdata/fixed` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #274 |
-| **RED** | **fail** | sum-compat | `internal/integration/testdata/migrations/mysqlock` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #274 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
@@ -152,9 +145,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | corpus-inventory | `schemahcl/testdata/variables.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
-| **RED** | **gap** | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | lint-parity | `atlasexec/testdata/broken` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | linter produced no findings | #273 |
+| **RED** | **gap** | lint-parity | `atlasexec/testdata/broken` | lint | linter produced no findings | #273 |
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline1` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
@@ -190,9 +182,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
 | **RED** | **gap** | lint-parity | `sql/sqltool/testdata/goose` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
 | **RED** | **gap** | lint-parity | `sql/sqltool/testdata/liquibase` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
-| **RED** | **gap** | migdir-ingest | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql | #273 |
-| **RED** | **gap** | migdir-ingest | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql | #273 |
-| **RED** | **gap** | migdir-ingest | `atlasexec/testdata/broken` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 20231029112426.sql | #273 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 2_baseline.sql, 3R_views.sql, 3_third_migration.sql | #273 |
@@ -202,10 +191,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
-| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql | #273 |
-| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/migrate/testdata/broken` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #273 |
-| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/migrate/testdata/fixed` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #273 |
-| **RED** | **gap** | migdir-ingest | `internal/integration/testdata/migrations/mysqlock` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #273 |
 | **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/golang-migrate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_base.up.sql | #273 |
 | **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/lex` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 10_delimiter_comment.sql, 11_delimiter_mysql_command.sql, 12_delimiter_mysql_command.sql, 13_delimiter_mysql_command.sql, 14_delimiter_mysql_command.sql, 15_dollar_quo… | #273 |
 | **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/lexbegintry` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql | #273 |
@@ -276,6 +261,9 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 167 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/liquibase/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 322 |  |
+| **RED** | **gap** | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `atlasexec/testdata/broken` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `atlasexec/testdata/migrations` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline1` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline2` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
@@ -286,7 +274,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/migrate/testdata/broken` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/migrate/testdata/fixed` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `internal/integration/testdata/migrations/mysql` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `internal/integration/testdata/migrations/mysqlock` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `internal/integration/testdata/migrations/postgres` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `sql/migrate/testdata/migrate` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | **RED** | **gap** | sum-compat | `sql/migrate/testdata/migrate/sub` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
@@ -338,9 +330,13 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | corpus-inventory | `sql/sqltool/testdata/liquibase` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down-boundary` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | content findings: PG101 |  |
 | — | ok | lint-parity | `atlasexec/testdata/migrations` | lint | content findings: DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101, BC101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101, BC101 |  |
+| — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recognize | all 1 files recognized |  |
+| — | ok | migdir-ingest | `atlasexec/testdata/broken` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/testdata/migrations` | recognize | all 3 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/baseline1` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/baseline2` | recognize | all 3 files recognized |  |
@@ -351,7 +347,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | recognize | all 3 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/migrate/testdata/broken` | recognize | all 3 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/migrate/testdata/fixed` | recognize | all 3 files recognized |  |
 | — | ok | migdir-ingest | `internal/integration/testdata/migrations/mysql` | recognize | all 1 files recognized |  |
+| — | ok | migdir-ingest | `internal/integration/testdata/migrations/mysqlock` | recognize | all 3 files recognized |  |
 | — | ok | migdir-ingest | `internal/integration/testdata/migrations/postgres` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `sql/migrate/testdata/partial-checkpoint` | recognize | all 6 files recognized |  |
 | — | ok | migdir-ingest | `txtar-down` | recognize | all 1 files recognized |  |
@@ -440,7 +440,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#133** — 13 finding(s)
-- **stokaro/ptah#273** — 66 finding(s)
+- **stokaro/ptah#273** — 58 finding(s)
 - **stokaro/ptah#274** — 22 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 101 finding(s)

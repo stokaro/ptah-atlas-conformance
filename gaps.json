@@ -2108,25 +2108,22 @@
     "probe": "migdir-ingest",
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "atlasexec/testdata/broken",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 20231029112426.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
   },
   {
     "probe": "migdir-ingest",
@@ -2274,25 +2271,22 @@
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/migrate/testdata/broken",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
   },
   {
     "probe": "migdir-ingest",
@@ -2305,9 +2299,8 @@
     "probe": "migdir-ingest",
     "fixture": "internal/integration/testdata/migrations/mysqlock",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
   },
   {
     "probe": "migdir-ingest",
@@ -2473,8 +2466,8 @@
     "probe": "sum-compat",
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
     "stage": "recompute",
-    "outcome": "fail",
-    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -2489,8 +2482,8 @@
     "probe": "sum-compat",
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
     "stage": "recompute",
-    "outcome": "fail",
-    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql",
+    "outcome": "gap",
+    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -2505,8 +2498,8 @@
     "probe": "sum-compat",
     "fixture": "atlasexec/testdata/broken",
     "stage": "recompute",
-    "outcome": "fail",
-    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 20231029112426.sql",
+    "outcome": "gap",
+    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -2681,8 +2674,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
     "stage": "recompute",
-    "outcome": "fail",
-    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -2697,8 +2690,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/migrate/testdata/broken",
     "stage": "recompute",
-    "outcome": "fail",
-    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "outcome": "gap",
+    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -2713,8 +2706,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
     "stage": "recompute",
-    "outcome": "fail",
-    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "outcome": "gap",
+    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -2745,8 +2738,8 @@
     "probe": "sum-compat",
     "fixture": "internal/integration/testdata/migrations/mysqlock",
     "stage": "recompute",
-    "outcome": "fail",
-    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "outcome": "gap",
+    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
     "issue": "stokaro/ptah#274"
   },
   {
@@ -2817,16 +2810,15 @@
     "probe": "lint-parity",
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "content findings: PG101"
   },
   {
     "probe": "lint-parity",
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2834,7 +2826,7 @@
     "fixture": "atlasexec/testdata/broken",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
