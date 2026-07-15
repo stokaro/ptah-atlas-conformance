@@ -165,7 +165,7 @@ func (MigDirProbe) Run(fx Fixture) []Result {
 				"Ptah requires NNNNNNNNNN_desc.(up|down).sql", total), "stokaro/ptah#273"}}
 	case matched < total:
 		return []Result{{"migdir-ingest", fx.Name, "recognize", Gap,
-			fmt.Sprintf("Ptah recognizes only %d/%d files", matched, total), "stokaro/ptah#273"}}
+			fmt.Sprintf("Ptah recognizes only %d/%d files", matched, total), migrationDirectoryIssue(fx)}}
 	default:
 		return []Result{{"migdir-ingest", fx.Name, "recognize", OK,
 			fmt.Sprintf("all %d files recognized", total), ""}}
@@ -412,7 +412,7 @@ func (LintProbe) Run(fx Fixture) []Result {
 	case len(structural) > 0:
 		return []Result{{"lint-parity", fx.Name, "lint", Gap,
 			"only file-convention findings (" + strings.Join(dedup(structural), ", ") + "); Ptah does not " +
-				"analyze the content of Atlas-named files", "stokaro/ptah#273"}}
+				"analyze the content of Atlas-named files", migrationDirectoryIssue(fx)}}
 	default:
 		return []Result{{"lint-parity", fx.Name, "lint", OK, "no substantive lint findings expected", ""}}
 	}
@@ -426,6 +426,16 @@ func looksVersioned(fx Fixture) bool {
 		}
 	}
 	return false
+}
+
+func migrationDirectoryIssue(fx Fixture) string {
+	switch fx.Name {
+	case "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
+		"cmd/atlas/internal/cmdapi/testdata/templatedir":
+		return "stokaro/ptah#299"
+	default:
+		return "stokaro/ptah#273"
+	}
 }
 
 func fixtureContains(fx Fixture, needle string) bool {

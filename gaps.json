@@ -2166,7 +2166,7 @@
     "stage": "recognize",
     "outcome": "gap",
     "detail": "Ptah recognizes only 2/3 files",
-    "issue": "stokaro/ptah#273"
+    "issue": "stokaro/ptah#299"
   },
   {
     "probe": "migdir-ingest",
@@ -2826,7 +2826,7 @@
     "stage": "lint",
     "outcome": "gap",
     "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
-    "issue": "stokaro/ptah#273"
+    "issue": "stokaro/ptah#299"
   },
   {
     "probe": "lint-parity",
@@ -2925,7 +2925,7 @@
     "stage": "lint",
     "outcome": "gap",
     "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
-    "issue": "stokaro/ptah#273"
+    "issue": "stokaro/ptah#299"
   },
   {
     "probe": "lint-parity",

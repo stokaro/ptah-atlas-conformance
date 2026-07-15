@@ -170,7 +170,7 @@ func TestLintProbeKeepsStructuralOnlyAtlasNameGap(t *testing.T) {
 	writeTestFile(t, path, "CREATE VIEW my_view AS SELECT 1;\n")
 
 	results := LintProbe{}.Run(Fixture{
-		Name:     "flyway-repeatable",
+		Name:     "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
 		Kind:     FixtureKindSQLDir,
 		Dir:      dir,
 		Files:    []string{path},
@@ -182,6 +182,9 @@ func TestLintProbeKeepsStructuralOnlyAtlasNameGap(t *testing.T) {
 	}
 	if results[0].Outcome != Gap {
 		t.Fatalf("expected structural-only file-convention gap, got %#v", results[0])
+	}
+	if results[0].Issue != "stokaro/ptah#299" {
+		t.Fatalf("expected advanced directory tracking issue, got %#v", results[0])
 	}
 }
 
