@@ -1,12 +1,15 @@
 package probe
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/stokaro/ptah/core/parser"
+	"github.com/stokaro/ptah/dbschema"
 	"github.com/stokaro/ptah/migration/lint"
 	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
@@ -15,10 +18,65 @@ import (
 // AllProbes is the ordered set the CLI runs.
 func AllProbes() []Probe {
 	return []Probe{
+		CorpusProbe{},
 		ParseProbe{},
 		MigDirProbe{},
+		AtlasTxtarDownProbe{},
 		SumProbe{},
 		LintProbe{},
+	}
+}
+
+// CorpusProbe proves every imported Atlas test artifact is visible in the
+// generated report. SQL directory fixtures are measured by the concrete probes
+// below. Non-SQL Atlas fixtures stay red until the harness grows probes for
+// their semantics instead of silently ignoring them.
+type CorpusProbe struct{}
+
+func (CorpusProbe) Name() string { return "corpus-inventory" }
+
+func (CorpusProbe) Run(fx Fixture) []Result {
+	switch fx.Kind {
+	case FixtureKindSQLDir:
+		support := len(fx.Files) - len(fx.SQLFiles)
+		if fx.SumFile != "" {
+			support--
+		}
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "import",
+			Outcome: OK,
+			Detail: fmt.Sprintf("imported SQL directory: %d sql file(s), atlas.sum=%t, %d support file(s)",
+				len(fx.SQLFiles), fx.SumFile != "", support),
+		}}
+	case FixtureKindTxtar:
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "unmeasured",
+			Outcome: Gap,
+			Detail:  "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+			Issue:   "stokaro/ptah#285",
+		}}
+	case FixtureKindHCL:
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "unmeasured",
+			Outcome: Gap,
+			Detail:  "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+			Issue:   "stokaro/ptah#276",
+		}}
+	default:
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "unmeasured",
+			Outcome: Gap,
+			Detail:  "Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet",
+			Issue:   "stokaro/ptah#289",
+		}}
 	}
 }
 
@@ -29,12 +87,18 @@ type ParseProbe struct{}
 func (ParseProbe) Name() string { return "sql-parse" }
 
 func (ParseProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	var out []Result
 	for _, f := range fx.SQLFiles {
 		rel := fx.Name + "/" + filepath.Base(f)
 		data, err := os.ReadFile(f)
 		if err != nil {
 			out = append(out, Result{"sql-parse", rel, "read", Fail, err.Error(), ""})
+			continue
+		}
+		if strings.Contains(string(data), "-- atlas:txtar") {
 			continue
 		}
 		var stmts int
@@ -79,15 +143,18 @@ type MigDirProbe struct{}
 func (MigDirProbe) Name() string { return "migdir-ingest" }
 
 func (MigDirProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	if fx.SumFile == "" && !looksVersioned(fx) {
 		return nil // not a migration directory
 	}
-	var matched int
-	for _, f := range fx.SQLFiles {
-		if migrator.ValidateMigrationFileName(filepath.Base(f)) {
-			matched++
-		}
+	files, err := migrator.DiscoverMigrationFiles(os.DirFS(fx.Dir), migrator.MigrationDirFormatAuto)
+	if err != nil {
+		return []Result{{"migdir-ingest", fx.Name, "recognize", Gap,
+			"Ptah cannot discover this Atlas migration directory: " + oneLine(err.Error()), "stokaro/ptah#273"}}
 	}
+	matched := len(files)
 	total := len(fx.SQLFiles)
 	switch {
 	case total == 0:
@@ -105,6 +172,118 @@ func (MigDirProbe) Run(fx Fixture) []Result {
 	}
 }
 
+// AtlasTxtarDownProbe verifies that Atlas txtar files with a down.sql section
+// are loaded as migrations with executable, directionally separated SQL. The
+// probe stays offline by installing an interceptor that records and handles
+// every statement before any database connection is touched.
+type AtlasTxtarDownProbe struct{}
+
+func (AtlasTxtarDownProbe) Name() string { return "txtar-down" }
+
+func (AtlasTxtarDownProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
+	if !fixtureContains(fx, "-- atlas:txtar") {
+		return nil
+	}
+
+	var provider *migrator.FSMigrationProvider
+	recorder := &txtarRecorder{}
+	var err error
+	panicked, pmsg := guard(func() {
+		provider, err = migrator.NewFSMigrationProvider(
+			os.DirFS(fx.Dir),
+			migrator.WithMigrationDirFormat(migrator.MigrationDirFormatAtlas),
+			migrator.WithStatementInterceptor(recorder),
+		)
+	})
+	switch {
+	case panicked:
+		return []Result{{"txtar-down", fx.Name, "load", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
+	case err != nil:
+		return []Result{{"txtar-down", fx.Name, "load", Gap, "Ptah cannot load Atlas txtar migration: " + oneLine(err.Error()), "stokaro/ptah#290"}}
+	}
+
+	var out []Result
+	for _, migration := range provider.Migrations() {
+		version := fmt.Sprintf("%d", migration.Version)
+		recorder.Reset()
+		panicked, pmsg = guard(func() {
+			err = migration.Up(context.Background(), nil)
+		})
+		switch {
+		case panicked:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Panic, oneLine(pmsg), "stokaro/ptah#128"})
+			continue
+		case err != nil:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Fail, "migration.sql failed before statement capture: " + oneLine(err.Error()), "stokaro/ptah#290"})
+			continue
+		case len(recorder.Statements) == 0:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Gap, "migration.sql loaded without executable statements", "stokaro/ptah#290"})
+			continue
+		case containsStatement(recorder.Statements, "ptah_conformance_txtar_extra_section_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Gap, "unknown txtar file section leaked into migration.sql execution", "stokaro/ptah#290"})
+			continue
+		case containsStatement(recorder.Statements, "ptah_conformance_txtar_down_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Gap, "down.sql statements leaked into migration.sql execution", "stokaro/ptah#290"})
+			continue
+		default:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", OK, fmt.Sprintf("migration.sql captured %d statement(s)", len(recorder.Statements)), ""})
+		}
+
+		recorder.Reset()
+		panicked, pmsg = guard(func() {
+			err = migration.Down(context.Background(), nil)
+		})
+		var noDown *migrator.AtlasDownNotImplementedError
+		switch {
+		case panicked:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Panic, oneLine(pmsg), "stokaro/ptah#128"})
+		case errors.As(err, &noDown):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "Atlas txtar migration loaded without down.sql execution support", "stokaro/ptah#290"})
+		case err != nil:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Fail, "down.sql failed before statement capture: " + oneLine(err.Error()), "stokaro/ptah#290"})
+		case len(recorder.Statements) == 0:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "down.sql loaded without executable statements", "stokaro/ptah#290"})
+		case containsStatement(recorder.Statements, "ptah_conformance_txtar_extra_section_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "unknown txtar file section leaked into down.sql execution", "stokaro/ptah#290"})
+		case fixtureContains(fx, "ptah_conformance_txtar_down_sentinel") &&
+			!containsStatement(recorder.Statements, "ptah_conformance_txtar_down_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "down.sql sentinel was not captured in down execution", "stokaro/ptah#290"})
+		default:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", OK, fmt.Sprintf("down.sql captured %d statement(s)", len(recorder.Statements)), ""})
+		}
+	}
+	return out
+}
+
+type txtarRecorder struct {
+	Statements []string
+}
+
+func (r *txtarRecorder) ValidateDirectives(map[string]string) error {
+	return nil
+}
+
+func (r *txtarRecorder) ExecuteStatement(_ context.Context, _ *dbschema.DatabaseConnection, stmt string, _ map[string]string) (bool, error) {
+	r.Statements = append(r.Statements, stmt)
+	return true, nil
+}
+
+func (r *txtarRecorder) Reset() {
+	r.Statements = nil
+}
+
+func containsStatement(statements []string, needle string) bool {
+	for _, statement := range statements {
+		if strings.Contains(statement, needle) {
+			return true
+		}
+	}
+	return false
+}
+
 // SumProbe measures distance to atlas.sum: can Ptah parse the file, and does
 // Ptah's own hash of the directory match Atlas's? (#274)
 type SumProbe struct{}
@@ -112,6 +291,9 @@ type SumProbe struct{}
 func (SumProbe) Name() string { return "sum-compat" }
 
 func (SumProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	if fx.SumFile == "" {
 		return nil
 	}
@@ -158,7 +340,7 @@ func (SumProbe) Run(fx Fixture) []Result {
 		}
 		out = append(out, Result{"sum-compat", fx.Name, "recompute", Gap,
 			fmt.Sprintf("Ptah hashes %s entries here and its dir hash differs from atlas.sum — "+
-				"Ptah only hashes NNNNNNNNNN_desc.(up|down).sql files, so it skips Atlas's", got),
+				"the remaining gap is hash compatibility, not Atlas file discovery", got),
 			"stokaro/ptah#274"})
 	}
 	return out
@@ -174,7 +356,13 @@ type LintProbe struct{}
 func (LintProbe) Name() string { return "lint-parity" }
 
 func (LintProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	if len(fx.SQLFiles) == 0 {
+		return nil
+	}
+	if fixtureContains(fx, "-- atlas:txtar") {
 		return nil
 	}
 	// Skip pure directive fixtures with no migration semantics.

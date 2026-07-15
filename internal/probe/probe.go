@@ -46,47 +46,127 @@ type Probe interface {
 	Run(fx Fixture) []Result
 }
 
-// Fixture is a vendored Atlas artifact under third_party/atlas.
+// FixtureKind identifies the shape of an Atlas test artifact.
+type FixtureKind string
+
+const (
+	FixtureKindSQLDir FixtureKind = "sql-dir"
+	FixtureKindTxtar  FixtureKind = "txtar"
+	FixtureKindHCL    FixtureKind = "hcl"
+	FixtureKindOther  FixtureKind = "other"
+)
+
+// Fixture is a vendored Atlas artifact under third_party/atlas/upstream or a
+// first-party Atlas-compatible regression artifact under testdata/atlas.
 type Fixture struct {
-	// Name is the corpus-relative label, e.g. "migrations/atlasexec-basic".
+	// Name is the corpus-relative label, e.g. "atlasexec/testdata/migrations".
 	Name string
+	// Kind describes whether the fixture is a SQL directory, txtar file, HCL file,
+	// or currently unsupported artifact.
+	Kind FixtureKind
 	// Dir is the absolute path to the fixture directory.
 	Dir string
+	// Files are all files that belong to this fixture, sorted.
+	Files []string
 	// SQLFiles are the .sql files in the fixture, sorted.
 	SQLFiles []string
 	// SumFile is the absolute path to atlas.sum, or "" if absent.
 	SumFile string
 }
 
-// LoadCorpus discovers fixtures under root (the third_party/atlas tree).
-// A directory that directly contains .sql files is one fixture.
+// LoadCorpus discovers every Atlas test artifact under root. Directories that
+// contain SQL migrations or atlas.sum become SQL directory fixtures. Standalone
+// txtar, HCL, and other testdata files become single-file fixtures so the report
+// can show them explicitly instead of silently ignoring them.
 func LoadCorpus(root string) ([]Fixture, error) {
-	byDir := map[string][]string{}
+	root = filepath.Clean(root)
+	allFiles := map[string]bool{}
+	dirFiles := map[string][]string{}
+	sqlByDir := map[string][]string{}
+	sumByDir := map[string]string{}
+
 	err := filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || !strings.HasSuffix(p, ".sql") {
+		if d.IsDir() {
 			return nil
 		}
-		byDir[filepath.Dir(p)] = append(byDir[filepath.Dir(p)], p)
+		allFiles[p] = true
+		dir := filepath.Dir(p)
+		dirFiles[dir] = append(dirFiles[dir], p)
+		switch {
+		case strings.HasSuffix(p, ".sql"):
+			sqlByDir[dir] = append(sqlByDir[dir], p)
+		case filepath.Base(p) == "atlas.sum":
+			sumByDir[dir] = p
+		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	var out []Fixture
-	for dir, sqls := range byDir {
-		sort.Strings(sqls)
-		rel, _ := filepath.Rel(root, dir)
-		fx := Fixture{Name: filepath.ToSlash(rel), Dir: dir, SQLFiles: sqls}
-		if sum := filepath.Join(dir, "atlas.sum"); fileExists(sum) {
-			fx.SumFile = sum
-		}
-		out = append(out, fx)
+	claimed := map[string]bool{}
+	fixtureDirs := map[string]bool{}
+	for dir := range sqlByDir {
+		fixtureDirs[dir] = true
 	}
+	for dir := range sumByDir {
+		fixtureDirs[dir] = true
+	}
+	for dir := range fixtureDirs {
+		files := append([]string(nil), dirFiles[dir]...)
+		sort.Strings(files)
+		for _, f := range files {
+			claimed[f] = true
+		}
+		sqls := append([]string(nil), sqlByDir[dir]...)
+		sort.Strings(sqls)
+		out = append(out, Fixture{
+			Name:     relName(root, dir),
+			Kind:     FixtureKindSQLDir,
+			Dir:      dir,
+			Files:    files,
+			SQLFiles: sqls,
+			SumFile:  sumByDir[dir],
+		})
+	}
+
+	for file := range allFiles {
+		if claimed[file] {
+			continue
+		}
+		out = append(out, Fixture{
+			Name:  relName(root, file),
+			Kind:  classifyFileFixture(file),
+			Dir:   filepath.Dir(file),
+			Files: []string{file},
+		})
+	}
+
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out, nil
+}
+
+func classifyFileFixture(file string) FixtureKind {
+	switch strings.ToLower(filepath.Ext(file)) {
+	case ".txtar":
+		return FixtureKindTxtar
+	case ".hcl":
+		return FixtureKindHCL
+	default:
+		return FixtureKindOther
+	}
+}
+
+func relName(root, path string) string {
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		return filepath.ToSlash(path)
+	}
+	return filepath.ToSlash(rel)
 }
 
 // guard runs fn, converting a panic into a (panicked=true, msg) pair so a Ptah
@@ -100,9 +180,4 @@ func guard(fn func()) (panicked bool, msg string) {
 	}()
 	fn()
 	return false, ""
-}
-
-func fileExists(p string) bool {
-	_, err := os.Stat(p)
-	return err == nil
 }

@@ -69,7 +69,9 @@ func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) 
 	fmt.Fprintf(&b, "- Atlas fixtures pinned at `ariga/atlas@%s`\n", atlasSHA)
 	fmt.Fprintf(&b, "- Ptah at `%s`\n", ptahVersion)
 	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n", s.OK, s.Gap, s.Fail, s.Panic)
-	fmt.Fprintf(&b, "- Gate: **%d unwaived** (fails CI), %d waived\n\n", len(unwaived), s.Gap+s.Fail+s.Panic-len(unwaived))
+	fmt.Fprintf(&b, "- Gate: **%d unwaived** (fails CI), %d waived\n", len(unwaived), s.Gap+s.Fail+s.Panic-len(unwaived))
+	writeCorpusSummary(&b, results)
+	b.WriteString("\n")
 
 	// Gaps/fails/panics first — the actionable part — most severe first.
 	order := map[Outcome]int{Panic: 0, Fail: 1, Gap: 2, OK: 3}
@@ -127,6 +129,26 @@ func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) 
 	}
 
 	return b.String()
+}
+
+func writeCorpusSummary(b *strings.Builder, results []Result) {
+	var imported, measured, unmeasured int
+	for _, r := range results {
+		if r.Probe != "corpus-inventory" {
+			continue
+		}
+		imported++
+		if r.Outcome == OK {
+			measured++
+		} else {
+			unmeasured++
+		}
+	}
+	if imported == 0 {
+		return
+	}
+	fmt.Fprintf(b, "- Corpus inventory: **%d imported fixture(s)**, **%d measured**, **%d imported-but-unmeasured**\n",
+		imported, measured, unmeasured)
 }
 
 func badge(o Outcome) string {

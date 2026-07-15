@@ -1,0 +1,112 @@
+apply 1.hcl
+cmpshow users 1.sql
+
+apply 2.hcl
+cmpshow users 2.sql
+
+# Drop the enum.
+apply 3.hcl
+cmpshow users 3.sql
+
+# Add it back.
+apply 2.hcl
+cmpshow users 2.sql
+
+# Test schema output.
+atlas schema inspect -u URL --format '{{ sql . "  " }}' > got.sql
+cmp got.sql want.sql
+
+# Rename the column.
+apply 4.hcl
+cmpshow users 4.sql
+
+-- 1.hcl --
+schema "$db" {}
+
+enum "status" {
+    schema = schema.$db
+    values = ["active", "inactive"]
+}
+
+table "users" {
+  schema = schema.$db
+  column "type" {
+    type = enum.status
+    default = "active"
+  }
+}
+
+-- 1.sql --
+                          Table "script_column_enum.users"
+ Column |           Type            | Collation | Nullable |               Default
+--------+---------------------------+-----------+----------+-------------------------------------
+ type   | script_column_enum.status |           | not null | 'active'::script_column_enum.status
+
+
+-- 2.hcl --
+schema "$db" {}
+
+enum "status" {
+  schema = schema.$db
+  values = ["active", "inactive"]
+}
+
+table "users" {
+  schema = schema.$db
+  column "type" {
+    type = enum.status
+    default = "inactive"
+  }
+}
+
+-- 2.sql --
+                                 Table "script_column_enum.users"
+ Column |           Type            | Collation | Nullable |                Default
+--------+---------------------------+-----------+----------+---------------------------------------
+ type   | script_column_enum.status |           | not null | 'inactive'::script_column_enum.status
+
+-- 3.hcl --
+schema "$db" {}
+
+table "users" {
+  schema = schema.$db
+  column "int" {
+    type = int
+    default = 1
+  }
+}
+
+-- 3.sql --
+         Table "script_column_enum.users"
+ Column |  Type   | Collation | Nullable | Default
+--------+---------+-----------+----------+---------
+ int    | integer |           | not null | 1
+
+-- want.sql --
+-- Create enum type "status"
+CREATE TYPE "status" AS ENUM ('active', 'inactive');
+-- Create "users" table
+CREATE TABLE "users" (
+  "type" "status" NOT NULL DEFAULT 'inactive'
+);
+-- 4.hcl --
+schema "$db" {}
+
+enum "status" {
+  schema = schema.$db
+  values = ["active", "inactive"]
+}
+
+table "users" {
+  schema = schema.$db
+  column "renamed" {
+    type = enum.status
+    default = "inactive"
+  }
+}
+
+-- 4.sql --
+                                  Table "script_column_enum.users"
+ Column  |           Type            | Collation | Nullable |                Default
+---------+---------------------------+-----------+----------+---------------------------------------
+ renamed | script_column_enum.status |           | not null | 'inactive'::script_column_enum.status

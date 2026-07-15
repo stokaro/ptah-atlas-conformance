@@ -14,10 +14,13 @@ The generated report is [`gaps.md`](./gaps.md). It is a coverage map, not a
 quality score: a `gap` is a thing Atlas expresses that Ptah does not model yet,
 and each row links the Ptah issue that tracks closing it.
 
-**This is not a full feature-set parity test.** It is a small offline probe over
-a seed corpus, and most of Atlas's open-source surface is not exercised at all.
-[`PARITY.md`](./PARITY.md) states exactly what is and is not tested, and what a
-real parity test would require — read it before quoting any number from here.
+**This is not a full feature-set parity test.** The repository now vendors every
+file under Atlas's open-source `*/testdata/*` tree at the pinned commit (286 files, grouped into report fixtures), plus a
+small first-party Atlas-compatible regression fixture for gaps not present in the
+upstream snapshot. The report distinguishes fixtures that are actually measured
+from fixtures that are merely imported and still lack a probe. [`PARITY.md`](./PARITY.md)
+states exactly what is and is not tested — read it before quoting any number from
+here.
 
 ## Why this is a separate repository
 
@@ -38,8 +41,10 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 
 | Probe | Question | Ptah API exercised |
 | --- | --- | --- |
+| `corpus-inventory` | Is every vendored Atlas test artifact visible in the generated report, including imported-but-unmeasured `.txtar`/`.hcl` fixtures? | harness |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas's SQL in its AST? (round-trip / `read-db` / `compare` — **not** apply, which execs raw SQL) | `core/parser` |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | `migration/migrator` |
+| `txtar-down` | Does Ptah load Atlas txtar migrations with an embedded `down.sql` section? | `migration/migrator` |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does Ptah's own hash reproduce it? | `migration/migratesum` |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |
 
@@ -75,8 +80,10 @@ make verify       # build, vet, and assert Ptah's tree would gain no Apache file
 
 Both sides are pinned for reproducibility:
 
-- Atlas fixtures: `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`, vendored
-  under `third_party/atlas/` (never fetched at run time).
+- Atlas fixtures: every file under `*/testdata/*` from
+  `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`, vendored under
+  `third_party/atlas/upstream/` (never fetched at run time). The exact file list
+  is `third_party/atlas/MANIFEST.txt`.
 - Ptah: pinned in `go.mod`. Bump it to measure a newer Ptah.
 
 ## Relationship to Ptah issues

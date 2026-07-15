@@ -6,35 +6,442 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 10 unwaived gap(s)
+## Status: NOT DONE — 275 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260714232356-10c4882cafdc`
-- Outcomes: **3 ok**, **10 gap**, **0 fail**, **0 panic**
-- Gate: **10 unwaived** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260715140342-f1d10fe13ac9`
+- Outcomes: **140 ok**, **249 gap**, **26 fail**, **0 panic**
+- Gate: **275 unwaived** (fails CI), 0 waived
+- Corpus inventory: **158 imported fixture(s)**, **47 measured**, **111 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | lint-parity | `directives` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | lint-parity | `migrations/atlasexec-basic` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
-| **RED** | **gap** | lint-parity | `migrations/postgres-schema` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | migdir-ingest | `directives` | recognize | Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
-| **RED** | **gap** | migdir-ingest | `migrations/atlasexec-basic` | recognize | Ptah recognizes 0/3 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
-| **RED** | **gap** | migdir-ingest | `migrations/postgres-schema` | recognize | Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
-| **RED** | **gap** | sql-parse | `directives/10_delimiter_comment.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
-| **RED** | **gap** | sql-parse | `migrations/atlasexec-basic/20230926085734_destructive-change.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
-| **RED** | **gap** | sql-parse | `migrations/postgres-schema/1_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: SCHEMA at position 7 |  |
-| **RED** | **gap** | sum-compat | `migrations/atlasexec-basic` | recompute | Ptah hashes 0 entries here and its dir hash differs from atlas.sum — Ptah only hashes NNNNNNNNNN_desc.(up\|down).sql files, so it skips Atlas's | #274 |
-| — | ok | sql-parse | `migrations/atlasexec-basic/20230727105553_init.sql` | round-trip | parsed 1 statement(s) |  |
-| — | ok | sql-parse | `migrations/atlasexec-basic/20230727105615_t2.sql` | round-trip | parsed 1 statement(s) |  |
-| — | ok | sum-compat | `migrations/atlasexec-basic` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/B2__baseline.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 126 | #133 |
+| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/2_baseline.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 126 | #133 |
+| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/mysql/20220420213403_second.sql` | round-trip | parse error on Atlas DDL: expected ALTER operation, got Operator at position 22 | #133 |
+| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/1.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
+| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/2.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
+| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
+| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/13_delimiter_mysql_command.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
+| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/18_pg_expr.sql` | round-trip | parse error on Atlas DDL: expected index name, got String at position 27 | #133 |
+| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/2_mysql.sql` | round-trip | parse error on Atlas DDL: expected '(' after table name: expected Operator, got Identifier at position 83 | #133 |
+| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/6_skip_comment.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 38 | #133 |
+| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lexescaped/1.my.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 150 | #133 |
+| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lexescaped/2.pg.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 72 | #133 |
+| **RED** | **fail** | sql-parse | `sql/sqltool/testdata/flyway/B2__baseline.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 126 | #133 |
+| **RED** | **fail** | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recompute | no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql | #274 |
+| **RED** | **fail** | sum-compat | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recompute | no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql | #274 |
+| **RED** | **fail** | sum-compat | `atlasexec/testdata/broken` | recompute | no migration files matched format "auto"; unrecognized SQL files: 20231029112426.sql | #274 |
+| **RED** | **fail** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline1` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1_baseline.sql | #274 |
+| **RED** | **fail** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql | #274 |
+| **RED** | **fail** | sum-compat | `cmd/atlas/internal/migrate/testdata/broken` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #274 |
+| **RED** | **fail** | sum-compat | `cmd/atlas/internal/migrate/testdata/fixed` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #274 |
+| **RED** | **fail** | sum-compat | `internal/integration/testdata/migrations/mysql` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql | #274 |
+| **RED** | **fail** | sum-compat | `internal/integration/testdata/migrations/mysqlock` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #274 |
+| **RED** | **fail** | sum-compat | `internal/integration/testdata/migrations/postgres` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql | #274 |
+| **RED** | **fail** | sum-compat | `sql/migrate/testdata/migrate` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, sub/1.a_sub.up.sql, sub/2.10.x-20_description.sql, sub/3_partly.sql | #274 |
+| **RED** | **fail** | sum-compat | `sql/migrate/testdata/migrate/sub` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1.a_sub.up.sql, 2.10.x-20_description.sql, 3_partly.sql | #274 |
+| **RED** | **fail** | sum-compat | `sql/migrate/testdata/partial-checkpoint` | recompute | no migration files matched format "auto"; unrecognized SQL files: 1_first.sql, 2_second.sql, 3_checkpoint.sql, 4_fourth.sql, 5_checkpoint.sql, 6_sixth.sql | #274 |
+| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/autoincrement.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/check-maria.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/check.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-add-drop.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-bit.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-bool.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-charset.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-default-expr.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-generated.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-json.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/foreign-key-add.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/foreign-key.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/index-add-drop.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/index-desc.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/index-expr.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/index-prefix.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/index-type.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/index-unique.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/primary-key-parts.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/primary-key.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/mysql/table-engine.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/cli-inspect-file.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/cli-inspect.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/cli-migrate-status.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-array.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-bit.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-comment.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-default.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-domain.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-enum-array.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-enum.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-float.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-identity.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-interval.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-numeric.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-range.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-serial.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-textsearch.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/column-time-precision.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/foreign-key-action.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/foreign-key.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-desc.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-expr.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-include.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-issue-557.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-operator-class.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-partial.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-type-brin.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-type.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/primary-key.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/table-checks.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/postgres/table-partition.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/autoincrement.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-inspect.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-diff-minimal-env.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/column-default.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/column-generated.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/column-user-defined.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/index-desc.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/index-expr.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/index-partial.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `internal/integration/testdata/sqlite/table-options.txtar` | unmeasured | Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet | #285 |
+| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/a.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/b.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/nested/c.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/variables.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
+| **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
+| **RED** | **gap** | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `atlasexec/testdata/broken` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline1` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | linter produced no findings | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | linter produced no findings | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | linter produced no findings | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | linter produced no findings | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | linter produced no findings | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/migrate/testdata/broken` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/migrate/testdata/fixed` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `internal/integration/testdata/migrations/mysql` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `internal/integration/testdata/migrations/mysqlock` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `internal/integration/testdata/migrations/postgres` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/golang-migrate` | lint | only file-convention findings (MF101, MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/lex` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/lexescaped` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/lexgroup` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/migrate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103, MF101); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/migrate/sub` | lint | only file-convention findings (MF101, MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/partial-checkpoint` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/migrate/testdata/sqlserver` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/dbmate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/goose` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/liquibase` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | migdir-ingest | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 20240112070806.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `atlasexec/testdata/broken` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 20231029112426.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/baseline1` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_baseline.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/baseline2` | recognize | Ptah recognizes only 2/3 files | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 2_baseline.sql, 3R_views.sql, 3_third_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, 2_second_migration.down.sql, 2_second_migration.up.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/goose` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/migrate/testdata/broken` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/migrate/testdata/fixed` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `internal/integration/testdata/migrations/mysql` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `internal/integration/testdata/migrations/mysqlock` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 2.sql, 3.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `internal/integration/testdata/migrations/postgres` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/golang-migrate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_base.up.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/lex` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql, 10_delimiter_comment.sql, 11_delimiter_mysql_command.sql, 12_delimiter_mysql_command.sql, 13_delimiter_mysql_command.sql, 14_delimiter_mysql_command.sql, 15_dollar_quo… | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/lexbegintry` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/lexescaped` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.my.sql, 2.pg.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/lexgroup` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_trigger.sql, 2_function.sql, 3_delimiter.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/migrate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, sub/1.a_sub.up.sql, sub/2.10.x-20_description.sql, sub/3_partly.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/migrate/sub` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1.a_sub.up.sql, 2.10.x-20_description.sql, 3_partly.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/partial-checkpoint` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_first.sql, 2_second.sql, 3_checkpoint.sql, 4_fourth.sql, 5_checkpoint.sql, 6_sixth.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/migrate/testdata/sqlserver` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_return_table.sql, 2_function.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/sqltool/testdata/dbmate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/sqltool/testdata/golang-migrate` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, 2_second_migration.down.sql, 2_second_migration.up.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/sqltool/testdata/goose` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | migdir-ingest | `sql/sqltool/testdata/liquibase` | recognize | Ptah cannot discover this Atlas migration directory: no migration files matched format "auto"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql | #273 |
+| **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
+| **RED** | **gap** | sql-parse | `atlasexec/testdata/migrations/20230926085734_destructive-change.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 238 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 222 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/R__views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/U1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 165 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3R_views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 167 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 152 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 100 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/liquibase/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 322 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 218 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/mysql/20220318104614_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: DATABASE at position 42 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: ASDASD at position 38 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094021_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 346 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094437_third.sql` | round-trip | parser does not model this construct: unsupported SQL statement: PRAGMA at position 55 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925094021_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 346 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925094437_third.sql` | round-trip | parser does not model this construct: unsupported SQL statement: PRAGMA at position 55 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3/20220925094021_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 112 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/3.sql` | round-trip | parser does not model this construct: unsupported SQL statement: THIS at position 53 |  |
+| **RED** | **gap** | sql-parse | `internal/integration/testdata/migrations/mysql/1_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: SCHEMA at position 7 |  |
+| **RED** | **gap** | sql-parse | `internal/integration/testdata/migrations/mysqlock/1.sql` | round-trip | parser does not model this construct: unsupported SQL statement: SELECT at position 60 |  |
+| **RED** | **gap** | sql-parse | `internal/integration/testdata/migrations/mysqlock/2.sql` | round-trip | parser does not model this construct: unsupported SQL statement: SELECT at position 124 |  |
+| **RED** | **gap** | sql-parse | `internal/integration/testdata/migrations/mysqlock/3.sql` | round-trip | parser does not model this construct: unsupported SQL statement: SELECT at position 30 |  |
+| **RED** | **gap** | sql-parse | `internal/integration/testdata/migrations/postgres/1_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: SCHEMA at position 7 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 55 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/12_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/14_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/15_dollar_quote.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 7 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/16_begin_atomic.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 7 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/17_paren.sql` | round-trip | parser does not model this construct: unsupported ALTER operation: T at position 17 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | round-trip | parser does not model this construct: unsupported SQL statement: GO at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/20_ms_go-delim.sql` | round-trip | parser does not model this construct: unsupported SQL statement: GO at position 25 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/5_delimiter.sql` | round-trip | parser does not model this construct: unsupported CREATE target: DEFINER at position 41 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/7_delimiter_2n.sql` | round-trip | parser does not model this construct: unsupported CREATE target: EXTENSION at position 32 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/8_delimiter_3n.sql` | round-trip | parser does not model this construct: unsupported CREATE target: EXTENSION at position 34 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/9_delimiter_3n.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexbegintry/1.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/1_trigger.sql` | round-trip | parser does not model this construct: unsupported CREATE target: TRIGGER at position 30 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/2_function.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 76 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/migrate/1_initial.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/sqlserver/1_return_table.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 7 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/sqlserver/2_function.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 32 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/dbmate/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 198 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/flyway/R__views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/flyway/U1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/flyway/V1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 165 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/golang-migrate/1_initial.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/golang-migrate/2_second_migration.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 167 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/liquibase/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 322 |  |
+| **RED** | **gap** | sum-compat | `atlasexec/testdata/migrations` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline2` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/mysql` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `atlasexec/testdata/broken` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `atlasexec/testdata/migrations` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/baseline1` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/baseline2` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/flyway` | import | imported SQL directory: 6 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | import | imported SQL directory: 3 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | import | imported SQL directory: 4 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/goose` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/mysql` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/sqlite` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/templatedir` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/cmdapi/testdata/templatedir/shared` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/migrate/testdata/broken` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `cmd/atlas/internal/migrate/testdata/fixed` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `internal/integration/testdata/migrations/mysql` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `internal/integration/testdata/migrations/mysqlock` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `internal/integration/testdata/migrations/postgres` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/golang-migrate` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/lex` | import | imported SQL directory: 20 sql file(s), atlas.sum=false, 20 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/lexbegintry` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 1 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/lexescaped` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 2 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/lexgroup` | import | imported SQL directory: 3 sql file(s), atlas.sum=false, 3 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/migrate` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/migrate/sub` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/partial-checkpoint` | import | imported SQL directory: 6 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/migrate/testdata/sqlserver` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 2 support file(s) |  |
+| — | ok | corpus-inventory | `sql/sqltool/testdata/dbmate` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/sqltool/testdata/flyway` | import | imported SQL directory: 6 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/sqltool/testdata/flyway/v3` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/sqltool/testdata/golang-migrate` | import | imported SQL directory: 4 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/sqltool/testdata/goose` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `sql/sqltool/testdata/liquibase` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `txtar-down` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | corpus-inventory | `txtar-down-boundary` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | lint-parity | `atlasexec/testdata/migrations` | lint | content findings: DS101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101, BC101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101, BC101 |  |
+| — | ok | migdir-ingest | `atlasexec/testdata/migrations` | recognize | all 3 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/mysql` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlite` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | recognize | all 3 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | recognize | all 3 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `txtar-down` | recognize | all 1 files recognized |  |
+| — | ok | migdir-ingest | `txtar-down-boundary` | recognize | all 1 files recognized |  |
+| — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240116003831.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `atlasexec/internal/e2e/testdata/versioned-basic/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `atlasexec/testdata/migrations/20230727105553_init.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `atlasexec/testdata/migrations/20230727105615_t2.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline1/1_baseline.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline2/1_baseline.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline2/20220318104614_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline2/20220318104615_second.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V2__second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V3__third_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3_third_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold/1_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/liquibase/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104614_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104615_second.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104614_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925092817_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925092817_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3/20220925092817_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4/20220925092817_initial.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4/20220925094021_second.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/1.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/2.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/1.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/2.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/3.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/golang-migrate/1_base.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lex/1.sql` | round-trip | parsed 6 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lex/3_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lex/4_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/migrate/sub/1.a_sub.up.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/migrate/sub/2.10.x-20_description.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/migrate/sub/3_partly.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/1_first.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/2_second.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/3_checkpoint.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/4_fourth.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/5_checkpoint.sql` | round-trip | parsed 3 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/6_sixth.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/flyway/V2__second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/flyway/V3__third_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/flyway/v3/V3_1__fourth_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/golang-migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/golang-migrate/2_second_migration.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/liquibase/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `atlasexec/testdata/broken` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `atlasexec/testdata/migrations` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline1` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline2` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/mysql` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/templatedir` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/migrate/testdata/broken` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/migrate/testdata/fixed` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `internal/integration/testdata/migrations/mysql` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `internal/integration/testdata/migrations/mysqlock` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `internal/integration/testdata/migrations/postgres` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `sql/migrate/testdata/migrate` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `sql/migrate/testdata/migrate/sub` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `sql/migrate/testdata/partial-checkpoint` | parse-sum | parsed atlas.sum: dir hash + 6 entries | #274 |
+| — | ok | txtar-down | `txtar-down` | 20240305171146/up | migration.sql captured 2 statement(s) |  |
+| — | ok | txtar-down | `txtar-down` | 20240305171146/down | down.sql captured 1 statement(s) |  |
+| — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/up | migration.sql captured 1 statement(s) |  |
+| — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/down | down.sql captured 2 statement(s) |  |
 
 ## Gaps by related issue
 
-- **stokaro/ptah#273** — 6 finding(s)
-- **stokaro/ptah#274** — 1 finding(s)
+- **stokaro/ptah#133** — 13 finding(s)
+- **stokaro/ptah#273** — 71 finding(s)
+- **stokaro/ptah#274** — 22 finding(s)
+- **stokaro/ptah#276** — 8 finding(s)
+- **stokaro/ptah#285** — 101 finding(s)
+- **stokaro/ptah#289** — 2 finding(s)

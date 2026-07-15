@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 )
@@ -18,17 +19,25 @@ import (
 const atlasSHA = "a5e0aecc2bb64143bf522734f8ad88e04885fca6"
 
 func main() {
-	corpus := flag.String("corpus", "third_party/atlas", "root of the vendored Atlas fixtures")
+	corpus := flag.String("corpus", "third_party/atlas/upstream,testdata/atlas", "comma-separated roots of Atlas-compatible fixtures")
 	mdOut := flag.String("md", "gaps.md", "markdown report output path")
 	jsonOut := flag.String("json", "gaps.json", "json report output path")
 	waiverFile := flag.String("waivers", "waivers.txt", "path to the waivers file")
 	gate := flag.Bool("gate", false, "exit non-zero if any unwaived gap/fail/panic remains (the conformance gate)")
 	flag.Parse()
 
-	fixtures, err := probe.LoadCorpus(*corpus)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "load corpus:", err)
-		os.Exit(2)
+	var fixtures []probe.Fixture
+	for _, root := range strings.Split(*corpus, ",") {
+		root = strings.TrimSpace(root)
+		if root == "" {
+			continue
+		}
+		loaded, err := probe.LoadCorpus(root)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "load corpus:", err)
+			os.Exit(2)
+		}
+		fixtures = append(fixtures, loaded...)
 	}
 	if len(fixtures) == 0 {
 		fmt.Fprintln(os.Stderr, "no fixtures found under", *corpus)

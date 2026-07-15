@@ -1,66 +1,2522 @@
 [
   {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/testdata/broken",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "atlasexec/testdata/migrations",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 6 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 4 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir/shared",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/migrations/mysql",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/migrations/mysqlock",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/migrations/postgres",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/autoincrement.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/check.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-inspect-file.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-apply.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-project-schemas.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-project-url-escape.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-bit.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-bool.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-charset.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-default-expr.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-generated-inspect.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-generated.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-json.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-time-precision-maria.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/column-time-precision-mysql.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/foreign-key-modify-action.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/foreign-key.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/index-add-drop.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/index-desc.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/index-expr.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/index-prefix.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/index-type.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/index-unique.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/primary-key.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/mysql/table-engine.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/cli-inspect-file.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/cli-inspect.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-diff.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-status.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-array.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-bit.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-comment.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-default.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-domain.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-enum.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-float.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-generated-inspect.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-identity.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-interval.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-numeric.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-range.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-serial.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-textsearch.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/column-time-precision.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/foreign-key-action.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/foreign-key.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-expr.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-include.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-issue-557.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-nulls-distinct.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-operator-class.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-partial.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-type-brin.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-type.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/index-unique-constraint.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/primary-key.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/table-checks.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/postgres/table-partition.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/autoincrement.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-apply-multifile.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-apply-vars.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-inspect.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-minimal-env.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-project-vars.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/cli-schema-project-file.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/column-default.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/column-generated.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/column-user-defined.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/index-desc.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/index-expr.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/index-partial.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "internal/integration/testdata/sqlite/table-options.txtar",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "schemahcl/testdata/a.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "schemahcl/testdata/b.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "schemahcl/testdata/nested/c.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "schemahcl/testdata/variables.hcl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sdk/tmplrun/testdata/app.tmpl",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet",
+    "issue": "stokaro/ptah#289"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sdk/tmplrun/testdata/foo.go",
+    "stage": "unmeasured",
+    "outcome": "gap",
+    "detail": "Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet",
+    "issue": "stokaro/ptah#289"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/golang-migrate",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/lex",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 20 sql file(s), atlas.sum=false, 20 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/lexbegintry",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 1 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/lexescaped",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 2 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/lexgroup",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=false, 3 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/migrate",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/migrate/sub",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/partial-checkpoint",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 6 sql file(s), atlas.sum=true, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/migrate/testdata/sqlserver",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 2 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/sqltool/testdata/dbmate",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/sqltool/testdata/flyway",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 6 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/sqltool/testdata/flyway/v3",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/sqltool/testdata/golang-migrate",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 4 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/sqltool/testdata/goose",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "sql/sqltool/testdata/liquibase",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "txtar-down",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "txtar-down-boundary",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
     "probe": "sql-parse",
-    "fixture": "directives/10_delimiter_comment.sql",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240112070806.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240116003831.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations/20240112070806.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "atlasexec/testdata/broken/20231029112426.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34"
+    "detail": "parser does not model this construct: unsupported SQL statement: BROKEN at position 0"
   },
   {
     "probe": "sql-parse",
-    "fixture": "migrations/atlasexec-basic/20230727105553_init.sql",
+    "fixture": "atlasexec/testdata/migrations/20230727105553_init.sql",
     "stage": "round-trip",
     "outcome": "ok",
     "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
-    "fixture": "migrations/atlasexec-basic/20230727105615_t2.sql",
+    "fixture": "atlasexec/testdata/migrations/20230727105615_t2.sql",
     "stage": "round-trip",
     "outcome": "ok",
     "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
-    "fixture": "migrations/atlasexec-basic/20230926085734_destructive-change.sql",
+    "fixture": "atlasexec/testdata/migrations/20230926085734_destructive-change.sql",
     "stage": "round-trip",
     "outcome": "gap",
     "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
   },
   {
     "probe": "sql-parse",
-    "fixture": "migrations/postgres-schema/1_initial.sql",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1/1_baseline.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2/1_baseline.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2/20220318104614_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2/20220318104615_second.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 238"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 222"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/B2__baseline.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 126",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/R__views.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: VIEW at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/U1__initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/V1__initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 165"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/V2__second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/V3__third_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/2_baseline.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 126",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3R_views.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: VIEW at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3_third_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.down.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.up.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.down.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.up.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 167"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: OR at position 144"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 152"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: OR at position 100"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 322"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 218"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql/20220318104614_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: DATABASE at position 42"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql/20220420213403_second.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected ALTER operation, got Operator at position 22",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104614_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104615_second.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104614_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: ASDASD at position 38"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925092817_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094021_second.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 346"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094437_third.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: PRAGMA at position 55"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925092817_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925094021_second.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 346"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925094437_third.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: PRAGMA at position 55"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3/20220925092817_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3/20220925094021_second.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 112"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4/20220925092817_initial.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4/20220925094021_second.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir/1.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir/2.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken/1.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken/2.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken/3.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: THIS at position 53"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed/1.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed/2.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed/3.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "internal/integration/testdata/migrations/mysql/1_initial.sql",
     "stage": "round-trip",
     "outcome": "gap",
     "detail": "parser does not model this construct: unsupported CREATE target: SCHEMA at position 7"
   },
   {
+    "probe": "sql-parse",
+    "fixture": "internal/integration/testdata/migrations/mysqlock/1.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: SELECT at position 60"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "internal/integration/testdata/migrations/mysqlock/2.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: SELECT at position 124"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "internal/integration/testdata/migrations/mysqlock/3.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: SELECT at position 30"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "internal/integration/testdata/migrations/postgres/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: SCHEMA at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/golang-migrate/1_base.up.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/1.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 6 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/10_delimiter_comment.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/11_delimiter_mysql_command.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 55"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/12_delimiter_mysql_command.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/13_delimiter_mysql_command.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/14_delimiter_mysql_command.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/15_dollar_quote.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: FUNCTION at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/16_begin_atomic.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: FUNCTION at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/17_paren.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported ALTER operation: T at position 17"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/18_pg_expr.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected index name, got String at position 27",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/19_ms_gocmd.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: GO at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/20_ms_go-delim.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: GO at position 25"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/2_mysql.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected '(' after table name: expected Operator, got Identifier at position 83",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/3_delimiter.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/4_delimiter.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/5_delimiter.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: DEFINER at position 41"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/6_skip_comment.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 38",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/7_delimiter_2n.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: EXTENSION at position 32"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/8_delimiter_3n.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: EXTENSION at position 34"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lex/9_delimiter_3n.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lexbegintry/1.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lexescaped/1.my.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 150",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lexescaped/2.pg.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 72",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lexgroup/1_trigger.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: TRIGGER at position 30"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lexgroup/2_function.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/lexgroup/3_delimiter.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: FUNCTION at position 76"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/migrate/1_initial.down.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/migrate/1_initial.up.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/migrate/sub/1.a_sub.up.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/migrate/sub/2.10.x-20_description.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/migrate/sub/3_partly.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/partial-checkpoint/1_first.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/partial-checkpoint/2_second.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/partial-checkpoint/3_checkpoint.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/partial-checkpoint/4_fourth.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/partial-checkpoint/5_checkpoint.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/partial-checkpoint/6_sixth.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/sqlserver/1_return_table.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: FUNCTION at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/migrate/testdata/sqlserver/2_function.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: FUNCTION at position 32"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/dbmate/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 198"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/dbmate/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/flyway/B2__baseline.sql",
+    "stage": "round-trip",
+    "outcome": "fail",
+    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 126",
+    "issue": "stokaro/ptah#133"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/flyway/R__views.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: VIEW at position 7"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/flyway/U1__initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/flyway/V1__initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 165"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/flyway/V2__second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/flyway/V3__third_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/flyway/v3/V3_1__fourth_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/golang-migrate/1_initial.down.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/golang-migrate/1_initial.up.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/golang-migrate/2_second_migration.down.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/golang-migrate/2_second_migration.up.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/goose/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 167"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/goose/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: OR at position 144"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/liquibase/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 322"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "sql/sqltool/testdata/liquibase/2_second_migration.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
     "probe": "migdir-ingest",
-    "fixture": "directives",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
     "stage": "recognize",
     "outcome": "gap",
-    "detail": "Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql",
     "issue": "stokaro/ptah#273"
   },
   {
     "probe": "migdir-ingest",
-    "fixture": "migrations/atlasexec-basic",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
     "stage": "recognize",
     "outcome": "gap",
-    "detail": "Ptah recognizes 0/3 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql",
     "issue": "stokaro/ptah#273"
   },
   {
     "probe": "migdir-ingest",
-    "fixture": "migrations/postgres-schema",
+    "fixture": "atlasexec/testdata/broken",
     "stage": "recognize",
     "outcome": "gap",
-    "detail": "Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 20231029112426.sql",
     "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "atlasexec/testdata/migrations",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_baseline.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah recognizes only 2/3 files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 2_baseline.sql, 3R_views.sql, 3_third_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, 2_second_migration.down.sql, 2_second_migration.up.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "internal/integration/testdata/migrations/mysql",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "internal/integration/testdata/migrations/mysqlock",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "internal/integration/testdata/migrations/postgres",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/golang-migrate",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_base.up.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/lex",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 10_delimiter_comment.sql, 11_delimiter_mysql_command.sql, 12_delimiter_mysql_command.sql, 13_delimiter_mysql_command.sql, 14_delimiter_mysql_command.sql, 15_dollar_quo…",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/lexbegintry",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/lexescaped",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.my.sql, 2.pg.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/lexgroup",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_trigger.sql, 2_function.sql, 3_delimiter.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/migrate",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, sub/1.a_sub.up.sql, sub/2.10.x-20_description.sql, sub/3_partly.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/migrate/sub",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.a_sub.up.sql, 2.10.x-20_description.sql, 3_partly.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/partial-checkpoint",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_first.sql, 2_second.sql, 3_checkpoint.sql, 4_fourth.sql, 5_checkpoint.sql, 6_sixth.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/migrate/testdata/sqlserver",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_return_table.sql, 2_function.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/sqltool/testdata/dbmate",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/sqltool/testdata/golang-migrate",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, 2_second_migration.down.sql, 2_second_migration.up.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/sqltool/testdata/goose",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "sql/sqltool/testdata/liquibase",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "txtar-down",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "txtar-down-boundary",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down",
+    "stage": "20240305171146/up",
+    "outcome": "ok",
+    "detail": "migration.sql captured 2 statement(s)"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down",
+    "stage": "20240305171146/down",
+    "outcome": "ok",
+    "detail": "down.sql captured 1 statement(s)"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down-boundary",
+    "stage": "20240305171147/up",
+    "outcome": "ok",
+    "detail": "migration.sql captured 1 statement(s)"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down-boundary",
+    "stage": "20240305171147/down",
+    "outcome": "ok",
+    "detail": "down.sql captured 2 statement(s)"
   },
   {
     "probe": "sum-compat",
-    "fixture": "migrations/atlasexec-basic",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql, 20240116003831.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 1 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 20240112070806.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "atlasexec/testdata/broken",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 1 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "atlasexec/testdata/broken",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 20231029112426.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "atlasexec/testdata/migrations",
     "stage": "parse-sum",
     "outcome": "ok",
     "detail": "parsed atlas.sum: dir hash + 3 entries",
@@ -68,15 +2524,303 @@
   },
   {
     "probe": "sum-compat",
-    "fixture": "migrations/atlasexec-basic",
+    "fixture": "atlasexec/testdata/migrations",
     "stage": "recompute",
     "outcome": "gap",
-    "detail": "Ptah hashes 0 entries here and its dir hash differs from atlas.sum — Ptah only hashes NNNNNNNNNN_desc.(up|down).sql files, so it skips Atlas's",
+    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 1 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1_baseline.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, shared/users.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "internal/integration/testdata/migrations/mysql",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 1 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "internal/integration/testdata/migrations/mysql",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "internal/integration/testdata/migrations/mysqlock",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "internal/integration/testdata/migrations/mysqlock",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 2.sql, 3.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "internal/integration/testdata/migrations/postgres",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 1 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "internal/integration/testdata/migrations/postgres",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "sql/migrate/testdata/migrate",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 2 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "sql/migrate/testdata/migrate",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, sub/1.a_sub.up.sql, sub/2.10.x-20_description.sql, sub/3_partly.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "sql/migrate/testdata/migrate/sub",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "sql/migrate/testdata/migrate/sub",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1.a_sub.up.sql, 2.10.x-20_description.sql, 3_partly.sql",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "sql/migrate/testdata/partial-checkpoint",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 6 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "sql/migrate/testdata/partial-checkpoint",
+    "stage": "recompute",
+    "outcome": "fail",
+    "detail": "no migration files matched format \"auto\"; unrecognized SQL files: 1_first.sql, 2_second.sql, 3_checkpoint.sql, 4_fourth.sql, 5_checkpoint.sql, 6_sixth.sql",
     "issue": "stokaro/ptah#274"
   },
   {
     "probe": "lint-parity",
-    "fixture": "directives",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
     "stage": "lint",
     "outcome": "gap",
     "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
@@ -84,7 +2828,46 @@
   },
   {
     "probe": "lint-parity",
-    "fixture": "migrations/atlasexec-basic",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "atlasexec/testdata/broken",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "atlasexec/testdata/migrations",
+    "stage": "lint",
+    "outcome": "ok",
+    "detail": "content findings: DS101"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
     "stage": "lint",
     "outcome": "gap",
     "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
@@ -92,10 +2875,272 @@
   },
   {
     "probe": "lint-parity",
-    "fixture": "migrations/postgres-schema",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
     "stage": "lint",
     "outcome": "gap",
     "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "linter produced no findings",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "linter produced no findings",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "linter produced no findings",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
+    "stage": "lint",
+    "outcome": "ok",
+    "detail": "content findings: DS101, BC101"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
+    "stage": "lint",
+    "outcome": "ok",
+    "detail": "content findings: DS101, BC101"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "linter produced no findings",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "linter produced no findings",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/migrate/testdata/broken",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "internal/integration/testdata/migrations/mysql",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "internal/integration/testdata/migrations/mysqlock",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "internal/integration/testdata/migrations/postgres",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/golang-migrate",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF101, MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/lex",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/lexbegintry",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/lexescaped",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/lexgroup",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/migrate",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103, MF101); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/migrate/sub",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF101, MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/partial-checkpoint",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/migrate/testdata/sqlserver",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/sqltool/testdata/dbmate",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/sqltool/testdata/golang-migrate",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/sqltool/testdata/goose",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "sql/sqltool/testdata/liquibase",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
     "issue": "stokaro/ptah#273"
   }
 ]
