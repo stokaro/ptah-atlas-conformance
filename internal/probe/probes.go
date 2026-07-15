@@ -397,10 +397,14 @@ func (LintProbe) Run(fx Fixture) []Result {
 		return []Result{{"lint-parity", fx.Name, "lint", OK,
 			"content findings: " + strings.Join(dedup(content), ", "), ""}}
 	case hasDrop:
-		return []Result{{"lint-parity", fx.Name, "lint", Gap,
-			"fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only " +
+		detail := "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings"
+		if len(structural) > 0 {
+			detail = "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only " +
 				"file-convention findings (" + strings.Join(dedup(structural), ", ") + "); it flags Atlas's " +
-				"file names rather than analyzing their content", "stokaro/ptah#273"}}
+				"file names rather than analyzing their content"
+		}
+		return []Result{{"lint-parity", fx.Name, "lint", Gap,
+			detail, "stokaro/ptah#273"}}
 	case len(structural) > 0:
 		return []Result{{"lint-parity", fx.Name, "lint", Gap,
 			"only file-convention findings (" + strings.Join(dedup(structural), ", ") + "); Ptah does not " +

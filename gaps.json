@@ -2150,73 +2150,65 @@
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
     "stage": "recognize",
     "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 2_baseline.sql, 3R_views.sql, 3_third_migration.sql",
+    "detail": "Ptah recognizes only 2/3 files",
     "issue": "stokaro/ptah#273"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, 2_second_migration.down.sql, 2_second_migration.up.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 4 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
@@ -2313,57 +2305,50 @@
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/golang-migrate",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_base.up.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/lex",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql, 10_delimiter_comment.sql, 11_delimiter_mysql_command.sql, 12_delimiter_mysql_command.sql, 13_delimiter_mysql_command.sql, 14_delimiter_mysql_command.sql, 15_dollar_quo…",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 20 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/lexbegintry",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/lexescaped",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1.my.sql, 2.pg.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/lexgroup",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_trigger.sql, 2_function.sql, 3_delimiter.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/migrate",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah recognizes only 1/2 files",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/migrate/sub",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah recognizes only 1/3 files",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
   },
   {
     "probe": "migdir-ingest",
@@ -2376,41 +2361,36 @@
     "probe": "migdir-ingest",
     "fixture": "sql/migrate/testdata/sqlserver",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_return_table.sql, 2_function.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/sqltool/testdata/dbmate",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/sqltool/testdata/golang-migrate",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.down.sql, 1_initial.up.sql, 2_second_migration.down.sql, 2_second_migration.up.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 4 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/sqltool/testdata/goose",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
     "fixture": "sql/sqltool/testdata/liquibase",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah cannot discover this Atlas migration directory: no migration files matched format \"auto\"; unrecognized SQL files: 1_initial.sql, 2_second_migration.sql",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "all 2 files recognized"
   },
   {
     "probe": "migdir-ingest",
@@ -2819,7 +2799,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2827,7 +2807,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2835,7 +2815,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2843,7 +2823,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2859,7 +2839,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2867,7 +2847,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2875,7 +2855,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2883,7 +2863,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2891,7 +2871,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2899,7 +2879,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2969,7 +2949,7 @@
     "fixture": "cmd/atlas/internal/migrate/testdata/broken",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2977,7 +2957,7 @@
     "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2985,7 +2965,7 @@
     "fixture": "internal/integration/testdata/migrations/mysql",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -2993,7 +2973,7 @@
     "fixture": "internal/integration/testdata/migrations/mysqlock",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3001,7 +2981,7 @@
     "fixture": "internal/integration/testdata/migrations/postgres",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3009,23 +2989,22 @@
     "fixture": "sql/migrate/testdata/golang-migrate",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF101, MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lex",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "content findings: DS101, PG101"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lexbegintry",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3033,7 +3012,7 @@
     "fixture": "sql/migrate/testdata/lexescaped",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3041,7 +3020,7 @@
     "fixture": "sql/migrate/testdata/lexgroup",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3049,7 +3028,7 @@
     "fixture": "sql/migrate/testdata/migrate",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103, MF101); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3057,7 +3036,7 @@
     "fixture": "sql/migrate/testdata/migrate/sub",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF101, MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3065,7 +3044,7 @@
     "fixture": "sql/migrate/testdata/partial-checkpoint",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3073,7 +3052,7 @@
     "fixture": "sql/migrate/testdata/sqlserver",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "detail": "linter produced no findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3081,7 +3060,7 @@
     "fixture": "sql/sqltool/testdata/dbmate",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3089,7 +3068,7 @@
     "fixture": "sql/sqltool/testdata/golang-migrate",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3097,7 +3076,7 @@
     "fixture": "sql/sqltool/testdata/goose",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   },
   {
@@ -3105,7 +3084,7 @@
     "fixture": "sql/sqltool/testdata/liquibase",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
     "issue": "stokaro/ptah#273"
   }
 ]
