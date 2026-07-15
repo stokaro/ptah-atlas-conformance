@@ -13,7 +13,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260715140342-f1d10fe13ac9`
-- Outcomes: **7 ok**, **8 gap**, **0 fail**, **0 panic**
+- Outcomes: **11 ok**, **8 gap**, **0 fail**, **0 panic**
 - Gate: **8 unwaived** (fails CI), 0 waived
 
 ## Findings
@@ -31,10 +31,14 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | lint-parity | `migrations/atlasexec-basic` | lint | content findings: DS101 |  |
 | — | ok | migdir-ingest | `migrations/atlasexec-basic` | recognize | all 3 files recognized |  |
 | — | ok | migdir-ingest | `txtar-down` | recognize | all 1 files recognized |  |
+| — | ok | migdir-ingest | `txtar-down-boundary` | recognize | all 1 files recognized |  |
 | — | ok | sql-parse | `migrations/atlasexec-basic/20230727105553_init.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `migrations/atlasexec-basic/20230727105615_t2.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sum-compat | `migrations/atlasexec-basic` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
-| — | ok | txtar-down | `txtar-down` | 20240305171146 | down.sql reached the SQL execution path |  |
+| — | ok | txtar-down | `txtar-down` | 20240305171146/up | migration.sql captured 2 statement(s) |  |
+| — | ok | txtar-down | `txtar-down` | 20240305171146/down | down.sql captured 1 statement(s) |  |
+| — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/up | migration.sql captured 1 statement(s) |  |
+| — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/down | down.sql captured 2 statement(s) |  |
 
 ## Gaps by related issue
 

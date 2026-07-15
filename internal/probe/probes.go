@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/stokaro/ptah/core/parser"
+	"github.com/stokaro/ptah/dbschema"
 	"github.com/stokaro/ptah/migration/lint"
 	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
@@ -112,10 +113,9 @@ func (MigDirProbe) Run(fx Fixture) []Result {
 }
 
 // AtlasTxtarDownProbe verifies that Atlas txtar files with a down.sql section
-// are loaded as migrations with an executable down function. The probe stays
-// offline: it calls Down with a nil connection and treats reaching the execution
-// path as success. A missing down section returns Ptah's typed dynamic-down gap
-// before touching the connection.
+// are loaded as migrations with executable, directionally separated SQL. The
+// probe stays offline by installing an interceptor that records and handles
+// every statement before any database connection is touched.
 type AtlasTxtarDownProbe struct{}
 
 func (AtlasTxtarDownProbe) Name() string { return "txtar-down" }
@@ -126,11 +126,13 @@ func (AtlasTxtarDownProbe) Run(fx Fixture) []Result {
 	}
 
 	var provider *migrator.FSMigrationProvider
+	recorder := &txtarRecorder{}
 	var err error
 	panicked, pmsg := guard(func() {
 		provider, err = migrator.NewFSMigrationProvider(
 			os.DirFS(fx.Dir),
 			migrator.WithMigrationDirFormat(migrator.MigrationDirFormatAtlas),
+			migrator.WithStatementInterceptor(recorder),
 		)
 	})
 	switch {
@@ -143,22 +145,80 @@ func (AtlasTxtarDownProbe) Run(fx Fixture) []Result {
 	var out []Result
 	for _, migration := range provider.Migrations() {
 		version := fmt.Sprintf("%d", migration.Version)
+		recorder.Reset()
+		panicked, pmsg = guard(func() {
+			err = migration.Up(context.Background(), nil)
+		})
+		switch {
+		case panicked:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Panic, oneLine(pmsg), "stokaro/ptah#128"})
+			continue
+		case err != nil:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Fail, "migration.sql failed before statement capture: " + oneLine(err.Error()), "stokaro/ptah#290"})
+			continue
+		case len(recorder.Statements) == 0:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Gap, "migration.sql loaded without executable statements", "stokaro/ptah#290"})
+			continue
+		case containsStatement(recorder.Statements, "ptah_conformance_txtar_extra_section_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Gap, "unknown txtar file section leaked into migration.sql execution", "stokaro/ptah#290"})
+			continue
+		case containsStatement(recorder.Statements, "ptah_conformance_txtar_down_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", Gap, "down.sql statements leaked into migration.sql execution", "stokaro/ptah#290"})
+			continue
+		default:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/up", OK, fmt.Sprintf("migration.sql captured %d statement(s)", len(recorder.Statements)), ""})
+		}
+
+		recorder.Reset()
 		panicked, pmsg = guard(func() {
 			err = migration.Down(context.Background(), nil)
 		})
 		var noDown *migrator.AtlasDownNotImplementedError
 		switch {
 		case panicked:
-			out = append(out, Result{"txtar-down", fx.Name, version, OK, "down.sql reached the SQL execution path", ""})
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Panic, oneLine(pmsg), "stokaro/ptah#128"})
 		case errors.As(err, &noDown):
-			out = append(out, Result{"txtar-down", fx.Name, version, Gap, "Atlas txtar migration loaded without down.sql execution support", "stokaro/ptah#290"})
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "Atlas txtar migration loaded without down.sql execution support", "stokaro/ptah#290"})
 		case err != nil:
-			out = append(out, Result{"txtar-down", fx.Name, version, OK, "down.sql produced an execution error after loading: " + oneLine(err.Error()), ""})
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Fail, "down.sql failed before statement capture: " + oneLine(err.Error()), "stokaro/ptah#290"})
+		case len(recorder.Statements) == 0:
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "down.sql loaded without executable statements", "stokaro/ptah#290"})
+		case containsStatement(recorder.Statements, "ptah_conformance_txtar_extra_section_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "unknown txtar file section leaked into down.sql execution", "stokaro/ptah#290"})
+		case fixtureContains(fx, "ptah_conformance_txtar_down_sentinel") &&
+			!containsStatement(recorder.Statements, "ptah_conformance_txtar_down_sentinel"):
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", Gap, "down.sql sentinel was not captured in down execution", "stokaro/ptah#290"})
 		default:
-			out = append(out, Result{"txtar-down", fx.Name, version, OK, "down.sql executed without statements", ""})
+			out = append(out, Result{"txtar-down", fx.Name, version + "/down", OK, fmt.Sprintf("down.sql captured %d statement(s)", len(recorder.Statements)), ""})
 		}
 	}
 	return out
+}
+
+type txtarRecorder struct {
+	Statements []string
+}
+
+func (r *txtarRecorder) ValidateDirectives(map[string]string) error {
+	return nil
+}
+
+func (r *txtarRecorder) ExecuteStatement(_ context.Context, _ *dbschema.DatabaseConnection, stmt string, _ map[string]string) (bool, error) {
+	r.Statements = append(r.Statements, stmt)
+	return true, nil
+}
+
+func (r *txtarRecorder) Reset() {
+	r.Statements = nil
+}
+
+func containsStatement(statements []string, needle string) bool {
+	for _, statement := range statements {
+		if strings.Contains(statement, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 // SumProbe measures distance to atlas.sum: can Ptah parse the file, and does

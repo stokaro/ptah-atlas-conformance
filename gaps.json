@@ -65,11 +65,39 @@
     "detail": "all 1 files recognized"
   },
   {
+    "probe": "migdir-ingest",
+    "fixture": "txtar-down-boundary",
+    "stage": "recognize",
+    "outcome": "ok",
+    "detail": "all 1 files recognized"
+  },
+  {
     "probe": "txtar-down",
     "fixture": "txtar-down",
-    "stage": "20240305171146",
+    "stage": "20240305171146/up",
     "outcome": "ok",
-    "detail": "down.sql reached the SQL execution path"
+    "detail": "migration.sql captured 2 statement(s)"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down",
+    "stage": "20240305171146/down",
+    "outcome": "ok",
+    "detail": "down.sql captured 1 statement(s)"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down-boundary",
+    "stage": "20240305171147/up",
+    "outcome": "ok",
+    "detail": "migration.sql captured 1 statement(s)"
+  },
+  {
+    "probe": "txtar-down",
+    "fixture": "txtar-down-boundary",
+    "stage": "20240305171147/down",
+    "outcome": "ok",
+    "detail": "down.sql captured 2 statement(s)"
   },
   {
     "probe": "sum-compat",
