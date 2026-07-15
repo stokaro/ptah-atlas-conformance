@@ -18,11 +18,65 @@ import (
 // AllProbes is the ordered set the CLI runs.
 func AllProbes() []Probe {
 	return []Probe{
+		CorpusProbe{},
 		ParseProbe{},
 		MigDirProbe{},
 		AtlasTxtarDownProbe{},
 		SumProbe{},
 		LintProbe{},
+	}
+}
+
+// CorpusProbe proves every imported Atlas test artifact is visible in the
+// generated report. SQL directory fixtures are measured by the concrete probes
+// below. Non-SQL Atlas fixtures stay red until the harness grows probes for
+// their semantics instead of silently ignoring them.
+type CorpusProbe struct{}
+
+func (CorpusProbe) Name() string { return "corpus-inventory" }
+
+func (CorpusProbe) Run(fx Fixture) []Result {
+	switch fx.Kind {
+	case FixtureKindSQLDir:
+		support := len(fx.Files) - len(fx.SQLFiles)
+		if fx.SumFile != "" {
+			support--
+		}
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "import",
+			Outcome: OK,
+			Detail: fmt.Sprintf("imported SQL directory: %d sql file(s), atlas.sum=%t, %d support file(s)",
+				len(fx.SQLFiles), fx.SumFile != "", support),
+		}}
+	case FixtureKindTxtar:
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "unmeasured",
+			Outcome: Gap,
+			Detail:  "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
+			Issue:   "stokaro/ptah#285",
+		}}
+	case FixtureKindHCL:
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "unmeasured",
+			Outcome: Gap,
+			Detail:  "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
+			Issue:   "stokaro/ptah#276",
+		}}
+	default:
+		return []Result{{
+			Probe:   "corpus-inventory",
+			Fixture: fx.Name,
+			Stage:   "unmeasured",
+			Outcome: Gap,
+			Detail:  "Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet",
+			Issue:   "stokaro/ptah#289",
+		}}
 	}
 }
 
@@ -33,6 +87,9 @@ type ParseProbe struct{}
 func (ParseProbe) Name() string { return "sql-parse" }
 
 func (ParseProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	var out []Result
 	for _, f := range fx.SQLFiles {
 		rel := fx.Name + "/" + filepath.Base(f)
@@ -86,6 +143,9 @@ type MigDirProbe struct{}
 func (MigDirProbe) Name() string { return "migdir-ingest" }
 
 func (MigDirProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	if fx.SumFile == "" && !looksVersioned(fx) {
 		return nil // not a migration directory
 	}
@@ -121,6 +181,9 @@ type AtlasTxtarDownProbe struct{}
 func (AtlasTxtarDownProbe) Name() string { return "txtar-down" }
 
 func (AtlasTxtarDownProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	if !fixtureContains(fx, "-- atlas:txtar") {
 		return nil
 	}
@@ -228,6 +291,9 @@ type SumProbe struct{}
 func (SumProbe) Name() string { return "sum-compat" }
 
 func (SumProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	if fx.SumFile == "" {
 		return nil
 	}
@@ -290,6 +356,9 @@ type LintProbe struct{}
 func (LintProbe) Name() string { return "lint-parity" }
 
 func (LintProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindSQLDir {
+		return nil
+	}
 	if len(fx.SQLFiles) == 0 {
 		return nil
 	}

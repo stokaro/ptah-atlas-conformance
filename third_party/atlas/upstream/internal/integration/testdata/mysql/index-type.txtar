@@ -1,0 +1,59 @@
+only mysql8 mysql57
+
+apply 1.hcl
+cmpshow users 1.sql
+
+# Drop an index.
+apply 2.hcl
+cmpshow users 2.sql
+
+atlas schema inspect --url file://schema.v1.sql --dev-url DEV_URL --format '{{ sql . }}'
+stdout '-- Create "geom" table'
+stdout 'CREATE TABLE `geom` \(`g` geometry NOT NULL, SPATIAL INDEX `idx` \(`g`\)\) .*'
+
+-- 1.hcl --
+schema "$db" {}
+
+table "users" {
+  schema = schema.$db
+  column "text" {
+    null = false
+    type = text
+  }
+  index "users_text" {
+    type = FULLTEXT
+    columns = [column.text]
+  }
+  index "ngram_text" {
+    type = FULLTEXT
+    parser = ngram
+    columns = [column.text]
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `users` (
+  `text` text NOT NULL,
+  FULLTEXT KEY `ngram_text` (`text`) /*!50100 WITH PARSER `ngram` */ ,
+  FULLTEXT KEY `users_text` (`text`)
+)
+
+-- 2.hcl --
+schema "$db" {}
+
+table "users" {
+  schema = schema.$db
+  column "text" {
+    null = false
+    type = text
+  }
+}
+
+-- 2.sql --
+CREATE TABLE `users` (
+  `text` text NOT NULL
+)
+-- schema.v1.sql --
+CREATE TABLE geom (g GEOMETRY NOT NULL);
+CREATE SPATIAL INDEX idx ON geom (g);
+

@@ -19,7 +19,7 @@ import (
 const atlasSHA = "a5e0aecc2bb64143bf522734f8ad88e04885fca6"
 
 func main() {
-	corpus := flag.String("corpus", "third_party/atlas,testdata/atlas", "comma-separated roots of Atlas-compatible fixtures")
+	corpus := flag.String("corpus", "third_party/atlas/upstream,testdata/atlas", "comma-separated roots of Atlas-compatible fixtures")
 	mdOut := flag.String("md", "gaps.md", "markdown report output path")
 	jsonOut := flag.String("json", "gaps.json", "json report output path")
 	waiverFile := flag.String("waivers", "waivers.txt", "path to the waivers file")

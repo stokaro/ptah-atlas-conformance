@@ -1,0 +1,65 @@
+apply 1.hcl
+
+# test url flag
+atlas schema inspect -u URL > inspected.hcl
+cmp inspected.hcl 1.hcl
+
+# test exclude flag on table.
+atlas schema inspect -u URL --exclude "users" > inspected.hcl
+cmp inspected.hcl notable.hcl
+
+# test exclude flag on column.
+atlas schema inspect -u URL --exclude "*.[ab]*" > inspected.hcl
+cmp inspected.hcl id.hcl
+
+# test exclude flag on column.
+atlas schema inspect -u URL --exclude "*.*" > inspected.hcl
+cmp inspected.hcl nocolumn.hcl
+
+
+-- 1.hcl --
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+  column "a" {
+    null = false
+    type = int
+  }
+  column "b" {
+    null = false
+    type = int
+  }
+  column "ab" {
+    null = false
+    type = int
+  }
+  column "ac" {
+    null = false
+    type = uint64
+  }
+}
+schema "main" {
+}
+-- empty.hcl --
+-- notable.hcl --
+schema "main" {
+}
+-- id.hcl --
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+}
+schema "main" {
+}
+-- nocolumn.hcl --
+table "users" {
+  schema = schema.main
+}
+schema "main" {
+}

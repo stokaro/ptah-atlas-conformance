@@ -3,24 +3,25 @@
 **This is not a full feature-set parity test, and no number in this repository
 should be read as one.**
 
-It is a small, offline, structural coverage probe over a **seed corpus of Atlas
-and Atlas-compatible fixtures**, run through narrow entry points of Ptah's public API. It
-exists to turn "are we there yet" from an opinion into a number that moves over
-time — but right now it measures a sliver, and the sliver already fails. Treat
-the results as a floor on the distance to Atlas, never a ceiling.
+It is an offline, structural coverage probe over the full vendored Atlas
+`*/testdata/*` snapshot plus first-party Atlas-compatible regression fixtures,
+run through narrow entry points of Ptah's public API. It exists to turn "are we
+there yet" from an opinion into a number that moves over time. Treat the results
+as a floor on the distance to Atlas, never a ceiling.
 
-Generated snapshot: 3 fixtures, 13 observations, **10 gaps, 3 trivial passes**.
-The three passes are `CREATE TABLE t1 (c1 int)`, `CREATE TABLE t2 (...)`, and
-"Ptah can parse the `atlas.sum` byte format". Everything with any substance is a
-gap.
+Generated snapshot: 286 vendored upstream testdata files grouped into 158 fixtures, 415 observations, **275 unwaived gaps**. The
+corpus inventory imports 158 fixtures: 47 are measured by at least one current
+probe, and 111 are explicitly red as imported-but-unmeasured (`.txtar`, `.hcl`,
+and other Atlas test artifacts that still need dedicated probes).
 
 ## What the probe found broken
 
-All four probes are offline and static — nothing is applied to a real database.
+All probes are offline and static — nothing is applied to a real database.
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Parses plain `CREATE TABLE`. Does **not** model `DROP TABLE`, `CREATE SCHEMA`, or `CREATE PROCEDURE`. Ptah's parser only accepts statements `CREATE`/`ALTER`/`COMMENT` and `CREATE` targets `TABLE`/`INDEX`/`UNIQUE INDEX`/`TYPE`/`DOMAIN`. |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | 47 SQL/sum fixtures are measured by concrete probes; 111 imported `.txtar`, `.hcl`, and other fixtures are deliberately red until probes consume them. |
+| `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all 125 vendored `.sql` files. Plain `CREATE TABLE` passes; many Atlas SQL dialect/lexer fixtures fail or gap because Ptah's parser only accepts a limited DDL subset. |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | **0 of N** files recognized in every fixture. Atlas names files `NNNNNNNNNNNNNN_desc.sql` (14-digit, single file); Ptah requires `NNNNNNNNNN_desc.(up\|down).sql`. (ptah#273) |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Parses the format (good), but its recomputed directory hash **differs** — Ptah only hashes files it recognizes, so it hashes zero of Atlas's and produces a different sum. (ptah#274) |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | On a directory containing `DROP TABLE`, Ptah emits only `MF103` ("non-conventional file name") and never the destructive finding (`DS101`) Atlas would. It flags Atlas's file names instead of reading their content. |
@@ -38,11 +39,11 @@ is **"unknown — not measured"**, not "works".
 | Schema **introspection** breadth (types, defaults, generated/partial/expression indexes, sequences, domains, composite types, FK actions, exclusion constraints, partitioning, collations, comments) | **No** | a dedicated introspection probe against a live DB |
 | Schema **diff / plan** (desired A → desired B → migration) | **No** | a diff probe over paired schema fixtures |
 | **End-state equivalence** (apply with Atlas and with Ptah, compare the resulting databases) | **No** | ptah#285 — not built yet; needs a live DB |
-| **HCL** schema language | **No** | Ptah largely does not read HCL (only the planned limited C3 subset, ptah#276) |
+| **HCL** schema language | **Imported, red/unmeasured** | HCL files are vendored and reported by `corpus-inventory`; Ptah largely does not read HCL (only the planned limited C3 subset, ptah#276) |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
-| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **No** | the corpus here is PostgreSQL-shaped only |
-| DDL parse/round-trip **breadth** | **Sampled** (4 tiny files) | a larger vendored DDL corpus |
+| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Imported, partially measured** | SQL files from MySQL/SQLite-oriented Atlas fixtures are parsed/linted structurally; dialect runtime semantics need dedicated probes |
+| DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
 | The migration **apply** path | **No** | Ptah applies migration SQL via raw `ExecContext`, bypassing its parser — a parse gap here is *not* an apply gap |
 
 ## Honest framing, both directions
@@ -61,8 +62,8 @@ is **"unknown — not measured"**, not "works".
 
 To earn the phrase "feature-set parity test", this repo would need, at minimum:
 
-1. A **large** vendored DDL corpus per dialect (hundreds of constructs), not 3
-   fixtures.
+1. Runtime probes for the imported Atlas `.txtar` integration fixtures, not just
+   inventory rows.
 2. An **introspection** probe: apply a schema with each tool, introspect with
    one reader, diff the canonical states (this is ptah#285 and needs a live DB).
 3. A **diff/plan** probe over paired before/after schemas.
@@ -72,6 +73,7 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
 6. A declared, justified scope for what is deliberately **out** of parity (HCL
    schema, Cloud, Pro drivers), so "parity" has an explicit boundary.
 
-Until those exist, this repository answers a narrow question honestly — *where,
-on a handful of Atlas fixtures, does Ptah visibly fail to ingest what Atlas
-produced* — and nothing wider.
+Until those exist, this repository answers a broader but still bounded question
+honestly — *where, across Atlas's vendored testdata snapshot, does Ptah visibly
+fail to ingest what Atlas produced, and which imported fixtures are not measured
+yet* — and nothing wider.
