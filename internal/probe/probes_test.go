@@ -100,6 +100,91 @@ DROP TABLE txtar_boundary_widgets;
 	assertResult(t, results, "20240305171147/down", "down.sql captured 2 statement(s)")
 }
 
+func TestLintProbeTreatsDownOnlyDropsAsNonDestructive(t *testing.T) {
+	dir := t.TempDir()
+	writeTestFile(t, filepath.Join(dir, "1_initial.up.sql"), "CREATE TABLE users (id INT);\n")
+	writeTestFile(t, filepath.Join(dir, "1_initial.down.sql"), "DROP TABLE users;\n")
+
+	results := LintProbe{}.Run(Fixture{
+		Name:     "golang-migrate",
+		Kind:     FixtureKindSQLDir,
+		Dir:      dir,
+		Files:    []string{filepath.Join(dir, "1_initial.up.sql"), filepath.Join(dir, "1_initial.down.sql")},
+		SQLFiles: []string{filepath.Join(dir, "1_initial.up.sql"), filepath.Join(dir, "1_initial.down.sql")},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 lint observation, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected down-only DROP TABLE to be OK, got %#v", results[0])
+	}
+}
+
+func TestLintProbeIgnoresRollbackSectionsWhenLookingForExpectedDrops(t *testing.T) {
+	cases := map[string]string{
+		"dbmate": `-- migrate:up
+CREATE TABLE users (id INT);
+-- migrate:down
+DROP TABLE users;
+`,
+		"goose": `-- +goose Up
+CREATE TABLE users (id INT);
+-- +goose Down
+DROP TABLE users;
+`,
+		"liquibase": `--liquibase formatted sql
+--changeset atlas:1-1
+CREATE TABLE users (id INT);
+--rollback DROP TABLE users;
+`,
+	}
+
+	for name, sql := range cases {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "1_initial.sql")
+			writeTestFile(t, path, sql)
+
+			results := LintProbe{}.Run(Fixture{
+				Name:     name,
+				Kind:     FixtureKindSQLDir,
+				Dir:      dir,
+				Files:    []string{path},
+				SQLFiles: []string{path},
+			})
+
+			if len(results) != 1 {
+				t.Fatalf("expected 1 lint observation, got %d: %#v", len(results), results)
+			}
+			if results[0].Outcome != OK {
+				t.Fatalf("expected rollback-only DROP TABLE to be OK, got %#v", results[0])
+			}
+		})
+	}
+}
+
+func TestLintProbeKeepsStructuralOnlyAtlasNameGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "3R_views.sql")
+	writeTestFile(t, path, "CREATE VIEW my_view AS SELECT 1;\n")
+
+	results := LintProbe{}.Run(Fixture{
+		Name:     "flyway-repeatable",
+		Kind:     FixtureKindSQLDir,
+		Dir:      dir,
+		Files:    []string{path},
+		SQLFiles: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 lint observation, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected structural-only file-convention gap, got %#v", results[0])
+	}
+}
+
 func writeTestFile(t *testing.T, path, data string) {
 	t.Helper()
 

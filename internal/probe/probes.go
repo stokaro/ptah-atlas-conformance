@@ -392,11 +392,12 @@ func (LintProbe) Run(fx Fixture) []Result {
 		}
 	}
 	hasDrop := fixtureContains(fx, "DROP TABLE")
+	hasRelevantDrop := fixtureContainsLintRelevantDrop(fx)
 	switch {
 	case len(content) > 0:
 		return []Result{{"lint-parity", fx.Name, "lint", OK,
 			"content findings: " + strings.Join(dedup(content), ", "), ""}}
-	case hasDrop:
+	case hasRelevantDrop:
 		detail := "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings"
 		if len(structural) > 0 {
 			detail = "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only " +
@@ -405,12 +406,15 @@ func (LintProbe) Run(fx Fixture) []Result {
 		}
 		return []Result{{"lint-parity", fx.Name, "lint", Gap,
 			detail, "stokaro/ptah#273"}}
+	case hasDrop:
+		return []Result{{"lint-parity", fx.Name, "lint", OK,
+			"DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected", ""}}
 	case len(structural) > 0:
 		return []Result{{"lint-parity", fx.Name, "lint", Gap,
 			"only file-convention findings (" + strings.Join(dedup(structural), ", ") + "); Ptah does not " +
 				"analyze the content of Atlas-named files", "stokaro/ptah#273"}}
 	default:
-		return []Result{{"lint-parity", fx.Name, "lint", Gap, "linter produced no findings", "stokaro/ptah#273"}}
+		return []Result{{"lint-parity", fx.Name, "lint", OK, "no substantive lint findings expected", ""}}
 	}
 }
 
@@ -432,6 +436,46 @@ func fixtureContains(fx Fixture, needle string) bool {
 		}
 	}
 	return false
+}
+
+func fixtureContainsLintRelevantDrop(fx Fixture) bool {
+	for _, f := range fx.SQLFiles {
+		if strings.HasSuffix(strings.ToLower(filepath.Base(f)), ".down.sql") {
+			continue
+		}
+		data, err := os.ReadFile(f)
+		if err != nil {
+			continue
+		}
+		if strings.Contains(strings.ToUpper(lintRelevantSQL(string(data))), "DROP TABLE") {
+			return true
+		}
+	}
+	return false
+}
+
+func lintRelevantSQL(sql string) string {
+	sql = beforeCaseInsensitive(sql, "-- migrate:down")
+	sql = beforeCaseInsensitive(sql, "-- +goose down")
+
+	var out strings.Builder
+	for _, line := range strings.Split(sql, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(strings.ToUpper(trimmed), "--ROLLBACK") {
+			continue
+		}
+		out.WriteString(line)
+		out.WriteByte('\n')
+	}
+	return out.String()
+}
+
+func beforeCaseInsensitive(s, marker string) string {
+	idx := strings.Index(strings.ToUpper(s), strings.ToUpper(marker))
+	if idx < 0 {
+		return s
+	}
+	return s[:idx]
 }
 
 func dedup(in []string) []string {
