@@ -2775,17 +2775,15 @@
     "probe": "lint-parity",
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "atlasexec/testdata/broken",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -2798,33 +2796,29 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -2838,73 +2832,64 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -2924,17 +2909,15 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -2948,49 +2931,43 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/migrate/testdata/broken",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "internal/integration/testdata/migrations/mysql",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "internal/integration/testdata/migrations/mysqlock",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "internal/integration/testdata/migrations/postgres",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/golang-migrate",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -3003,88 +2980,77 @@
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lexbegintry",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lexescaped",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lexgroup",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/migrate",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/migrate/sub",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/partial-checkpoint",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/sqlserver",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "linter produced no findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/sqltool/testdata/dbmate",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/sqltool/testdata/golang-migrate",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/sqltool/testdata/goose",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/sqltool/testdata/liquibase",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   }
 ]

@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 219 unwaived gap(s)
+## Status: NOT DONE — 185 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260715231306-e4b74a5bc736`
-- Outcomes: **196 ok**, **206 gap**, **13 fail**, **0 panic**
-- Gate: **219 unwaived** (fails CI), 0 waived
+- Outcomes: **230 ok**, **172 gap**, **13 fail**, **0 panic**
+- Gate: **185 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **47 measured**, **111 imported-but-unmeasured**
 
 ## Findings
@@ -145,42 +145,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | corpus-inventory | `schemahcl/testdata/variables.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
-| **RED** | **gap** | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `atlasexec/testdata/broken` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline1` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | linter produced no findings | #273 |
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | linter produced no findings | #273 |
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/migrate/testdata/broken` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/migrate/testdata/fixed` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `internal/integration/testdata/migrations/mysql` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `internal/integration/testdata/migrations/mysqlock` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `internal/integration/testdata/migrations/postgres` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/golang-migrate` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/lexescaped` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/lexgroup` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/migrate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/migrate/sub` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/partial-checkpoint` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/migrate/testdata/sqlserver` | lint | linter produced no findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/dbmate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/goose` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
-| **RED** | **gap** | lint-parity | `sql/sqltool/testdata/liquibase` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted no content findings | #273 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah recognizes only 2/3 files | #273 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/migrations/20230926085734_destructive-change.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
@@ -288,10 +254,44 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | corpus-inventory | `txtar-down` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down-boundary` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | content findings: PG101 |  |
+| — | ok | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `atlasexec/testdata/broken` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `atlasexec/testdata/migrations` | lint | content findings: DS101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline1` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101, BC101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101, BC101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/migrate/testdata/broken` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/migrate/testdata/fixed` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `internal/integration/testdata/migrations/mysql` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `internal/integration/testdata/migrations/mysqlock` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `internal/integration/testdata/migrations/postgres` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/golang-migrate` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/lex` | lint | content findings: DS101, PG101 |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lexescaped` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lexgroup` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/migrate/sub` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/partial-checkpoint` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/sqlserver` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/testdata/broken` | recognize | all 1 files recognized |  |
@@ -440,7 +440,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#133** — 13 finding(s)
-- **stokaro/ptah#273** — 37 finding(s)
+- **stokaro/ptah#273** — 3 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 101 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
