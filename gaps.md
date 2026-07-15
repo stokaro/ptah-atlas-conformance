@@ -6,27 +6,33 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
+## Status: NOT DONE — 10 unwaived gap(s)
+
+The conformance gate is **red** and stays red until these close. This is by
+design: the report is a spec Ptah has not met yet, not a passing test log.
+
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260714232356-10c4882cafdc`
 - Outcomes: **3 ok**, **10 gap**, **0 fail**, **0 panic**
+- Gate: **10 unwaived** (fails CI), 0 waived
 
 ## Findings
 
-| Outcome | Probe | Fixture | Stage | Detail | Related |
-| --- | --- | --- | --- | --- | --- |
-| **gap** | lint-parity | `directives` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **gap** | lint-parity | `migrations/atlasexec-basic` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
-| **gap** | lint-parity | `migrations/postgres-schema` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **gap** | migdir-ingest | `directives` | recognize | Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
-| **gap** | migdir-ingest | `migrations/atlasexec-basic` | recognize | Ptah recognizes 0/3 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
-| **gap** | migdir-ingest | `migrations/postgres-schema` | recognize | Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
-| **gap** | sql-parse | `directives/10_delimiter_comment.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
-| **gap** | sql-parse | `migrations/atlasexec-basic/20230926085734_destructive-change.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
-| **gap** | sql-parse | `migrations/postgres-schema/1_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: SCHEMA at position 7 |  |
-| **gap** | sum-compat | `migrations/atlasexec-basic` | recompute | Ptah hashes 0 entries here and its dir hash differs from atlas.sum — Ptah only hashes NNNNNNNNNN_desc.(up\|down).sql files, so it skips Atlas's | #274 |
-| ok | sql-parse | `migrations/atlasexec-basic/20230727105553_init.sql` | round-trip | parsed 1 statement(s) |  |
-| ok | sql-parse | `migrations/atlasexec-basic/20230727105615_t2.sql` | round-trip | parsed 1 statement(s) |  |
-| ok | sum-compat | `migrations/atlasexec-basic` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
+| --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **gap** | lint-parity | `directives` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | lint-parity | `migrations/atlasexec-basic` | lint | fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content | #273 |
+| **RED** | **gap** | lint-parity | `migrations/postgres-schema` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
+| **RED** | **gap** | migdir-ingest | `directives` | recognize | Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
+| **RED** | **gap** | migdir-ingest | `migrations/atlasexec-basic` | recognize | Ptah recognizes 0/3 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
+| **RED** | **gap** | migdir-ingest | `migrations/postgres-schema` | recognize | Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up\|down).sql | #273 |
+| **RED** | **gap** | sql-parse | `directives/10_delimiter_comment.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
+| **RED** | **gap** | sql-parse | `migrations/atlasexec-basic/20230926085734_destructive-change.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
+| **RED** | **gap** | sql-parse | `migrations/postgres-schema/1_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: SCHEMA at position 7 |  |
+| **RED** | **gap** | sum-compat | `migrations/atlasexec-basic` | recompute | Ptah hashes 0 entries here and its dir hash differs from atlas.sum — Ptah only hashes NNNNNNNNNN_desc.(up\|down).sql files, so it skips Atlas's | #274 |
+| — | ok | sql-parse | `migrations/atlasexec-basic/20230727105553_init.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `migrations/atlasexec-basic/20230727105615_t2.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sum-compat | `migrations/atlasexec-basic` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
 
 ## Gaps by related issue
 

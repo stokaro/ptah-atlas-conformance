@@ -41,15 +41,30 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
 
-## Running it
+## The gate is red until done
+
+This is a spec Ptah has not met, not a passing test log. The `conformance-gate`
+CI job **fails while any gap remains unwaived**, and stays red until Ptah covers
+everything Atlas expresses in the corpus. A red gate means "not done yet", not
+"broken" — which is why the harness's own health is a separate, always-green job.
+
+- `make probe` regenerates the report and always exits 0.
+- `make gate` regenerates it **and exits non-zero if any unwaived gap remains**.
+
+A gap can be excused only by an explicit line in [`waivers.txt`](./waivers.txt),
+keyed on `probe fixture stage`, with a reason and a tracking issue. A waiver means
+"consciously tracked, do not fail on it yet" — not "fine forever". The file is
+intentionally empty: nothing is skipped, so every open gap is red. A waiver that
+matches no finding is itself a failure, forcing cleanup when a gap closes.
+
+The gate goes green only when every fixture is covered or waived. `git log gaps.md`
+shows the unwaived count moving toward zero as Ptah closes issues.
 
 ```
-make probe        # regenerate gaps.md and gaps.json
+make probe        # regenerate gaps.md / gaps.json (exit 0)
+make gate         # the yardstick: red until parity on the corpus
 make verify       # build, vet, and assert Ptah's tree would gain no Apache file
 ```
-
-`gaps.md` and `gaps.json` are committed, so `git log gaps.md` shows how the gap
-count moves as Ptah closes issues.
 
 ## Pinning
 

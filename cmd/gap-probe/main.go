@@ -21,16 +21,23 @@ func main() {
 	corpus := flag.String("corpus", "third_party/atlas", "root of the vendored Atlas fixtures")
 	mdOut := flag.String("md", "gaps.md", "markdown report output path")
 	jsonOut := flag.String("json", "gaps.json", "json report output path")
+	waiverFile := flag.String("waivers", "waivers.txt", "path to the waivers file")
+	gate := flag.Bool("gate", false, "exit non-zero if any unwaived gap/fail/panic remains (the conformance gate)")
 	flag.Parse()
 
 	fixtures, err := probe.LoadCorpus(*corpus)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "load corpus:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 	if len(fixtures) == 0 {
 		fmt.Fprintln(os.Stderr, "no fixtures found under", *corpus)
-		os.Exit(1)
+		os.Exit(2)
+	}
+	waivers, err := probe.LoadWaivers(*waiverFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "load waivers:", err)
+		os.Exit(2)
 	}
 
 	var results []probe.Result
@@ -40,30 +47,41 @@ func main() {
 		}
 	}
 
-	md := probe.RenderMarkdown(results, atlasSHA, ptahVersion())
+	md := probe.RenderMarkdown(results, waivers, atlasSHA, ptahVersion())
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 	j, _ := json.MarshalIndent(results, "", "  ")
 	if err := os.WriteFile(*jsonOut, append(j, '\n'), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write json:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 
-	var gaps, fails, panics int
-	for _, r := range results {
-		switch r.Outcome {
-		case probe.Gap:
-			gaps++
-		case probe.Fail:
-			fails++
-		case probe.Panic:
-			panics++
-		}
+	unwaived := probe.Unwaived(results, waivers)
+	fmt.Printf("%d fixtures, %d observations, %d unwaived gap(s) → %s\n",
+		len(fixtures), len(results), len(unwaived), *mdOut)
+
+	// A stale waiver (matching nothing) means a gap closed; force cleanup.
+	stale := waivers.Unused(results)
+	for _, s := range stale {
+		fmt.Fprintf(os.Stderr, "stale waiver (matches no finding, delete it): %s\n", s)
 	}
-	fmt.Printf("%d fixtures, %d observations: %d gap, %d fail, %d panic → %s\n",
-		len(fixtures), len(results), gaps, fails, panics, *mdOut)
+
+	if *gate {
+		if len(unwaived) > 0 {
+			fmt.Fprintf(os.Stderr, "\nCONFORMANCE GATE: RED — %d unwaived gap(s):\n", len(unwaived))
+			for _, r := range unwaived {
+				fmt.Fprintf(os.Stderr, "  [%s] %s / %s / %s: %s\n", r.Outcome, r.Probe, r.Fixture, r.Stage, r.Detail)
+			}
+			fmt.Fprintln(os.Stderr, "\nThis is expected until Ptah reaches Atlas coverage on the corpus.")
+			os.Exit(1)
+		}
+		if len(stale) > 0 {
+			os.Exit(1) // stale waivers are also a gate failure
+		}
+		fmt.Println("CONFORMANCE GATE: GREEN — every fixture covered or waived.")
+	}
 }
 
 // ptahVersion reads the resolved github.com/stokaro/ptah version from the build

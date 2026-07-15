@@ -1,8 +1,14 @@
-.PHONY: probe verify build vet clean
+.PHONY: probe gate verify build vet clean
 
-# Regenerate the gap report from the vendored corpus.
+# Regenerate the gap report from the vendored corpus. Always exits 0 — use this
+# to refresh gaps.md / gaps.json.
 probe:
 	go run ./cmd/gap-probe
+
+# The conformance gate: regenerate the report AND fail if any unwaived gap
+# remains. Red until Ptah covers everything Atlas expresses in the corpus.
+gate:
+	go run ./cmd/gap-probe -gate
 
 build:
 	go build ./...

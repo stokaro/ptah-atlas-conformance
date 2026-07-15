@@ -28,10 +28,27 @@ func summarize(results []Result) Summary {
 	return s
 }
 
+// Unwaived returns the results that are gaps/fails/panics and not waived — the
+// set that keeps the conformance gate red.
+func Unwaived(results []Result, w *Waivers) []Result {
+	var out []Result
+	for _, r := range results {
+		if r.Outcome == OK {
+			continue
+		}
+		if _, ok := w.Reason(r); ok {
+			continue
+		}
+		out = append(out, r)
+	}
+	return out
+}
+
 // RenderMarkdown produces gaps.md: a ranked, grouped report. atlasSHA and
 // ptahVersion are recorded so the report is reproducible.
-func RenderMarkdown(results []Result, atlasSHA, ptahVersion string) string {
+func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) string {
 	s := summarize(results)
+	unwaived := Unwaived(results, w)
 	var b strings.Builder
 
 	b.WriteString("# Ptah vs Atlas — coverage gap report\n\n")
@@ -40,10 +57,19 @@ func RenderMarkdown(results []Result, atlasSHA, ptahVersion string) string {
 	b.WriteString("authored. It is a coverage probe over Atlas's own fixtures, not a quality score:\n")
 	b.WriteString("a `gap` here is a thing Atlas expresses that Ptah does not yet.\n\n")
 
+	if len(unwaived) == 0 {
+		b.WriteString("## Status: PARITY on the current corpus\n\n")
+		b.WriteString("Every fixture is covered or explicitly waived. The conformance gate is green.\n\n")
+	} else {
+		fmt.Fprintf(&b, "## Status: NOT DONE — %d unwaived gap(s)\n\n", len(unwaived))
+		b.WriteString("The conformance gate is **red** and stays red until these close. This is by\n")
+		b.WriteString("design: the report is a spec Ptah has not met yet, not a passing test log.\n\n")
+	}
+
 	fmt.Fprintf(&b, "- Atlas fixtures pinned at `ariga/atlas@%s`\n", atlasSHA)
 	fmt.Fprintf(&b, "- Ptah at `%s`\n", ptahVersion)
-	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n\n",
-		s.OK, s.Gap, s.Fail, s.Panic)
+	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n", s.OK, s.Gap, s.Fail, s.Panic)
+	fmt.Fprintf(&b, "- Gate: **%d unwaived** (fails CI), %d waived\n\n", len(unwaived), s.Gap+s.Fail+s.Panic-len(unwaived))
 
 	// Gaps/fails/panics first — the actionable part — most severe first.
 	order := map[Outcome]int{Panic: 0, Fail: 1, Gap: 2, OK: 3}
@@ -59,15 +85,26 @@ func RenderMarkdown(results []Result, atlasSHA, ptahVersion string) string {
 	})
 
 	b.WriteString("## Findings\n\n")
-	b.WriteString("| Outcome | Probe | Fixture | Stage | Detail | Related |\n")
-	b.WriteString("| --- | --- | --- | --- | --- | --- |\n")
+	b.WriteString("| Gate | Outcome | Probe | Fixture | Stage | Detail | Related |\n")
+	b.WriteString("| --- | --- | --- | --- | --- | --- | --- |\n")
 	for _, r := range sorted {
 		issue := ""
 		if r.Issue != "" {
 			issue = "#" + strings.TrimPrefix(r.Issue, "stokaro/ptah#")
 		}
-		fmt.Fprintf(&b, "| %s | %s | `%s` | %s | %s | %s |\n",
-			badge(r.Outcome), r.Probe, r.Fixture, r.Stage, escapePipe(r.Detail), issue)
+		gate := ""
+		switch {
+		case r.Outcome == OK:
+			gate = "—"
+		default:
+			if _, ok := w.Reason(r); ok {
+				gate = "waived"
+			} else {
+				gate = "**RED**"
+			}
+		}
+		fmt.Fprintf(&b, "| %s | %s | %s | `%s` | %s | %s | %s |\n",
+			gate, badge(r.Outcome), r.Probe, r.Fixture, r.Stage, escapePipe(r.Detail), issue)
 	}
 
 	// Per-issue rollup so the report doubles as a backlog for ptah.

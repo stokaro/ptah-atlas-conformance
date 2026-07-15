@@ -1,0 +1,18 @@
+# Conformance waivers.
+#
+# The conformance gate is RED until Ptah covers everything Atlas expresses in the
+# vendored corpus. A gap/fail/panic fails the gate unless it is waived here.
+#
+# Format, one per line:
+#   <probe> <fixture> <stage>   <reason> (ptah#NNN)
+#
+# The first three space-separated tokens are the match key (probe, fixture,
+# stage); everything after is the human reason and must cite the tracking issue
+# or say why the divergence is intentional and permanent.
+#
+# A waiver only means "this gap is consciously tracked, do not fail the build on
+# it yet" — NOT "this is fine forever". Keep this list as short as honesty allows.
+# An empty list means: nothing is intentionally skipped, so every open gap is red.
+#
+# There are intentionally NO waivers right now. Every gap the probe finds is a
+# real, un-excused distance from Atlas, and the gate stays red until it closes.

@@ -7,11 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  probe:
+  # Health of the harness itself. This must always be green: it proves the probe
+  # builds, the license boundary holds, and the committed report is up to date.
+  harness:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -19,7 +20,7 @@ jobs:
       - name: Build and boundary check
         run: make verify
 
-      - name: Regenerate gap report
+      - name: Regenerate report
         run: make probe
 
       - name: Fail if the committed report is stale
@@ -28,3 +29,16 @@ jobs:
             echo "gaps.md / gaps.json are out of date — run 'make probe' and commit the result."
             exit 1
           fi
+
+  # The yardstick. Expected to stay RED until Ptah covers everything Atlas
+  # expresses in the corpus. A red here means "not done yet", not "broken".
+  conformance-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Conformance gate (red until parity)
+        run: make gate
