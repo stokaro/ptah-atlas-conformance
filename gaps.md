@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 262 unwaived gap(s)
+## Status: NOT DONE — 240 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260715220840-1b02ca6b3e64`
-- Outcomes: **153 ok**, **249 gap**, **13 fail**, **0 panic**
-- Gate: **262 unwaived** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260715224114-bd539c2852f6`
+- Outcomes: **175 ok**, **227 gap**, **13 fail**, **0 panic**
+- Gate: **240 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **47 measured**, **111 imported-but-unmeasured**
 
 ## Findings
@@ -261,28 +261,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 167 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/liquibase/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 322 |  |
-| **RED** | **gap** | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `atlasexec/testdata/broken` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `atlasexec/testdata/migrations` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline1` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline2` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/mysql` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recompute | Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/migrate/testdata/broken` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `cmd/atlas/internal/migrate/testdata/fixed` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `internal/integration/testdata/migrations/mysql` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `internal/integration/testdata/migrations/mysqlock` | recompute | Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `internal/integration/testdata/migrations/postgres` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `sql/migrate/testdata/migrate` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `sql/migrate/testdata/migrate/sub` | recompute | Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
-| **RED** | **gap** | sum-compat | `sql/migrate/testdata/partial-checkpoint` | recompute | Ptah hashes 6 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery | #274 |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/testdata/broken` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
@@ -411,27 +389,49 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `sql/sqltool/testdata/golang-migrate/2_second_migration.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/liquibase/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `atlasexec/testdata/broken` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `atlasexec/testdata/broken` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `atlasexec/testdata/migrations` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `atlasexec/testdata/migrations` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline1` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline1` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline2` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/baseline2` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/mysql` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/mysql` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/templatedir` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/cmdapi/testdata/templatedir` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/migrate/testdata/broken` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/migrate/testdata/broken` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `cmd/atlas/internal/migrate/testdata/fixed` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `cmd/atlas/internal/migrate/testdata/fixed` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `internal/integration/testdata/migrations/mysql` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `internal/integration/testdata/migrations/mysql` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `internal/integration/testdata/migrations/mysqlock` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `internal/integration/testdata/migrations/mysqlock` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `internal/integration/testdata/migrations/postgres` | parse-sum | parsed atlas.sum: dir hash + 1 entries | #274 |
+| — | ok | sum-compat | `internal/integration/testdata/migrations/postgres` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `sql/migrate/testdata/migrate` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
+| — | ok | sum-compat | `sql/migrate/testdata/migrate` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `sql/migrate/testdata/migrate/sub` | parse-sum | parsed atlas.sum: dir hash + 3 entries | #274 |
+| — | ok | sum-compat | `sql/migrate/testdata/migrate/sub` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | sum-compat | `sql/migrate/testdata/partial-checkpoint` | parse-sum | parsed atlas.sum: dir hash + 6 entries | #274 |
+| — | ok | sum-compat | `sql/migrate/testdata/partial-checkpoint` | recompute | Ptah dir hash is byte-identical to atlas.sum |  |
 | — | ok | txtar-down | `txtar-down` | 20240305171146/up | migration.sql captured 2 statement(s) |  |
 | — | ok | txtar-down | `txtar-down` | 20240305171146/down | down.sql captured 1 statement(s) |  |
 | — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/up | migration.sql captured 1 statement(s) |  |
@@ -441,7 +441,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#133** — 13 finding(s)
 - **stokaro/ptah#273** — 58 finding(s)
-- **stokaro/ptah#274** — 22 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 101 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)

@@ -2466,9 +2466,8 @@
     "probe": "sum-compat",
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2482,9 +2481,8 @@
     "probe": "sum-compat",
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/migrations",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2498,9 +2496,8 @@
     "probe": "sum-compat",
     "fixture": "atlasexec/testdata/broken",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2514,9 +2511,8 @@
     "probe": "sum-compat",
     "fixture": "atlasexec/testdata/migrations",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2530,9 +2526,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline1",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2546,9 +2541,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/baseline2",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2562,9 +2556,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2578,9 +2571,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2594,9 +2586,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2610,9 +2601,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2626,9 +2616,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2642,9 +2631,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2658,9 +2646,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx4",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2674,9 +2661,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 2 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2690,9 +2676,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/migrate/testdata/broken",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2706,9 +2691,8 @@
     "probe": "sum-compat",
     "fixture": "cmd/atlas/internal/migrate/testdata/fixed",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2722,9 +2706,8 @@
     "probe": "sum-compat",
     "fixture": "internal/integration/testdata/migrations/mysql",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2738,9 +2721,8 @@
     "probe": "sum-compat",
     "fixture": "internal/integration/testdata/migrations/mysqlock",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 3 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2754,9 +2736,8 @@
     "probe": "sum-compat",
     "fixture": "internal/integration/testdata/migrations/postgres",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2770,9 +2751,8 @@
     "probe": "sum-compat",
     "fixture": "sql/migrate/testdata/migrate",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2786,9 +2766,8 @@
     "probe": "sum-compat",
     "fixture": "sql/migrate/testdata/migrate/sub",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 1 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "sum-compat",
@@ -2802,9 +2781,8 @@
     "probe": "sum-compat",
     "fixture": "sql/migrate/testdata/partial-checkpoint",
     "stage": "recompute",
-    "outcome": "gap",
-    "detail": "Ptah hashes 6 entries here and its dir hash differs from atlas.sum — the remaining gap is hash compatibility, not Atlas file discovery",
-    "issue": "stokaro/ptah#274"
+    "outcome": "ok",
+    "detail": "Ptah dir hash is byte-identical to atlas.sum"
   },
   {
     "probe": "lint-parity",
