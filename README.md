@@ -14,6 +14,11 @@ The generated report is [`gaps.md`](./gaps.md). It is a coverage map, not a
 quality score: a `gap` is a thing Atlas expresses that Ptah does not model yet,
 and each row links the Ptah issue that tracks closing it.
 
+**This is not a full feature-set parity test.** It is a small offline probe over
+a seed corpus, and most of Atlas's open-source surface is not exercised at all.
+[`PARITY.md`](./PARITY.md) states exactly what is and is not tested, and what a
+real parity test would require — read it before quoting any number from here.
+
 ## Why this is a separate repository
 
 This lives outside `stokaro/ptah` on purpose, and the boundary is one-way:
