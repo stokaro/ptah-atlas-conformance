@@ -12,7 +12,7 @@ The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260715213333-6e9b2e647224`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260715215123-8ef37292ce2b`
 - Outcomes: **145 ok**, **250 gap**, **20 fail**, **0 panic**
 - Gate: **270 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **47 measured**, **111 imported-but-unmeasured**
