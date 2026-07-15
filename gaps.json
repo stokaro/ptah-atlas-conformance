@@ -1262,8 +1262,8 @@
     "probe": "sql-parse",
     "fixture": "atlasexec/testdata/migrations/20230926085734_destructive-change.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1340,8 +1340,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/U1__initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1390,8 +1390,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.down.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1404,8 +1404,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.down.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1897,8 +1897,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/migrate/1_initial.down.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -2017,8 +2017,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/flyway/U1__initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -2052,8 +2052,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/golang-migrate/1_initial.down.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -2066,8 +2066,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/golang-migrate/2_second_migration.down.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",

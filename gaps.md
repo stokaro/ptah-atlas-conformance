@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 185 unwaived gap(s)
+## Status: NOT DONE — 177 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260715231306-e4b74a5bc736`
-- Outcomes: **230 ok**, **172 gap**, **13 fail**, **0 panic**
-- Gate: **185 unwaived** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260715235819-2f01a83e21b5`
+- Outcomes: **238 ok**, **164 gap**, **13 fail**, **0 panic**
+- Gate: **177 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **47 measured**, **111 imported-but-unmeasured**
 
 ## Findings
@@ -149,15 +149,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah recognizes only 2/3 files | #299 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
-| **RED** | **gap** | sql-parse | `atlasexec/testdata/migrations/20230926085734_destructive-change.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 238 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 222 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/R__views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/U1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 165 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3R_views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 167 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 152 |  |
@@ -194,15 +190,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/1_trigger.sql` | round-trip | parser does not model this construct: unsupported CREATE target: TRIGGER at position 30 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/2_function.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 76 |  |
-| **RED** | **gap** | sql-parse | `sql/migrate/testdata/migrate/1_initial.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/sqlserver/1_return_table.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 7 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/sqlserver/2_function.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 32 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/dbmate/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 198 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/flyway/R__views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
-| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/flyway/U1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/flyway/V1__initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 165 |  |
-| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/golang-migrate/1_initial.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
-| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/golang-migrate/2_second_migration.down.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 167 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
 | **RED** | **gap** | sql-parse | `sql/sqltool/testdata/liquibase/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 322 |  |
@@ -339,16 +331,20 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/versioned-basic/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/testdata/migrations/20230727105553_init.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/testdata/migrations/20230727105615_t2.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `atlasexec/testdata/migrations/20230926085734_destructive-change.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline1/1_baseline.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline2/1_baseline.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline2/20220318104614_initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/baseline2/20220318104615_second.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/U1__initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V2__second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V3__third_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3_third_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/2_second_migration.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold/1_initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
@@ -371,6 +367,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `sql/migrate/testdata/lex/1.sql` | round-trip | parsed 6 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/3_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/4_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/migrate/1_initial.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/sub/1.a_sub.up.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/sub/2.10.x-20_description.sql` | round-trip | parsed 1 statement(s) |  |
@@ -382,10 +379,13 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/5_checkpoint.sql` | round-trip | parsed 3 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/6_sixth.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/flyway/U1__initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/V2__second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/V3__third_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/v3/V3_1__fourth_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/golang-migrate/1_initial.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/golang-migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/golang-migrate/2_second_migration.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/golang-migrate/2_second_migration.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/liquibase/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sum-compat | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | parse-sum | parsed atlas.sum: dir hash + 2 entries | #274 |
