@@ -1,0 +1,101 @@
+[
+  {
+    "probe": "sql-parse",
+    "fixture": "directives/10_delimiter_comment.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "migrations/atlasexec-basic/20230727105553_init.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "migrations/atlasexec-basic/20230727105615_t2.sql",
+    "stage": "round-trip",
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "migrations/atlasexec-basic/20230926085734_destructive-change.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DROP at position 0"
+  },
+  {
+    "probe": "sql-parse",
+    "fixture": "migrations/postgres-schema/1_initial.sql",
+    "stage": "round-trip",
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported CREATE target: SCHEMA at position 7"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "directives",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "migrations/atlasexec-basic",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah recognizes 0/3 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "migdir-ingest",
+    "fixture": "migrations/postgres-schema",
+    "stage": "recognize",
+    "outcome": "gap",
+    "detail": "Ptah recognizes 0/1 files; Atlas uses a 14-digit single-file name, Ptah requires NNNNNNNNNN_desc.(up|down).sql",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "migrations/atlasexec-basic",
+    "stage": "parse-sum",
+    "outcome": "ok",
+    "detail": "parsed atlas.sum: dir hash + 3 entries",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "sum-compat",
+    "fixture": "migrations/atlasexec-basic",
+    "stage": "recompute",
+    "outcome": "gap",
+    "detail": "Ptah hashes 0 entries here and its dir hash differs from atlas.sum — Ptah only hashes NNNNNNNNNN_desc.(up|down).sql files, so it skips Atlas's",
+    "issue": "stokaro/ptah#274"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "directives",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "migrations/atlasexec-basic",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "fixture contains DROP TABLE (Atlas → destructive/DS101) but Ptah emitted only file-convention findings (MF103); it flags Atlas's file names rather than analyzing their content",
+    "issue": "stokaro/ptah#273"
+  },
+  {
+    "probe": "lint-parity",
+    "fixture": "migrations/postgres-schema",
+    "stage": "lint",
+    "outcome": "gap",
+    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
+    "issue": "stokaro/ptah#273"
+  }
+]

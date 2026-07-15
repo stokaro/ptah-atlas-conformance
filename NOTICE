@@ -1,0 +1,8 @@
+ptah-atlas-conformance
+Copyright 2026 Denis Voytyuk
+
+This product includes test fixtures developed by The Atlas Authors
+(https://github.com/ariga/atlas), licensed under the Apache License 2.0.
+Those files are confined to the third_party/atlas/ directory; see
+third_party/atlas/PROVENANCE.md for the exact files, their upstream paths,
+and the pinned commit.

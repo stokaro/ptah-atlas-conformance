@@ -1,0 +1,30 @@
+name: conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build and boundary check
+        run: make verify
+
+      - name: Regenerate gap report
+        run: make probe
+
+      - name: Fail if the committed report is stale
+        run: |
+          if ! git diff --exit-code gaps.md gaps.json; then
+            echo "gaps.md / gaps.json are out of date — run 'make probe' and commit the result."
+            exit 1
+          fi
