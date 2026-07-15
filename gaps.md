@@ -145,9 +145,9 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | corpus-inventory | `schemahcl/testdata/variables.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #273 |
-| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah recognizes only 2/3 files | #273 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
+| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah recognizes only 2/3 files | #299 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/migrations/20230926085734_destructive-change.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DROP at position 0 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate/1_initial.sql` | round-trip | parser does not model this construct: unsupported SQL statement: INSERT at position 238 |  |
@@ -440,7 +440,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#133** — 13 finding(s)
-- **stokaro/ptah#273** — 3 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 101 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
+- **stokaro/ptah#299** — 3 finding(s)
