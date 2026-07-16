@@ -101,10 +101,38 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		if strings.Contains(string(data), "-- atlas:txtar") {
 			continue
 		}
+		sql := string(data)
+		renderedTemplate := false
+		if migrator.LooksAtlasTemplateSQL(sql) {
+			name, err := filepath.Rel(fx.Dir, f)
+			if err != nil {
+				out = append(out, Result{"sql-parse", rel, "template-render", Fail, err.Error(), "stokaro/ptah#299"})
+				continue
+			}
+			rendered, ok, err := migrator.RenderAtlasTemplateSQL(
+				os.DirFS(fx.Dir),
+				filepath.ToSlash(name),
+				migrator.AtlasTemplateData{},
+			)
+			if err != nil {
+				out = append(out, Result{"sql-parse", rel, "template-render", Fail,
+					"Atlas SQL template render failed: " + oneLine(err.Error()), "stokaro/ptah#299"})
+				continue
+			}
+			if ok {
+				sql = rendered
+				renderedTemplate = true
+			}
+			if strings.TrimSpace(sql) == "" {
+				out = append(out, Result{"sql-parse", rel, "round-trip", OK,
+					"Atlas SQL template support file rendered no standalone statements", ""})
+				continue
+			}
+		}
 		var stmts int
 		var perr error
 		panicked, pmsg := guard(func() {
-			list, e := parser.NewParser(string(data)).Parse()
+			list, e := parser.NewParser(sql).Parse()
 			perr = e
 			if list != nil {
 				stmts = len(list.Statements)
@@ -126,6 +154,9 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		case stmts == 0:
 			out = append(out, Result{"sql-parse", rel, "round-trip", Gap,
 				"parser returned zero statements for non-empty Atlas DDL", "stokaro/ptah#133"})
+		case renderedTemplate:
+			out = append(out, Result{"sql-parse", rel, "round-trip", OK,
+				fmt.Sprintf("rendered Atlas SQL template and parsed %d statement(s)", stmts), ""})
 		default:
 			out = append(out, Result{"sql-parse", rel, "round-trip", OK,
 				fmt.Sprintf("parsed %d statement(s)", stmts), ""})

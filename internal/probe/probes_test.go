@@ -64,6 +64,42 @@ func TestCorpusProbeMarksImportedButUnmeasuredArtifacts(t *testing.T) {
 	}
 }
 
+func TestParseProbeRendersAtlasSQLTemplates(t *testing.T) {
+	dir := t.TempDir()
+	first := filepath.Join(dir, "1.sql")
+	second := filepath.Join(dir, "2.sql")
+	shared := filepath.Join(dir, "shared", "users.sql")
+	writeTestFile(t, first, `{{- if eq .Env "dev" }}
+CREATE TABLE dev1 (id INT);
+{{- else }}
+CREATE TABLE prod1 (id INT);
+{{- end }}
+`)
+	writeTestFile(t, second, `{{ template "shared/users" "prod2" }}`)
+	writeTestFile(t, shared, `{{- define "shared/users" }}
+CREATE TABLE users_{{ $ }} (id INT);
+{{- end }}
+`)
+
+	results := ParseProbe{}.Run(Fixture{
+		Name:     "templatedir",
+		Kind:     FixtureKindSQLDir,
+		Dir:      dir,
+		SQLFiles: []string{first, second, shared},
+	})
+
+	if len(results) != 3 {
+		t.Fatalf("expected 3 parse results, got %d: %#v", len(results), results)
+	}
+	for _, result := range results {
+		if result.Outcome != OK {
+			t.Fatalf("expected template SQL parse OK, got %#v", result)
+		}
+	}
+	assertResultDetailContains(t, results, "rendered Atlas SQL template and parsed 1 statement(s)")
+	assertResultDetailContains(t, results, "Atlas SQL template support file rendered no standalone statements")
+}
+
 func TestTxtarScriptProbeReportsCommandSurface(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")

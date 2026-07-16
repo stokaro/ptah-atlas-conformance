@@ -6,24 +6,21 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 662 unwaived non-OK observation(s)
+## Status: NOT DONE — 658 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716192007-d72113d127c6`
-- Outcomes: **396 ok**, **655 gap**, **7 fail**, **0 panic**
-- Gate: **662 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716195106-3f88de930de8`
+- Outcomes: **400 ok**, **654 gap**, **4 fail**, **0 panic**
+- Gate: **658 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/1.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
-| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/2.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
-| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | cmp inspected.sql script_cli_inspect.sql did not match: got "-- MYSQL TABLE: users -- CREATE TABLE users ( id int NOT NULL, PRIMARY KEY (id) );" want "-- Create \"users\" table CREATE TABLE `users` (`id` int NOT NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;" | #285 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
@@ -38,7 +35,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | corpus-inventory | `schemahcl/testdata/variables.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: ASDASD at position 38 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/3.sql` | round-trip | parser does not model this construct: unsupported SQL statement: THIS at position 53 |  |
@@ -853,6 +849,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101, BC101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/migrate/testdata/broken` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/migrate/testdata/fixed` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `internal/integration/testdata/migrations/mysql` | lint | no substantive lint findings expected |  |
@@ -966,6 +963,9 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3/20220925094021_second.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4/20220925092817_initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4/20220925094021_second.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/1.sql` | round-trip | rendered Atlas SQL template and parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/2.sql` | round-trip | rendered Atlas SQL template and parsed 2 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql` | round-trip | Atlas SQL template support file rendered no standalone statements |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/1.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/2.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/1.sql` | round-trip | parsed 1 statement(s) |  |
@@ -1082,8 +1082,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#133** — 4 finding(s)
+- **stokaro/ptah#133** — 1 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 643 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
-- **stokaro/ptah#299** — 1 finding(s)
