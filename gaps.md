@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 739 unwaived non-OK observation(s)
+## Status: NOT DONE — 738 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716143835-10011ec01b68`
-- Outcomes: **379 ok**, **730 gap**, **9 fail**, **0 panic**
-- Gate: **739 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716150301-674eb0bd8ca8`
+- Outcomes: **380 ok**, **729 gap**, **9 fail**, **0 panic**
+- Gate: **738 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -51,7 +51,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/12_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/14_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/15_dollar_quote.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DO at position 2684 |  |
-| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/16_begin_atomic.sql` | round-trip | parser does not model this construct: unsupported CREATE FUNCTION clause: RETURN at position 82 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | round-trip | parser returned zero statements for non-empty Atlas DDL | #133 |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/20_ms_go-delim.sql` | round-trip | parser returned zero statements for non-empty Atlas DDL | #133 |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/5_delimiter.sql` | round-trip | parser does not model this construct: unsupported CREATE target: DEFINER at position 41 |  |
@@ -1053,6 +1052,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `internal/integration/testdata/migrations/postgres/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/golang-migrate/1_base.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/1.sql` | round-trip | parsed 6 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lex/16_begin_atomic.sql` | round-trip | parsed 11 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/17_paren.sql` | round-trip | parsed 3 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/18_pg_expr.sql` | round-trip | parsed 3 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/2_mysql.sql` | round-trip | parsed 14 statement(s) |  |
