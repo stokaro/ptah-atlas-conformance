@@ -1387,8 +1387,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql/20220318104614_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: DATABASE at position 42"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1565,8 +1565,8 @@
     "probe": "sql-parse",
     "fixture": "internal/integration/testdata/migrations/mysql/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: SCHEMA at position 7"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1593,8 +1593,8 @@
     "probe": "sql-parse",
     "fixture": "internal/integration/testdata/migrations/postgres/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: SCHEMA at position 7"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",

@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 151 unwaived gap(s)
+## Status: NOT DONE — 148 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716103841-69d50e80b143`
-- Outcomes: **365 ok**, **139 gap**, **12 fail**, **0 panic**
-- Gate: **151 unwaived** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716110458-f7005a589ebc`
+- Outcomes: **368 ok**, **136 gap**, **12 fail**, **0 panic**
+- Gate: **148 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -47,11 +47,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah recognizes only 2/3 files | #299 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/mysql/20220318104614_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: DATABASE at position 42 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: ASDASD at position 38 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/3.sql` | round-trip | parser does not model this construct: unsupported SQL statement: THIS at position 53 |  |
-| **RED** | **gap** | sql-parse | `internal/integration/testdata/migrations/mysql/1_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: SCHEMA at position 7 |  |
-| **RED** | **gap** | sql-parse | `internal/integration/testdata/migrations/postgres/1_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: SCHEMA at position 7 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 55 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/12_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
@@ -436,6 +433,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/liquibase/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/mysql/20220318104614_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/mysql/20220420213403_second.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104614_initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104615_second.sql` | round-trip | parsed 1 statement(s) |  |
@@ -455,9 +453,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/1.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/2.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/3.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `internal/integration/testdata/migrations/mysql/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `internal/integration/testdata/migrations/mysqlock/1.sql` | round-trip | parsed 6 statement(s) |  |
 | — | ok | sql-parse | `internal/integration/testdata/migrations/mysqlock/2.sql` | round-trip | parsed 12 statement(s) |  |
 | — | ok | sql-parse | `internal/integration/testdata/migrations/mysqlock/3.sql` | round-trip | parsed 3 statement(s) |  |
+| — | ok | sql-parse | `internal/integration/testdata/migrations/postgres/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/golang-migrate/1_base.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/1.sql` | round-trip | parsed 6 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/3_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
