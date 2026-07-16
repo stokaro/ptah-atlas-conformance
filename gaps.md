@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 664 unwaived non-OK observation(s)
+## Status: NOT DONE — 662 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716182613-05392b0358af`
-- Outcomes: **394 ok**, **657 gap**, **7 fail**, **0 panic**
-- Gate: **664 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716192007-d72113d127c6`
+- Outcomes: **396 ok**, **655 gap**, **7 fail**, **0 panic**
+- Gate: **662 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -38,9 +38,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | corpus-inventory | `schemahcl/testdata/variables.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
-| **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah recognizes only 2/3 files | #299 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: ASDASD at position 38 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/3.sql` | round-trip | parser does not model this construct: unsupported SQL statement: THIS at position 53 |  |
@@ -841,6 +839,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
@@ -880,6 +879,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/baseline2` | recognize | all 3 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | recognize | all 2 files recognized |  |
+| — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | all 3 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | recognize | all 4 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/goose` | recognize | all 2 files recognized |  |
@@ -1086,4 +1086,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 643 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
-- **stokaro/ptah#299** — 3 finding(s)
+- **stokaro/ptah#299** — 1 finding(s)

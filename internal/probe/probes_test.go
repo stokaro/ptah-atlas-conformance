@@ -712,7 +712,7 @@ CREATE TABLE users (id INT);
 	}
 }
 
-func TestLintProbeKeepsStructuralOnlyAtlasNameGap(t *testing.T) {
+func TestLintProbeAcceptsFlywayRepeatableAtlasName(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "3R_views.sql")
 	writeTestFile(t, path, "CREATE VIEW my_view AS SELECT 1;\n")
@@ -728,11 +728,11 @@ func TestLintProbeKeepsStructuralOnlyAtlasNameGap(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 lint observation, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected structural-only file-convention gap, got %#v", results[0])
+	if results[0].Outcome != OK {
+		t.Fatalf("expected Flyway repeatable to lint cleanly, got %#v", results[0])
 	}
-	if results[0].Issue != "stokaro/ptah#299" {
-		t.Fatalf("expected advanced directory tracking issue, got %#v", results[0])
+	if results[0].Issue != "" {
+		t.Fatalf("expected no tracking issue, got %#v", results[0])
 	}
 }
 
