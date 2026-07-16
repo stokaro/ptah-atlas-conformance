@@ -2,10 +2,9 @@
   {
     "probe": "corpus-inventory",
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
@@ -17,26 +16,23 @@
   {
     "probe": "corpus-inventory",
     "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
@@ -951,34 +947,30 @@
   {
     "probe": "corpus-inventory",
     "fixture": "schemahcl/testdata/a.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "schemahcl/testdata/b.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "schemahcl/testdata/nested/c.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "schemahcl/testdata/variables.hcl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-    "issue": "stokaro/ptah#276"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
   },
   {
     "probe": "corpus-inventory",
@@ -1114,6 +1106,66 @@
     "stage": "import",
     "outcome": "ok",
     "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s)"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl",
+    "stage": "parse",
+    "outcome": "gap",
+    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl:1,1-7: unsupported schema attribute \"comment\"",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl",
+    "stage": "parse",
+    "outcome": "gap",
+    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl:1,1-7: unsupported schema attribute \"comment\"",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "schemahcl/testdata/a.hcl",
+    "stage": "parse",
+    "outcome": "gap",
+    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/a.hcl:1,1-7: unsupported top-level block \"person\"",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "schemahcl/testdata/b.hcl",
+    "stage": "parse",
+    "outcome": "gap",
+    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/b.hcl:1,1-7: unsupported top-level block \"person\"",
+    "issue": "stokaro/ptah#276"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "schemahcl/testdata/nested/c.hcl",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+  },
+  {
+    "probe": "atlas-hcl-parse",
+    "fixture": "schemahcl/testdata/variables.hcl",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
   },
   {
     "probe": "sql-parse",

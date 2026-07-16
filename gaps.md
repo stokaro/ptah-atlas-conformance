@@ -6,29 +6,25 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 347 unwaived non-OK observation(s)
+## Status: NOT DONE — 343 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716195106-3f88de930de8`
-- Outcomes: **402 ok**, **347 gap**, **0 fail**, **0 panic**
-- Gate: **347 unwaived non-OK** (fails CI), 0 waived
-- Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716221910-0b2f97307864`
+- Outcomes: **414 ok**, **343 gap**, **0 fail**, **0 panic**
+- Gate: **343 unwaived non-OK** (fails CI), 0 waived
+- Corpus inventory: **158 imported fixture(s)**, **156 measured**, **2 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
-| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
-| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
-| **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
-| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/a.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
-| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/b.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
-| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/nested/c.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
-| **RED** | **gap** | corpus-inventory | `schemahcl/testdata/variables.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
+| **RED** | **gap** | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl:1,1-7: unsupported schema attribute "comment" | #276 |
+| **RED** | **gap** | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl:1,1-7: unsupported schema attribute "comment" | #276 |
+| **RED** | **gap** | atlas-hcl-parse | `schemahcl/testdata/a.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/a.hcl:1,1-7: unsupported top-level block "person" | #276 |
+| **RED** | **gap** | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/b.hcl:1,1-7: unsupported top-level block "person" | #276 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
@@ -368,7 +364,15 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: apply | #285 |
+| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
+| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
+| — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
+| — | ok | atlas-hcl-parse | `schemahcl/testdata/variables.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/testdata/broken` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/testdata/migrations` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
@@ -499,6 +503,10 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | corpus-inventory | `internal/integration/testdata/sqlite/index-expr.txtar` | import | imported txtar fixture; command/runtime surface is measured by txtar-script |  |
 | — | ok | corpus-inventory | `internal/integration/testdata/sqlite/index-partial.txtar` | import | imported txtar fixture; command/runtime surface is measured by txtar-script |  |
 | — | ok | corpus-inventory | `internal/integration/testdata/sqlite/table-options.txtar` | import | imported txtar fixture; command/runtime surface is measured by txtar-script |  |
+| — | ok | corpus-inventory | `schemahcl/testdata/a.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `schemahcl/testdata/b.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `schemahcl/testdata/nested/c.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `schemahcl/testdata/variables.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `sql/migrate/testdata/golang-migrate` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `sql/migrate/testdata/lex` | import | imported SQL directory: 20 sql file(s), atlas.sum=false, 20 support file(s) |  |
 | — | ok | corpus-inventory | `sql/migrate/testdata/lexbegintry` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 1 support file(s) |  |
@@ -774,6 +782,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#133** — 1 finding(s)
-- **stokaro/ptah#276** — 8 finding(s)
+- **stokaro/ptah#276** — 4 finding(s)
 - **stokaro/ptah#285** — 332 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
