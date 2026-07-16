@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/stokaro/ptah/core/atlashcl"
 	"github.com/stokaro/ptah/core/parser"
 	"github.com/stokaro/ptah/dbschema"
 	"github.com/stokaro/ptah/migration/lint"
@@ -19,6 +20,7 @@ import (
 func AllProbes() []Probe {
 	return []Probe{
 		CorpusProbe{},
+		AtlasHCLProbe{},
 		ParseProbe{},
 		MigDirProbe{},
 		TxtarScriptProbe{},
@@ -63,10 +65,9 @@ func (CorpusProbe) Run(fx Fixture) []Result {
 		return []Result{{
 			Probe:   "corpus-inventory",
 			Fixture: fx.Name,
-			Stage:   "unmeasured",
-			Outcome: Gap,
-			Detail:  "Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet",
-			Issue:   "stokaro/ptah#276",
+			Stage:   "import",
+			Outcome: OK,
+			Detail:  "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse",
 		}}
 	default:
 		return []Result{{
@@ -77,6 +78,47 @@ func (CorpusProbe) Run(fx Fixture) []Result {
 			Detail:  "Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet",
 			Issue:   "stokaro/ptah#289",
 		}}
+	}
+}
+
+// AtlasHCLProbe feeds standalone Atlas HCL files into Ptah's Atlas HCL schema
+// frontend. It measures schema-file ingestion only; project execution semantics
+// such as env blocks remain outside this probe.
+type AtlasHCLProbe struct{}
+
+func (AtlasHCLProbe) Name() string { return "atlas-hcl-parse" }
+
+func (AtlasHCLProbe) Run(fx Fixture) []Result {
+	if fx.Kind != FixtureKindHCL {
+		return nil
+	}
+	if len(fx.Files) != 1 {
+		return []Result{{"atlas-hcl-parse", fx.Name, "load", Fail,
+			fmt.Sprintf("expected one HCL file, got %d", len(fx.Files)), "stokaro/ptah#276"}}
+	}
+
+	var tableCount int
+	var fieldCount int
+	var parseErr error
+	panicked, pmsg := guard(func() {
+		db, err := atlashcl.ParseFile(fx.Files[0])
+		parseErr = err
+		if db != nil {
+			tableCount = len(db.Tables)
+			fieldCount = len(db.Fields)
+		}
+	})
+
+	switch {
+	case panicked:
+		return []Result{{"atlas-hcl-parse", fx.Name, "parse", Panic,
+			"Atlas HCL parser panicked: " + oneLine(pmsg), "stokaro/ptah#128"}}
+	case parseErr != nil:
+		return []Result{{"atlas-hcl-parse", fx.Name, "parse", Gap,
+			"Ptah cannot model this Atlas HCL schema file: " + oneLine(parseErr.Error()), "stokaro/ptah#276"}}
+	default:
+		return []Result{{"atlas-hcl-parse", fx.Name, "parse", OK,
+			fmt.Sprintf("parsed Atlas HCL schema file: %d table(s), %d field(s)", tableCount, fieldCount), ""}}
 	}
 }
 

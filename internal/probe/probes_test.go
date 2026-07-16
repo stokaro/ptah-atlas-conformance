@@ -66,6 +66,75 @@ func TestCorpusProbeMarksImportedButUnmeasuredArtifacts(t *testing.T) {
 	if result[0].Stage != "import" {
 		t.Fatalf("expected import stage, got %#v", result[0])
 	}
+
+	result = CorpusProbe{}.Run(Fixture{Name: "schema.hcl", Kind: FixtureKindHCL})
+	if len(result) != 1 {
+		t.Fatalf("expected 1 HCL result, got %d: %#v", len(result), result)
+	}
+	if result[0].Outcome != OK {
+		t.Fatalf("expected imported HCL OK, got %#v", result[0])
+	}
+	if result[0].Stage != "import" {
+		t.Fatalf("expected HCL import stage, got %#v", result[0])
+	}
+}
+
+func TestAtlasHCLProbeReportsSchemaParseSupport(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "schema.hcl")
+	writeTestFile(t, path, `
+schema "main" {}
+
+table "users" {
+  schema = schema.main
+  column "id" {
+    type = int
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+`)
+
+	results := AtlasHCLProbe{}.Run(Fixture{
+		Name:  "schema.hcl",
+		Kind:  FixtureKindHCL,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected HCL parse OK, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "parsed Atlas HCL schema file: 1 table(s), 1 field(s)")
+}
+
+func TestAtlasHCLProbeReportsUnsupportedSchemaGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "person.hcl")
+	writeTestFile(t, path, `
+person "rotemtam" {
+  hobby = "ice-cream"
+}
+`)
+
+	results := AtlasHCLProbe{}.Run(Fixture{
+		Name:  "person.hcl",
+		Kind:  FixtureKindHCL,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected HCL parse gap, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "Ptah cannot model this Atlas HCL schema file")
 }
 
 func TestParseProbeRendersAtlasSQLTemplates(t *testing.T) {
