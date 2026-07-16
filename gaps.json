@@ -1196,8 +1196,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 238"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1210,8 +1210,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 222"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1246,8 +1246,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/V1__initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 165"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1331,8 +1331,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 167"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1345,8 +1345,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 152"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1359,8 +1359,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 322"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1373,8 +1373,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 218"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1437,15 +1437,15 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094021_second.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 346"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094437_third.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: PRAGMA at position 55"
+    "detail": "parser does not model this construct: unsupported ALTER operation: RENAME at position 442"
   },
   {
     "probe": "sql-parse",
@@ -1458,15 +1458,15 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925094021_second.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 346"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925094437_third.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: PRAGMA at position 55"
+    "detail": "parser does not model this construct: unsupported ALTER operation: RENAME at position 442"
   },
   {
     "probe": "sql-parse",
@@ -1479,8 +1479,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx3/20220925094021_second.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 112"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1573,22 +1573,22 @@
     "probe": "sql-parse",
     "fixture": "internal/integration/testdata/migrations/mysqlock/1.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: SELECT at position 60"
+    "outcome": "ok",
+    "detail": "parsed 6 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "internal/integration/testdata/migrations/mysqlock/2.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: SELECT at position 124"
+    "outcome": "ok",
+    "detail": "parsed 12 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "internal/integration/testdata/migrations/mysqlock/3.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: SELECT at position 30"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1887,8 +1887,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/dbmate/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 198"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1923,8 +1923,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/flyway/V1__initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 165"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1979,8 +1979,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/goose/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 167"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1993,8 +1993,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/liquibase/1_initial.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: INSERT at position 322"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
