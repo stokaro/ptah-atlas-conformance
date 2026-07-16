@@ -10,7 +10,7 @@ there yet" from an opinion into a number that moves over time. Treat the results
 as a floor on the distance to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files grouped into 158
-fixtures, 516 observations, **160 unwaived gaps**. The corpus inventory imports
+fixtures, 516 observations, **157 unwaived gaps**. The corpus inventory imports
 158 fixtures: 148 are measured by at least one current probe, and 10 remain
 explicitly red as imported-but-unmeasured (`.hcl` and other Atlas test artifacts
 that still need dedicated probes).

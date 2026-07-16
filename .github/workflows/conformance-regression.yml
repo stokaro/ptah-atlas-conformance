@@ -1,4 +1,4 @@
-name: conformance
+name: conformance-regression
 
 on:
   push:
@@ -26,27 +26,14 @@ jobs:
       - name: Fail if the committed report is stale
         run: |
           if ! git diff --exit-code gaps.md gaps.json; then
-            echo "gaps.md / gaps.json are out of date — run 'make probe' and commit the result."
+            echo "gaps.md / gaps.json are out of date -- run 'make probe' and commit the result."
             exit 1
           fi
 
-  # The full-parity signal. This is expected to stay red until Ptah covers
-  # everything Atlas expresses in the corpus.
-  conformance-gate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Full Atlas conformance gate
-        run: make gate
-
   # The regression gate. This stays green while the report is current and the
   # unwaived gap count does not regress above gap-budget.txt. Full parity is a
-  # separate CI signal in conformance-gate above.
-  conformance-budget:
+  # separate workflow in full-conformance.yml.
+  gap-budget:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +47,6 @@ jobs:
       - name: Fail if the committed report is stale
         run: |
           if ! git diff --exit-code gaps.md gaps.json; then
-            echo "gaps.md / gaps.json are out of date — run 'make probe' and commit the result."
+            echo "gaps.md / gaps.json are out of date -- run 'make probe' and commit the result."
             exit 1
           fi

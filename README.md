@@ -52,15 +52,17 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
 
-## CI budget and full-parity gate
+## CI regression budget and full-parity gate
 
 This is a spec Ptah has not met, not a passing test log. CI publishes two
-separate signals:
+separate pipelines:
 
-- The regression pipeline uses a committed gap budget so progress PRs fail only
-  when the current report gets worse or stale.
-- The full conformance pipeline runs `make gate` and stays red until Ptah covers
-  everything Atlas expresses in the corpus.
+- [`conformance-regression`](./.github/workflows/conformance-regression.yml)
+  uses a committed gap budget so progress PRs fail only when the current report
+  gets worse or stale.
+- [`full-conformance`](./.github/workflows/full-conformance.yml) runs
+  `make gate` and stays red until Ptah covers everything Atlas expresses in the
+  corpus.
 
 - `make probe` regenerates the report and always exits 0.
 - `make budget` fails if the generated report exceeds [`gap-budget.txt`](./gap-budget.txt)

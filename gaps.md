@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 160 unwaived gap(s)
+## Status: NOT DONE — 157 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716092448-c880a4087334`
-- Outcomes: **356 ok**, **147 gap**, **13 fail**, **0 panic**
-- Gate: **160 unwaived** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716094746-44ea0bc11750`
+- Outcomes: **359 ok**, **144 gap**, **13 fail**, **0 panic**
+- Gate: **157 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -48,10 +48,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files | #299 |
 | **RED** | **gap** | migdir-ingest | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | recognize | Ptah recognizes only 2/3 files | #299 |
 | **RED** | **gap** | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | round-trip | parser does not model this construct: unsupported SQL statement: BROKEN at position 0 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/R__views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3R_views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
-| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 100 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE OR REPLACE target: FUNCTION at position 155 |  |
+| **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE OR REPLACE target: FUNCTION at position 111 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/mysql/20220318104614_initial.sql` | round-trip | parser does not model this construct: unsupported CREATE target: DATABASE at position 42 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql` | round-trip | parser does not model this construct: unsupported SQL statement: ASDASD at position 38 |  |
 | **RED** | **gap** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094437_third.sql` | round-trip | parser does not model this construct: unsupported ALTER operation: RENAME at position 442 |  |
@@ -78,8 +76,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 76 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/sqlserver/1_return_table.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 7 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/sqlserver/2_function.sql` | round-trip | parser does not model this construct: unsupported CREATE target: FUNCTION at position 32 |  |
-| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/flyway/R__views.sql` | round-trip | parser does not model this construct: unsupported CREATE target: VIEW at position 7 |  |
-| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE target: OR at position 144 |  |
+| **RED** | **gap** | sql-parse | `sql/sqltool/testdata/goose/2_second_migration.sql` | round-trip | parser does not model this construct: unsupported CREATE OR REPLACE target: FUNCTION at position 155 |  |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-surface | txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-surface | txtar command/runtime execution is not implemented yet; command surface: atlas schema inspect=2 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-surface | txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=6, cmpmig=3, atlas schema inspect=2 | #285 |
@@ -424,10 +421,12 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/R__views.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/U1__initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V1__initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V2__second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V3__third_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3R_views.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3_third_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
@@ -477,6 +476,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/6_sixth.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/dbmate/1_initial.sql` | round-trip | parsed 3 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/flyway/R__views.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/U1__initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/V1__initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/V2__second_migration.sql` | round-trip | parsed 1 statement(s) |  |
