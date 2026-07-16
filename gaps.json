@@ -1394,9 +1394,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql/20220420213403_second.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected ALTER operation, got Operator at position 22",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1444,8 +1443,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094437_third.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported ALTER operation: RENAME at position 442"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1465,8 +1464,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2/20220925094437_third.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported ALTER operation: RENAME at position 442"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
