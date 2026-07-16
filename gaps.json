@@ -1655,8 +1655,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/16_begin_atomic.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE FUNCTION clause: RETURN at position 82"
+    "outcome": "ok",
+    "detail": "parsed 11 statement(s)"
   },
   {
     "probe": "sql-parse",
