@@ -1633,9 +1633,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/13_delimiter_mysql_command.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
-    "issue": "stokaro/ptah#133"
+    "outcome": "gap",
+    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 53"
   },
   {
     "probe": "sql-parse",
@@ -1720,9 +1719,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/6_skip_comment.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 38",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 5 statement(s)"
   },
   {
     "probe": "sql-parse",
