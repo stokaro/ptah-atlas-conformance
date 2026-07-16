@@ -21,6 +21,7 @@ func AllProbes() []Probe {
 		CorpusProbe{},
 		ParseProbe{},
 		MigDirProbe{},
+		TxtarScriptProbe{},
 		AtlasTxtarDownProbe{},
 		SumProbe{},
 		LintProbe{},
@@ -28,9 +29,9 @@ func AllProbes() []Probe {
 }
 
 // CorpusProbe proves every imported Atlas test artifact is visible in the
-// generated report. SQL directory fixtures are measured by the concrete probes
-// below. Non-SQL Atlas fixtures stay red until the harness grows probes for
-// their semantics instead of silently ignoring them.
+// generated report. Fixtures that have dedicated probes point to those probes;
+// fixture kinds without semantic coverage stay red instead of being silently
+// ignored.
 type CorpusProbe struct{}
 
 func (CorpusProbe) Name() string { return "corpus-inventory" }
@@ -54,10 +55,9 @@ func (CorpusProbe) Run(fx Fixture) []Result {
 		return []Result{{
 			Probe:   "corpus-inventory",
 			Fixture: fx.Name,
-			Stage:   "unmeasured",
-			Outcome: Gap,
-			Detail:  "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-			Issue:   "stokaro/ptah#285",
+			Stage:   "import",
+			Outcome: OK,
+			Detail:  "imported txtar fixture; command/runtime surface is measured by txtar-script",
 		}}
 	case FixtureKindHCL:
 		return []Result{{

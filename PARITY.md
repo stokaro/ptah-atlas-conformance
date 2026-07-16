@@ -9,10 +9,11 @@ run through narrow entry points of Ptah's public API. It exists to turn "are we
 there yet" from an opinion into a number that moves over time. Treat the results
 as a floor on the distance to Atlas, never a ceiling.
 
-Generated snapshot: 286 vendored upstream testdata files grouped into 158 fixtures, 415 observations, **275 unwaived gaps**. The
-corpus inventory imports 158 fixtures: 47 are measured by at least one current
-probe, and 111 are explicitly red as imported-but-unmeasured (`.txtar`, `.hcl`,
-and other Atlas test artifacts that still need dedicated probes).
+Generated snapshot: 286 vendored upstream testdata files grouped into 158
+fixtures, 516 observations, **177 unwaived gaps**. The corpus inventory imports
+158 fixtures: 148 are measured by at least one current probe, and 10 remain
+explicitly red as imported-but-unmeasured (`.hcl` and other Atlas test artifacts
+that still need dedicated probes).
 
 ## What the probe found broken
 
@@ -20,11 +21,12 @@ All probes are offline and static — nothing is applied to a real database.
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | 47 SQL/sum fixtures are measured by concrete probes; 111 imported `.txtar`, `.hcl`, and other fixtures are deliberately red until probes consume them. |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | 148 fixtures are measured by concrete probes; 10 imported `.hcl` and other fixtures are deliberately red until probes consume them. |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all 125 vendored `.sql` files. Plain `CREATE TABLE` passes; many Atlas SQL dialect/lexer fixtures fail or gap because Ptah's parser only accepts a limited DDL subset. |
-| `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | **0 of N** files recognized in every fixture. Atlas names files `NNNNNNNNNNNNNN_desc.sql` (14-digit, single file); Ptah requires `NNNNNNNNNN_desc.(up\|down).sql`. (ptah#273) |
-| `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Parses the format (good), but its recomputed directory hash **differs** — Ptah only hashes files it recognizes, so it hashes zero of Atlas's and produces a different sum. (ptah#274) |
-| `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | On a directory containing `DROP TABLE`, Ptah emits only `MF103` ("non-conventional file name") and never the destructive finding (`DS101`) Atlas would. It flags Atlas's file names instead of reading their content. |
+| `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Most Atlas migration directories are now recognized; remaining advanced directory-artifact gaps are tracked separately. |
+| `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Every imported `.txtar` script is parsed and reported with its command/runtime surface. These remain red until commands such as `apply`, `cmpshow`, `atlas migrate diff`, and `atlas schema inspect` are actually executed and checked. (ptah#285) |
+| `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Current measured fixtures pass the parsed/recomputed sum compatibility probe. |
+| `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Most measured directories have content-level or intentionally structural results; advanced Atlas directory artifacts still expose remaining lint-ingest gaps. |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -38,7 +40,7 @@ is **"unknown — not measured"**, not "works".
 | --- | --- | --- |
 | Schema **introspection** breadth (types, defaults, generated/partial/expression indexes, sequences, domains, composite types, FK actions, exclusion constraints, partitioning, collations, comments) | **No** | a dedicated introspection probe against a live DB |
 | Schema **diff / plan** (desired A → desired B → migration) | **No** | a diff probe over paired schema fixtures |
-| **End-state equivalence** (apply with Atlas and with Ptah, compare the resulting databases) | **No** | ptah#285 — not built yet; needs a live DB |
+| **End-state equivalence** (apply with Atlas and with Ptah, compare the resulting databases) | **No** | ptah#285 — command surfaces are measured, but runtime execution/comparison is not built yet and needs live DBs |
 | **HCL** schema language | **Imported, red/unmeasured** | HCL files are vendored and reported by `corpus-inventory`; Ptah largely does not read HCL (only the planned limited C3 subset, ptah#276) |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
@@ -62,8 +64,8 @@ is **"unknown — not measured"**, not "works".
 
 To earn the phrase "feature-set parity test", this repo would need, at minimum:
 
-1. Runtime probes for the imported Atlas `.txtar` integration fixtures, not just
-   inventory rows.
+1. Runtime probes for the imported Atlas `.txtar` integration fixtures, beyond
+   the current command-surface parser.
 2. An **introspection** probe: apply a schema with each tool, introspect with
    one reader, diff the canonical states (this is ptah#285 and needs a live DB).
 3. A **diff/plan** probe over paired before/after schemas.
