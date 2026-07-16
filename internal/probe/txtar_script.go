@@ -11,9 +11,12 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"testing/fstest"
 
 	"github.com/stokaro/ptah/core/ast"
 	"github.com/stokaro/ptah/core/parser"
+	"github.com/stokaro/ptah/migration/migratesum"
+	"github.com/stokaro/ptah/migration/migrator"
 )
 
 // TxtarScriptProbe parses Atlas integration txtar scripts and records the
@@ -398,6 +401,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string) txtarComman
 	if result, ok := runTxtarFileCommand(runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarMigrateHash(runtime, fields); ok {
+		return result
+	}
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "inspect" {
 		if key, ok := txtarCommandKeyFields(fields); ok {
 			return txtarCommandResult{unsupported: key}
@@ -431,8 +437,75 @@ func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]b
 	case "cp", "mv":
 		args := nonFlagArgs(fields[1:])
 		return len(args) >= 1 && unsupportedFiles[args[0]]
+	case "atlas":
+		if len(fields) >= 3 && fields[1] == "migrate" && fields[2] == "hash" {
+			return txtarMigrateHashReadsUnsupportedFile(fields[3:], unsupportedFiles)
+		}
 	}
 	return false
+}
+
+func txtarMigrateHashReadsUnsupportedFile(args []string, unsupportedFiles map[string]bool) bool {
+	dir := txtarMigrateHashDir(args)
+	for file := range unsupportedFiles {
+		if txtarMigrateHashReadsFile(dir, file) {
+			return true
+		}
+	}
+	return false
+}
+
+func txtarMigrateHashReadsFile(dir, file string) bool {
+	dir = path.Clean(dir)
+	clean := path.Clean(file)
+	rel := clean
+	if dir != "." && dir != "/" {
+		var ok bool
+		rel, ok = strings.CutPrefix(clean, dir+"/")
+		if !ok {
+			return false
+		}
+	}
+	return rel != "" && !strings.Contains(rel, "/") && strings.HasSuffix(rel, ".sql")
+}
+
+func runTxtarMigrateHash(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "hash" {
+		return txtarCommandResult{}, false
+	}
+
+	dir := txtarMigrateHashDir(fields[3:])
+	fsys, ok := runtime.subFS(dir)
+	if !ok {
+		return txtarCommandResult{failed: true, err: fmt.Errorf("migration directory %q missing", dir)}, true
+	}
+	sum, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
+	if err != nil {
+		return txtarCommandResult{err: err}, true
+	}
+	sumPath := path.Join(dir, migratesum.AtlasFileName)
+	runtime.files[sumPath] = string(sum.Bytes())
+	runtime.addParentDirs(sumPath)
+	return txtarCommandResult{}, true
+}
+
+func txtarMigrateHashDir(args []string) string {
+	const defaultDir = "migrations"
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if value, ok := strings.CutPrefix(arg, "--dir="); ok {
+			return txtarFileURLPath(value)
+		}
+		if arg == "--dir" && i+1 < len(args) {
+			return txtarFileURLPath(args[i+1])
+		}
+	}
+	return defaultDir
+}
+
+func txtarFileURLPath(value string) string {
+	const filePrefix = "file://"
+	return strings.TrimPrefix(value, filePrefix)
 }
 
 func txtarCommandReadsUnsupportedDBState(line string) bool {
@@ -492,6 +565,10 @@ func markUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsup
 		if len(args) == 2 {
 			unsupportedFiles[runtime.destinationPath(args[0], args[1])] = true
 		}
+	case "atlas":
+		if len(fields) >= 3 && fields[1] == "migrate" && fields[2] == "hash" {
+			unsupportedFiles[path.Join(txtarMigrateHashDir(fields[3:]), migratesum.AtlasFileName)] = true
+		}
 	}
 }
 
@@ -520,6 +597,10 @@ func clearUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsu
 	case "touch":
 		for _, file := range nonFlagArgs(fields[1:]) {
 			delete(unsupportedFiles, file)
+		}
+	case "atlas":
+		if len(fields) >= 3 && fields[1] == "migrate" && fields[2] == "hash" {
+			delete(unsupportedFiles, path.Join(txtarMigrateHashDir(fields[3:]), migratesum.AtlasFileName))
 		}
 	}
 }
@@ -632,6 +713,32 @@ func (r *txtarRuntime) touch(args []string) txtarCommandResult {
 		r.addParentDirs(file)
 	}
 	return txtarCommandResult{}
+}
+
+func (r *txtarRuntime) subFS(dir string) (fstest.MapFS, bool) {
+	dir = path.Clean(dir)
+	prefix := ""
+	if dir != "." && dir != "/" {
+		prefix = dir + "/"
+	}
+
+	fsys := fstest.MapFS{}
+	for name, data := range r.files {
+		clean := path.Clean(name)
+		rel := clean
+		if prefix != "" {
+			var ok bool
+			rel, ok = strings.CutPrefix(clean, prefix)
+			if !ok {
+				continue
+			}
+		}
+		if rel == "" || strings.Contains(rel, "/") {
+			continue
+		}
+		fsys[rel] = &fstest.MapFile{Data: []byte(data)}
+	}
+	return fsys, r.dirs[dir] || len(fsys) > 0
 }
 
 func (r *txtarRuntime) destinationPath(src, dst string) string {

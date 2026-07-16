@@ -5,6 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
+
+	"github.com/stokaro/ptah/migration/migratesum"
+	"github.com/stokaro/ptah/migration/migrator"
 )
 
 func TestLoadCorpusIncludesAllAtlasTestArtifactKinds(t *testing.T) {
@@ -636,6 +640,117 @@ schema "main" {}
 	assertResultDetailContains(t, results, "unsupported: synced")
 }
 
+func TestTxtarScriptProbeExecutesMigrateHash(t *testing.T) {
+	expected := atlasSumBytes(t, map[string]string{
+		"1_first.sql": "SELECT 1;\n",
+	})
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+cmp migrations/atlas.sum expected.sum
+
+-- migrations/1_first.sql --
+SELECT 1;
+-- expected.sum --
+`+string(expected))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "executed 1 supported command") {
+		t.Fatalf("detail missing migrate hash execution: %s", results[0].Detail)
+	}
+	if !strings.Contains(results[0].Detail, "checked 1 assertion") {
+		t.Fatalf("detail missing atlas.sum assertion: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeMigrateHashUpdatesAfterFileChange(t *testing.T) {
+	expected := atlasSumBytes(t, map[string]string{
+		"1_first.sql":  "SELECT 1;\n",
+		"2_second.sql": "SELECT 2;\n",
+	})
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+cp two.sql migrations/2_second.sql
+atlas migrate hash
+cmp migrations/atlas.sum expected.sum
+
+-- migrations/1_first.sql --
+SELECT 1;
+-- two.sql --
+SELECT 2;
+-- expected.sum --
+`+string(expected))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "executed 3 supported command") {
+		t.Fatalf("detail missing migrate hash and cp execution: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeSkipsMigrateHashAfterUnsupportedMigrationFileProducer(t *testing.T) {
+	expected := atlasSumBytes(t, map[string]string{
+		"1_first.sql": "SELECT 1;\n",
+	})
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff > migrations/2_second.sql
+atlas migrate hash
+cmp migrations/atlas.sum expected.sum
+
+-- migrations/1_first.sql --
+SELECT 1;
+-- expected.sum --
+`+string(expected))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
+		t.Fatalf("detail missing original unsupported migration producer: %s", results[0].Detail)
+	}
+	if strings.Contains(results[0].Detail, "atlas migrate hash") {
+		t.Fatalf("hash blocked by unsupported migration file should not be reported as independently unsupported: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeDoesNotSkipDBAssertionsAfterExpectedFailure(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -1190,6 +1305,20 @@ func writeTestFile(t *testing.T, path, data string) {
 	if err := os.WriteFile(path, []byte(data), 0o644); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func atlasSumBytes(t *testing.T, files map[string]string) []byte {
+	t.Helper()
+
+	fsys := fstest.MapFS{}
+	for name, data := range files {
+		fsys[name] = &fstest.MapFile{Data: []byte(data)}
+	}
+	sum, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return sum.Bytes()
 }
 
 func assertResult(t *testing.T, results []Result, stage, detail string) {
