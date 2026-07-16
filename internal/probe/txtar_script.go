@@ -365,8 +365,14 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		if commandLine == "" {
 			continue
 		}
-		if dbStateUnsupported && txtarCommandReadsUnsupportedDBState(commandLine) {
+		if dbStateUnsupported && !expectedFailure && txtarCommandReadsUnsupportedDBState(commandLine) {
 			last = txtarCommandResult{unsupported: "blocked by unsupported database state"}
+			if redirect := txtarRedirectTarget(commandLine); redirect != "" {
+				unsupportedFiles[redirect] = true
+			} else {
+				unsupportedFiles["stdout"] = true
+				unsupportedFiles["stderr"] = true
+			}
 			continue
 		}
 		if txtarCommandReadsUnsupportedFile(commandLine, unsupportedFiles) {
@@ -562,9 +568,40 @@ func txtarCommandReadsUnsupportedDBState(line string) bool {
 	switch fields[0] {
 	case "exist", "synced", "cmpshow", "cmphcl":
 		return true
+	case "atlas":
+		return txtarAtlasCommandReadsUnsupportedDBState(fields)
 	default:
 		return false
 	}
+}
+
+func txtarAtlasCommandReadsUnsupportedDBState(fields []string) bool {
+	if len(fields) < 3 || fields[1] != "schema" || fields[2] != "inspect" {
+		return false
+	}
+	return txtarSchemaInspectReadsDBState(fields[3:])
+}
+
+func txtarSchemaInspectReadsDBState(args []string) bool {
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "-u" || arg == "--url":
+			if i+1 >= len(args) {
+				return false
+			}
+			return !strings.HasPrefix(args[i+1], "file://")
+		case strings.HasPrefix(arg, "-u="):
+			return !strings.HasPrefix(strings.TrimPrefix(arg, "-u="), "file://")
+		case strings.HasPrefix(arg, "--url="):
+			return !strings.HasPrefix(strings.TrimPrefix(arg, "--url="), "file://")
+		case arg == "--env":
+			return true
+		case strings.HasPrefix(arg, "--env="):
+			return true
+		}
+	}
+	return false
 }
 
 func txtarCommandMutatesDBState(line string) bool {
