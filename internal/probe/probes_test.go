@@ -1225,6 +1225,69 @@ schema "main" {}
 	assertResultDetailContains(t, results, "unsupported: synced")
 }
 
+func TestTxtarScriptProbeSkipsMigrationCommandsAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+atlas migrate status --url URL
+atlas migrate apply --url URL
+atlas migrate set 1 --url URL
+
+-- 1.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+	for _, dependent := range []string{"atlas migrate status", "atlas migrate apply", "atlas migrate set"} {
+		if strings.Contains(results[0].Detail, dependent) {
+			t.Fatalf("dependent command %q should not be reported after unsupported DB mutation: %s",
+				dependent, results[0].Detail)
+		}
+	}
+}
+
+func TestTxtarScriptProbeSkipsSchemaMutationCommandsAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+atlas schema apply --url URL --to file://2.hcl
+atlas schema clean --url URL
+
+-- 1.hcl --
+schema "main" {}
+-- 2.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+	for _, dependent := range []string{"atlas schema apply", "atlas schema clean"} {
+		if strings.Contains(results[0].Detail, dependent) {
+			t.Fatalf("dependent command %q should not be reported after unsupported DB mutation: %s",
+				dependent, results[0].Detail)
+		}
+	}
+}
+
 func TestTxtarScriptProbeSkipsVirtualFileCommandBlockedByUnsupportedRedirect(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")

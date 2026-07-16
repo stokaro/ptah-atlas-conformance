@@ -626,10 +626,19 @@ func txtarCommandReadsUnsupportedDBState(line string) bool {
 }
 
 func txtarAtlasCommandReadsUnsupportedDBState(fields []string) bool {
-	if len(fields) < 3 || fields[1] != "schema" || fields[2] != "inspect" {
+	if len(fields) < 3 {
 		return false
 	}
-	return txtarSchemaInspectReadsDBState(fields[3:])
+	switch fields[1] + " " + fields[2] {
+	case "migrate apply", "migrate set", "migrate status":
+		return true
+	case "schema apply", "schema clean":
+		return true
+	case "schema inspect":
+		return txtarSchemaInspectReadsDBState(fields[3:])
+	default:
+		return false
+	}
 }
 
 func txtarSchemaInspectReadsDBState(args []string) bool {
