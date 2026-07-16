@@ -4621,38 +4621,6 @@
   },
   {
     "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate validate",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate new",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate validate",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate validate",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
     "stage": "script-runtime",
     "outcome": "gap",

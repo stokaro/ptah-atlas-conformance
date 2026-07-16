@@ -378,6 +378,9 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		if txtarCommandReadsUnsupportedFile(commandLine, unsupportedFiles) {
 			last = txtarCommandResult{unsupported: "blocked by unsupported file"}
 			markUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
+			if !expectedFailure && txtarCommandMutatesDBState(commandLine) {
+				dbStateUnsupported = true
+			}
 			continue
 		}
 		result := runTxtarCommand(fx, runtime, commandLine)
@@ -427,6 +430,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string) txtarComman
 	if result, ok := runTxtarMigrateHash(runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarMigrateValidate(runtime, fields); ok {
+		return result
+	}
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "inspect" {
 		if key, ok := txtarCommandKeyFields(fields); ok {
 			return txtarCommandResult{unsupported: key}
@@ -461,8 +467,14 @@ func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]b
 		args := nonFlagArgs(fields[1:])
 		return len(args) >= 1 && unsupportedFiles[args[0]]
 	case "atlas":
-		if len(fields) >= 3 && fields[1] == "migrate" && fields[2] == "hash" {
+		if len(fields) < 3 || fields[1] != "migrate" {
+			return false
+		}
+		switch fields[2] {
+		case "hash":
 			return txtarMigrateHashReadsUnsupportedFile(fields[3:], unsupportedFiles)
+		case "apply", "new", "set", "status", "validate":
+			return txtarMigrateCommandReadsUnsupportedFile(fields[3:], unsupportedFiles)
 		}
 	}
 	return false
@@ -484,7 +496,11 @@ func txtarCmpmigReadsUnsupportedFile(fields []string, unsupportedFiles map[strin
 }
 
 func txtarMigrateHashReadsUnsupportedFile(args []string, unsupportedFiles map[string]bool) bool {
-	dir := txtarMigrateHashDir(args)
+	return txtarMigrateCommandReadsUnsupportedFile(args, unsupportedFiles)
+}
+
+func txtarMigrateCommandReadsUnsupportedFile(args []string, unsupportedFiles map[string]bool) bool {
+	dir := txtarMigrateCommandDir(args)
 	if unsupportedFiles[dir] {
 		return true
 	}
@@ -532,6 +548,40 @@ func runTxtarMigrateHash(runtime *txtarRuntime, fields []string) (txtarCommandRe
 
 func txtarMigrateHashDir(args []string) string {
 	return txtarMigrateCommandDir(args)
+}
+
+func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "validate" {
+		return txtarCommandResult{}, false
+	}
+
+	dir := txtarMigrateCommandDir(fields[3:])
+	fsys, ok := runtime.subFS(dir)
+	if !ok {
+		return txtarCommandResult{failed: true, err: fmt.Errorf("migration directory %q missing", dir)}, true
+	}
+	sumPath := path.Join(dir, migratesum.AtlasFileName)
+	expected, ok := runtime.files[sumPath]
+	if !ok {
+		return txtarCommandResult{
+			stdout: "You have a checksum error in your migration directory.\n",
+			stderr: "Error: checksum file not found\n",
+			failed: true,
+			err:    fmt.Errorf("checksum file not found"),
+		}, true
+	}
+	actual, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
+	if err != nil {
+		return txtarCommandResult{err: err}, true
+	}
+	if string(actual.Bytes()) != expected {
+		return txtarCommandResult{
+			stderr: "Error: checksum mismatch\n",
+			failed: true,
+			err:    fmt.Errorf("checksum mismatch"),
+		}, true
+	}
+	return txtarCommandResult{}, true
 }
 
 func txtarMigrateDiffDir(args []string) string {

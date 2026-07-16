@@ -279,8 +279,8 @@ schema "main" {}
 		Files: []string{path},
 	})
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 unsupported command results, got %d: %#v", len(results), results)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 unsupported command result, got %d: %#v", len(results), results)
 	}
 	for _, result := range results {
 		if result.Outcome != Gap {
@@ -290,14 +290,12 @@ schema "main" {}
 			t.Fatalf("expected script-runtime stage, got %#v", result)
 		}
 	}
-	for _, want := range []string{
-		"unsupported: atlas migrate diff",
-		"unsupported: atlas migrate apply",
-	} {
-		assertResultDetailContains(t, results, want)
-	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
 	for _, result := range results {
-		if strings.Contains(result.Detail, "stdout") || strings.Contains(result.Detail, "only") {
+		if strings.Contains(result.Detail, "stdout") ||
+			strings.Contains(result.Detail, "only") ||
+			strings.Contains(result.Detail, "atlas migrate apply") ||
+			strings.Contains(result.Detail, "cmpshow") {
 			t.Fatalf("detail should not count assertions/matching directives as commands: %s", result.Detail)
 		}
 	}
@@ -1053,6 +1051,60 @@ SELECT 2;
 	}
 }
 
+func TestTxtarScriptProbeExecutesMigrateValidate(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+atlas migrate validate
+
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected migrate validate OK, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "executed 2 supported command(s)")
+}
+
+func TestTxtarScriptProbeReportsMigrateValidateChecksumMismatch(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+touch migrations/2.sql
+! atlas migrate validate
+stderr 'Error: checksum mismatch'
+
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected expected validate failure to satisfy stderr assertion, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "checked 1 assertion(s)")
+}
+
 func TestTxtarScriptProbeSkipsMigrateHashAfterUnsupportedMigrationFileProducer(t *testing.T) {
 	expected := atlasSumBytes(t, map[string]string{
 		"1_first.sql": "SELECT 1;\n",
@@ -1087,6 +1139,41 @@ SELECT 1;
 	}
 	if strings.Contains(results[0].Detail, "atlas migrate hash") {
 		t.Fatalf("hash blocked by unsupported migration file should not be reported as independently unsupported: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeSkipsMigrateValidateAndNewAfterUnsupportedMigrationFileProducer(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff
+atlas migrate validate
+atlas migrate new 2
+cmpmig 0 expected.sql
+
+-- schema.hcl --
+schema "main" {}
+-- expected.sql --
+CREATE TABLE users (id int);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
+		t.Fatalf("detail missing original unsupported migration file producer: %s", results[0].Detail)
+	}
+	for _, dependent := range []string{"atlas migrate validate", "atlas migrate new", "cmpmig"} {
+		if strings.Contains(results[0].Detail, dependent) {
+			t.Fatalf("dependent command %q should not be reported after unsupported migration producer: %s",
+				dependent, results[0].Detail)
+		}
 	}
 }
 
