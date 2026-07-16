@@ -2054,9 +2054,8 @@
     "probe": "migdir-ingest",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
     "stage": "recognize",
-    "outcome": "gap",
-    "detail": "Ptah recognizes only 2/3 files",
-    "issue": "stokaro/ptah#299"
+    "outcome": "ok",
+    "detail": "all 3 files recognized"
   },
   {
     "probe": "migdir-ingest",
@@ -7858,9 +7857,8 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
-    "issue": "stokaro/ptah#299"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
