@@ -1620,28 +1620,28 @@
     "fixture": "sql/migrate/testdata/lex/11_delimiter_mysql_command.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 55"
+    "detail": "parser does not model this construct: unsupported CREATE FUNCTION body: BEGIN without ATOMIC at position 124"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/12_delimiter_mysql_command.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 0"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/13_delimiter_mysql_command.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 53"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/14_delimiter_mysql_command.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 0"
+    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7"
   },
   {
     "probe": "sql-parse",
@@ -1783,7 +1783,7 @@
     "fixture": "sql/migrate/testdata/lexgroup/3_delimiter.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DELIMITER at position 250"
+    "detail": "parser does not model this construct: unsupported CREATE FUNCTION body: BEGIN without ATOMIC at position 330"
   },
   {
     "probe": "sql-parse",
