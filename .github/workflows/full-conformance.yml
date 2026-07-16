@@ -1,0 +1,21 @@
+name: full-conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # The full-parity signal. This is expected to stay red until Ptah covers
+  # everything Atlas expresses in the corpus.
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Full Atlas conformance gate
+        run: make gate

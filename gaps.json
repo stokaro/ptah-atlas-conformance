@@ -1232,8 +1232,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/R__views.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: VIEW at position 7"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1275,8 +1275,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3R_views.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: VIEW at position 7"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1339,7 +1339,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose/2_second_migration.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: OR at position 144"
+    "detail": "parser does not model this construct: unsupported CREATE OR REPLACE target: FUNCTION at position 155"
   },
   {
     "probe": "sql-parse",
@@ -1353,7 +1353,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold/2_second_migration.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: OR at position 100"
+    "detail": "parser does not model this construct: unsupported CREATE OR REPLACE target: FUNCTION at position 111"
   },
   {
     "probe": "sql-parse",
@@ -1909,8 +1909,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/flyway/R__views.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: VIEW at position 7"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1987,7 +1987,7 @@
     "fixture": "sql/sqltool/testdata/goose/2_second_migration.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: OR at position 144"
+    "detail": "parser does not model this construct: unsupported CREATE OR REPLACE target: FUNCTION at position 155"
   },
   {
     "probe": "sql-parse",
