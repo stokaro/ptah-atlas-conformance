@@ -6,33 +6,27 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 148 unwaived gap(s)
+## Status: NOT DONE — 142 unwaived gap(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716110458-f7005a589ebc`
-- Outcomes: **368 ok**, **136 gap**, **12 fail**, **0 panic**
-- Gate: **148 unwaived** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716114538-aa6ebba7df5c`
+- Outcomes: **374 ok**, **136 gap**, **6 fail**, **0 panic**
+- Gate: **142 unwaived** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/B2__baseline.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 126 | #133 |
-| **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/2_baseline.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 126 | #133 |
 | **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/1.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
 | **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/2.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
 | **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
 | **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/13_delimiter_mysql_command.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
 | **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/18_pg_expr.sql` | round-trip | parse error on Atlas DDL: expected index name, got String at position 27 | #133 |
-| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/2_mysql.sql` | round-trip | parse error on Atlas DDL: expected '(' after table name: expected Operator, got Identifier at position 83 | #133 |
 | **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/6_skip_comment.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 38 | #133 |
-| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lexescaped/1.my.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 150 | #133 |
-| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lexescaped/2.pg.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 72 | #133 |
-| **RED** | **fail** | sql-parse | `sql/sqltool/testdata/flyway/B2__baseline.sql` | round-trip | parse error on Atlas DDL: expected ',' or ')' after table element at position 126 | #133 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
@@ -412,11 +406,13 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/B2__baseline.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/R__views.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/U1__initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V1__initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V2__second_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway/V3__third_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/2_baseline.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3R_views.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/3_third_migration.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate/1_initial.down.sql` | round-trip | parsed 1 statement(s) |  |
@@ -460,8 +456,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `internal/integration/testdata/migrations/postgres/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/golang-migrate/1_base.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/1.sql` | round-trip | parsed 6 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lex/2_mysql.sql` | round-trip | parsed 14 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/3_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/4_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lexescaped/1.my.sql` | round-trip | parsed 4 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lexescaped/2.pg.sql` | round-trip | parsed 4 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/1_initial.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/sub/1.a_sub.up.sql` | round-trip | parsed 2 statement(s) |  |
@@ -475,6 +474,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `sql/migrate/testdata/partial-checkpoint/6_sixth.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/dbmate/1_initial.sql` | round-trip | parsed 3 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/dbmate/2_second_migration.sql` | round-trip | parsed 1 statement(s) |  |
+| — | ok | sql-parse | `sql/sqltool/testdata/flyway/B2__baseline.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/R__views.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/U1__initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/sqltool/testdata/flyway/V1__initial.sql` | round-trip | parsed 2 statement(s) |  |
@@ -540,7 +540,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#133** — 12 finding(s)
+- **stokaro/ptah#133** — 6 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 101 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
