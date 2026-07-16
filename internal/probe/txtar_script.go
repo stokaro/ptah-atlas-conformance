@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -93,10 +94,16 @@ func txtarCommandKey(line string) (string, bool) {
 		line = strings.TrimSpace(strings.TrimPrefix(line, "! "))
 	}
 	fields := strings.Fields(line)
+	return txtarCommandKeyFields(fields)
+}
+
+func txtarCommandKeyFields(fields []string) (string, bool) {
+	if len(fields) > 0 && fields[0] == "exec" {
+		fields = fields[1:]
+	}
 	if len(fields) == 0 {
 		return "", false
 	}
-
 	switch fields[0] {
 	case "stdout", "stderr", "cmp", "cmpout", "skip", "only":
 		return "", false
@@ -213,8 +220,24 @@ type txtarCommandResult struct {
 	err         error
 }
 
-func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary {
+type txtarRuntime struct {
+	files map[string]string
+	dirs  map[string]bool
+}
+
+func newTxtarRuntime(data string) *txtarRuntime {
 	files := txtarFiles(data)
+	dirs := map[string]bool{".": true}
+	for name := range files {
+		for dir := path.Dir(name); dir != "." && dir != "/"; dir = path.Dir(dir) {
+			dirs[dir] = true
+		}
+	}
+	return &txtarRuntime{files: files, dirs: dirs}
+}
+
+func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary {
+	runtime := newTxtarRuntime(data)
 	unsupportedFiles := map[string]bool{}
 	var summary txtarRunSummary
 	var last txtarCommandResult
@@ -295,7 +318,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 				continue
 			}
 			summary.checked++
-			if mismatch := txtarFilesMismatch(files, fields[1], fields[2]); mismatch != "" {
+			if mismatch := txtarFilesMismatch(runtime.files, fields[1], fields[2]); mismatch != "" {
 				summary.failures = append(summary.failures, mismatch)
 			}
 			continue
@@ -305,7 +328,12 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		if commandLine == "" {
 			continue
 		}
-		result := runTxtarCommand(fx, files, commandLine)
+		if txtarCommandReadsUnsupportedFile(commandLine, unsupportedFiles) {
+			last = txtarCommandResult{unsupported: "blocked by unsupported file"}
+			markUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
+			continue
+		}
+		result := runTxtarCommand(fx, runtime, commandLine)
 		last = result
 		if result.unsupported != "" {
 			summary.unsupported = append(summary.unsupported, result.unsupported)
@@ -318,13 +346,14 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			continue
 		}
 		summary.executed++
-		files["stdout"] = result.stdout
-		files["stderr"] = result.stderr
+		runtime.files["stdout"] = result.stdout
+		runtime.files["stderr"] = result.stderr
 		delete(unsupportedFiles, "stdout")
 		delete(unsupportedFiles, "stderr")
 		if redirect := txtarRedirectTarget(commandLine); redirect != "" {
 			delete(unsupportedFiles, redirect)
 		}
+		clearUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
 		failed := result.failed || result.err != nil
 		switch {
 		case expectedFailure && !failed:
@@ -339,15 +368,252 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 	return summary
 }
 
-func runTxtarCommand(fx Fixture, files map[string]string, line string) txtarCommandResult {
-	fields := splitTxtarFields(line)
+func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string) txtarCommandResult {
+	fields := txtarCommandFields(line)
+	if result, ok := runTxtarFileCommand(runtime, fields); ok {
+		return result
+	}
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "inspect" {
-		if key, ok := txtarCommandKey(line); ok {
+		if key, ok := txtarCommandKeyFields(fields); ok {
 			return txtarCommandResult{unsupported: key}
 		}
 		return txtarCommandResult{unsupported: line}
 	}
-	return runTxtarSchemaInspect(fx, files, fields)
+	return runTxtarSchemaInspect(fx, runtime.files, fields)
+}
+
+func txtarCommandFields(line string) []string {
+	fields := splitTxtarFields(line)
+	if len(fields) > 0 && fields[0] == "exec" {
+		return fields[1:]
+	}
+	return fields
+}
+
+func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]bool) bool {
+	fields := txtarCommandFields(line)
+	if len(fields) == 0 {
+		return false
+	}
+
+	switch fields[0] {
+	case "cat":
+		for _, file := range nonFlagArgs(fields[1:]) {
+			if unsupportedFiles[file] {
+				return true
+			}
+		}
+	case "cp", "mv":
+		args := nonFlagArgs(fields[1:])
+		return len(args) >= 1 && unsupportedFiles[args[0]]
+	}
+	return false
+}
+
+func markUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsupportedFiles map[string]bool) {
+	fields := txtarCommandFields(line)
+	if len(fields) == 0 {
+		return
+	}
+
+	switch fields[0] {
+	case "cat":
+		unsupportedFiles["stdout"] = true
+		unsupportedFiles["stderr"] = true
+	case "cp", "mv":
+		args := nonFlagArgs(fields[1:])
+		if len(args) == 2 {
+			unsupportedFiles[runtime.destinationPath(args[0], args[1])] = true
+		}
+	}
+}
+
+func clearUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsupportedFiles map[string]bool) {
+	fields := txtarCommandFields(line)
+	if len(fields) == 0 {
+		return
+	}
+
+	switch fields[0] {
+	case "cp":
+		args := nonFlagArgs(fields[1:])
+		if len(args) == 2 {
+			delete(unsupportedFiles, runtime.destinationPath(args[0], args[1]))
+		}
+	case "mv":
+		args := nonFlagArgs(fields[1:])
+		if len(args) == 2 {
+			delete(unsupportedFiles, args[0])
+			delete(unsupportedFiles, runtime.destinationPath(args[0], args[1]))
+		}
+	case "rm":
+		for _, file := range nonFlagArgs(fields[1:]) {
+			removeUnsupportedPath(unsupportedFiles, file)
+		}
+	case "touch":
+		for _, file := range nonFlagArgs(fields[1:]) {
+			delete(unsupportedFiles, file)
+		}
+	}
+}
+
+func removeUnsupportedPath(unsupportedFiles map[string]bool, name string) {
+	name = path.Clean(name)
+	delete(unsupportedFiles, name)
+	prefix := name + "/"
+	for file := range unsupportedFiles {
+		if strings.HasPrefix(file, prefix) {
+			delete(unsupportedFiles, file)
+		}
+	}
+}
+
+func runTxtarFileCommand(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) == 0 {
+		return txtarCommandResult{}, false
+	}
+	switch fields[0] {
+	case "mkdir":
+		return runtime.mkdir(fields[1:]), true
+	case "rm":
+		return runtime.rm(fields[1:]), true
+	case "cp":
+		return runtime.cp(fields[1:]), true
+	case "mv":
+		return runtime.mv(fields[1:]), true
+	case "cat":
+		return runtime.cat(fields[1:]), true
+	case "touch":
+		return runtime.touch(fields[1:]), true
+	default:
+		return txtarCommandResult{}, false
+	}
+}
+
+func (r *txtarRuntime) mkdir(args []string) txtarCommandResult {
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+		r.addDir(arg)
+	}
+	return txtarCommandResult{}
+}
+
+func (r *txtarRuntime) rm(args []string) txtarCommandResult {
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+		r.removePath(arg)
+	}
+	return txtarCommandResult{}
+}
+
+func (r *txtarRuntime) cp(args []string) txtarCommandResult {
+	args = nonFlagArgs(args)
+	if len(args) != 2 {
+		return txtarCommandResult{unsupported: "cp"}
+	}
+	src, dst := args[0], r.destinationPath(args[0], args[1])
+	data, ok := r.files[src]
+	if !ok {
+		return txtarCommandResult{failed: true, err: fmt.Errorf("cp %s %s: %s missing", args[0], args[1], args[0])}
+	}
+	r.files[dst] = data
+	r.addParentDirs(dst)
+	return txtarCommandResult{}
+}
+
+func (r *txtarRuntime) mv(args []string) txtarCommandResult {
+	args = nonFlagArgs(args)
+	if len(args) != 2 {
+		return txtarCommandResult{unsupported: "mv"}
+	}
+	src, dst := args[0], r.destinationPath(args[0], args[1])
+	data, ok := r.files[src]
+	if !ok {
+		return txtarCommandResult{failed: true, err: fmt.Errorf("mv %s %s: %s missing", args[0], args[1], args[0])}
+	}
+	r.files[dst] = data
+	r.addParentDirs(dst)
+	delete(r.files, src)
+	return txtarCommandResult{}
+}
+
+func (r *txtarRuntime) cat(args []string) txtarCommandResult {
+	args = nonFlagArgs(args)
+	if len(args) == 0 {
+		return txtarCommandResult{unsupported: "cat"}
+	}
+	var stdout strings.Builder
+	for _, file := range args {
+		data, ok := r.files[file]
+		if !ok {
+			return txtarCommandResult{failed: true, err: fmt.Errorf("cat %s: %s missing", file, file)}
+		}
+		stdout.WriteString(data)
+	}
+	return txtarCommandResult{stdout: stdout.String()}
+}
+
+func (r *txtarRuntime) touch(args []string) txtarCommandResult {
+	for _, file := range nonFlagArgs(args) {
+		if _, ok := r.files[file]; !ok {
+			r.files[file] = ""
+		}
+		r.addParentDirs(file)
+	}
+	return txtarCommandResult{}
+}
+
+func (r *txtarRuntime) destinationPath(src, dst string) string {
+	if r.dirs[dst] || strings.HasSuffix(dst, "/") {
+		return path.Join(dst, path.Base(src))
+	}
+	return dst
+}
+
+func (r *txtarRuntime) addDir(dir string) {
+	dir = path.Clean(dir)
+	if dir == "." || dir == "/" {
+		return
+	}
+	for current := dir; current != "." && current != "/"; current = path.Dir(current) {
+		r.dirs[current] = true
+	}
+}
+
+func (r *txtarRuntime) addParentDirs(file string) {
+	r.addDir(path.Dir(file))
+}
+
+func (r *txtarRuntime) removePath(name string) {
+	name = path.Clean(name)
+	delete(r.files, name)
+	delete(r.dirs, name)
+	prefix := name + "/"
+	for file := range r.files {
+		if strings.HasPrefix(file, prefix) {
+			delete(r.files, file)
+		}
+	}
+	for dir := range r.dirs {
+		if strings.HasPrefix(dir, prefix) {
+			delete(r.dirs, dir)
+		}
+	}
+}
+
+func nonFlagArgs(args []string) []string {
+	var out []string
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+		out = append(out, arg)
+	}
+	return out
 }
 
 func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string) txtarCommandResult {

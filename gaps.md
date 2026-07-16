@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 696 unwaived non-OK observation(s)
+## Status: NOT DONE — 664 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260716182613-05392b0358af`
-- Outcomes: **394 ok**, **689 gap**, **7 fail**, **0 panic**
-- Gate: **696 unwaived non-OK** (fails CI), 0 waived
+- Outcomes: **394 ok**, **657 gap**, **7 fail**, **0 panic**
+- Gate: **664 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -86,43 +86,32 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: validJSON | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: mkdir | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: rm | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: mkdir | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: rm | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: mkdir | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: rm | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: mkdir | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: rm | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: mkdir | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: rm | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: mkdir | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -130,18 +119,15 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
@@ -290,7 +276,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cp | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
@@ -300,28 +285,24 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: rm | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cp | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: rm | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cp | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
@@ -332,7 +313,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -557,7 +537,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cp | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
@@ -567,28 +546,24 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: rm | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cp | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: rm | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cp | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
@@ -605,14 +580,12 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | unsupported: atlas schema diff | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -631,19 +604,15 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | unsupported: atlas migrate lint | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: atlas migrate validate | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: atlas migrate new | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: atlas migrate validate | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | unsupported: atlas migrate validate | #285 |
@@ -663,7 +632,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: atlas migrate set | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: clearSchema | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: mv | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: atlas migrate set | #285 |
@@ -1116,6 +1084,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#133** — 4 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
-- **stokaro/ptah#285** — 675 finding(s)
+- **stokaro/ptah#285** — 643 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
 - **stokaro/ptah#299** — 3 finding(s)

@@ -2629,7 +2629,47 @@
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: mkdir",
+    "detail": "unsupported: atlas migrate diff",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpmig",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpmig",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate diff",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpmig",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpmig",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -2685,7 +2725,7 @@
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: rm",
+    "detail": "unsupported: atlas migrate diff",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -2693,7 +2733,55 @@
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: mkdir",
+    "detail": "unsupported: cmpmig",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate diff",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpmig",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate diff",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpmig",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate diff",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpmig",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -2742,182 +2830,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: mkdir",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: mkdir",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: mkdir",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: mkdir",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -2981,14 +2893,6 @@
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: exec",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate diff",
     "issue": "stokaro/ptah#285"
   },
@@ -3030,14 +2934,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exec",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3062,14 +2958,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas schema apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-project-schemas.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exec",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -4285,14 +4173,6 @@
     "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: cp",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate hash",
     "issue": "stokaro/ptah#285"
   },
@@ -4358,126 +4238,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate hash",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: clearSchema",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cp",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate hash",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -4533,7 +4293,95 @@
     "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: cp",
+    "detail": "unsupported: atlas migrate hash",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate apply",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas schema inspect db-url",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas schema inspect db-url",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate hash",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate apply",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas schema inspect db-url",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: clearSchema",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -4614,14 +4462,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-diff.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exec",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -6421,14 +6261,6 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: cp",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate hash",
     "issue": "stokaro/ptah#285"
   },
@@ -6494,126 +6326,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate hash",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: clearSchema",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cp",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate hash",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect db-url",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: rm",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -6669,7 +6381,95 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: cp",
+    "detail": "unsupported: atlas migrate hash",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate apply",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas schema inspect db-url",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas schema inspect db-url",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate hash",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas migrate apply",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: cmpshow",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: atlas schema inspect db-url",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: clearSchema",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -6798,14 +6598,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exec",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -6854,14 +6646,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas schema diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exec",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -7013,14 +6797,6 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: exec",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate diff",
     "issue": "stokaro/ptah#285"
   },
@@ -7037,14 +6813,6 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: exec",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate diff",
     "issue": "stokaro/ptah#285"
   },
@@ -7054,14 +6822,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpmig",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exec",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -7109,14 +6869,6 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: exec",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate validate",
     "issue": "stokaro/ptah#285"
   },
@@ -7262,14 +7014,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: clearSchema",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: mv",
     "issue": "stokaro/ptah#285"
   },
   {

@@ -165,6 +165,134 @@ CREATE TABLE users (
 	}
 }
 
+func TestTxtarScriptProbeExecutesVirtualFileCommands(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `mkdir generated
+cp source.sql generated/copied.sql
+cmp generated/copied.sql expected.sql
+mv generated/copied.sql generated/moved.sql
+cmp generated/moved.sql expected.sql
+rm generated/moved.sql
+cp source.sql generated/moved.sql
+exec rm -rf generated
+mkdir generated
+cp source.sql generated/after-rm.sql
+cmp generated/after-rm.sql expected.sql
+exec cat generated/after-rm.sql
+stdout 'CREATE TABLE users'
+exec touch generated/empty.sql
+cmp generated/empty.sql empty.sql
+
+-- source.sql --
+CREATE TABLE users (id INT);
+-- expected.sql --
+CREATE TABLE users (id INT);
+-- empty.sql --
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "executed 10 supported command") {
+		t.Fatalf("detail missing virtual command count: %s", results[0].Detail)
+	}
+	if !strings.Contains(results[0].Detail, "checked 5 assertion") {
+		t.Fatalf("detail missing cmp count: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeReportsVirtualFileCommandFailures(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `cp missing.sql copied.sql
+
+-- expected.sql --
+CREATE TABLE users (id INT);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "missing.sql missing") {
+		t.Fatalf("detail missing cp failure: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeSkipsVirtualFileCommandBlockedByUnsupportedRedirect(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff > out.txt
+exec cat out.txt
+stdout 'CREATE TABLE users'
+exec touch out.txt
+cmp out.txt empty.sql
+
+-- empty.sql --
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
+		t.Fatalf("detail missing original unsupported command: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeClassifiesUnsupportedExecWrappedCommands(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `exec atlas migrate diff
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
+		t.Fatalf("detail missing wrapped command key: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeChecksExpectedSchemaInspectFailure(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
