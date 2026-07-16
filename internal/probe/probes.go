@@ -180,6 +180,7 @@ func (ParseProbe) Run(fx Fixture) []Result {
 				stmts = len(list.Statements)
 			}
 		})
+		classification := classifySQLParseFixture(rel, sql)
 		// This probe measures Ptah's DDL parser (core/parser), which backs
 		// read-db/compare round-trip — NOT migration apply, which execs raw SQL.
 		// A gap here means Ptah cannot represent the construct in its AST.
@@ -187,6 +188,15 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		case panicked:
 			out = append(out, Result{"sql-parse", rel, "round-trip", Panic,
 				"parser panicked on Atlas DDL: " + oneLine(pmsg), "stokaro/ptah#128"})
+		case perr != nil && classification == sqlParseExpectedInvalid:
+			out = append(out, Result{"sql-parse", rel, "expected-invalid", OK,
+				"parser rejected Atlas negative SQL fixture: " + oneLine(perr.Error()), ""})
+		case classification == sqlParseLexerOnly:
+			out = append(out, Result{"sql-parse", rel, "lexer-only", OK,
+				"fixture exercises Atlas migration lexing rather than schema DDL parsing", ""})
+		case classification == sqlParseExpectedInvalid:
+			out = append(out, Result{"sql-parse", rel, "expected-invalid", Fail,
+				"parser accepted Atlas negative SQL fixture", ""})
 		case perr != nil && strings.Contains(perr.Error(), "unsupported"):
 			out = append(out, Result{"sql-parse", rel, "round-trip", Gap,
 				"parser does not model this construct: " + oneLine(perr.Error()), ""})
@@ -205,6 +215,30 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		}
 	}
 	return out
+}
+
+type sqlParseFixtureClass int
+
+const (
+	sqlParseSchemaDDL sqlParseFixtureClass = iota
+	sqlParseExpectedInvalid
+	sqlParseLexerOnly
+)
+
+func classifySQLParseFixture(rel, sql string) sqlParseFixtureClass {
+	normalizedSQL := strings.ToLower(strings.TrimSpace(sql))
+	switch {
+	case normalizedSQL == "broken;":
+		return sqlParseExpectedInvalid
+	case strings.Contains(sql, "-- will fail"):
+		return sqlParseExpectedInvalid
+	case strings.Contains(sql, "THIS LINE ADDS A SYNTAX ERROR"):
+		return sqlParseExpectedInvalid
+	case strings.Contains(rel, "sql/migrate/testdata/lex/"):
+		return sqlParseLexerOnly
+	default:
+		return sqlParseSchemaDDL
+	}
 }
 
 // MigDirProbe checks whether Ptah's migrator even recognizes the files in an
