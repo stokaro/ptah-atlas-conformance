@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 651 unwaived non-OK observation(s)
+## Status: NOT DONE — 640 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260716195106-3f88de930de8`
-- Outcomes: **402 ok**, **651 gap**, **0 fail**, **0 panic**
-- Gate: **651 unwaived non-OK** (fails CI), 0 waived
+- Outcomes: **402 ok**, **640 gap**, **0 fail**, **0 panic**
+- Gate: **640 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -123,22 +123,18 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: exist | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: exist | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bit.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bit.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: synced | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: synced | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
@@ -169,11 +165,9 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: exist | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: exist | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
@@ -195,7 +189,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: synced | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
@@ -316,8 +309,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: synced | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: synced | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | unsupported: apply | #285 |
@@ -403,7 +394,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: synced | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
@@ -655,7 +645,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: synced | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
@@ -1079,5 +1068,5 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#133** — 1 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
-- **stokaro/ptah#285** — 636 finding(s)
+- **stokaro/ptah#285** — 625 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
