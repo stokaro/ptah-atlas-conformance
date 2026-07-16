@@ -1,9 +1,14 @@
-.PHONY: probe gate verify build vet clean
+.PHONY: probe budget gate verify build vet clean
 
 # Regenerate the gap report from the vendored corpus. Always exits 0 — use this
 # to refresh gaps.md / gaps.json.
 probe:
 	go run ./cmd/gap-probe
+
+# CI progress gate: fail only when the current report exceeds the committed
+# unwaived gap budget or has stale waivers. Full parity is still `make gate`.
+budget: probe
+	go run ./cmd/gap-budget
 
 # The conformance gate: regenerate the report AND fail if any unwaived gap
 # remains. Red until Ptah covers everything Atlas expresses in the corpus.
