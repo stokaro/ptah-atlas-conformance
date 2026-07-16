@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 742 unwaived non-OK observation(s)
+## Status: NOT DONE — 741 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716132038-5927a8b96d01`
-- Outcomes: **376 ok**, **732 gap**, **10 fail**, **0 panic**
-- Gate: **742 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716134510-5624b8884d42`
+- Outcomes: **377 ok**, **731 gap**, **10 fail**, **0 panic**
+- Gate: **741 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -53,9 +53,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/14_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/15_dollar_quote.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DO at position 2684 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/16_begin_atomic.sql` | round-trip | parser does not model this construct: unsupported CREATE FUNCTION clause: RETURN at position 82 |  |
-| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/17_paren.sql` | round-trip | parser does not model this construct: unsupported ALTER operation: T at position 17 |  |
-| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | round-trip | parser does not model this construct: unsupported SQL statement: GO at position 0 |  |
-| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/20_ms_go-delim.sql` | round-trip | parser does not model this construct: unsupported SQL statement: GO at position 25 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | round-trip | parser returned zero statements for non-empty Atlas DDL | #133 |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/20_ms_go-delim.sql` | round-trip | parser returned zero statements for non-empty Atlas DDL | #133 |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/5_delimiter.sql` | round-trip | parser does not model this construct: unsupported CREATE target: DEFINER at position 41 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/9_delimiter_3n.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexbegintry/1.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7 |  |
@@ -1056,6 +1055,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `internal/integration/testdata/migrations/postgres/1_initial.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/golang-migrate/1_base.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/1.sql` | round-trip | parsed 6 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lex/17_paren.sql` | round-trip | parsed 3 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/2_mysql.sql` | round-trip | parsed 14 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/3_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/4_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
@@ -1142,7 +1142,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#133** — 6 finding(s)
+- **stokaro/ptah#133** — 8 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 703 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
