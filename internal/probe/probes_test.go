@@ -244,7 +244,7 @@ CREATE TABLE users (id INT NOT NULL);
 	}
 }
 
-func TestTxtarScriptProbeTreatsVersionOnlyDirectiveAsUnsupported(t *testing.T) {
+func TestTxtarScriptProbeAcceptsVersionedMysqlOnlyDirective(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `only mysql8
@@ -264,11 +264,11 @@ CREATE TABLE users (id INT NOT NULL);
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
-	if !strings.Contains(results[0].Detail, "unsupported: only mysql8") {
-		t.Fatalf("detail missing unsupported only directive: %s", results[0].Detail)
+	if strings.Contains(results[0].Detail, "only mysql8") {
+		t.Fatalf("versioned mysql only directive should not be reported unsupported: %s", results[0].Detail)
 	}
 }
 
@@ -297,6 +297,34 @@ CREATE TABLE users (id INT NOT NULL);
 	}
 	if strings.Contains(results[0].Detail, "only mysql") {
 		t.Fatalf("matching only directive should not be reported unsupported: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeAcceptsMariaOnlyDirectiveForMariaNamedFixture(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only maria107 maria102
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/check.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if strings.Contains(results[0].Detail, "only maria107") {
+		t.Fatalf("maria version only directive should not be reported unsupported: %s", results[0].Detail)
 	}
 }
 

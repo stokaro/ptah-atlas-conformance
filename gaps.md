@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 724 unwaived non-OK observation(s)
+## Status: NOT DONE — 696 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260716182613-05392b0358af`
-- Outcomes: **394 ok**, **717 gap**, **7 fail**, **0 panic**
-- Gate: **724 unwaived non-OK** (fails CI), 0 waived
+- Outcomes: **394 ok**, **689 gap**, **7 fail**, **0 panic**
+- Gate: **696 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -52,10 +52,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | unsupported: only maria107 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | unsupported: atlas schema inspect format | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas schema inspect format | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -67,9 +65,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
@@ -90,7 +86,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: validJSON | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: only maria103 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: mkdir | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | unsupported: cmpmig | #285 |
@@ -135,7 +130,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | unsupported: cmpmig | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: only maria107 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: exec | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -148,13 +142,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | script-runtime | unsupported: exec | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: exist | #285 |
@@ -183,14 +175,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | unsupported: cmphcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | script-runtime | unsupported: only mysql56 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | script-runtime | unsupported: cmphcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: only mysql56 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
@@ -198,14 +187,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | unsupported: only maria* | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | unsupported: cmphcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | script-runtime | unsupported: only maria* | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | unsupported: only mysql56 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
@@ -219,7 +205,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
@@ -232,7 +217,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
@@ -240,7 +224,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: synced | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
@@ -251,7 +234,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: apply | #285 |
@@ -262,7 +244,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -271,7 +252,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: cmpmig | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
@@ -280,7 +260,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: only mysql8 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: apply | #285 |
@@ -293,7 +272,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: only postgres14 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: atlas migrate hash | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
@@ -417,7 +395,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | unsupported: only postgres10\|postgres11 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-identity.txtar` | script-runtime | unsupported: apply | #285 |
@@ -431,7 +408,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-range.txtar` | script-runtime | unsupported: only postgres14 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-range.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-range.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | unsupported: apply | #285 |
@@ -469,7 +445,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: only postgres10 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: apply | #285 |
@@ -480,14 +455,12 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-issue-557.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-issue-557.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: only postgres15 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: only postgres14 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: apply | #285 |
@@ -521,7 +494,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: atlas schema clean | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: only postgres15 | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
@@ -1144,6 +1116,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#133** — 4 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
-- **stokaro/ptah#285** — 703 finding(s)
+- **stokaro/ptah#285** — 675 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
 - **stokaro/ptah#299** — 3 finding(s)

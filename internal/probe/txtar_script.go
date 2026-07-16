@@ -526,11 +526,31 @@ func unsupportedOnlyDirective(fx Fixture, line string) string {
 	if len(fields) < 2 {
 		return "only"
 	}
-	condition := fields[1]
-	if condition == txtarFixtureFamily(fx) {
-		return ""
+	for _, condition := range fields[1:] {
+		if txtarOnlyConditionApplies(fx, condition) {
+			return ""
+		}
 	}
-	return "only " + condition
+	return "only " + strings.Join(fields[1:], " ")
+}
+
+func txtarOnlyConditionApplies(fx Fixture, condition string) bool {
+	condition = strings.ToLower(strings.TrimSpace(condition))
+	family := txtarFixtureFamily(fx)
+	switch {
+	case condition == family:
+		return true
+	case strings.HasPrefix(condition, "mysql"):
+		return family == "mysql" && !strings.Contains(strings.ToLower(fx.Name), "maria")
+	case strings.HasPrefix(condition, "maria"):
+		return family == "mysql" || family == "mariadb"
+	case strings.HasPrefix(condition, "postgres"):
+		return family == "postgres"
+	case strings.HasPrefix(condition, "sqlite"):
+		return family == "sqlite"
+	default:
+		return false
+	}
 }
 
 func txtarDirectiveKey(line string) string {
