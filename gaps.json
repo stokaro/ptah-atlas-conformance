@@ -1770,8 +1770,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lexgroup/1_trigger.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: TRIGGER at position 30"
+    "outcome": "ok",
+    "detail": "parsed 23 statement(s)"
   },
   {
     "probe": "sql-parse",
