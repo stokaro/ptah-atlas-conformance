@@ -473,6 +473,78 @@ CREATE TABLE users (id INT);
 	}
 }
 
+func TestTxtarScriptProbeChecksCmpmig(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `cmpmig 0 expected.sql
+cmpmig 1 second.sql
+cmpmig 2 up.sql
+cmpmig 3 down.sql
+
+-- migrations/20240101010101_first.sql --
+CREATE TABLE users (id INT);
+-- expected.sql --
+CREATE TABLE users (id INT);
+-- migrations/20240101010102_second.sql --
+ALTER TABLE users ADD COLUMN email TEXT;
+-- second.sql --
+ALTER TABLE users ADD COLUMN email TEXT;
+-- migrations/20240101010103_third.up.sql --
+CREATE TABLE pets (id INT);
+-- up.sql --
+CREATE TABLE pets (id INT);
+-- migrations/20240101010104_fourth.down.sql --
+DROP TABLE pets;
+-- down.sql --
+DROP TABLE pets;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "checked 4 assertion") {
+		t.Fatalf("detail missing cmpmig assertion count: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeSkipsCmpmigAfterUnsupportedMigrationProducer(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff --dev-url URL --to file://schema.hcl first
+cmpmig 0 expected.sql
+
+-- schema.hcl --
+schema "main" {}
+-- expected.sql --
+CREATE TABLE users (id INT);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
+	if strings.Contains(results[0].Detail, "cmpmig") {
+		t.Fatalf("dependent cmpmig should not be reported after unsupported migration producer: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeChecksValidJSON(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -721,7 +793,7 @@ func TestTxtarScriptProbeSkipsMigrateHashAfterUnsupportedMigrationFileProducer(t
 
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `atlas migrate diff > migrations/2_second.sql
+	writeTestFile(t, path, `atlas migrate diff
 atlas migrate hash
 cmp migrations/atlas.sum expected.sum
 
