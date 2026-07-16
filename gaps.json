@@ -1669,9 +1669,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/18_pg_expr.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected index name, got String at position 27",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
