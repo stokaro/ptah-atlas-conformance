@@ -729,6 +729,102 @@ table "users" {}
 	assertResultDetailContains(t, results, "unsupported: cmphcl")
 }
 
+func TestTxtarScriptProbeSkipsDBURLInspectAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+atlas schema inspect --url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- 1.hcl --
+schema "main" {}
+-- expected.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+	if strings.Contains(results[0].Detail, "atlas schema inspect") {
+		t.Fatalf("dependent DB URL inspect should not be reported after unsupported DB mutation: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeKeepsFileURLInspectAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+atlas schema inspect --url file://schema.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- 1.hcl --
+schema "main" {}
+-- schema.sql --
+CREATE TABLE users (
+  id INT NOT NULL,
+  PRIMARY KEY (id)
+);
+-- expected.sql --
+-- Create "users" table
+CREATE TABLE "users" ("id" integer NOT NULL, PRIMARY KEY ("id"));
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected original apply gap, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: apply") {
+		t.Fatalf("detail missing original unsupported DB mutation: %s", results[0].Detail)
+	}
+	if strings.Contains(results[0].Detail, "atlas schema inspect") {
+		t.Fatalf("file URL inspect should still execute, not be reported unsupported: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeReportsExpectedDBURLInspectFailureAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `execsql 'CREATE TABLE users (id int)'
+! atlas schema inspect --env failed
+stderr 'invalid port'
+
+-- atlas.hcl --
+env "failed" {
+  url = "mysql://user:bad@localhost:&pass/db"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: execsql")
+	assertResultDetailContains(t, results, "unsupported: atlas schema inspect db-url")
+}
+
 func TestTxtarScriptProbeExecutesMigrateHash(t *testing.T) {
 	expected := atlasSumBytes(t, map[string]string{
 		"1_first.sql": "SELECT 1;\n",
