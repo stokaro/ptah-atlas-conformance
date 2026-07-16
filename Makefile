@@ -6,12 +6,14 @@ probe:
 	go run ./cmd/gap-probe
 
 # CI progress gate: fail only when the current report exceeds the committed
-# unwaived gap budget or has stale waivers. Full parity is still `make gate`.
+# unwaived non-OK observation budget or has stale waivers. Full parity is still
+# `make gate`.
 budget: probe
 	go run ./cmd/gap-budget
 
-# The conformance gate: regenerate the report AND fail if any unwaived gap
-# remains. Red until Ptah covers everything Atlas expresses in the corpus.
+# The conformance gate: regenerate the report AND fail if any unwaived non-OK
+# observation remains. Red until Ptah covers everything Atlas expresses in the
+# corpus.
 gate:
 	go run ./cmd/gap-probe -gate
 

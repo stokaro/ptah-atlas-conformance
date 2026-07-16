@@ -61,7 +61,7 @@ func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) 
 		b.WriteString("## Status: PARITY on the current corpus\n\n")
 		b.WriteString("Every fixture is covered or explicitly waived. The conformance gate is green.\n\n")
 	} else {
-		fmt.Fprintf(&b, "## Status: NOT DONE — %d unwaived gap(s)\n\n", len(unwaived))
+		fmt.Fprintf(&b, "## Status: NOT DONE — %d unwaived non-OK observation(s)\n\n", len(unwaived))
 		b.WriteString("The conformance gate is **red** and stays red until these close. This is by\n")
 		b.WriteString("design: the report is a spec Ptah has not met yet, not a passing test log.\n\n")
 	}
@@ -69,7 +69,7 @@ func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) 
 	fmt.Fprintf(&b, "- Atlas fixtures pinned at `ariga/atlas@%s`\n", atlasSHA)
 	fmt.Fprintf(&b, "- Ptah at `%s`\n", ptahVersion)
 	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n", s.OK, s.Gap, s.Fail, s.Panic)
-	fmt.Fprintf(&b, "- Gate: **%d unwaived** (fails CI), %d waived\n", len(unwaived), s.Gap+s.Fail+s.Panic-len(unwaived))
+	fmt.Fprintf(&b, "- Gate: **%d unwaived non-OK** (fails CI), %d waived\n", len(unwaived), s.Gap+s.Fail+s.Panic-len(unwaived))
 	writeCorpusSummary(&b, results)
 	b.WriteString("\n")
 

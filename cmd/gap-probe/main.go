@@ -68,7 +68,7 @@ func main() {
 	}
 
 	unwaived := probe.Unwaived(results, waivers)
-	fmt.Printf("%d fixtures, %d observations, %d unwaived gap(s) → %s\n",
+	fmt.Printf("%d fixtures, %d observations, %d unwaived non-OK observation(s) → %s\n",
 		len(fixtures), len(results), len(unwaived), *mdOut)
 
 	// A stale waiver (matching nothing) means a gap closed; force cleanup.
@@ -79,7 +79,7 @@ func main() {
 
 	if *gate {
 		if len(unwaived) > 0 {
-			fmt.Fprintf(os.Stderr, "\nCONFORMANCE GATE: RED — %d unwaived gap(s):\n", len(unwaived))
+			fmt.Fprintf(os.Stderr, "\nCONFORMANCE GATE: RED — %d unwaived non-OK observation(s):\n", len(unwaived))
 			for _, r := range unwaived {
 				fmt.Fprintf(os.Stderr, "  [%s] %s / %s / %s: %s\n", r.Outcome, r.Probe, r.Fixture, r.Stage, r.Detail)
 			}
