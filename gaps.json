@@ -1189,9 +1189,9 @@
   {
     "probe": "sql-parse",
     "fixture": "atlasexec/testdata/broken/20231029112426.sql",
-    "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: BROKEN at position 0"
+    "stage": "expected-invalid",
+    "outcome": "ok",
+    "detail": "parser rejected Atlas negative SQL fixture: unsupported SQL statement: BROKEN at position 0"
   },
   {
     "probe": "sql-parse",
@@ -1469,9 +1469,9 @@
   {
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql",
-    "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: ASDASD at position 38"
+    "stage": "expected-invalid",
+    "outcome": "ok",
+    "detail": "parser rejected Atlas negative SQL fixture: unsupported SQL statement: ASDASD at position 38"
   },
   {
     "probe": "sql-parse",
@@ -1581,9 +1581,9 @@
   {
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/migrate/testdata/broken/3.sql",
-    "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: THIS at position 53"
+    "stage": "expected-invalid",
+    "outcome": "ok",
+    "detail": "parser rejected Atlas negative SQL fixture: unsupported SQL statement: THIS at position 53"
   },
   {
     "probe": "sql-parse",
@@ -1651,143 +1651,142 @@
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/1.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 6 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/10_delimiter_comment.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 1 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/11_delimiter_mysql_command.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 1 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/12_delimiter_mysql_command.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 3 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/13_delimiter_mysql_command.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 1 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/14_delimiter_mysql_command.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 1 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/15_dollar_quote.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 12 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/16_begin_atomic.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 11 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/17_paren.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 3 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/18_pg_expr.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 3 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/19_ms_gocmd.sql",
-    "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser returned zero statements for non-empty Atlas DDL",
-    "issue": "stokaro/ptah#133"
+    "stage": "lexer-only",
+    "outcome": "ok",
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/20_ms_go-delim.sql",
-    "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: TO at position 88"
+    "stage": "lexer-only",
+    "outcome": "ok",
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/2_mysql.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 14 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/3_delimiter.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 2 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/4_delimiter.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 2 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/5_delimiter.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 1 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/6_skip_comment.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 5 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/7_delimiter_2n.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 2 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/8_delimiter_3n.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 2 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/9_delimiter_3n.sql",
-    "stage": "round-trip",
+    "stage": "lexer-only",
     "outcome": "ok",
-    "detail": "parsed 1 statement(s)"
+    "detail": "fixture exercises Atlas migration lexing rather than schema DDL parsing"
   },
   {
     "probe": "sql-parse",

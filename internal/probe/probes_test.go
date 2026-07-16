@@ -173,6 +173,91 @@ CREATE TABLE users_{{ $ }} (id INT);
 	assertResultDetailContains(t, results, "Atlas SQL template support file rendered no standalone statements")
 }
 
+func TestParseProbeClassifiesAtlasNegativeSQLFixtures(t *testing.T) {
+	dir := t.TempDir()
+	brokenKeyword := filepath.Join(dir, "20231029112426.sql")
+	willFailComment := filepath.Join(dir, "20220318104615_second.sql")
+	syntaxError := filepath.Join(dir, "3.sql")
+	writeTestFile(t, brokenKeyword, `broken;`)
+	writeTestFile(t, willFailComment, `ALTER TABLE tbl ADD col_2 bigint;
+asdasd ALTER TABLE tbl ADD col_3 bigint; -- will fail
+`)
+	writeTestFile(t, syntaxError, `CREATE TABLE pets (id INT);
+THIS LINE ADDS A SYNTAX ERROR;
+`)
+
+	results := ParseProbe{}.Run(Fixture{
+		Name:     "cmd/atlas/internal/migrate/testdata/broken",
+		Kind:     FixtureKindSQLDir,
+		Dir:      dir,
+		Files:    []string{brokenKeyword, willFailComment, syntaxError},
+		SQLFiles: []string{brokenKeyword, willFailComment, syntaxError},
+	})
+
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d: %#v", len(results), results)
+	}
+	for _, result := range results {
+		if result.Outcome != OK {
+			t.Fatalf("expected OK result for rejected negative fixture, got %#v", result)
+		}
+		if result.Stage != "expected-invalid" {
+			t.Fatalf("expected expected-invalid stage, got %#v", result)
+		}
+	}
+}
+
+func TestParseProbeDoesNotClassifyAllBrokenDirFixturesAsNegative(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "1.sql")
+	writeTestFile(t, path, `CREATE TABLE users (id INT);`)
+
+	results := ParseProbe{}.Run(Fixture{
+		Name:     "cmd/atlas/internal/migrate/testdata/broken",
+		Kind:     FixtureKindSQLDir,
+		Dir:      dir,
+		Files:    []string{path},
+		SQLFiles: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result for valid fixture in broken dir, got %#v", results[0])
+	}
+	if results[0].Stage != "round-trip" {
+		t.Fatalf("expected round-trip stage, got %#v", results[0])
+	}
+}
+
+func TestParseProbeClassifiesAtlasLexerFixtures(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "19_ms_gocmd.sql")
+	writeTestFile(t, path, `go
+SELECT 1
+GO
+`)
+
+	results := ParseProbe{}.Run(Fixture{
+		Name:     "sql/migrate/testdata/lex",
+		Kind:     FixtureKindSQLDir,
+		Dir:      dir,
+		Files:    []string{path},
+		SQLFiles: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result for lexer fixture, got %#v", results[0])
+	}
+	if results[0].Stage != "lexer-only" {
+		t.Fatalf("expected lexer-only stage, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeReportsCommandSurface(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
