@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing/fstest"
 
@@ -343,6 +344,21 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 				summary.failures = append(summary.failures, err.Error())
 			}
 			continue
+		case strings.HasPrefix(trimmed, "cmpmig "):
+			fields := splitTxtarFields(trimmed)
+			if len(fields) != 3 {
+				summary.checked++
+				summary.failures = append(summary.failures, "unsupported cmpmig syntax: "+trimmed)
+				continue
+			}
+			if txtarCmpmigReadsUnsupportedFile(fields, unsupportedFiles) {
+				continue
+			}
+			summary.checked++
+			if mismatch := txtarCmpmigMismatch(runtime, fields[1], fields[2]); mismatch != "" {
+				summary.failures = append(summary.failures, mismatch)
+			}
+			continue
 		}
 
 		expectedFailure, commandLine := txtarExpectedFailure(trimmed)
@@ -362,6 +378,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		last = result
 		if result.unsupported != "" {
 			summary.unsupported = append(summary.unsupported, result.unsupported)
+			markUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
 			if !expectedFailure && txtarCommandMutatesDBState(commandLine) {
 				dbStateUnsupported = true
 			}
@@ -445,8 +462,26 @@ func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]b
 	return false
 }
 
+func txtarCmpmigReadsUnsupportedFile(fields []string, unsupportedFiles map[string]bool) bool {
+	if len(fields) != 3 {
+		return false
+	}
+	if unsupportedFiles["migrations"] {
+		return true
+	}
+	for name := range unsupportedFiles {
+		if txtarMigrateHashReadsFile("migrations", name) {
+			return true
+		}
+	}
+	return false
+}
+
 func txtarMigrateHashReadsUnsupportedFile(args []string, unsupportedFiles map[string]bool) bool {
 	dir := txtarMigrateHashDir(args)
+	if unsupportedFiles[dir] {
+		return true
+	}
 	for file := range unsupportedFiles {
 		if txtarMigrateHashReadsFile(dir, file) {
 			return true
@@ -490,6 +525,14 @@ func runTxtarMigrateHash(runtime *txtarRuntime, fields []string) (txtarCommandRe
 }
 
 func txtarMigrateHashDir(args []string) string {
+	return txtarMigrateCommandDir(args)
+}
+
+func txtarMigrateDiffDir(args []string) string {
+	return txtarMigrateCommandDir(args)
+}
+
+func txtarMigrateCommandDir(args []string) string {
 	const defaultDir = "migrations"
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
@@ -505,7 +548,9 @@ func txtarMigrateHashDir(args []string) string {
 
 func txtarFileURLPath(value string) string {
 	const filePrefix = "file://"
-	return strings.TrimPrefix(value, filePrefix)
+	value = strings.TrimPrefix(value, filePrefix)
+	value, _, _ = strings.Cut(value, "?")
+	return value
 }
 
 func txtarCommandReadsUnsupportedDBState(line string) bool {
@@ -566,7 +611,13 @@ func markUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsup
 			unsupportedFiles[runtime.destinationPath(args[0], args[1])] = true
 		}
 	case "atlas":
-		if len(fields) >= 3 && fields[1] == "migrate" && fields[2] == "hash" {
+		if len(fields) < 3 || fields[1] != "migrate" {
+			return
+		}
+		switch fields[2] {
+		case "diff":
+			unsupportedFiles[txtarMigrateDiffDir(fields[3:])] = true
+		case "hash":
 			unsupportedFiles[path.Join(txtarMigrateHashDir(fields[3:]), migratesum.AtlasFileName)] = true
 		}
 	}
@@ -713,6 +764,37 @@ func (r *txtarRuntime) touch(args []string) txtarCommandResult {
 		r.addParentDirs(file)
 	}
 	return txtarCommandResult{}
+}
+
+func txtarCmpmigMismatch(runtime *txtarRuntime, index, expected string) string {
+	actual, ok := txtarCmpmigActualFile(runtime, index)
+	if !ok {
+		return fmt.Sprintf("cmpmig %s %s: generated migration not found", index, expected)
+	}
+	return txtarFilesMismatch(runtime.files, actual, expected)
+}
+
+func txtarCmpmigActualFile(runtime *txtarRuntime, index string) (string, bool) {
+	want, err := strconv.Atoi(index)
+	if err != nil || want < 0 {
+		return "", false
+	}
+	files := txtarMigrationSQLFiles(runtime)
+	if want >= len(files) {
+		return "", false
+	}
+	return files[want], true
+}
+
+func txtarMigrationSQLFiles(runtime *txtarRuntime) []string {
+	var files []string
+	for name := range runtime.files {
+		if txtarMigrateHashReadsFile("migrations", name) {
+			files = append(files, name)
+		}
+	}
+	slices.Sort(files)
+	return files
 }
 
 func (r *txtarRuntime) subFS(dir string) (fstest.MapFS, bool) {
