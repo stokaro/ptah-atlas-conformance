@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 738 unwaived non-OK observation(s)
+## Status: NOT DONE — 737 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716150301-674eb0bd8ca8`
-- Outcomes: **380 ok**, **729 gap**, **9 fail**, **0 panic**
-- Gate: **738 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716152209-83a5381e4ec4`
+- Outcomes: **381 ok**, **730 gap**, **7 fail**, **0 panic**
+- Gate: **737 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -24,8 +24,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/1.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
 | **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/2.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
 | **RED** | **fail** | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
-| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/13_delimiter_mysql_command.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 0 | #133 |
-| **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/6_skip_comment.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 38 | #133 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | cmp inspected.sql script_cli_inspect.sql did not match: got "-- MYSQL TABLE: users -- CREATE TABLE users ( id int NOT NULL, PRIMARY KEY (id) );" want "-- Create \"users\" table CREATE TABLE `users` (`id` int NOT NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;" | #285 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
@@ -49,6 +47,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 55 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/12_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
+| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/13_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 53 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/14_delimiter_mysql_command.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 0 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/15_dollar_quote.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DO at position 2684 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | round-trip | parser returned zero statements for non-empty Atlas DDL | #133 |
@@ -1058,6 +1057,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `sql/migrate/testdata/lex/2_mysql.sql` | round-trip | parsed 14 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/3_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/4_delimiter.sql` | round-trip | parsed 2 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lex/6_skip_comment.sql` | round-trip | parsed 5 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/7_delimiter_2n.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lex/8_delimiter_3n.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lexescaped/1.my.sql` | round-trip | parsed 4 statement(s) |  |
@@ -1142,7 +1142,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#133** — 7 finding(s)
+- **stokaro/ptah#133** — 5 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
 - **stokaro/ptah#285** — 703 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
