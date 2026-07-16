@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 740 unwaived non-OK observation(s)
+## Status: NOT DONE — 739 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716141505-c58e8d3c030c`
-- Outcomes: **378 ok**, **731 gap**, **9 fail**, **0 panic**
-- Gate: **740 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716143835-10011ec01b68`
+- Outcomes: **379 ok**, **730 gap**, **9 fail**, **0 panic**
+- Gate: **739 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -57,7 +57,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/5_delimiter.sql` | round-trip | parser does not model this construct: unsupported CREATE target: DEFINER at position 41 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/9_delimiter_3n.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexbegintry/1.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7 |  |
-| **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/1_trigger.sql` | round-trip | parser does not model this construct: unsupported CREATE target: TRIGGER at position 30 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/2_function.sql` | round-trip | parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | round-trip | parser does not model this construct: unsupported SQL statement: DELIMITER at position 250 |  |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/sqlserver/1_return_table.sql` | round-trip | parser does not model this construct: unsupported CREATE FUNCTION syntax: expected function name: expected identifier, got Operator at position 16 |  |
@@ -1063,6 +1062,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | sql-parse | `sql/migrate/testdata/lex/8_delimiter_3n.sql` | round-trip | parsed 2 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lexescaped/1.my.sql` | round-trip | parsed 4 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/lexescaped/2.pg.sql` | round-trip | parsed 4 statement(s) |  |
+| — | ok | sql-parse | `sql/migrate/testdata/lexgroup/1_trigger.sql` | round-trip | parsed 23 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/1_initial.down.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/1_initial.up.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `sql/migrate/testdata/migrate/sub/1.a_sub.up.sql` | round-trip | parsed 2 statement(s) |  |
