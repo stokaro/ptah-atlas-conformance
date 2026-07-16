@@ -1224,9 +1224,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway/B2__baseline.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 126",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1267,9 +1266,8 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold/2_baseline.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 126",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1693,9 +1691,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/2_mysql.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected '(' after table name: expected Operator, got Identifier at position 83",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 14 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1758,17 +1755,15 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lexescaped/1.my.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 150",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 4 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lexescaped/2.pg.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 72",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 4 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1900,9 +1895,8 @@
     "probe": "sql-parse",
     "fixture": "sql/sqltool/testdata/flyway/B2__baseline.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected ',' or ')' after table element at position 126",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
