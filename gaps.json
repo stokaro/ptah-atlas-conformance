@@ -1727,15 +1727,15 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/7_delimiter_2n.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: EXTENSION at position 32"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/8_delimiter_3n.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: EXTENSION at position 34"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
