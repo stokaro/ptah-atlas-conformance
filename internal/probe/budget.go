@@ -47,7 +47,7 @@ func CheckGapBudget(results []Result, w *Waivers, budget GapBudget) BudgetStatus
 }
 
 // OverBudget reports whether the current report regressed beyond the allowed
-// unwaived gap budget.
+// unwaived non-OK observation budget.
 func (s BudgetStatus) OverBudget() bool {
 	return s.Unwaived > int(s.Budget)
 }

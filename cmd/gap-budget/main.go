@@ -1,5 +1,5 @@
 // Command gap-budget checks the generated conformance report against the
-// repository's current allowed gap budget.
+// repository's current allowed non-OK observation budget.
 package main
 
 import (
@@ -13,7 +13,7 @@ import (
 
 func main() {
 	reportFile := flag.String("report", "gaps.json", "generated JSON report")
-	budgetFile := flag.String("budget", "gap-budget.txt", "allowed unwaived gap budget")
+	budgetFile := flag.String("budget", "gap-budget.txt", "allowed unwaived non-OK observation budget")
 	waiverFile := flag.String("waivers", "waivers.txt", "waivers file")
 	flag.Parse()
 
@@ -41,10 +41,10 @@ func main() {
 		os.Exit(1)
 	}
 	if status.OverBudget() {
-		fmt.Fprintf(os.Stderr, "CONFORMANCE BUDGET: RED — %d unwaived gap(s), budget is %d\n", status.Unwaived, status.Budget)
+		fmt.Fprintf(os.Stderr, "CONFORMANCE BUDGET: RED — %d unwaived non-OK observation(s), budget is %d\n", status.Unwaived, status.Budget)
 		os.Exit(1)
 	}
-	fmt.Printf("CONFORMANCE BUDGET: GREEN — %d unwaived gap(s), budget is %d\n", status.Unwaived, status.Budget)
+	fmt.Printf("CONFORMANCE BUDGET: GREEN — %d unwaived non-OK observation(s), budget is %d\n", status.Unwaived, status.Budget)
 }
 
 func loadResults(path string) ([]probe.Result, error) {

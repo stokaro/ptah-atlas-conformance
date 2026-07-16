@@ -4,8 +4,13 @@ import (
 	"cmp"
 	"fmt"
 	"os"
+	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/stokaro/ptah/core/parser"
+	"github.com/stokaro/ptah/core/renderer"
 )
 
 // TxtarScriptProbe parses Atlas integration txtar scripts and records the
@@ -34,6 +39,11 @@ func (TxtarScriptProbe) Run(fx Fixture) []Result {
 	if len(commands) == 0 {
 		return []Result{{"txtar-script", fx.Name, "script-surface", OK,
 			"txtar script has no executable commands", ""}}
+	}
+
+	run := runTxtarScript(fx, string(data), commands)
+	if run.hasWork() {
+		return run.results(fx)
 	}
 
 	return []Result{{"txtar-script", fx.Name, "script-surface", Gap,
@@ -67,7 +77,11 @@ func txtarScriptPrefix(data string) string {
 
 func isTxtarFileMarker(line string) bool {
 	line = strings.TrimSpace(line)
-	return strings.HasPrefix(line, "-- ") && strings.HasSuffix(line, " --") && len(line) > len("--  --")
+	if !strings.HasPrefix(line, "-- ") || !strings.HasSuffix(line, " --") || len(line) <= len("--  --") {
+		return false
+	}
+	name := strings.TrimSuffix(strings.TrimPrefix(line, "-- "), " --")
+	return name != "" && !strings.ContainsAny(name, " \t")
 }
 
 func txtarCommandKey(line string) (string, bool) {
@@ -121,4 +135,457 @@ func summarizeCommandSurface(commands []string) string {
 		parts = append(parts, fmt.Sprintf("%s=%d", key, counts[key]))
 	}
 	return strings.Join(parts, ", ")
+}
+
+type txtarRunSummary struct {
+	executed    int
+	checked     int
+	unsupported []string
+	failures    []string
+}
+
+func (r txtarRunSummary) outcome() Outcome {
+	switch {
+	case len(r.failures) > 0:
+		return Fail
+	case len(r.unsupported) > 0:
+		return Gap
+	default:
+		return OK
+	}
+}
+
+func (r txtarRunSummary) results(fx Fixture) []Result {
+	if len(r.failures) == 0 && len(r.unsupported) == 0 {
+		return []Result{{"txtar-script", fx.Name, "script-runtime", OK, r.detail(), ""}}
+	}
+
+	var out []Result
+	for _, failure := range r.failures {
+		out = append(out, Result{
+			Probe:   "txtar-script",
+			Fixture: fx.Name,
+			Stage:   "script-runtime",
+			Outcome: Fail,
+			Detail:  failure,
+			Issue:   "stokaro/ptah#285",
+		})
+	}
+	for _, unsupported := range r.unsupported {
+		out = append(out, Result{
+			Probe:   "txtar-script",
+			Fixture: fx.Name,
+			Stage:   "script-runtime",
+			Outcome: Gap,
+			Detail:  "unsupported: " + unsupported,
+			Issue:   "stokaro/ptah#285",
+		})
+	}
+	return out
+}
+
+func (r txtarRunSummary) hasWork() bool {
+	return r.executed > 0 || r.checked > 0 || len(r.unsupported) > 0 || len(r.failures) > 0
+}
+
+func (r txtarRunSummary) detail() string {
+	var parts []string
+	if r.executed > 0 {
+		parts = append(parts, fmt.Sprintf("executed %d supported command(s)", r.executed))
+	}
+	if r.checked > 0 {
+		parts = append(parts, fmt.Sprintf("checked %d assertion(s)", r.checked))
+	}
+	if len(r.unsupported) > 0 {
+		parts = append(parts, "unsupported: "+summarizeCommandSurface(r.unsupported))
+	}
+	if len(r.failures) > 0 {
+		parts = append(parts, "failed: "+strings.Join(limitStrings(r.failures, 3), "; "))
+	}
+	return strings.Join(parts, ", ")
+}
+
+type txtarCommandResult struct {
+	stdout      string
+	stderr      string
+	unsupported string
+	failed      bool
+	err         error
+}
+
+func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary {
+	files := txtarFiles(data)
+	unsupportedFiles := map[string]bool{}
+	var summary txtarRunSummary
+	var last txtarCommandResult
+	for _, line := range strings.Split(txtarScriptPrefix(data), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(trimmed, "only ") || strings.HasPrefix(trimmed, "! only "):
+			if key := unsupportedOnlyDirective(fx, trimmed); key != "" {
+				summary.unsupported = append(summary.unsupported, key)
+			}
+			continue
+		case strings.HasPrefix(trimmed, "skip ") || strings.HasPrefix(trimmed, "! skip "):
+			summary.unsupported = append(summary.unsupported, txtarDirectiveKey(trimmed))
+			continue
+		case strings.HasPrefix(trimmed, "! stdout "):
+			if last.unsupported != "" {
+				continue
+			}
+			summary.checked++
+			matched, err := txtarAssertionMatches(last.stdout, strings.TrimPrefix(trimmed, "! "))
+			switch {
+			case err != nil:
+				summary.failures = append(summary.failures, "stdout assertion regexp failed: "+oneLine(err.Error()))
+			case matched:
+				summary.failures = append(summary.failures, "negative stdout assertion matched")
+			}
+			continue
+		case strings.HasPrefix(trimmed, "! stderr "):
+			if last.unsupported != "" {
+				continue
+			}
+			summary.checked++
+			matched, err := txtarAssertionMatches(last.stderr, strings.TrimPrefix(trimmed, "! "))
+			switch {
+			case err != nil:
+				summary.failures = append(summary.failures, "stderr assertion regexp failed: "+oneLine(err.Error()))
+			case matched:
+				summary.failures = append(summary.failures, "negative stderr assertion matched")
+			}
+			continue
+		case strings.HasPrefix(trimmed, "stdout "):
+			if last.unsupported != "" {
+				continue
+			}
+			summary.checked++
+			matched, err := txtarAssertionMatches(last.stdout, trimmed)
+			switch {
+			case err != nil:
+				summary.failures = append(summary.failures, "stdout assertion regexp failed: "+oneLine(err.Error()))
+			case !matched:
+				summary.failures = append(summary.failures, "stdout assertion did not match")
+			}
+			continue
+		case strings.HasPrefix(trimmed, "stderr "):
+			if last.unsupported != "" {
+				continue
+			}
+			summary.checked++
+			matched, err := txtarAssertionMatches(last.stderr, trimmed)
+			switch {
+			case err != nil:
+				summary.failures = append(summary.failures, "stderr assertion regexp failed: "+oneLine(err.Error()))
+			case !matched:
+				summary.failures = append(summary.failures, "stderr assertion did not match")
+			}
+			continue
+		case strings.HasPrefix(trimmed, "cmp "):
+			fields := splitTxtarFields(trimmed)
+			if len(fields) != 3 {
+				summary.checked++
+				summary.failures = append(summary.failures, "unsupported cmp syntax: "+trimmed)
+				continue
+			}
+			if unsupportedFiles[fields[1]] || unsupportedFiles[fields[2]] {
+				continue
+			}
+			summary.checked++
+			if mismatch := txtarFilesMismatch(files, fields[1], fields[2]); mismatch != "" {
+				summary.failures = append(summary.failures, mismatch)
+			}
+			continue
+		}
+
+		expectedFailure, commandLine := txtarExpectedFailure(trimmed)
+		if commandLine == "" {
+			continue
+		}
+		result := runTxtarCommand(fx, files, commandLine)
+		last = result
+		if result.unsupported != "" {
+			summary.unsupported = append(summary.unsupported, result.unsupported)
+			if redirect := txtarRedirectTarget(commandLine); redirect != "" {
+				unsupportedFiles[redirect] = true
+			} else {
+				unsupportedFiles["stdout"] = true
+				unsupportedFiles["stderr"] = true
+			}
+			continue
+		}
+		summary.executed++
+		files["stdout"] = result.stdout
+		files["stderr"] = result.stderr
+		delete(unsupportedFiles, "stdout")
+		delete(unsupportedFiles, "stderr")
+		if redirect := txtarRedirectTarget(commandLine); redirect != "" {
+			delete(unsupportedFiles, redirect)
+		}
+		failed := result.failed || result.err != nil
+		switch {
+		case expectedFailure && !failed:
+			summary.failures = append(summary.failures, "expected command failure, but command succeeded")
+		case !expectedFailure && failed:
+			summary.failures = append(summary.failures, txtarFailureDetail(result))
+		}
+	}
+	if summary.executed == 0 && summary.checked == 0 && len(summary.unsupported) == 0 {
+		summary.unsupported = append(summary.unsupported, commands...)
+	}
+	return summary
+}
+
+func runTxtarCommand(fx Fixture, files map[string]string, line string) txtarCommandResult {
+	fields := splitTxtarFields(line)
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "inspect" {
+		if key, ok := txtarCommandKey(line); ok {
+			return txtarCommandResult{unsupported: key}
+		}
+		return txtarCommandResult{unsupported: line}
+	}
+	return runTxtarSchemaInspect(fx, files, fields)
+}
+
+func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string) txtarCommandResult {
+	var sourceURL, devURL, format, redirect string
+	for i := 3; i < len(fields); i++ {
+		switch fields[i] {
+		case "-u", "--url":
+			if i+1 < len(fields) {
+				sourceURL = fields[i+1]
+				i++
+			}
+		case "--dev-url":
+			if i+1 < len(fields) {
+				devURL = fields[i+1]
+				i++
+			}
+		case "--format":
+			if i+1 < len(fields) {
+				format = fields[i+1]
+				i++
+			}
+		case ">":
+			if i+1 < len(fields) {
+				redirect = fields[i+1]
+				i++
+			}
+		}
+	}
+	const filePrefix = "file://"
+	if !strings.HasPrefix(sourceURL, filePrefix) {
+		return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
+	}
+	if devURL == "" {
+		return txtarCommandResult{
+			stderr: "Error: --dev-url cannot be empty\n",
+			failed: true,
+			err:    fmt.Errorf("--dev-url cannot be empty"),
+		}
+	}
+	if format == "" {
+		return txtarCommandResult{unsupported: "atlas schema inspect hcl"}
+	}
+	if format != "{{ sql . }}" {
+		return txtarCommandResult{unsupported: "atlas schema inspect format"}
+	}
+	name := strings.TrimPrefix(sourceURL, filePrefix)
+	sql, ok := files[name]
+	if !ok {
+		return txtarCommandResult{err: fmt.Errorf("file %q not found in txtar archive", name)}
+	}
+	output, err := renderTxtarSQL(fx, sql)
+	if err != nil {
+		return txtarCommandResult{err: err}
+	}
+	if redirect != "" {
+		files[redirect] = output
+		return txtarCommandResult{}
+	}
+	return txtarCommandResult{stdout: output}
+}
+
+func renderTxtarSQL(fx Fixture, sql string) (string, error) {
+	list, err := parser.NewParser(sql).Parse()
+	if err != nil {
+		return "", fmt.Errorf("parse inspect file: %w", err)
+	}
+	out, err := renderer.RenderSQL(txtarFixtureDialect(fx), list.Statements...)
+	if err != nil {
+		return "", fmt.Errorf("render inspect SQL: %w", err)
+	}
+	out = strings.TrimSpace(out)
+	if !strings.HasSuffix(out, ";") {
+		out += ";"
+	}
+	return out + "\n", nil
+}
+
+func txtarFixtureDialect(fx Fixture) string {
+	parts := strings.Split(filepath.ToSlash(fx.Name), "/")
+	if slices.Contains(parts, "mysql") {
+		return "mysql"
+	}
+	if slices.Contains(parts, "mariadb") {
+		return "mariadb"
+	}
+	return "postgresql"
+}
+
+func txtarFixtureFamily(fx Fixture) string {
+	parts := strings.Split(filepath.ToSlash(fx.Name), "/")
+	for _, family := range []string{"mysql", "mariadb", "postgres", "sqlite"} {
+		if slices.Contains(parts, family) {
+			return family
+		}
+	}
+	return "postgres"
+}
+
+func txtarFailureDetail(result txtarCommandResult) string {
+	if result.err != nil {
+		return oneLine(result.err.Error())
+	}
+	if result.stderr != "" {
+		return oneLine(result.stderr)
+	}
+	return "command failed"
+}
+
+func txtarFiles(data string) map[string]string {
+	files := map[string]string{}
+	var name string
+	var b strings.Builder
+	flush := func() {
+		if name != "" {
+			files[name] = b.String()
+			b.Reset()
+		}
+	}
+	for _, line := range strings.SplitAfter(data, "\n") {
+		marker := strings.TrimSuffix(line, "\n")
+		marker = strings.TrimSuffix(marker, "\r")
+		if isTxtarFileMarker(marker) {
+			flush()
+			name = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(marker), "-- "), " --"))
+			continue
+		}
+		if name != "" {
+			b.WriteString(line)
+		}
+	}
+	flush()
+	return files
+}
+
+func txtarExpectedFailure(line string) (bool, string) {
+	line = strings.TrimSpace(line)
+	if strings.HasPrefix(line, "! ") {
+		return true, strings.TrimSpace(strings.TrimPrefix(line, "! "))
+	}
+	return false, line
+}
+
+func txtarAssertionText(line string) string {
+	fields := splitTxtarFields(line)
+	if len(fields) < 2 {
+		return ""
+	}
+	return fields[1]
+}
+
+func txtarAssertionMatches(stream, line string) (bool, error) {
+	pattern := txtarAssertionText(line)
+	if pattern == "" {
+		return stream == "", nil
+	}
+	return regexp.MatchString(pattern, stream)
+}
+
+func txtarFilesMismatch(files map[string]string, left, right string) string {
+	l, lok := files[left]
+	r, rok := files[right]
+	switch {
+	case !lok:
+		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, right, left)
+	case !rok:
+		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, right, right)
+	case l != r:
+		return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, right, oneLine(l), oneLine(r))
+	default:
+		return ""
+	}
+}
+
+func unsupportedOnlyDirective(fx Fixture, line string) string {
+	fields := splitTxtarFields(strings.TrimPrefix(strings.TrimSpace(line), "! "))
+	if len(fields) < 2 {
+		return "only"
+	}
+	condition := fields[1]
+	if condition == txtarFixtureFamily(fx) {
+		return ""
+	}
+	return "only " + condition
+}
+
+func txtarDirectiveKey(line string) string {
+	fields := splitTxtarFields(strings.TrimPrefix(strings.TrimSpace(line), "! "))
+	if len(fields) == 0 {
+		return ""
+	}
+	if len(fields) > 1 {
+		return fields[0] + " " + fields[1]
+	}
+	return fields[0]
+}
+
+func txtarRedirectTarget(line string) string {
+	fields := splitTxtarFields(line)
+	for i, field := range fields {
+		if field == ">" && i+1 < len(fields) {
+			return fields[i+1]
+		}
+	}
+	return ""
+}
+
+func splitTxtarFields(line string) []string {
+	var fields []string
+	var b strings.Builder
+	var quote rune
+	for _, r := range line {
+		switch {
+		case quote != 0:
+			if r == quote {
+				quote = 0
+				continue
+			}
+			b.WriteRune(r)
+		case r == '\'' || r == '"':
+			quote = r
+		case r == ' ' || r == '\t':
+			if b.Len() > 0 {
+				fields = append(fields, b.String())
+				b.Reset()
+			}
+		default:
+			b.WriteRune(r)
+		}
+	}
+	if b.Len() > 0 {
+		fields = append(fields, b.String())
+	}
+	return fields
+}
+
+func limitStrings(values []string, n int) []string {
+	if len(values) <= n {
+		return values
+	}
+	return append(append([]string(nil), values[:n]...), fmt.Sprintf("... %d more", len(values)-n))
 }

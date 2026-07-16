@@ -44,7 +44,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `corpus-inventory` | Is every vendored Atlas test artifact visible in the generated report, including still-unmeasured `.hcl`/other fixtures? | harness |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas's SQL in its AST? (round-trip / `read-db` / `compare` — **not** apply, which execs raw SQL) | `core/parser` |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | `migration/migrator` |
-| `txtar-script` | Does the harness parse Atlas integration txtar scripts and expose the command/runtime surface Ptah still needs to execute? | harness |
+| `txtar-script` | Does the harness parse Atlas integration txtar scripts, execute the narrow command subset currently mapped to Ptah APIs, and keep unsupported runtime commands red? | harness, `core/parser`, `core/renderer` |
 | `txtar-down` | Does Ptah load Atlas txtar migrations with an embedded `down.sql` section? | `migration/migrator` |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does Ptah's own hash reproduce it? | `migration/migratesum` |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |
@@ -59,15 +59,20 @@ separate pipelines:
 
 - [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses a committed gap budget so progress PRs fail only when the current report
-  gets worse or stale.
+  gets worse or stale. The budget counts all unwaived non-OK observations:
+  `gap`, `fail`, and `panic`.
 - [`full-conformance`](./.github/workflows/full-conformance.yml) runs
   `make gate` and stays red until Ptah covers everything Atlas expresses in the
-  corpus.
+  corpus. When probes become stricter, the generated report may expose more
+  non-OK observations even without a Ptah code change; that is a measurement
+  hardening and must be committed explicitly with the new report/budget
+  baseline.
 
 - `make probe` regenerates the report and always exits 0.
 - `make budget` fails if the generated report exceeds [`gap-budget.txt`](./gap-budget.txt)
   or if a waiver became stale.
-- `make gate` regenerates the report **and exits non-zero if any unwaived gap remains**.
+- `make gate` regenerates the report **and exits non-zero if any unwaived
+  non-OK observation remains**.
   This is the full-parity yardstick and stays red until Ptah covers everything
   Atlas expresses in the corpus.
 

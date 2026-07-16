@@ -72,7 +72,7 @@ func TestTxtarScriptProbeReportsCommandSurface(t *testing.T) {
 stdout 'planned'
 atlas migrate apply --url URL
 cmpshow users expected.sql
-only sqlite
+only postgres
 
 -- schema.hcl --
 schema "main" {}
@@ -85,22 +85,28 @@ schema "main" {}
 		Files: []string{path},
 	})
 
-	if len(results) != 1 {
-		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	if len(results) != 3 {
+		t.Fatalf("expected 3 unsupported command results, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected measured txtar gap, got %#v", results[0])
-	}
-	if results[0].Stage != "script-surface" {
-		t.Fatalf("expected script-surface stage, got %#v", results[0])
-	}
-	for _, want := range []string{"atlas migrate diff=1", "atlas migrate apply=1", "cmpshow=1"} {
-		if !strings.Contains(results[0].Detail, want) {
-			t.Fatalf("detail missing %q: %s", want, results[0].Detail)
+	for _, result := range results {
+		if result.Outcome != Gap {
+			t.Fatalf("expected measured txtar gap, got %#v", result)
+		}
+		if result.Stage != "script-runtime" {
+			t.Fatalf("expected script-runtime stage, got %#v", result)
 		}
 	}
-	if strings.Contains(results[0].Detail, "stdout") || strings.Contains(results[0].Detail, "only") {
-		t.Fatalf("detail should not count assertions/directives as commands: %s", results[0].Detail)
+	for _, want := range []string{
+		"unsupported: atlas migrate diff",
+		"unsupported: atlas migrate apply",
+		"unsupported: cmpshow",
+	} {
+		assertResultDetailContains(t, results, want)
+	}
+	for _, result := range results {
+		if strings.Contains(result.Detail, "stdout") || strings.Contains(result.Detail, "only") {
+			t.Fatalf("detail should not count assertions/matching directives as commands: %s", result.Detail)
+		}
 	}
 }
 
@@ -112,6 +118,340 @@ atlas migrate apply --url URL
 
 	if len(commands) != 1 || commands[0] != "atlas migrate hash" {
 		t.Fatalf("commands = %#v, want only atlas migrate hash", commands)
+	}
+}
+
+func TestTxtarScriptProbeExecutesSchemaInspectSQLAndCmp(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- a.sql --
+CREATE TABLE users (
+  id INT NOT NULL,
+  PRIMARY KEY (id)
+);
+
+-- expected.sql --
+-- POSTGRES TABLE: users --
+CREATE TABLE users (
+  id INT NOT NULL,
+  PRIMARY KEY (id)
+);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if results[0].Stage != "script-runtime" {
+		t.Fatalf("expected script-runtime stage, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "executed 1 supported command") {
+		t.Fatalf("detail missing supported command count: %s", results[0].Detail)
+	}
+	if !strings.Contains(results[0].Detail, "checked 1 assertion") {
+		t.Fatalf("detail missing assertion count: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeChecksExpectedSchemaInspectFailure(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas schema inspect -u file://a.sql --format '{{ sql . }}'
+stderr 'Error: --dev-url cannot be empty'
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeReportsUnexpectedSchemaInspectFailure(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --format '{{ sql . }}'
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "--dev-url cannot be empty") {
+		t.Fatalf("detail missing command failure: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeReportsUnexpectedSuccessForExpectedFailure(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "expected command failure, but command succeeded") {
+		t.Fatalf("detail missing unexpected success: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeTreatsVersionOnlyDirectiveAsUnsupported(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: only mysql8") {
+		t.Fatalf("detail missing unsupported only directive: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeAcceptsMatchingFamilyOnlyDirective(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if strings.Contains(results[0].Detail, "only mysql") {
+		t.Fatalf("matching only directive should not be reported unsupported: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeUsesRegexpAssertions(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}'
+stdout 'CREATE TABLE users \([\s\S]*PRIMARY KEY'
+! stdout 'CREATE TABLE accounts'
+
+-- a.sql --
+CREATE TABLE users (
+  id INT NOT NULL,
+  PRIMARY KEY (id)
+);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeOverwritesPseudoStreamsWithEmptyOutput(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas schema inspect -u file://a.sql --format '{{ sql . }}'
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+cmp stderr empty.txt
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+
+-- empty.txt --
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsUnsupportedHCLInspectAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+
+-- expected.hcl --
+table "users" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas schema inspect hcl") {
+		t.Fatalf("detail missing unsupported HCL inspect: %s", results[0].Detail)
+	}
+	if strings.Contains(results[0].Detail, "cmp inspected.hcl") {
+		t.Fatalf("unsupported producer should not turn dependent cmp into mismatch: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeSkipsAssertionsAfterUnsupportedStdoutProducer(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff --dev-url URL --to file://schema.sql
+! stdout 'no changes'
+cmp stdout expected.sql
+
+-- schema.sql --
+CREATE TABLE users (id INT NOT NULL);
+
+-- expected.sql --
+-- Create "users" table
+CREATE TABLE "users" ("id" integer NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if strings.Contains(results[0].Detail, "stdout") {
+		t.Fatalf("unsupported stdout producer should not be checked as mismatch: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeReportsSchemaInspectSQLMismatch(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- a.sql --
+CREATE TABLE users (id INT NOT NULL);
+
+-- expected.sql --
+CREATE TABLE users (id INT NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "cmp inspected.sql expected.sql did not match") {
+		t.Fatalf("detail missing cmp mismatch: %s", results[0].Detail)
 	}
 }
 
@@ -260,4 +600,15 @@ func assertResult(t *testing.T, results []Result, stage, detail string) {
 		}
 	}
 	t.Fatalf("missing result stage=%q detail=%q in %#v", stage, detail, results)
+}
+
+func assertResultDetailContains(t *testing.T, results []Result, detail string) {
+	t.Helper()
+
+	for _, result := range results {
+		if strings.Contains(result.Detail, detail) {
+			return
+		}
+	}
+	t.Fatalf("missing result detail containing %q in %#v", detail, results)
 }
