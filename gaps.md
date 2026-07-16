@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 745 unwaived non-OK observation(s)
+## Status: NOT DONE — 744 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716114538-aa6ebba7df5c`
-- Outcomes: **374 ok**, **734 gap**, **11 fail**, **0 panic**
-- Gate: **745 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716125003-4d8738ab2de8`
+- Outcomes: **374 ok**, **734 gap**, **10 fail**, **0 panic**
+- Gate: **744 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -28,7 +28,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/18_pg_expr.sql` | round-trip | parse error on Atlas DDL: expected index name, got String at position 27 | #133 |
 | **RED** | **fail** | sql-parse | `sql/migrate/testdata/lex/6_skip_comment.sql` | round-trip | parse error on Atlas DDL: expected SQL keyword, got Operator at position 38 | #133 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | cmp inspected.sql script_cli_inspect.sql did not match: got "-- MYSQL TABLE: users -- CREATE TABLE users ( id int NOT NULL, PRIMARY KEY (id) );" want "-- Create \"users\" table CREATE TABLE `users` (`id` int NOT NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;" | #285 |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | parse inspect file: unsupported CREATE target: SPATIAL at position 48 | #285 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/cli-inspect-file.txtar` | script-runtime | cmp inspected.sql script_cli_inspect.sql did not match: got "-- POSTGRES TABLE: users -- CREATE TABLE users ( id int NOT NULL, PRIMARY KEY (id) );" want "-- Create \"users\" table CREATE TABLE \"users\" (\"id\" integer NOT NULL, PRIMARY KEY (\"id\"));" | #285 |
@@ -1145,6 +1144,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#133** — 6 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
-- **stokaro/ptah#285** — 704 finding(s)
+- **stokaro/ptah#285** — 703 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
 - **stokaro/ptah#299** — 3 finding(s)

@@ -3951,14 +3951,6 @@
     "fixture": "internal/integration/testdata/mysql/index-type.txtar",
     "stage": "script-runtime",
     "outcome": "fail",
-    "detail": "parse inspect file: unsupported CREATE target: SPATIAL at position 48",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/index-type.txtar",
-    "stage": "script-runtime",
-    "outcome": "fail",
     "detail": "stdout assertion did not match",
     "issue": "stokaro/ptah#285"
   },
