@@ -170,11 +170,8 @@ CREATE TABLE users (
 );
 
 -- expected.sql --
--- POSTGRES TABLE: users --
-CREATE TABLE users (
-  id INT NOT NULL,
-  PRIMARY KEY (id)
-);
+-- Create "users" table
+CREATE TABLE "users" ("id" integer NOT NULL, PRIMARY KEY ("id"));
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -198,6 +195,70 @@ CREATE TABLE users (
 	}
 	if !strings.Contains(results[0].Detail, "checked 1 assertion") {
 		t.Fatalf("detail missing assertion count: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLSchemaInspectSQLAndCmp(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- a.sql --
+CREATE TABLE users (
+  id INT NOT NULL,
+  PRIMARY KEY (id)
+);
+CREATE SPATIAL INDEX idx_geom ON users (id);
+
+-- expected.sql --
+-- Create "users" table
+CREATE TABLE `+"`users`"+` (`+"`id`"+` int NOT NULL, PRIMARY KEY (`+"`id`"+`), SPATIAL INDEX `+"`idx_geom`"+` (`+"`id`"+`)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeReportsUnattachedMySQLInspectIndex(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}'
+
+-- a.sql --
+CREATE SPATIAL INDEX idx_geom ON missing_table (id);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "without matching table") {
+		t.Fatalf("detail missing unattached index error: %s", results[0].Detail)
 	}
 }
 
@@ -496,7 +557,7 @@ func TestTxtarScriptProbeUsesRegexpAssertions(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}'
-stdout 'CREATE TABLE users \([\s\S]*PRIMARY KEY'
+stdout 'CREATE TABLE "users" \([\s\S]*PRIMARY KEY'
 ! stdout 'CREATE TABLE accounts'
 
 -- a.sql --

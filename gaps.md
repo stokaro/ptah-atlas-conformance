@@ -6,25 +6,21 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 658 unwaived non-OK observation(s)
+## Status: NOT DONE — 654 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260716195106-3f88de930de8`
-- Outcomes: **400 ok**, **654 gap**, **4 fail**, **0 panic**
-- Gate: **658 unwaived non-OK** (fails CI), 0 waived
+- Outcomes: **400 ok**, **654 gap**, **0 fail**, **0 panic**
+- Gate: **654 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | cmp inspected.sql script_cli_inspect.sql did not match: got "-- MYSQL TABLE: users -- CREATE TABLE users ( id int NOT NULL, PRIMARY KEY (id) );" want "-- Create \"users\" table CREATE TABLE `users` (`id` int NOT NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;" | #285 |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | stdout assertion did not match | #285 |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/cli-inspect-file.txtar` | script-runtime | cmp inspected.sql script_cli_inspect.sql did not match: got "-- POSTGRES TABLE: users -- CREATE TABLE users ( id int NOT NULL, PRIMARY KEY (id) );" want "-- Create \"users\" table CREATE TABLE \"users\" (\"id\" integer NOT NULL, PRIMARY KEY (\"id\"));" | #285 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
 | **RED** | **gap** | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | unmeasured | Atlas HCL fixture is vendored but Ptah has no HCL conformance probe for it yet | #276 |
@@ -1084,5 +1080,5 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#133** — 1 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
-- **stokaro/ptah#285** — 643 finding(s)
+- **stokaro/ptah#285** — 639 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
