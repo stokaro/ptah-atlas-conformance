@@ -1612,15 +1612,15 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/10_delimiter_comment.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/11_delimiter_mysql_command.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE FUNCTION body: BEGIN without ATOMIC at position 124"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1640,8 +1640,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/14_delimiter_mysql_command.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1740,15 +1740,15 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/9_delimiter_3n.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 34"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lexbegintry/1.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7"
+    "outcome": "ok",
+    "detail": "parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1775,15 +1775,15 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lexgroup/2_function.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: PROCEDURE at position 7"
+    "outcome": "ok",
+    "detail": "parsed 14 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lexgroup/3_delimiter.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE FUNCTION body: BEGIN without ATOMIC at position 330"
+    "outcome": "ok",
+    "detail": "parsed 5 statement(s)"
   },
   {
     "probe": "sql-parse",
