@@ -1497,25 +1497,22 @@
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir/1.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "rendered Atlas SQL template and parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir/2.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "rendered Atlas SQL template and parsed 2 statement(s)"
   },
   {
     "probe": "sql-parse",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql",
     "stage": "round-trip",
-    "outcome": "fail",
-    "detail": "parse error on Atlas DDL: expected SQL keyword, got Operator at position 0",
-    "issue": "stokaro/ptah#133"
+    "outcome": "ok",
+    "detail": "Atlas SQL template support file rendered no standalone statements"
   },
   {
     "probe": "sql-parse",
@@ -7955,9 +7952,8 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/templatedir",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "only file-convention findings (MF103); Ptah does not analyze the content of Atlas-named files",
-    "issue": "stokaro/ptah#299"
+    "outcome": "ok",
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
