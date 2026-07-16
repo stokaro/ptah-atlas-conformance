@@ -233,6 +233,166 @@ CREATE TABLE `+"`users`"+` (`+"`id`"+` int NOT NULL, PRIMARY KEY (`+"`id`"+`), S
 	}
 }
 
+func TestTxtarScriptProbeExecutesSchemaInspectHCLAndCmp(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- a.sql --
+CREATE TABLE users (
+  id INT NOT NULL,
+  PRIMARY KEY (id)
+);
+
+-- expected.hcl --
+table "users" {
+  schema = schema.script_case
+  column "id" {
+    null = false
+    type = integer
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+schema "script_case" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesSchemaInspectHCLWithInlinePrimaryKey(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- a.sql --
+CREATE TABLE users (id INT PRIMARY KEY);
+
+-- expected.hcl --
+table "users" {
+  schema = schema.script_case
+  column "id" {
+    null = false
+    type = integer
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+schema "script_case" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLSchemaInspectHCLAndCmp(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- a.sql --
+CREATE TABLE users (
+  id INT NOT NULL,
+  PRIMARY KEY (id)
+);
+
+-- expected.hcl --
+table "users" {
+  schema = schema.script_case
+  column "id" {
+    null = false
+    type = int
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+schema "script_case" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsUnsupportedSchemaInspectHCLAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- a.sql --
+CREATE TABLE users (
+  id INT CHECK (id > 0)
+);
+
+-- expected.hcl --
+ignored
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas schema inspect hcl") {
+		t.Fatalf("detail missing unsupported HCL marker: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeReportsUnattachedMySQLInspectIndex(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -617,7 +777,7 @@ func TestTxtarScriptProbeKeepsUnsupportedHCLInspectAsGap(t *testing.T) {
 cmp inspected.hcl expected.hcl
 
 -- a.sql --
-CREATE TABLE users (id INT NOT NULL);
+CREATE TABLE users (id INT CHECK (id > 0));
 
 -- expected.hcl --
 table "users" {}
