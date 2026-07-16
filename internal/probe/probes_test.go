@@ -125,8 +125,8 @@ schema "main" {}
 		Files: []string{path},
 	})
 
-	if len(results) != 3 {
-		t.Fatalf("expected 3 unsupported command results, got %d: %#v", len(results), results)
+	if len(results) != 2 {
+		t.Fatalf("expected 2 unsupported command results, got %d: %#v", len(results), results)
 	}
 	for _, result := range results {
 		if result.Outcome != Gap {
@@ -139,7 +139,6 @@ schema "main" {}
 	for _, want := range []string{
 		"unsupported: atlas migrate diff",
 		"unsupported: atlas migrate apply",
-		"unsupported: cmpshow",
 	} {
 		assertResultDetailContains(t, results, want)
 	}
@@ -659,12 +658,19 @@ func TestTxtarScriptProbeSkipsDBAssertionsAfterUnsupportedDBMutation(t *testing.
 	writeTestFile(t, path, `apply 1.hcl
 exist users
 synced 2.hcl
+cmpshow users expected.sql
+cmphcl expected.hcl
 
 -- 1.hcl --
 schema "main" {}
 
 -- 2.hcl --
 schema "main" {}
+-- expected.sql --
+CREATE TABLE users (id int);
+-- expected.hcl --
+table "users" {
+}
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -683,8 +689,11 @@ schema "main" {}
 	if !strings.Contains(results[0].Detail, "unsupported: apply") {
 		t.Fatalf("detail missing original unsupported DB mutation: %s", results[0].Detail)
 	}
-	if strings.Contains(results[0].Detail, "exist") || strings.Contains(results[0].Detail, "synced") {
-		t.Fatalf("dependent DB assertions should not be reported after unsupported DB mutation: %s", results[0].Detail)
+	for _, dependent := range []string{"exist", "synced", "cmpshow", "cmphcl"} {
+		if strings.Contains(results[0].Detail, dependent) {
+			t.Fatalf("dependent DB assertion %q should not be reported after unsupported DB mutation: %s",
+				dependent, results[0].Detail)
+		}
 	}
 }
 
@@ -693,9 +702,15 @@ func TestTxtarScriptProbeReportsDBAssertionsWithoutUnsupportedDBMutation(t *test
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `exist users
 synced 1.hcl
+cmpshow users expected.sql
+cmphcl expected.hcl
 
 -- 1.hcl --
 schema "main" {}
+-- expected.sql --
+CREATE TABLE users (id int);
+-- expected.hcl --
+table "users" {}
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -705,11 +720,13 @@ schema "main" {}
 		Files: []string{path},
 	})
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	if len(results) != 4 {
+		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
 	}
 	assertResultDetailContains(t, results, "unsupported: exist")
 	assertResultDetailContains(t, results, "unsupported: synced")
+	assertResultDetailContains(t, results, "unsupported: cmpshow")
+	assertResultDetailContains(t, results, "unsupported: cmphcl")
 }
 
 func TestTxtarScriptProbeExecutesMigrateHash(t *testing.T) {
