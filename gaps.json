@@ -1118,17 +1118,15 @@
     "probe": "atlas-hcl-parse",
     "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl",
     "stage": "parse",
-    "outcome": "gap",
-    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl:1,1-7: unsupported schema attribute \"comment\"",
-    "issue": "stokaro/ptah#276"
+    "outcome": "ok",
+    "detail": "parsed Atlas HCL schema file: 1 table(s), 1 field(s)"
   },
   {
     "probe": "atlas-hcl-parse",
     "fixture": "atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl",
     "stage": "parse",
-    "outcome": "gap",
-    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl:1,1-7: unsupported schema attribute \"comment\"",
-    "issue": "stokaro/ptah#276"
+    "outcome": "ok",
+    "detail": "parsed Atlas HCL schema file: 1 table(s), 2 field(s)"
   },
   {
     "probe": "atlas-hcl-parse",

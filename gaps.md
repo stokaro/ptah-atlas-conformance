@@ -6,23 +6,21 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 343 unwaived non-OK observation(s)
+## Status: NOT DONE — 341 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260716221910-0b2f97307864`
-- Outcomes: **414 ok**, **343 gap**, **0 fail**, **0 panic**
-- Gate: **343 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260716225918-fda82fce15ef`
+- Outcomes: **416 ok**, **341 gap**, **0 fail**, **0 panic**
+- Gate: **341 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **156 measured**, **2 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl:1,1-7: unsupported schema attribute "comment" | #276 |
-| **RED** | **gap** | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl:1,1-7: unsupported schema attribute "comment" | #276 |
 | **RED** | **gap** | atlas-hcl-parse | `schemahcl/testdata/a.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/a.hcl:1,1-7: unsupported top-level block "person" | #276 |
 | **RED** | **gap** | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/b.hcl:1,1-7: unsupported top-level block "person" | #276 |
 | **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
@@ -365,6 +363,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: apply | #285 |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
+| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 1 field(s) |  |
+| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 2 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/variables.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
@@ -782,6 +782,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#133** — 1 finding(s)
-- **stokaro/ptah#276** — 4 finding(s)
+- **stokaro/ptah#276** — 2 finding(s)
 - **stokaro/ptah#285** — 332 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
