@@ -1662,8 +1662,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/17_paren.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported ALTER operation: T at position 17"
+    "outcome": "ok",
+    "detail": "parsed 3 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1678,14 +1678,16 @@
     "fixture": "sql/migrate/testdata/lex/19_ms_gocmd.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: GO at position 0"
+    "detail": "parser returned zero statements for non-empty Atlas DDL",
+    "issue": "stokaro/ptah#133"
   },
   {
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/20_ms_go-delim.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: GO at position 25"
+    "detail": "parser returned zero statements for non-empty Atlas DDL",
+    "issue": "stokaro/ptah#133"
   },
   {
     "probe": "sql-parse",
