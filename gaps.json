@@ -2349,14 +2349,6 @@
     "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only maria107",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas schema inspect hcl",
     "issue": "stokaro/ptah#285"
   },
@@ -2366,14 +2358,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas schema inspect format",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/check.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only mysql8",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -2477,23 +2461,7 @@
     "fixture": "internal/integration/testdata/mysql/cli-inspect-file.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql8",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-inspect-file.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas schema inspect hcl",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only mysql8",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -2661,14 +2629,6 @@
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only maria103",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: mkdir",
     "issue": "stokaro/ptah#285"
   },
@@ -3021,14 +2981,6 @@
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only maria107",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: exec",
     "issue": "stokaro/ptah#285"
   },
@@ -3125,14 +3077,6 @@
     "fixture": "internal/integration/testdata/mysql/cli-project-url-escape.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql8",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-project-url-escape.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: execsql",
     "issue": "stokaro/ptah#285"
   },
@@ -3166,14 +3110,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: execsql",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only mysql8",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3405,14 +3341,6 @@
     "fixture": "internal/integration/testdata/mysql/column-default-expr.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql8",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-default-expr.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3437,14 +3365,6 @@
     "fixture": "internal/integration/testdata/mysql/column-generated-inspect.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql56",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-generated-inspect.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3461,14 +3381,6 @@
     "fixture": "internal/integration/testdata/mysql/column-generated.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql56",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-generated.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3518,14 +3430,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-json.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only maria*",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3557,14 +3461,6 @@
     "fixture": "internal/integration/testdata/mysql/column-time-precision-maria.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only maria*",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-time-precision-maria.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3574,14 +3470,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-time-precision-mysql.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only mysql56",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3693,14 +3581,6 @@
     "fixture": "internal/integration/testdata/mysql/foreign-key.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql8",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/foreign-key.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3790,14 +3670,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/index-desc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only mysql8",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3861,14 +3733,6 @@
     "fixture": "internal/integration/testdata/mysql/index-expr.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql8",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/index-expr.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3958,14 +3822,6 @@
     "stage": "script-runtime",
     "outcome": "fail",
     "detail": "stdout assertion did not match",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/index-type.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only mysql8",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -4053,14 +3909,6 @@
     "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql8",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas schema inspect hcl",
     "issue": "stokaro/ptah#285"
   },
@@ -4125,14 +3973,6 @@
     "fixture": "internal/integration/testdata/mysql/primary-key.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only mysql8",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/primary-key.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -4190,14 +4030,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/table-engine.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only mysql8",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -4309,14 +4141,6 @@
     "fixture": "internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only postgres14",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate hash",
     "issue": "stokaro/ptah#285"
   },
@@ -5301,14 +5125,6 @@
     "fixture": "internal/integration/testdata/postgres/column-generated-inspect.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only postgres10|postgres11",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/column-generated-inspect.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -5406,14 +5222,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/column-range.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only postgres14",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -5717,14 +5525,6 @@
     "fixture": "internal/integration/testdata/postgres/index-include.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only postgres10",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/index-include.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -5805,14 +5605,6 @@
     "fixture": "internal/integration/testdata/postgres/index-nulls-distinct.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: only postgres15",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/index-nulls-distinct.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -5854,14 +5646,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/index-operator-class.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only postgres14",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -6126,14 +5910,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas schema inspect hcl",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/primary-key.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: only postgres15",
     "issue": "stokaro/ptah#285"
   },
   {
