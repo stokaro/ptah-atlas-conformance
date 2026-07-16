@@ -1647,8 +1647,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/15_dollar_quote.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported SQL statement: DO at position 2684"
+    "outcome": "ok",
+    "detail": "parsed 12 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1684,8 +1684,7 @@
     "fixture": "sql/migrate/testdata/lex/20_ms_go-delim.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser returned zero statements for non-empty Atlas DDL",
-    "issue": "stokaro/ptah#133"
+    "detail": "parser does not model this construct: unsupported SQL statement: TO at position 88"
   },
   {
     "probe": "sql-parse",
@@ -1712,8 +1711,8 @@
     "probe": "sql-parse",
     "fixture": "sql/migrate/testdata/lex/5_delimiter.sql",
     "stage": "round-trip",
-    "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE target: DEFINER at position 41"
+    "outcome": "ok",
+    "detail": "parsed 1 statement(s)"
   },
   {
     "probe": "sql-parse",
@@ -1874,7 +1873,7 @@
     "fixture": "sql/migrate/testdata/sqlserver/2_function.sql",
     "stage": "round-trip",
     "outcome": "gap",
-    "detail": "parser does not model this construct: unsupported CREATE FUNCTION syntax: expected function name: expected identifier, got Operator at position 41"
+    "detail": "parser does not model this construct: unsupported CREATE FUNCTION syntax: expected function name: expected identifier, got Operator at position 17"
   },
   {
     "probe": "sql-parse",
