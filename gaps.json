@@ -2605,14 +2605,6 @@
   },
   {
     "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-apply.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: validJSON",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
