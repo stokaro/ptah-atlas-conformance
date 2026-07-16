@@ -2,7 +2,7 @@ module github.com/stokaro/ptah-atlas-conformance
 
 go 1.26.5
 
-require github.com/stokaro/ptah v0.0.0-20260716094746-44ea0bc11750
+require github.com/stokaro/ptah v0.0.0-20260716101244-23abd48a2c47
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
