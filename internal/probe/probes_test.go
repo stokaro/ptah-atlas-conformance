@@ -469,6 +469,62 @@ CREATE TABLE users (id INT);
 	}
 }
 
+func TestTxtarScriptProbeChecksValidJSON(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `cat payload.json
+validJSON stdout
+
+-- payload.json --
+{"ok": true}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "checked 1 assertion") {
+		t.Fatalf("detail missing validJSON assertion count: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeReportsInvalidJSON(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `cat payload.json
+validJSON stdout
+
+-- payload.json --
+{not-json}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "validJSON stdout: invalid JSON") {
+		t.Fatalf("detail missing invalid JSON error: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeReportsVirtualFileCommandFailures(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -493,6 +549,31 @@ CREATE TABLE users (id INT);
 	}
 	if !strings.Contains(results[0].Detail, "missing.sql missing") {
 		t.Fatalf("detail missing cp failure: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeSkipsValidJSONAfterUnsupportedProducer(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate apply --url URL --log '{{ json . }}'
+validJSON stdout
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if strings.Contains(results[0].Detail, "validJSON") {
+		t.Fatalf("unsupported producer should not report dependent validJSON: %s", results[0].Detail)
 	}
 }
 

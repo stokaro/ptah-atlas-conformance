@@ -2,6 +2,7 @@ package probe
 
 import (
 	"cmp"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -321,6 +322,21 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			summary.checked++
 			if mismatch := txtarFilesMismatch(runtime.files, fields[1], fields[2]); mismatch != "" {
 				summary.failures = append(summary.failures, mismatch)
+			}
+			continue
+		case strings.HasPrefix(trimmed, "validJSON "):
+			fields := splitTxtarFields(trimmed)
+			if len(fields) != 2 {
+				summary.checked++
+				summary.failures = append(summary.failures, "unsupported validJSON syntax: "+trimmed)
+				continue
+			}
+			if unsupportedFiles[fields[1]] {
+				continue
+			}
+			summary.checked++
+			if err := txtarValidateJSON(runtime.files, fields[1]); err != nil {
+				summary.failures = append(summary.failures, err.Error())
 			}
 			continue
 		}
@@ -1023,6 +1039,17 @@ func txtarFilesMismatch(files map[string]string, left, right string) string {
 	default:
 		return ""
 	}
+}
+
+func txtarValidateJSON(files map[string]string, name string) error {
+	data, ok := files[name]
+	if !ok {
+		return fmt.Errorf("validJSON %s: %s missing", name, name)
+	}
+	if !json.Valid([]byte(data)) {
+		return fmt.Errorf("validJSON %s: invalid JSON", name)
+	}
+	return nil
 }
 
 func unsupportedOnlyDirective(fx Fixture, line string) string {
