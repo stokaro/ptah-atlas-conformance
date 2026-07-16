@@ -10,8 +10,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/stokaro/ptah/core/ast"
 	"github.com/stokaro/ptah/core/parser"
-	"github.com/stokaro/ptah/core/renderer"
 )
 
 // TxtarScriptProbe parses Atlas integration txtar scripts and records the
@@ -680,15 +680,152 @@ func renderTxtarSQL(fx Fixture, sql string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("parse inspect file: %w", err)
 	}
-	out, err := renderer.RenderSQL(txtarFixtureDialect(fx), list.Statements...)
+	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), list.Statements)
 	if err != nil {
 		return "", fmt.Errorf("render inspect SQL: %w", err)
 	}
-	out = strings.TrimSpace(out)
-	if !strings.HasSuffix(out, ";") {
-		out += ";"
+	return out, nil
+}
+
+func renderAtlasInspectSQL(dialect string, statements []ast.Node) (string, error) {
+	tableNames := atlasTableNames(statements)
+	indexesByTable := atlasIndexesByTable(dialect, statements)
+	var b strings.Builder
+	for _, stmt := range statements {
+		switch node := stmt.(type) {
+		case *ast.CreateTableNode:
+			if err := renderAtlasCreateTableSQL(&b, dialect, node, indexesByTable[node.Name]); err != nil {
+				return "", err
+			}
+		case *ast.IndexNode:
+			if !atlasSupportsInlineIndexes(dialect) {
+				return "", fmt.Errorf("unsupported inspect statement %T", stmt)
+			}
+			if !tableNames[node.Table] {
+				return "", fmt.Errorf("unsupported inspect statement %T without matching table", stmt)
+			}
+		default:
+			return "", fmt.Errorf("unsupported inspect statement %T", stmt)
+		}
 	}
-	return out + "\n", nil
+	return b.String(), nil
+}
+
+func atlasTableNames(statements []ast.Node) map[string]bool {
+	names := make(map[string]bool)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok {
+			names[table.Name] = true
+		}
+	}
+	return names
+}
+
+func atlasIndexesByTable(dialect string, statements []ast.Node) map[string][]*ast.IndexNode {
+	if !atlasSupportsInlineIndexes(dialect) {
+		return nil
+	}
+	indexes := make(map[string][]*ast.IndexNode)
+	for _, stmt := range statements {
+		index, ok := stmt.(*ast.IndexNode)
+		if ok {
+			indexes[index.Table] = append(indexes[index.Table], index)
+		}
+	}
+	return indexes
+}
+
+func atlasSupportsInlineIndexes(dialect string) bool {
+	return dialect == "mysql" || dialect == "mariadb"
+}
+
+func renderAtlasCreateTableSQL(
+	b *strings.Builder,
+	dialect string,
+	table *ast.CreateTableNode,
+	indexes []*ast.IndexNode,
+) error {
+	quote := atlasIdentifierQuoter(dialect)
+	fmt.Fprintf(b, "-- Create %q table\n", table.Name)
+	fmt.Fprintf(b, "CREATE TABLE %s (", quote(table.Name))
+
+	parts := make([]string, 0, len(table.Columns)+len(table.Constraints)+len(indexes))
+	for _, column := range table.Columns {
+		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column))
+		if column.Primary {
+			parts = append(parts, renderAtlasPrimaryKeySQL(quote, []string{column.Name}))
+		}
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.PrimaryKeyConstraint {
+			return fmt.Errorf("unsupported inspect constraint %s", constraint.Type)
+		}
+		parts = append(parts, renderAtlasPrimaryKeySQL(quote, constraint.Columns))
+	}
+	for _, index := range indexes {
+		parts = append(parts, renderAtlasIndexSQL(quote, index))
+	}
+
+	b.WriteString(strings.Join(parts, ", "))
+	b.WriteString(")")
+	if dialect == "mysql" {
+		b.WriteString(" CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
+	}
+	b.WriteString(";\n")
+	return nil
+}
+
+func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast.ColumnNode) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s %s", quote(column.Name), atlasColumnType(dialect, column.Type))
+	if !column.Nullable {
+		b.WriteString(" NOT NULL")
+	}
+	return b.String()
+}
+
+func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string {
+	var b strings.Builder
+	if index.Unique {
+		b.WriteString("UNIQUE ")
+	}
+	if index.Type != "" {
+		b.WriteString(strings.ToUpper(index.Type))
+		b.WriteString(" ")
+	}
+	fmt.Fprintf(&b, "INDEX %s (", quote(index.Name))
+
+	quoted := make([]string, 0, len(index.Columns))
+	for _, column := range index.Columns {
+		quoted = append(quoted, quote(column))
+	}
+	b.WriteString(strings.Join(quoted, ", "))
+	b.WriteString(")")
+	return b.String()
+}
+
+func renderAtlasPrimaryKeySQL(quote func(string) string, columns []string) string {
+	quoted := make([]string, 0, len(columns))
+	for _, column := range columns {
+		quoted = append(quoted, quote(column))
+	}
+	return "PRIMARY KEY (" + strings.Join(quoted, ", ") + ")"
+}
+
+func atlasColumnType(dialect, typ string) string {
+	normalized := strings.ToLower(typ)
+	if dialect == "postgresql" && normalized == "int" {
+		return "integer"
+	}
+	return normalized
+}
+
+func atlasIdentifierQuoter(dialect string) func(string) string {
+	if dialect == "mysql" || dialect == "mariadb" {
+		return func(name string) string { return "`" + strings.ReplaceAll(name, "`", "``") + "`" }
+	}
+	return func(name string) string { return `"` + strings.ReplaceAll(name, `"`, `""`) + `"` }
 }
 
 func txtarFixtureDialect(fx Fixture) string {
