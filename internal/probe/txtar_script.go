@@ -560,7 +560,7 @@ func txtarCommandReadsUnsupportedDBState(line string) bool {
 	}
 
 	switch fields[0] {
-	case "exist", "synced":
+	case "exist", "synced", "cmpshow", "cmphcl":
 		return true
 	default:
 		return false

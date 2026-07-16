@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 574 unwaived non-OK observation(s)
+## Status: NOT DONE — 379 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260716195106-3f88de930de8`
-- Outcomes: **402 ok**, **574 gap**, **0 fail**, **0 panic**
-- Gate: **574 unwaived non-OK** (fails CI), 0 waived
+- Outcomes: **402 ok**, **379 gap**, **0 fail**, **0 panic**
+- Gate: **379 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **148 measured**, **10 imported-but-unmeasured**
 
 ## Findings
@@ -37,11 +37,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | round-trip | parser returned zero statements for non-empty Atlas DDL | #133 |
 | **RED** | **gap** | sql-parse | `sql/migrate/testdata/lex/20_ms_go-delim.sql` | round-trip | parser does not model this construct: unsupported SQL statement: TO at position 88 |  |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | unsupported: atlas schema inspect format | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
@@ -55,17 +52,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
@@ -95,94 +86,52 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bit.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bit.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | script-runtime | unsupported: cmphcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
+| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -190,19 +139,12 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
@@ -211,17 +153,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
@@ -229,28 +165,19 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -264,159 +191,79 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-status.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/cli-migrate-status.txtar` | script-runtime | unsupported: atlas migrate status | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-identity.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-identity.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-identity.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-identity.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-interval.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-interval.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-interval.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-range.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-range.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-textsearch.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-textsearch.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-textsearch.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-time-precision.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-time-precision.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-time-precision.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/column-time-precision.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key-action.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key-action.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key-action.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/foreign-key.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-issue-557.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-issue-557.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmphcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmphcl | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-partial.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-partial.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-partial.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-partial.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: execsql | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: atlas schema clean | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas schema inspect format | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -426,30 +273,19 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: execsql | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/autoincrement.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/autoincrement.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-inspect.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
@@ -457,15 +293,10 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-inspect.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
@@ -473,28 +304,19 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: clearSchema | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -549,7 +371,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | unsupported: atlas migrate apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
@@ -559,16 +380,11 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-default.txtar` | script-runtime | unsupported: execsql | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-default.txtar` | script-runtime | unsupported: cmphcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
@@ -576,25 +392,14 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | unsupported: atlas schema inspect db-url | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: cmpshow | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | unsupported: cmpshow | #285 |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/testdata/broken` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
@@ -1002,5 +807,5 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#133** — 1 finding(s)
 - **stokaro/ptah#276** — 8 finding(s)
-- **stokaro/ptah#285** — 559 finding(s)
+- **stokaro/ptah#285** — 364 finding(s)
 - **stokaro/ptah#289** — 2 finding(s)
