@@ -2,6 +2,7 @@ package probe
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -653,18 +654,25 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 			err:    fmt.Errorf("--dev-url cannot be empty"),
 		}
 	}
-	if format == "" {
-		return txtarCommandResult{unsupported: "atlas schema inspect hcl"}
-	}
-	if format != "{{ sql . }}" {
-		return txtarCommandResult{unsupported: "atlas schema inspect format"}
-	}
 	name := strings.TrimPrefix(sourceURL, filePrefix)
 	sql, ok := files[name]
 	if !ok {
 		return txtarCommandResult{err: fmt.Errorf("file %q not found in txtar archive", name)}
 	}
-	output, err := renderTxtarSQL(fx, sql)
+
+	var output string
+	var err error
+	switch format {
+	case "":
+		output, err = renderTxtarHCL(fx, sql)
+		if errors.Is(err, errUnsupportedInspectHCL) {
+			return txtarCommandResult{unsupported: "atlas schema inspect hcl"}
+		}
+	case "{{ sql . }}":
+		output, err = renderTxtarSQL(fx, sql)
+	default:
+		return txtarCommandResult{unsupported: "atlas schema inspect format"}
+	}
 	if err != nil {
 		return txtarCommandResult{err: err}
 	}
@@ -673,6 +681,20 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 		return txtarCommandResult{}
 	}
 	return txtarCommandResult{stdout: output}
+}
+
+var errUnsupportedInspectHCL = errors.New("unsupported inspect HCL")
+
+func renderTxtarHCL(fx Fixture, sql string) (string, error) {
+	list, err := parser.NewParser(sql).Parse()
+	if err != nil {
+		return "", fmt.Errorf("%w: parse inspect file: %v", errUnsupportedInspectHCL, err)
+	}
+	out, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), txtarFixtureSchemaName(fx), list.Statements)
+	if err != nil {
+		return "", fmt.Errorf("render inspect HCL: %w", err)
+	}
+	return out, nil
 }
 
 func renderTxtarSQL(fx Fixture, sql string) (string, error) {
@@ -685,6 +707,80 @@ func renderTxtarSQL(fx Fixture, sql string) (string, error) {
 		return "", fmt.Errorf("render inspect SQL: %w", err)
 	}
 	return out, nil
+}
+
+func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (string, error) {
+	var b strings.Builder
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			return "", fmt.Errorf("%w: statement %T", errUnsupportedInspectHCL, stmt)
+		}
+		if err := renderAtlasTableHCL(&b, dialect, schemaName, table); err != nil {
+			return "", err
+		}
+	}
+	renderAtlasSchemaHCL(&b, dialect, schemaName)
+	return b.String(), nil
+}
+
+func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *ast.CreateTableNode) error {
+	fmt.Fprintf(b, "table %q {\n", table.Name)
+	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
+	var primaryColumns []string
+	for _, column := range table.Columns {
+		if column.Check != "" || column.Unique || column.ForeignKey != nil {
+			return fmt.Errorf("%w: column %q", errUnsupportedInspectHCL, column.Name)
+		}
+		fmt.Fprintf(b, "  column %q {\n", column.Name)
+		fmt.Fprintf(b, "    null = %t\n", column.Nullable)
+		fmt.Fprintf(b, "    type = %s\n", atlasColumnType(dialect, column.Type))
+		b.WriteString("  }\n")
+		if column.Primary {
+			primaryColumns = append(primaryColumns, column.Name)
+		}
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.PrimaryKeyConstraint {
+			return fmt.Errorf("%w: constraint %s", errUnsupportedInspectHCL, constraint.Type)
+		}
+		primaryColumns = append(primaryColumns, constraint.Columns...)
+	}
+	if len(primaryColumns) > 0 {
+		refs, err := atlasHCLColumnRefs(primaryColumns)
+		if err != nil {
+			return err
+		}
+		b.WriteString("  primary_key {\n")
+		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+		b.WriteString("  }\n")
+	}
+	b.WriteString("}\n")
+	return nil
+}
+
+func renderAtlasSchemaHCL(b *strings.Builder, dialect, schemaName string) {
+	fmt.Fprintf(b, "schema %q {\n", schemaName)
+	switch dialect {
+	case "mysql":
+		b.WriteString("  charset = \"utf8mb4\"\n")
+		b.WriteString("  collate = \"utf8mb4_0900_ai_ci\"\n")
+	case "mariadb":
+		b.WriteString("  charset = \"utf8mb4\"\n")
+		b.WriteString("  collate = \"utf8mb4_general_ci\"\n")
+	}
+	b.WriteString("}\n")
+}
+
+func atlasHCLColumnRefs(columns []string) ([]string, error) {
+	refs := make([]string, 0, len(columns))
+	for _, column := range columns {
+		if strings.ContainsAny(column, " ()`\"") {
+			return nil, fmt.Errorf("%w: primary key column %q", errUnsupportedInspectHCL, column)
+		}
+		refs = append(refs, "column."+column)
+	}
+	return refs, nil
 }
 
 func renderAtlasInspectSQL(dialect string, statements []ast.Node) (string, error) {
@@ -837,6 +933,11 @@ func txtarFixtureDialect(fx Fixture) string {
 		return "mariadb"
 	}
 	return "postgresql"
+}
+
+func txtarFixtureSchemaName(fx Fixture) string {
+	base := strings.TrimSuffix(filepath.Base(fx.Name), filepath.Ext(fx.Name))
+	return "script_" + strings.ReplaceAll(base, "-", "_")
 }
 
 func txtarFixtureFamily(fx Fixture) string {
