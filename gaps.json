@@ -3000,14 +3000,6 @@
     "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: exist",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: cmpshow",
     "issue": "stokaro/ptah#285"
   },
@@ -3049,14 +3041,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exist",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3096,14 +3080,6 @@
     "fixture": "internal/integration/testdata/mysql/column-bool.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: synced",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-bool.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3113,14 +3089,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/column-bool.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: synced",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3368,14 +3336,6 @@
     "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: exist",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -3393,14 +3353,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: exist",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -3569,14 +3521,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/index-desc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: synced",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -4551,22 +4495,6 @@
     "fixture": "internal/integration/testdata/postgres/column-array.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: synced",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/column-array.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: synced",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/column-array.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -5240,14 +5168,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: synced",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -7256,14 +7176,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: cmpshow",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/index-desc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: synced",
     "issue": "stokaro/ptah#285"
   },
   {

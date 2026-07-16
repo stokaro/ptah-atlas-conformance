@@ -241,6 +241,7 @@ func newTxtarRuntime(data string) *txtarRuntime {
 func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary {
 	runtime := newTxtarRuntime(data)
 	unsupportedFiles := map[string]bool{}
+	dbStateUnsupported := false
 	var summary txtarRunSummary
 	var last txtarCommandResult
 	for _, line := range strings.Split(txtarScriptPrefix(data), "\n") {
@@ -345,6 +346,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		if commandLine == "" {
 			continue
 		}
+		if dbStateUnsupported && txtarCommandReadsUnsupportedDBState(commandLine) {
+			last = txtarCommandResult{unsupported: "blocked by unsupported database state"}
+			continue
+		}
 		if txtarCommandReadsUnsupportedFile(commandLine, unsupportedFiles) {
 			last = txtarCommandResult{unsupported: "blocked by unsupported file"}
 			markUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
@@ -354,6 +359,9 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		last = result
 		if result.unsupported != "" {
 			summary.unsupported = append(summary.unsupported, result.unsupported)
+			if !expectedFailure && txtarCommandMutatesDBState(commandLine) {
+				dbStateUnsupported = true
+			}
 			if redirect := txtarRedirectTarget(commandLine); redirect != "" {
 				unsupportedFiles[redirect] = true
 			} else {
@@ -425,6 +433,48 @@ func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]b
 		return len(args) >= 1 && unsupportedFiles[args[0]]
 	}
 	return false
+}
+
+func txtarCommandReadsUnsupportedDBState(line string) bool {
+	fields := txtarCommandFields(line)
+	if len(fields) == 0 {
+		return false
+	}
+
+	switch fields[0] {
+	case "exist", "synced":
+		return true
+	default:
+		return false
+	}
+}
+
+func txtarCommandMutatesDBState(line string) bool {
+	fields := txtarCommandFields(line)
+	if len(fields) == 0 {
+		return false
+	}
+	if slices.Contains(fields, "--dry-run") {
+		return false
+	}
+
+	switch fields[0] {
+	case "apply", "clearSchema", "execsql":
+		return true
+	case "atlas":
+		return len(fields) >= 3 && txtarAtlasCommandMutatesDBState(fields[1], fields[2])
+	default:
+		return false
+	}
+}
+
+func txtarAtlasCommandMutatesDBState(group, command string) bool {
+	switch group + " " + command {
+	case "migrate apply", "migrate set", "schema apply", "schema clean":
+		return true
+	default:
+		return false
+	}
 }
 
 func markUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsupportedFiles map[string]bool) {

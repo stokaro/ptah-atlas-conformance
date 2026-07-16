@@ -577,6 +577,113 @@ validJSON stdout
 	}
 }
 
+func TestTxtarScriptProbeSkipsDBAssertionsAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+exist users
+synced 2.hcl
+
+-- 1.hcl --
+schema "main" {}
+
+-- 2.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: apply") {
+		t.Fatalf("detail missing original unsupported DB mutation: %s", results[0].Detail)
+	}
+	if strings.Contains(results[0].Detail, "exist") || strings.Contains(results[0].Detail, "synced") {
+		t.Fatalf("dependent DB assertions should not be reported after unsupported DB mutation: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeReportsDBAssertionsWithoutUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `exist users
+synced 1.hcl
+
+-- 1.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: exist")
+	assertResultDetailContains(t, results, "unsupported: synced")
+}
+
+func TestTxtarScriptProbeDoesNotSkipDBAssertionsAfterExpectedFailure(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! apply invalid.hcl 'expected failure'
+exist users
+
+-- invalid.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+	assertResultDetailContains(t, results, "unsupported: exist")
+}
+
+func TestTxtarScriptProbeDoesNotSkipDBAssertionsAfterDryRun(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate apply --url URL --dry-run
+synced 1.hcl
+
+-- 1.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate apply")
+	assertResultDetailContains(t, results, "unsupported: synced")
+}
+
 func TestTxtarScriptProbeSkipsVirtualFileCommandBlockedByUnsupportedRedirect(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
