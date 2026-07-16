@@ -43,9 +43,9 @@ jobs:
       - name: Full Atlas conformance gate
         run: make gate
 
-  # The CI gate. This stays green while the report is current and the unwaived
-  # gap count does not regress above gap-budget.txt. Full parity remains
-  # available locally via `make gate`.
+  # The regression gate. This stays green while the report is current and the
+  # unwaived gap count does not regress above gap-budget.txt. Full parity is a
+  # separate CI signal in conformance-gate above.
   conformance-budget:
     runs-on: ubuntu-latest
     steps:

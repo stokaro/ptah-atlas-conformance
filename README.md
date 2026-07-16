@@ -41,9 +41,10 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 
 | Probe | Question | Ptah API exercised |
 | --- | --- | --- |
-| `corpus-inventory` | Is every vendored Atlas test artifact visible in the generated report, including imported-but-unmeasured `.txtar`/`.hcl` fixtures? | harness |
+| `corpus-inventory` | Is every vendored Atlas test artifact visible in the generated report, including still-unmeasured `.hcl`/other fixtures? | harness |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas's SQL in its AST? (round-trip / `read-db` / `compare` — **not** apply, which execs raw SQL) | `core/parser` |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | `migration/migrator` |
+| `txtar-script` | Does the harness parse Atlas integration txtar scripts and expose the command/runtime surface Ptah still needs to execute? | harness |
 | `txtar-down` | Does Ptah load Atlas txtar migrations with an embedded `down.sql` section? | `migration/migrator` |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does Ptah's own hash reproduce it? | `migration/migratesum` |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |

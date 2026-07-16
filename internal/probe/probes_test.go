@@ -3,6 +3,7 @@ package probe
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -55,11 +56,62 @@ func TestCorpusProbeMarksImportedButUnmeasuredArtifacts(t *testing.T) {
 	if len(result) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(result), result)
 	}
-	if result[0].Outcome != Gap {
-		t.Fatalf("expected unmeasured txtar gap, got %#v", result[0])
+	if result[0].Outcome != OK {
+		t.Fatalf("expected imported txtar OK, got %#v", result[0])
 	}
-	if result[0].Stage != "unmeasured" {
-		t.Fatalf("expected unmeasured stage, got %#v", result[0])
+	if result[0].Stage != "import" {
+		t.Fatalf("expected import stage, got %#v", result[0])
+	}
+}
+
+func TestTxtarScriptProbeReportsCommandSurface(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `# comment
+! atlas migrate diff --to file://schema.hcl
+stdout 'planned'
+atlas migrate apply --url URL
+cmpshow users expected.sql
+only sqlite
+
+-- schema.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected measured txtar gap, got %#v", results[0])
+	}
+	if results[0].Stage != "script-surface" {
+		t.Fatalf("expected script-surface stage, got %#v", results[0])
+	}
+	for _, want := range []string{"atlas migrate diff=1", "atlas migrate apply=1", "cmpshow=1"} {
+		if !strings.Contains(results[0].Detail, want) {
+			t.Fatalf("detail missing %q: %s", want, results[0].Detail)
+		}
+	}
+	if strings.Contains(results[0].Detail, "stdout") || strings.Contains(results[0].Detail, "only") {
+		t.Fatalf("detail should not count assertions/directives as commands: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptCommandsStopAtFirstFileMarker(t *testing.T) {
+	commands := txtarScriptCommands(`atlas migrate hash
+-- migrations/1.sql --
+atlas migrate apply --url URL
+`)
+
+	if len(commands) != 1 || commands[0] != "atlas migrate hash" {
+		t.Fatalf("commands = %#v, want only atlas migrate hash", commands)
 	}
 }
 

@@ -244,810 +244,709 @@
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/autoincrement.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/check.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-inspect-file.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-apply.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-project-schemas.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-project-url-escape.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-bit.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-bool.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-charset.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-default-expr.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-generated-inspect.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-generated.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-json.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-time-precision-maria.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/column-time-precision-mysql.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/foreign-key-modify-action.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/foreign-key.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/index-add-drop.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/index-desc.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/index-expr.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/index-prefix.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/index-type.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/index-unique.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/primary-key.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/mysql/table-engine.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/cli-inspect-file.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/cli-inspect.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-diff.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-status.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-array.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-bit.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-comment.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-default.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-domain.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-enum.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-float.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-generated-inspect.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-identity.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-interval.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-numeric.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-range.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-serial.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-textsearch.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/column-time-precision.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/foreign-key-action.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/foreign-key.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-expr.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-include.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-issue-557.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-nulls-distinct.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-operator-class.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-partial.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-type-brin.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-type.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/index-unique-constraint.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/primary-key.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/table-checks.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/postgres/table-partition.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/autoincrement.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-multifile.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-vars.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-inspect.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-minimal-env.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-project-vars.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/cli-schema-project-file.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/column-default.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/column-generated.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/column-user-defined.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/index-desc.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/index-expr.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/index-partial.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "internal/integration/testdata/sqlite/table-options.txtar",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas txtar integration fixture is vendored but no txtar command/runtime probe consumes it yet",
-    "issue": "stokaro/ptah#285"
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "imported txtar fixture; command/runtime surface is measured by txtar-script"
   },
   {
     "probe": "corpus-inventory",
@@ -2405,6 +2304,814 @@
     "stage": "recognize",
     "outcome": "ok",
     "detail": "all 1 files recognized"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/autoincrement.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema inspect=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/check.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=6, cmpmig=3, atlas schema inspect=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-inspect-file.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema inspect=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate apply=1, atlas migrate hash=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-apply.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate apply=8, cmpshow=6, clearSchema=2, atlas migrate hash=1, validJSON=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: cmpmig=18, atlas migrate diff=12, mkdir=6, rm=5",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=1, atlas migrate hash=1, cmpmig=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=5, cmpmig=3, exec=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-project-schemas.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=1, exec=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-project-url-escape.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: execsql=3, atlas schema inspect=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, cmpshow=3, exist=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-bit.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-bool.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2, synced=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-charset.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=5, cmpshow=5",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-default-expr.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmphcl=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-generated-inspect.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmphcl=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-generated.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=5, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-json.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmphcl=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-time-precision-maria.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/column-time-precision-mysql.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, exist=2, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/foreign-key-modify-action.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/foreign-key.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: cmpshow=2, apply=1, cmphcl=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/index-add-drop.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, cmpshow=4",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/index-desc.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3, synced=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/index-expr.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/index-prefix.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/index-type.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2, atlas schema inspect=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/index-unique.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=2, execsql=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=4, atlas schema inspect=2, cmpmig=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/primary-key.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, cmpshow=4",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/table-engine.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmphcl=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-inspect-file.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema inspect=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-inspect.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema inspect=4, apply=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate apply=1, atlas migrate hash=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate apply=15, cmpshow=15, atlas schema inspect=9, atlas migrate hash=6, clearSchema=4, cp=3, rm=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=2, atlas migrate hash=1, cmpmig=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-diff.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=4, cmpmig=2, exec=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/cli-migrate-status.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate status=3, atlas migrate apply=2, atlas migrate hash=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-array.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3, synced=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-bit.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-comment.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-default.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2, atlas schema inspect=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-domain.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmphcl=1, cmpshow=1, execsql=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=5, cmpshow=4, cmphcl=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-enum.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=5, cmpshow=5, atlas schema inspect=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-float.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-generated-inspect.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmphcl=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-identity.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-interval.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmphcl=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-numeric.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-range.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-serial.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-textsearch.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmphcl=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-time-precision.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/foreign-key-action.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: cmpshow=3, apply=1, cmphcl=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/foreign-key.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: cmpshow=2, apply=1, cmphcl=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, cmpshow=4, synced=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-expr.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-include.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, cmpshow=4",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-issue-557.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-nulls-distinct.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmphcl=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-operator-class.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=5, cmpshow=5, cmphcl=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-partial.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-type-brin.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-type.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-unique-constraint.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2, atlas schema clean=1, atlas schema inspect=1, cmphcl=1, execsql=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/primary-key.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, cmpshow=4",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/table-checks.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=6, cmpmig=3, atlas schema inspect=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/table-partition.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=8, cmpshow=5, cmphcl=2, execsql=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/autoincrement.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-apply-multifile.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=1, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-apply-vars.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=2, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-inspect.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema inspect=4, apply=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate apply=14, cmpshow=14, atlas schema inspect=9, atlas migrate hash=6, clearSchema=4, cp=3, rm=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=1, cmpmig=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=1, cmpmig=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-minimal-env.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=1, cmpmig=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=4, cmpmig=2, exec=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=2, atlas schema diff=1, cmpmig=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=3, cmpmig=1, exec=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate lint=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate lint=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate lint=6",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate lint=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate lint=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate diff=3, cmpmig=3, exec=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate validate=3, cmpmig=2, exec=2, atlas migrate diff=1, atlas migrate hash=1, atlas migrate new=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas migrate set=9, atlas migrate apply=7, atlas migrate hash=2, clearSchema=2, mv=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-project-vars.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=2, cmpshow=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-schema-project-file.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=5, atlas schema inspect=3",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/column-default.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: cmphcl=1, execsql=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/column-generated.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=4, cmpshow=4, execsql=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/column-user-defined.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: atlas schema apply=4, atlas schema inspect=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/index-desc.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=3, cmpshow=3, synced=1",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/index-expr.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/index-partial.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: apply=2, cmpshow=2",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/table-options.txtar",
+    "stage": "script-surface",
+    "outcome": "gap",
+    "detail": "txtar command/runtime execution is not implemented yet; command surface: cmpshow=4, apply=2",
+    "issue": "stokaro/ptah#285"
   },
   {
     "probe": "txtar-down",
