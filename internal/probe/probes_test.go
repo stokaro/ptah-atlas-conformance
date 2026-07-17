@@ -1676,6 +1676,24 @@ func TestTxtarScriptProbeExecutesMySQLMigrateDiffAddColumnAndQualifier(t *testin
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLMigrateDiffFormats(t *testing.T) {
+	path := "../../third_party/atlas/upstream/internal/integration/testdata/mysql/cli-migrate-diff-format.txtar"
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/cli-migrate-diff-format.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   filepath.Dir(path),
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesMySQLFormattedInitialMigrateDiff(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
