@@ -2211,6 +2211,57 @@ schema "main" {
 	}
 }
 
+func TestTxtarScriptProbeExecutesSQLiteMigrateSet(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas migrate set 0
+stderr 'checksum file not found'
+atlas migrate hash
+! atlas migrate set --url URL
+stderr 'accepts 1 arg\(s\), received 0'
+! atlas migrate set 4 --url URL
+stderr 'migration with version "4" not found'
+atlas migrate set 1 --url URL
+atlas migrate apply 1 --url URL --dry-run
+stdout 'Migrating to version 2 from 1'
+atlas migrate set 3 --url URL
+atlas migrate apply --url URL
+stdout 'No migration files to execute'
+clearSchema
+mv broken.sql migrations/4.sql
+atlas migrate hash
+! atlas migrate apply --url URL --tx-mode none
+stdout 'Migrating to version 4'
+atlas migrate set 4 --url URL
+atlas migrate apply --url URL
+stdout 'No migration files to execute'
+
+-- migrations/1_first.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`));
+-- migrations/2_second.sql --
+CREATE TABLE `+"`"+`pets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`));
+-- migrations/3_third.sql --
+CREATE TABLE `+"`"+`vets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`));
+-- broken.sql --
+CREATE TABLE `+"`"+`broken`+"`"+` (`+"`"+`id`+"`"+` integer);
+asdf ALTER TABLE `+"`"+`users`+"`"+` ADD UNIQUE INDEX `+"`"+`name`+"`"+` (`+"`"+`name`+"`"+`);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-migrate-set.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesSQLiteApplyWithGeneratedColumnCmpShow(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -2909,11 +2960,13 @@ CREATE TABLE users (id int);
 	}
 }
 
-func TestTxtarScriptProbeKeepsMigrateSetRevisionUpdateAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesMigrateSetRevisionUpdate(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `atlas migrate hash
 atlas migrate set 1 --url URL
+atlas migrate apply --url URL
+stdout 'No migration files to execute'
 
 -- migrations/1.sql --
 CREATE TABLE users (id int);
@@ -2929,11 +2982,8 @@ CREATE TABLE users (id int);
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
-	}
-	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate set") {
-		t.Fatalf("detail missing migrate set gap: %s", results[0].Detail)
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 
