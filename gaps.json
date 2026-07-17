@@ -2810,9 +2810,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-inspect.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 5 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
@@ -3242,9 +3241,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-inspect.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 5 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
