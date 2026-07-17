@@ -4305,6 +4305,14 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 			fmt.Fprintf(b, "    null = %t\n", column.Nullable)
 			fmt.Fprintf(b, "    type = %s\n", atlasColumnType(dialect, column.Type))
 		}
+		if dialect == "mysql" || dialect == "mariadb" {
+			if column.Charset != "" {
+				fmt.Fprintf(b, "    charset = %q\n", column.Charset)
+			}
+			if column.Collate != "" {
+				fmt.Fprintf(b, "    collate = %q\n", column.Collate)
+			}
+		}
 		b.WriteString("  }\n")
 		if column.Primary {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
@@ -5065,6 +5073,14 @@ func tableOptionEnabled(options map[string]string, key string) bool {
 func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast.ColumnNode, explicitNull bool) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s", quote(column.Name), atlasColumnType(dialect, column.Type))
+	if dialect == "mysql" || dialect == "mariadb" {
+		if column.Charset != "" {
+			fmt.Fprintf(&b, " CHARACTER SET %s", column.Charset)
+		}
+		if column.Collate != "" && !atlasColumnCollateIsImplicitDefault(dialect, column) {
+			fmt.Fprintf(&b, " COLLATE %s", column.Collate)
+		}
+	}
 	if atlasColumnPrimaryKeyInline(dialect, column) {
 		b.WriteString(" NOT NULL PRIMARY KEY")
 		if column.AutoInc {
@@ -5092,6 +5108,22 @@ func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast
 
 func atlasColumnPrimaryKeyInline(dialect string, column *ast.ColumnNode) bool {
 	return dialect == "sqlite" && column.Primary && column.AutoInc
+}
+
+func atlasColumnCollateIsImplicitDefault(dialect string, column *ast.ColumnNode) bool {
+	return column.Collate != "" && strings.EqualFold(column.Collate, atlasDefaultCollateForColumn(dialect, column))
+}
+
+func atlasDefaultCollateForColumn(dialect string, column *ast.ColumnNode) string {
+	charset := strings.ToLower(column.Charset)
+	switch charset {
+	case "hebrew":
+		return "hebrew_general_ci"
+	case "", "utf8mb4":
+		return atlasDefaultSchemaAttrs(dialect).collate
+	default:
+		return ""
+	}
 }
 
 func atlasDefaultSQL(def *ast.DefaultValue) string {
