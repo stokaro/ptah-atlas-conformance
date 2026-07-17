@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 112 unwaived non-OK observation(s)
+## Status: NOT DONE — 111 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260717102930-93a4d5e7df5a`
-- Outcomes: **462 ok**, **112 gap**, **0 fail**, **0 panic**
-- Gate: **112 unwaived non-OK** (fails CI), 0 waived
+- Outcomes: **463 ok**, **111 gap**, **0 fail**, **0 panic**
+- Gate: **111 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **158 measured**, **0 imported-but-unmeasured**
 
 ## Findings
@@ -63,7 +63,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | unsupported: apply | #285 |
@@ -563,6 +562,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/mysql/column-bit.txtar` | script-runtime | executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | executed 6 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | executed 8 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | executed 7 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | executed 6 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect-file.txtar` | script-runtime | executed 3 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | executed 5 supported command(s), checked 4 assertion(s) |  |
@@ -598,4 +598,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#285** — 112 finding(s)
+- **stokaro/ptah#285** — 111 finding(s)

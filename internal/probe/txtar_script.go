@@ -2645,7 +2645,7 @@ func txtarMySQLApplyIndexSupported(index *ast.IndexNode) bool {
 		return false
 	}
 	for _, part := range index.EffectiveParts() {
-		if part.Expr != "" || part.Desc {
+		if part.Expr != "" {
 			return false
 		}
 	}
