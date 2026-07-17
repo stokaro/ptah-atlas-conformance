@@ -1781,7 +1781,7 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCom
 	if err != nil {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
-	if !txtarFixtureSupportsVirtualApply(fx, data, statements) {
+	if !txtarFixtureSupportsVirtualApply(fx, statements) {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
 	runtime.hasVirtualDBState = true
@@ -1789,17 +1789,14 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCom
 	return txtarCommandResult{}, true
 }
 
-func txtarFixtureSupportsVirtualApply(fx Fixture, data string, statements []ast.Node) bool {
+func txtarFixtureSupportsVirtualApply(fx Fixture, statements []ast.Node) bool {
 	if path.Base(fx.Name) == "cli-inspect.txtar" {
 		return true
 	}
-	return txtarFixtureFamily(fx) == "sqlite" && txtarSQLiteVirtualApplyStateSupported(data, statements)
+	return txtarFixtureFamily(fx) == "sqlite" && txtarSQLiteVirtualApplyStateSupported(statements)
 }
 
-func txtarSQLiteVirtualApplyStateSupported(data string, statements []ast.Node) bool {
-	if txtarHCLHasUnsupportedSQLiteApplySyntax(data) {
-		return false
-	}
+func txtarSQLiteVirtualApplyStateSupported(statements []ast.Node) bool {
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateSchemaNode:
@@ -1817,10 +1814,6 @@ func txtarSQLiteVirtualApplyStateSupported(data string, statements []ast.Node) b
 		}
 	}
 	return true
-}
-
-func txtarHCLHasUnsupportedSQLiteApplySyntax(data string) bool {
-	return regexp.MustCompile(`(?m)^\s*as(\s|=|\{)`).MatchString(data)
 }
 
 func txtarSQLiteApplyTableSupported(table *ast.CreateTableNode) bool {
@@ -1990,7 +1983,7 @@ func runTxtarSynced(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 	if err != nil {
 		return txtarCommandResult{unsupported: "synced"}, true
 	}
-	if !txtarSQLiteVirtualApplyStateSupported(data, statements) {
+	if !txtarSQLiteVirtualApplyStateSupported(statements) {
 		return txtarCommandResult{unsupported: "synced"}, true
 	}
 	actual, ok := txtarVirtualStateShowSQL(fx, runtime.dbStatements)
@@ -3837,6 +3830,12 @@ func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast
 		b.WriteString(" NOT NULL")
 	} else if explicitNull {
 		b.WriteString(" NULL")
+	}
+	if column.GeneratedExpression != "" {
+		fmt.Fprintf(&b, " AS (%s)", column.GeneratedExpression)
+		if column.GeneratedKind != "" {
+			fmt.Fprintf(&b, " %s", column.GeneratedKind)
+		}
 	}
 	if column.Default != nil {
 		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(column.Default))

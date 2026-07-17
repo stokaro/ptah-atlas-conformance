@@ -2211,7 +2211,7 @@ schema "main" {
 	}
 }
 
-func TestTxtarScriptProbeKeepsUnsupportedGenericApplyBlockingDBAssertions(t *testing.T) {
+func TestTxtarScriptProbeExecutesSQLiteApplyWithGeneratedColumnCmpShow(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `apply 1.hcl
@@ -2230,14 +2230,58 @@ table "users" {
     type = int
     as = "1"
   }
+  column "c" {
+    type = int
+    as {
+      expr = "a * 2"
+      type = STORED
+    }
+  }
 }
 
 -- expected.sql --
-CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL, `+"`"+`b`+"`"+` int NOT NULL AS (1) VIRTUAL)
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL, `+"`"+`b`+"`"+` int NOT NULL AS (1) VIRTUAL, `+"`"+`c`+"`"+` int NOT NULL AS (a * 2) STORED)
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
-		Name:  "sqlite/index-partial.txtar",
+		Name:  "sqlite/column-generated.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsUnsupportedGenericApplyBlockingDBAssertions(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmpshow users expected.sql
+
+-- 1.hcl --
+schema "main" {}
+
+table "users" {
+  schema = schema.main
+  column "a" {
+    null = false
+    type = int
+    default = 1
+  }
+}
+
+-- expected.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL DEFAULT 1)
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/default.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},
