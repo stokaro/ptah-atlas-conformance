@@ -4391,6 +4391,9 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 			if column.Collate != "" {
 				fmt.Fprintf(b, "    collate = %q\n", column.Collate)
 			}
+			if column.UpdateExpression != "" {
+				fmt.Fprintf(b, "    on_update = %s\n", atlasSQLExpressionHCL(column.UpdateExpression))
+			}
 		}
 		b.WriteString("  }\n")
 		if column.Primary {
@@ -4448,9 +4451,13 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 
 func atlasDefaultHCL(def *ast.DefaultValue) string {
 	if def.Expression != "" {
-		return "sql(" + strconv.Quote(def.Expression) + ")"
+		return atlasSQLExpressionHCL(def.Expression)
 	}
 	return strconv.Quote(def.Value)
+}
+
+func atlasSQLExpressionHCL(expr string) string {
+	return "sql(" + strconv.Quote(expr) + ")"
 }
 
 func renderAtlasMySQLTableHCLAttrs(b *strings.Builder, dialect string, table *ast.CreateTableNode) {
@@ -5195,7 +5202,10 @@ func renderAtlasColumnSQL(
 		}
 	}
 	if column.Default != nil {
-		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(column.Default))
+		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(dialect, column.Default))
+	}
+	if column.UpdateExpression != "" {
+		fmt.Fprintf(&b, " ON UPDATE %s", atlasSQLExpression(dialect, column.UpdateExpression))
 	}
 	if opts.mariaDBJSONStorage && atlasMariaDBJSONColumn(dialect, column) {
 		fmt.Fprintf(&b, " CHECK (json_valid(%s))", quote(column.Name))
@@ -5254,9 +5264,9 @@ func atlasDefaultCollateForColumn(dialect string, column *ast.ColumnNode) string
 	}
 }
 
-func atlasDefaultSQL(def *ast.DefaultValue) string {
+func atlasDefaultSQL(dialect string, def *ast.DefaultValue) string {
 	if def.Expression != "" {
-		return def.Expression
+		return atlasSQLExpression(dialect, def.Expression)
 	}
 	value := strings.TrimSpace(def.Value)
 	if value == "" && def.HasLiteral() {
@@ -5266,6 +5276,25 @@ func atlasDefaultSQL(def *ast.DefaultValue) string {
 		return value
 	}
 	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
+func atlasSQLExpression(dialect, expr string) string {
+	if dialect == "mariadb" {
+		return atlasMariaDBSQLExpression(expr)
+	}
+	return expr
+}
+
+func atlasMariaDBSQLExpression(expr string) string {
+	trimmed := strings.TrimSpace(expr)
+	if strings.EqualFold(trimmed, "CURRENT_TIMESTAMP") {
+		return "current_timestamp()"
+	}
+	prefix, precision, ok := strings.Cut(trimmed, "(")
+	if ok && strings.EqualFold(strings.TrimSpace(prefix), "CURRENT_TIMESTAMP") && strings.HasSuffix(precision, ")") {
+		return "current_timestamp(" + precision
+	}
+	return expr
 }
 
 func atlasDefaultLiteralIsRawSQL(value string) bool {
