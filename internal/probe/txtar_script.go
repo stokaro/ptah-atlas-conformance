@@ -424,6 +424,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		delete(unsupportedFiles, "stdout")
 		delete(unsupportedFiles, "stderr")
 		if redirect := txtarRedirectTarget(commandLine); redirect != "" {
+			if result.stdout != "" {
+				runtime.files[redirect] = result.stdout
+				runtime.addParentDirs(redirect)
+			}
 			delete(unsupportedFiles, redirect)
 		}
 		clearUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
@@ -5565,7 +5569,7 @@ func runTxtarSchemaApply(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 	}
 	runtime.hasVirtualDBState = true
 	runtime.dbStatements = statements
-	return txtarCommandResult{}, true
+	return txtarCommandResult{stdout: txtarSchemaApplyOutput(fx, statements)}, true
 }
 
 type txtarSchemaApplyArgs struct {
@@ -5647,7 +5651,9 @@ func txtarResolveSchemaApplyEnv(
 	if args.env == "" {
 		return args, nil
 	}
-	if txtarFixtureFamily(fx) != "sqlite" {
+	switch txtarFixtureFamily(fx) {
+	case "sqlite", "mysql", "mariadb":
+	default:
 		return args, errUnsupportedInspectHCL
 	}
 	project, ok := runtime.files["atlas.hcl"]
@@ -5657,6 +5663,11 @@ func txtarResolveSchemaApplyEnv(
 	env, ok := txtarAtlasNamedBlock(project, "env", args.env)
 	if !ok {
 		return args, errUnsupportedInspectHCL
+	}
+	if txtarFixtureFamily(fx) != "sqlite" {
+		if _, ok := txtarHCLAttrValue(env, "for_each"); ok {
+			return args, errUnsupportedInspectHCL
+		}
 	}
 	if args.sourceURL == "" {
 		if sourceURL, ok := txtarHCLStringAttr(env, "url"); ok {
@@ -5678,6 +5689,19 @@ func txtarResolveSchemaApplyEnv(
 		return args, err
 	}
 	return args, nil
+}
+
+func txtarSchemaApplyOutput(fx Fixture, statements []ast.Node) string {
+	switch txtarFixtureFamily(fx) {
+	case "mysql", "mariadb":
+	default:
+		return ""
+	}
+	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), statements, "")
+	if err != nil {
+		return ""
+	}
+	return out
 }
 
 func txtarAtlasEnvVars(env string, cliVars map[string]string) (map[string]string, error) {
