@@ -2564,7 +2564,7 @@ func txtarMySQLVirtualApplyStateSupported(dialect string, statements []ast.Node)
 		case *ast.CreateSchemaNode:
 			continue
 		case *ast.CreateTableNode:
-			if !txtarMySQLApplyTableSupported(node) {
+			if !txtarMySQLApplyTableSupported(dialect, node) {
 				return false
 			}
 		case *ast.IndexNode:
@@ -2595,17 +2595,12 @@ func txtarMySQLSchemasSupported(dialect string, statements []ast.Node) bool {
 	return true
 }
 
-func txtarMySQLApplyTableSupported(table *ast.CreateTableNode) bool {
+func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) bool {
 	if table.SelectBody != "" || table.Comment != "" {
 		return false
 	}
-	for key := range table.Options {
-		switch key {
-		case "AUTO_INCREMENT":
-			continue
-		default:
-			return false
-		}
+	if !txtarMySQLApplyTableOptionsSupported(dialect, table.Options) {
+		return false
 	}
 	for _, column := range table.Columns {
 		if column.Comment != "" || column.Default != nil || column.GeneratedExpression != "" ||
@@ -2616,6 +2611,30 @@ func txtarMySQLApplyTableSupported(table *ast.CreateTableNode) bool {
 		case "bool", "boolean", "json":
 			return false
 		}
+	}
+	return true
+}
+
+func txtarMySQLApplyTableOptionsSupported(dialect string, options map[string]string) bool {
+	defaultAttrs := atlasDefaultSchemaAttrs(dialect)
+	for key, value := range options {
+		switch key {
+		case "AUTO_INCREMENT":
+			continue
+		case "ENGINE":
+			if strings.EqualFold(value, "InnoDB") || strings.EqualFold(value, "MyISAM") {
+				continue
+			}
+		case "CHARSET":
+			if value == defaultAttrs.charset {
+				continue
+			}
+		case "COLLATE":
+			if value == defaultAttrs.collate {
+				continue
+			}
+		}
+		return false
 	}
 	return true
 }
@@ -4244,6 +4263,7 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
 	fmt.Fprintf(b, "table %q {\n", tableName)
 	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
+	renderAtlasMySQLTableHCLAttrs(b, dialect, table)
 	var primaryColumns []ast.ConstraintColumn
 	var foreignKeys []*atlasHCLForeignKey
 	var uniques []*atlasHCLUnique
@@ -4303,6 +4323,22 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 	}
 	b.WriteString("}\n")
 	return nil
+}
+
+func renderAtlasMySQLTableHCLAttrs(b *strings.Builder, dialect string, table *ast.CreateTableNode) {
+	if dialect != "mysql" && dialect != "mariadb" {
+		return
+	}
+	if engine := table.Options["ENGINE"]; engine != "" && !strings.EqualFold(engine, "InnoDB") {
+		fmt.Fprintf(b, "  engine = %s\n", engine)
+	}
+	defaultAttrs := atlasDefaultSchemaAttrs(dialect)
+	if charset := table.Options["CHARSET"]; charset != "" && charset != defaultAttrs.charset {
+		fmt.Fprintf(b, "  charset = %q\n", charset)
+	}
+	if collate := table.Options["COLLATE"]; collate != "" && collate != defaultAttrs.collate {
+		fmt.Fprintf(b, "  collate = %q\n", collate)
+	}
 }
 
 type atlasHCLForeignKey struct {

@@ -2377,6 +2377,141 @@ schema "$db" {
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLTableEngineApplyAndCmpHCL(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+apply 1.hcl
+cmphcl 1.inspect.hcl
+apply 2.hcl
+cmphcl 2.inspect.hcl
+apply 3.hcl
+cmphcl 3.inspect.hcl
+
+-- 1.hcl --
+schema "script_table_engine" {
+  charset = "$charset"
+  collate = "$collate"
+}
+
+table "users" {
+  schema = schema.$db
+  engine = InnoDB
+  column "name" {
+    null = false
+    type = varchar(255)
+  }
+  charset = "$charset"
+  collate = "$collate"
+}
+
+-- 1.inspect.hcl --
+table "users" {
+  schema = schema.script_table_engine
+  column "name" {
+    null = false
+    type = varchar(255)
+  }
+}
+schema "script_table_engine" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+-- 2.hcl --
+schema "script_table_engine" {
+  charset = "$charset"
+  collate = "$collate"
+}
+
+table "users" {
+  schema = schema.$db
+  engine = MyISAM
+  column "name" {
+    null = false
+    type = varchar(255)
+  }
+  charset = "$charset"
+  collate = "$collate"
+}
+
+-- 2.inspect.hcl --
+table "users" {
+  schema = schema.script_table_engine
+  engine = MyISAM
+  column "name" {
+    null = false
+    type = varchar(255)
+  }
+}
+schema "script_table_engine" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+-- 3.hcl --
+schema "script_table_engine" {
+  charset = "$charset"
+  collate = "$collate"
+}
+
+table "users" {
+  schema = schema.$db
+  column "name" {
+    null = false
+    type = varchar(255)
+  }
+  charset = "$charset"
+  collate = "$collate"
+}
+
+-- 3.inspect.hcl --
+table "users" {
+  schema = schema.script_table_engine
+  column "name" {
+    null = false
+    type = varchar(255)
+  }
+}
+schema "script_table_engine" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/table-engine.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarMySQLApplyTableOptionsSupportedKeepsUnknownTableOptionsRed(t *testing.T) {
+	if !txtarMySQLApplyTableOptionsSupported("mysql", map[string]string{
+		"ENGINE":  "MyISAM",
+		"CHARSET": "utf8mb4",
+		"COLLATE": "utf8mb4_0900_ai_ci",
+	}) {
+		t.Fatal("expected MySQL default table charset/collate and MyISAM engine to be supported")
+	}
+	if txtarMySQLApplyTableOptionsSupported("mysql", map[string]string{"ENGINE": "MEMORY"}) {
+		t.Fatal("unexpectedly accepted arbitrary MySQL table engine")
+	}
+	if txtarMySQLApplyTableOptionsSupported("mysql", map[string]string{"CHARSET": "latin1"}) {
+		t.Fatal("unexpectedly accepted non-default MySQL table charset")
+	}
+	if txtarMySQLApplyTableOptionsSupported("mysql", map[string]string{"COLLATE": "latin1_bin"}) {
+		t.Fatal("unexpectedly accepted non-default MySQL table collation")
+	}
+}
+
 func TestTxtarScriptProbeKeepsUnsupportedGenericApplyBlockingDBAssertions(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
