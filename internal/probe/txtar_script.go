@@ -3551,7 +3551,7 @@ func runTxtarMigrateApply(fx Fixture, runtime *txtarRuntime, fields []string) (t
 
 func txtarMigrateApplySupportsFamily(family string) bool {
 	switch family {
-	case "mysql", "sqlite":
+	case "mysql", "postgres", "sqlite":
 		return true
 	default:
 		return false
@@ -3654,7 +3654,9 @@ func txtarResolveMigrateApplyEnv(
 	runtime *txtarRuntime,
 	args txtarMigrateApplyArgs,
 ) (txtarMigrateApplyArgs, bool) {
-	if txtarFixtureFamily(fx) != "mysql" {
+	switch txtarFixtureFamily(fx) {
+	case "mysql", "postgres":
+	default:
 		return args, false
 	}
 	project, ok := runtime.files["atlas.hcl"]
@@ -5889,7 +5891,7 @@ func txtarResolveAtlasSQLTenants(project string, env string, vars map[string]str
 		return nil, false
 	}
 	envURL, ok := txtarHCLAttrValue(env, "url")
-	if !ok || txtarCompactHCLExpr(envURL) != "urlsetpath(var.url,each.value)" {
+	if !ok || !txtarAtlasSQLTenantURLEnvironment(envURL) {
 		return nil, false
 	}
 	block, ok := txtarAtlasDataSQLBlock(project, "tenants")
@@ -5911,6 +5913,16 @@ func txtarResolveAtlasSQLTenants(project string, env string, vars map[string]str
 	return []string{pattern}, true
 }
 
+func txtarAtlasSQLTenantURLEnvironment(value string) bool {
+	switch txtarCompactHCLExpr(value) {
+	case "urlsetpath(var.url,each.value)",
+		`urlqueryset(var.url,"search_path",each.value)`:
+		return true
+	default:
+		return false
+	}
+}
+
 func txtarAtlasDataSQLBlock(data, name string) (string, bool) {
 	re := regexp.MustCompile(`(?m)^\s*data\s+"sql"\s+"` + regexp.QuoteMeta(name) + `"\s*\{`)
 	loc := re.FindStringIndex(data)
@@ -5925,7 +5937,7 @@ func txtarAtlasDataSQLTenantsQuery(block string) bool {
 	return strings.Contains(block, "information_schema") &&
 		strings.Contains(block, "schemata") &&
 		strings.Contains(block, "schema_name") &&
-		strings.Contains(block, "LIKE ?")
+		(strings.Contains(block, "LIKE ?") || strings.Contains(block, "LIKE $1"))
 }
 
 func txtarAtlasSingleVarListRef(value string) (string, bool) {

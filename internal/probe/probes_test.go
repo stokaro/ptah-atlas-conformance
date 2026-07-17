@@ -2024,6 +2024,24 @@ func TestTxtarScriptProbeExecutesMySQLProjectURLEscapeFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresMigrateApplyDatasourceFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/cli-migrate-apply-datasrc.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", "cli-migrate-apply-datasrc.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarResolveAtlasSQLTenantsRequiresExactPattern(t *testing.T) {
 	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar")
 	if err != nil {
@@ -2047,6 +2065,26 @@ func TestTxtarResolveAtlasSQLTenantsRequiresExactPattern(t *testing.T) {
 		"pattern": "script_%",
 	}); ok {
 		t.Fatalf("expected wildcard pattern to stay unsupported, got %#v", tenants)
+	}
+}
+
+func TestTxtarResolveAtlasSQLTenantsSupportsPostgresSearchPathEnv(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtime := newTxtarRuntime(string(data))
+	project := runtime.files["atlas.hcl"]
+	env, ok := txtarAtlasNamedBlock(project, "env", "dev")
+	if !ok {
+		t.Fatal("expected dev env block")
+	}
+	tenants, ok := txtarResolveAtlasSQLTenants(project, env, map[string]string{
+		"url":     "URL",
+		"pattern": "script_cli_migrate_apply_datasrc",
+	})
+	if !ok || len(tenants) != 1 || tenants[0] != "script_cli_migrate_apply_datasrc" {
+		t.Fatalf("unexpected tenants: ok=%v tenants=%#v", ok, tenants)
 	}
 }
 
@@ -2619,7 +2657,7 @@ CREATE TABLE users (id INT);
 func TestTxtarScriptProbeSkipsValidJSONAfterUnsupportedProducer(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `atlas migrate apply --url URL --log '{{ json . }}'
+	writeTestFile(t, path, `atlas migrate apply --url URL --unsupported --log '{{ json . }}'
 validJSON stdout
 `)
 
