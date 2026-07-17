@@ -3670,6 +3670,98 @@ CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` int NOT NULL, `+"`"+`status`+
 	}
 }
 
+func TestTxtarScriptProbeExecutesSQLiteMigrateLintDiagnostics(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate lint --dir file://migrations --dev-url URL --latest=2
+stdout 'Analyzing changes until version 2 \(2 migrations in total\):'
+stdout ''
+stdout '  -- analyzing version 1'
+stdout '    -- no diagnostics found'
+stdout '  -- analyzing version 2'
+stdout '    -- data dependent changes detected:'
+stdout '      -- L1: Adding a non-nullable "int" column "c2" will fail in case table "users" is not empty'
+stdout '         https://atlasgo.io/lint/analyzers#MF103'
+stdout '  -- 1 version ok, 1 with warnings'
+stdout '  -- 4 schema changes'
+stdout '  -- 1 diagnostic'
+
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+
+/* Same-file additions are not data dependent. */
+ALTER TABLE users ADD COLUMN c1 int NOT NULL;
+
+-- migrations/2.sql --
+ALTER TABLE users ADD COLUMN c2 int NOT NULL;
+ALTER TABLE users ADD COLUMN c3 int NOT NULL DEFAULT 1;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-migrate-lint-add-notnull.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesSQLiteMigrateLintNolintAndProjectLog(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt
+cmp got.txt expected.txt
+
+atlas migrate lint --dir file://migrations2 --dev-url URL --latest=1
+stdout '  -- 1 version ok'
+
+-- atlas.hcl --
+lint {
+  latest = 1
+}
+
+env "log_name" {
+  lint {
+    log = "{{ range .Files }}{{ println .Name }}{{ end }}"
+  }
+}
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+-- migrations/2.sql --
+DROP TABLE users;
+-- expected.txt --
+2.sql
+-- migrations2/1.sql --
+CREATE TABLE users (id int);
+CREATE TABLE pets (id int);
+-- migrations2/2.sql --
+-- atlas:nolint destructive data_depend
+
+DROP TABLE pets;
+ALTER TABLE users ADD COLUMN name text NOT NULL;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-migrate-lint-project.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeReportsUnexpectedSchemaInspectFailure(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
