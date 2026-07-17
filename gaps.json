@@ -2748,9 +2748,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-type.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 5 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
