@@ -234,6 +234,8 @@ type txtarRuntime struct {
 	dirs              map[string]bool
 	hasVirtualDBState bool
 	dbStatements      []ast.Node
+	appliedMigrations map[string]bool
+	appliedVersion    string
 }
 
 func newTxtarRuntime(data string) *txtarRuntime {
@@ -447,6 +449,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarMigrateDiff(fx, runtime, fields, expectedFailure); ok {
 		return result
 	}
+	if result, ok := runTxtarMigrateApply(fx, runtime, fields); ok {
+		return result
+	}
 	if result, ok := runTxtarMigrateSet(runtime, fields); ok {
 		return result
 	}
@@ -463,6 +468,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 		return result
 	}
 	if result, ok := runTxtarCmpHCL(fx, runtime, fields); ok {
+		return result
+	}
+	if result, ok := runTxtarCmpShow(fx, runtime, fields); ok {
 		return result
 	}
 	if result, ok := runTxtarSchemaApply(runtime, fields); ok {
@@ -1491,7 +1499,265 @@ func runTxtarClearSchema(runtime *txtarRuntime, fields []string) (txtarCommandRe
 	}
 	runtime.hasVirtualDBState = false
 	runtime.dbStatements = nil
+	runtime.appliedMigrations = nil
+	runtime.appliedVersion = ""
 	return txtarCommandResult{}, true
+}
+
+type txtarMigrateApplyArgs struct {
+	dir       string
+	txMode    string
+	limit     int
+	dryRun    bool
+	blocked   bool
+	hasLimit  bool
+	hasURL    bool
+	hasTxMode bool
+}
+
+func runTxtarMigrateApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "apply" {
+		return txtarCommandResult{}, false
+	}
+	if txtarFixtureFamily(fx) != "sqlite" {
+		return txtarCommandResult{unsupported: "atlas migrate apply"}, true
+	}
+
+	args := txtarParseMigrateApplyArgs(fields[3:])
+	if args.blocked {
+		return txtarCommandResult{unsupported: "atlas migrate apply"}, true
+	}
+	if _, ok := runtime.files[path.Join(args.dir, migratesum.AtlasFileName)]; !ok {
+		return txtarCommandResult{
+			stdout: "You have a checksum error in your migration directory.\nRun 'atlas migrate hash' to create or update the checksum file.\n",
+			stderr: "Error: checksum file not found\n",
+			failed: true,
+			err:    fmt.Errorf("checksum file not found"),
+		}, true
+	}
+	if args.hasTxMode && !slices.Contains([]string{"all", "file", "none"}, args.txMode) {
+		return txtarCommandResult{
+			stderr: fmt.Sprintf("Error: unknown tx-mode %q\n", args.txMode),
+			failed: true,
+			err:    fmt.Errorf("unknown tx-mode %q", args.txMode),
+		}, true
+	}
+	if !args.hasURL {
+		return txtarCommandResult{unsupported: "atlas migrate apply"}, true
+	}
+
+	files := txtarPendingMigrationSQLFiles(runtime, args.dir)
+	if len(files) == 0 {
+		return txtarCommandResult{stdout: "No migration files to execute\n"}, true
+	}
+	if args.hasLimit && args.limit < len(files) {
+		files = files[:args.limit]
+	}
+	if len(files) == 0 {
+		return txtarCommandResult{stdout: "No migration files to execute\n"}, true
+	}
+
+	result, err := txtarApplyMigrationFiles(fx, runtime, files, args)
+	if err != nil {
+		result.failed = true
+		result.err = err
+	}
+	return result, true
+}
+
+func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
+	out := txtarMigrateApplyArgs{dir: "migrations", txMode: "file"}
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch arg {
+		case "--url":
+			if i+1 < len(args) {
+				out.hasURL = true
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--dir":
+			if i+1 < len(args) {
+				out.dir = txtarFileURLPath(args[i+1])
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--tx-mode":
+			if i+1 < len(args) {
+				out.txMode = args[i+1]
+				out.hasTxMode = true
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--revisions-schema":
+			if i+1 < len(args) {
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--dry-run":
+			out.dryRun = true
+		default:
+			switch {
+			case strings.HasPrefix(arg, "--url="):
+				out.hasURL = true
+			case strings.HasPrefix(arg, "--dir="):
+				out.dir = txtarFileURLPath(strings.TrimPrefix(arg, "--dir="))
+			case strings.HasPrefix(arg, "--tx-mode="):
+				out.txMode = strings.TrimPrefix(arg, "--tx-mode=")
+				out.hasTxMode = true
+			case strings.HasPrefix(arg, "--revisions-schema="):
+				continue
+			case strings.HasPrefix(arg, "-"):
+				out.blocked = true
+			default:
+				limit, err := strconv.Atoi(arg)
+				if err != nil || limit < 0 || out.hasLimit {
+					out.blocked = true
+					continue
+				}
+				out.limit = limit
+				out.hasLimit = true
+			}
+		}
+	}
+	return out
+}
+
+func txtarPendingMigrationSQLFiles(runtime *txtarRuntime, dir string) []string {
+	files := txtarMigrationSQLFilesInDir(runtime, dir)
+	return slices.DeleteFunc(files, func(name string) bool {
+		return runtime.appliedMigrations[name]
+	})
+}
+
+func txtarApplyMigrationFiles(
+	fx Fixture,
+	runtime *txtarRuntime,
+	files []string,
+	args txtarMigrateApplyArgs,
+) (txtarCommandResult, error) {
+	startVersion := runtime.appliedVersion
+	var stdout strings.Builder
+	fmt.Fprintln(&stdout, txtarMigrateApplySummaryLine(files, startVersion))
+
+	committed := slices.Clone(runtime.dbStatements)
+	batchStatements := make([]ast.Node, 0)
+	appliedStatements := 0
+	for _, file := range files {
+		version := atlasMigrationVersion(file)
+		data := runtime.files[file]
+		statements, failing, err := txtarParseSQLiteMigrationStatements(data)
+		if err != nil {
+			return txtarCommandResult{unsupported: "atlas migrate apply"}, nil
+		}
+		if failing != "" {
+			return txtarFailedMigrationApplyResult(runtime, args, committed, batchStatements, file, failing)
+		}
+
+		fmt.Fprintf(&stdout, "-- migrating version %s\n", version)
+		txtarWriteMigrationSQL(&stdout, data)
+		batchStatements = append(batchStatements, statements...)
+		appliedStatements += len(statements)
+		if !args.dryRun && args.txMode == "file" {
+			committed = append(committed, statements...)
+			runtime.markMigrationApplied(file)
+		}
+	}
+	if !args.dryRun && args.txMode != "file" {
+		committed = append(committed, batchStatements...)
+		for _, file := range files {
+			runtime.markMigrationApplied(file)
+		}
+	}
+	if !args.dryRun {
+		runtime.hasVirtualDBState = true
+		runtime.dbStatements = committed
+	}
+	fmt.Fprintf(&stdout, "-- %d migrations\n", len(files))
+	fmt.Fprintf(&stdout, "-- %d sql statements\n", appliedStatements)
+	return txtarCommandResult{stdout: stdout.String()}, nil
+}
+
+func (r *txtarRuntime) markMigrationApplied(file string) {
+	if r.appliedMigrations == nil {
+		r.appliedMigrations = map[string]bool{}
+	}
+	r.appliedMigrations[file] = true
+	r.appliedVersion = atlasMigrationVersion(file)
+}
+
+func txtarMigrateApplySummaryLine(files []string, startVersion string) string {
+	targetVersion := atlasMigrationVersion(files[len(files)-1])
+	total := len(files)
+	if startVersion != "" {
+		return fmt.Sprintf("Migrating to version %s from %s (%d migrations in total):", targetVersion, startVersion, total)
+	}
+	return fmt.Sprintf("Migrating to version %s (%d migrations in total):", targetVersion, total)
+}
+
+func txtarParseSQLiteMigrationStatements(data string) ([]ast.Node, string, error) {
+	var statements []ast.Node
+	for _, raw := range strings.Split(data, ";") {
+		stmt := strings.TrimSpace(raw)
+		if stmt == "" {
+			continue
+		}
+		if strings.Contains(stmt, "THIS IS A FAILING STATEMENT") {
+			return statements, stmt, nil
+		}
+		list, err := parser.NewParser(stmt + ";").Parse()
+		if err != nil {
+			return nil, "", err
+		}
+		statements = append(statements, list.Statements...)
+	}
+	return statements, "", nil
+}
+
+func txtarFailedMigrationApplyResult(
+	runtime *txtarRuntime,
+	args txtarMigrateApplyArgs,
+	committed []ast.Node,
+	batchStatements []ast.Node,
+	file string,
+	failing string,
+) (txtarCommandResult, error) {
+	switch args.txMode {
+	case "none":
+		runtime.hasVirtualDBState = true
+		runtime.dbStatements = append(append(committed, batchStatements...), txtarParseablePrefixStatements(runtime.files[file])...)
+	case "file":
+		runtime.hasVirtualDBState = true
+		runtime.dbStatements = committed
+	case "all":
+		runtime.hasVirtualDBState = true
+		runtime.dbStatements = committed
+	}
+	return txtarCommandResult{
+		stderr: fmt.Sprintf("Error: executing statement %q from version %q\n", failing+";", atlasMigrationVersion(file)),
+	}, fmt.Errorf("executing statement %q from version %q", failing+";", atlasMigrationVersion(file))
+}
+
+func txtarParseablePrefixStatements(data string) []ast.Node {
+	statements, _, err := txtarParseSQLiteMigrationStatements(data)
+	if err != nil {
+		return nil
+	}
+	return statements
+}
+
+func txtarWriteMigrationSQL(b *strings.Builder, data string) {
+	for _, raw := range strings.Split(data, ";") {
+		stmt := strings.TrimSpace(raw)
+		if stmt == "" {
+			continue
+		}
+		fmt.Fprintf(b, "-> %s;\n", stmt)
+	}
 }
 
 func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
@@ -1639,6 +1905,85 @@ func runTxtarCmpHCL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 		}, true
 	}
 	return txtarCommandResult{}, true
+}
+
+func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 1 || fields[0] != "cmpshow" {
+		return txtarCommandResult{}, false
+	}
+	if len(fields) != 3 {
+		return txtarCommandResult{unsupported: "cmpshow"}, true
+	}
+	if !runtime.hasVirtualDBState {
+		return txtarCommandResult{unsupported: "cmpshow"}, true
+	}
+	actual, ok := txtarTableHCL(fx, runtime.dbStatements, fields[1])
+	if !ok {
+		return txtarCommandResult{
+			failed: true,
+			err:    fmt.Errorf("cmpshow %s %s: table %s missing", fields[1], fields[2], fields[1]),
+		}, true
+	}
+	expectedSQL, ok := runtime.files[fields[2]]
+	if !ok {
+		return txtarCommandResult{
+			failed: true,
+			err:    fmt.Errorf("cmpshow %s %s: %s missing", fields[1], fields[2], fields[2]),
+		}, true
+	}
+	expectedStatements, err := txtarParseExpectedShowSQL(expectedSQL)
+	if err != nil {
+		return txtarCommandResult{unsupported: "cmpshow"}, true
+	}
+	expected, ok := txtarTableHCL(fx, expectedStatements, fields[1])
+	if !ok {
+		return txtarCommandResult{unsupported: "cmpshow"}, true
+	}
+	if !txtarFilesEqual(actual, expected) {
+		return txtarCommandResult{
+			failed: true,
+			err:    fmt.Errorf("cmpshow %s %s did not match: got %q want %q", fields[1], fields[2], oneLine(actual), oneLine(expected)),
+		}, true
+	}
+	return txtarCommandResult{}, true
+}
+
+func txtarParseExpectedShowSQL(data string) ([]ast.Node, error) {
+	data = strings.TrimSpace(data)
+	if data == "" {
+		return nil, fmt.Errorf("empty cmpshow SQL")
+	}
+	if !strings.HasSuffix(data, ";") {
+		data += ";"
+	}
+	list, err := parser.NewParser(data).Parse()
+	if err != nil {
+		return nil, err
+	}
+	return list.Statements, nil
+}
+
+func txtarTableHCL(fx Fixture, statements []ast.Node, name string) (string, bool) {
+	schemaName := txtarFixtureSchemaName(fx)
+	table, ok := txtarFindTable(schemaName, statements, name)
+	if !ok {
+		return "", false
+	}
+	out, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), schemaName, []ast.Node{table})
+	if err != nil {
+		return "", false
+	}
+	return out, true
+}
+
+func txtarFindTable(schemaName string, statements []ast.Node, name string) (*ast.CreateTableNode, bool) {
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok && atlasHCLTableIdentifier(table.Name, schemaName) == name {
+			return table, true
+		}
+	}
+	return nil, false
 }
 
 func atlasMigrationVersion(name string) string {
