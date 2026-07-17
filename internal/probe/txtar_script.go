@@ -2608,7 +2608,7 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 			return false
 		}
 		switch strings.ToLower(column.Type) {
-		case "bool", "boolean", "json":
+		case "json":
 			return false
 		}
 	}
@@ -2798,7 +2798,12 @@ func runTxtarSynced(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 	if len(fields) < 1 || fields[0] != "synced" {
 		return txtarCommandResult{}, false
 	}
-	if len(fields) != 2 || txtarFixtureFamily(fx) != "sqlite" || !runtime.hasVirtualDBState {
+	switch txtarFixtureFamily(fx) {
+	case "sqlite", "mysql", "mariadb":
+	default:
+		return txtarCommandResult{unsupported: "synced"}, true
+	}
+	if len(fields) != 2 || !runtime.hasVirtualDBState {
 		return txtarCommandResult{unsupported: "synced"}, true
 	}
 	data, ok := runtime.files[fields[1]]
@@ -2809,7 +2814,7 @@ func runTxtarSynced(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 	if err != nil {
 		return txtarCommandResult{unsupported: "synced"}, true
 	}
-	if !txtarSQLiteVirtualApplyStateSupported(statements) {
+	if !txtarFixtureSupportsVirtualApply(fx, statements) {
 		return txtarCommandResult{unsupported: "synced"}, true
 	}
 	actual, ok := txtarVirtualStateShowSQL(fx, runtime.dbStatements)
@@ -2820,7 +2825,7 @@ func runTxtarSynced(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 	if !ok {
 		return txtarCommandResult{unsupported: "synced"}, true
 	}
-	if txtarNormalizeShowSQL(actual) != txtarNormalizeShowSQL(expected) {
+	if txtarNormalizeFixtureShowSQL(fx, actual) != txtarNormalizeFixtureShowSQL(fx, expected) {
 		return txtarCommandResult{failed: true, err: fmt.Errorf("synced %s did not match: got %q want %q", fields[1], oneLine(actual), oneLine(expected))}, true
 	}
 	return txtarCommandResult{}, true
@@ -2992,7 +2997,7 @@ func txtarNormalizeFixtureShowSQL(fx Fixture, sql string) string {
 
 func txtarNormalizeMySQLShowSQL(sql string) string {
 	normalized := txtarNormalizeShowSQL(sql)
-	normalized = mysqlIntegerDisplayWidthRE.ReplaceAllString(normalized, "$1")
+	normalized = normalizeMySQLIntegerDisplayWidths(normalized)
 	normalized = mysqlDefaultCharsetRE.ReplaceAllString(normalized, "")
 	normalized = strings.TrimSuffix(normalized, ";")
 	normalized = spaceRunRE.ReplaceAllString(normalized, " ")
@@ -3009,6 +3014,16 @@ func txtarNormalizeMySQLShowSQL(sql string) string {
 		normalized = strings.ReplaceAll(normalized, repl.old, repl.new)
 	}
 	return strings.TrimSpace(normalized)
+}
+
+func normalizeMySQLIntegerDisplayWidths(sql string) string {
+	return mysqlIntegerDisplayWidthRE.ReplaceAllStringFunc(sql, func(match string) string {
+		if strings.EqualFold(match, "tinyint(1)") {
+			return "tinyint(1)"
+		}
+		base, _, _ := strings.Cut(match, "(")
+		return base
+	})
 }
 
 func txtarNormalizeShowSQLLine(line string) string {
@@ -3407,7 +3422,7 @@ func txtarVirtualStatesEqual(fx Fixture, current, next []ast.Node) bool {
 	if !ok {
 		return false
 	}
-	return txtarNormalizeShowSQL(currentSQL) == txtarNormalizeShowSQL(nextSQL)
+	return txtarNormalizeFixtureShowSQL(fx, currentSQL) == txtarNormalizeFixtureShowSQL(fx, nextSQL)
 }
 
 var errAtlasProjectFile = errors.New("cannot parse project file")
@@ -5255,6 +5270,8 @@ func atlasColumnType(dialect, typ string) string {
 		switch normalized {
 		case "bit":
 			return "bit(1)"
+		case "bool", "boolean", "tinyint(1)":
+			return "tinyint(1)"
 		}
 		if base, _, ok := strings.Cut(normalized, "("); ok {
 			switch base {
