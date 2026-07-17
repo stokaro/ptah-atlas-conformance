@@ -2654,17 +2654,15 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-bit.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-comment.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2702,9 +2700,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-float.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2734,17 +2731,15 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-numeric.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-range.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2759,7 +2754,7 @@
     "fixture": "internal/integration/testdata/postgres/column-textsearch.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: apply",
+    "detail": "unsupported: cmphcl",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -2791,6 +2786,14 @@
     "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
+    "detail": "unsupported: synced",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
     "detail": "unsupported: apply",
     "issue": "stokaro/ptah#285"
   },
@@ -2814,9 +2817,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-issue-557.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2854,9 +2856,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-type.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
