@@ -2640,8 +2640,14 @@ func txtarMySQLApplyTableOptionsSupported(dialect string, options map[string]str
 }
 
 func txtarMySQLApplyIndexSupported(index *ast.IndexNode) bool {
-	if len(index.EffectiveParts()) == 0 || index.Concurrently || index.Type != "" ||
-		index.Operator != "" || index.Comment != "" || index.Condition != "" {
+	if len(index.EffectiveParts()) == 0 || index.Concurrently || index.Operator != "" ||
+		index.Comment != "" || index.Condition != "" {
+		return false
+	}
+	if !txtarMySQLApplyIndexTypeSupported(index.Type) {
+		return false
+	}
+	if index.Parser != "" && !strings.EqualFold(index.Type, "FULLTEXT") {
 		return false
 	}
 	for _, part := range index.EffectiveParts() {
@@ -2650,6 +2656,13 @@ func txtarMySQLApplyIndexSupported(index *ast.IndexNode) bool {
 		}
 	}
 	return true
+}
+
+func txtarMySQLApplyIndexTypeSupported(indexType string) bool {
+	if indexType == "" {
+		return true
+	}
+	return strings.EqualFold(indexType, "FULLTEXT") || strings.EqualFold(indexType, "SPATIAL")
 }
 
 func txtarHCLStatements(fx Fixture, name, data string) ([]ast.Node, error) {
@@ -4892,6 +4905,11 @@ func atlasIndexesByTable(dialect string, statements []ast.Node) map[string][]*as
 			indexes[index.Table] = append(indexes[index.Table], index)
 		}
 	}
+	for tableName := range indexes {
+		slices.SortStableFunc(indexes[tableName], func(a, b *ast.IndexNode) int {
+			return cmp.Compare(a.Name, b.Name)
+		})
+	}
 	return indexes
 }
 
@@ -5130,7 +5148,8 @@ func renderAtlasIndexSQL(dialect string, quote func(string) string, index *ast.I
 		b.WriteString(" ")
 	}
 	indexKeyword := "INDEX"
-	if index.Type == "" && (dialect == "mysql" || dialect == "mariadb") {
+	if (dialect == "mysql" || dialect == "mariadb") &&
+		(index.Type == "" || strings.EqualFold(index.Type, "FULLTEXT")) {
 		indexKeyword = "KEY"
 	}
 	fmt.Fprintf(&b, "%s %s (", indexKeyword, quote(index.Name))
@@ -5141,6 +5160,9 @@ func renderAtlasIndexSQL(dialect string, quote func(string) string, index *ast.I
 	}
 	b.WriteString(strings.Join(parts, ", "))
 	b.WriteString(")")
+	if index.Parser != "" {
+		fmt.Fprintf(&b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
+	}
 	return b.String()
 }
 
@@ -5167,17 +5189,25 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 	if index.Unique {
 		b.WriteString("UNIQUE ")
 	}
+	if index.Type != "" {
+		b.WriteString(strings.ToUpper(index.Type))
+		b.WriteString(" ")
+	}
 	fmt.Fprintf(b, "INDEX %s ON %s (", quote(index.Name), quote(index.Table))
 	parts := make([]string, 0, len(index.EffectiveParts()))
 	for _, part := range index.EffectiveParts() {
 		parts = append(parts, renderAtlasIndexPartSQL(quote, part))
 	}
 	b.WriteString(strings.Join(parts, ", "))
+	b.WriteString(")")
+	if index.Parser != "" {
+		fmt.Fprintf(b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
+	}
 	if index.Condition != "" {
-		fmt.Fprintf(b, ") WHERE %s;\n", index.Condition)
+		fmt.Fprintf(b, " WHERE %s;\n", index.Condition)
 		return
 	}
-	b.WriteString(");\n")
+	b.WriteString(";\n")
 }
 
 func renderAtlasColumnForeignKeySQL(
