@@ -4704,9 +4704,10 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode) bool {
 		return false
 	}
 	for _, column := range table.Columns {
-		if column.ForeignKey != nil || column.GeneratedExpression != "" ||
+		if column.GeneratedExpression != "" ||
 			!txtarPostgresApplyColumnTypeSupported(column.Type) ||
-			!txtarPostgresApplyColumnDefaultSupported(column) {
+			!txtarPostgresApplyColumnDefaultSupported(column) ||
+			!txtarPostgresApplyColumnForeignKeySupported(column) {
 			return false
 		}
 	}
@@ -4714,11 +4715,42 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode) bool {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
 			continue
+		case ast.ForeignKeyConstraint:
+			if !txtarPostgresApplyForeignKeyConstraintSupported(constraint) {
+				return false
+			}
 		default:
 			return false
 		}
 	}
 	return true
+}
+
+func txtarPostgresApplyColumnForeignKeySupported(column *ast.ColumnNode) bool {
+	if column.ForeignKey == nil {
+		return true
+	}
+	return txtarPostgresApplyForeignKeyRefSupported(column.ForeignKey, 1)
+}
+
+func txtarPostgresApplyForeignKeyConstraintSupported(constraint *ast.ConstraintNode) bool {
+	if constraint.Reference == nil {
+		return false
+	}
+	return txtarPostgresApplyForeignKeyRefSupported(constraint.Reference, len(atlasConstraintColumnNames(constraint)))
+}
+
+func txtarPostgresApplyForeignKeyRefSupported(ref *ast.ForeignKeyRef, columnCount int) bool {
+	if ref == nil || strings.TrimSpace(ref.Table) == "" || columnCount <= 0 {
+		return false
+	}
+	refColumns := ref.ReferencedColumns()
+	if len(refColumns) != columnCount {
+		return false
+	}
+	return !slices.ContainsFunc(refColumns, func(column string) bool {
+		return strings.TrimSpace(column) == ""
+	})
 }
 
 func txtarPostgresApplyColumnDefaultSupported(column *ast.ColumnNode) bool {
@@ -5600,7 +5632,7 @@ func txtarTablesShowSQL(fx Fixture, statements []ast.Node, names []string) (stri
 		return "", false
 	}
 	if txtarFixtureFamily(fx) == "postgres" {
-		return txtarPostgresTablesShowSQL(schemaName, filtered, names)
+		return txtarPostgresTablesShowSQL(schemaName, filtered, statements, names)
 	}
 	filtered = atlasUnqualifyTableStatements(schemaName, filtered)
 	out, err := renderAtlasInspectSQLWithOptions(dialect, filtered, "", atlasInspectSQLOptions{
@@ -5614,7 +5646,12 @@ func txtarTablesShowSQL(fx Fixture, statements []ast.Node, names []string) (stri
 	return out, true
 }
 
-func txtarPostgresTablesShowSQL(schemaName string, statements []ast.Node, names []string) (string, bool) {
+func txtarPostgresTablesShowSQL(
+	schemaName string,
+	statements []ast.Node,
+	allStatements []ast.Node,
+	names []string,
+) (string, bool) {
 	var out strings.Builder
 	for i, name := range names {
 		table, ok := txtarFindTable(schemaName, statements, name)
@@ -5624,7 +5661,13 @@ func txtarPostgresTablesShowSQL(schemaName string, statements []ast.Node, names 
 		if i > 0 {
 			out.WriteByte('\n')
 		}
-		txtarWritePostgresTableShowSQL(&out, schemaName, table, txtarPostgresTableIndexes(schemaName, statements, name))
+		txtarWritePostgresTableShowSQL(
+			&out,
+			schemaName,
+			table,
+			txtarPostgresTableIndexes(schemaName, statements, name),
+			allStatements,
+		)
 	}
 	return out.String(), true
 }
@@ -5634,6 +5677,7 @@ func txtarWritePostgresTableShowSQL(
 	schemaName string,
 	table *ast.CreateTableNode,
 	indexes []*ast.IndexNode,
+	statements []ast.Node,
 ) {
 	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
 	fmt.Fprintf(out, "Table %q\n", schemaName+"."+tableName)
@@ -5664,6 +5708,20 @@ func txtarWritePostgresTableShowSQL(
 	out.WriteString("Indexes:\n")
 	for _, line := range indexLines {
 		fmt.Fprintf(out, "    %s\n", line)
+	}
+	foreignKeyLines := txtarPostgresShowForeignKeyLines(schemaName, table)
+	if len(foreignKeyLines) > 0 {
+		out.WriteString("Foreign-key constraints:\n")
+		for _, line := range foreignKeyLines {
+			fmt.Fprintf(out, "    %s\n", line)
+		}
+	}
+	referencedByLines := txtarPostgresReferencedByLines(schemaName, statements, tableName)
+	if len(referencedByLines) > 0 {
+		out.WriteString("Referenced by:\n")
+		for _, line := range referencedByLines {
+			fmt.Fprintf(out, "    %s\n", line)
+		}
 	}
 }
 
@@ -5702,6 +5760,139 @@ func txtarPostgresShowIndexLines(tableName string, table *ast.CreateTableNode, i
 		lines = append(lines, line)
 	}
 	return lines
+}
+
+type txtarPostgresShowForeignKey struct {
+	sourceTable string
+	name        string
+	columns     []string
+	refTable    string
+	refColumns  []string
+	onUpdate    string
+	onDelete    string
+}
+
+func txtarPostgresShowForeignKeyLines(schemaName string, table *ast.CreateTableNode) []string {
+	foreignKeys := txtarPostgresTableForeignKeys(schemaName, table)
+	lines := make([]string, 0, len(foreignKeys))
+	for _, foreignKey := range foreignKeys {
+		lines = append(lines, txtarPostgresShowForeignKeyLine(foreignKey))
+	}
+	return lines
+}
+
+func txtarPostgresReferencedByLines(schemaName string, statements []ast.Node, tableName string) []string {
+	var lines []string
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			continue
+		}
+		for _, foreignKey := range txtarPostgresTableForeignKeys(schemaName, table) {
+			if foreignKey.refTable != schemaName+"."+tableName {
+				continue
+			}
+			lines = append(lines, fmt.Sprintf(
+				"TABLE %q CONSTRAINT %q %s",
+				foreignKey.sourceTable,
+				foreignKey.name,
+				txtarPostgresShowForeignKeySpec(foreignKey),
+			))
+		}
+	}
+	return lines
+}
+
+func txtarPostgresTableForeignKeys(schemaName string, table *ast.CreateTableNode) []txtarPostgresShowForeignKey {
+	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
+	var foreignKeys []txtarPostgresShowForeignKey
+	for _, column := range table.Columns {
+		if column.ForeignKey == nil {
+			continue
+		}
+		ref := column.ForeignKey
+		foreignKeys = append(foreignKeys, txtarPostgresShowForeignKey{
+			sourceTable: schemaName + "." + tableName,
+			name:        atlasDefaultForeignKeyName(tableName, []string{column.Name}, ref.Name),
+			columns:     []string{column.Name},
+			refTable:    txtarPostgresQualifiedTableName(schemaName, ref.Table),
+			refColumns:  ref.ReferencedColumns(),
+			onUpdate:    ref.OnUpdate,
+			onDelete:    ref.OnDelete,
+		})
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.ForeignKeyConstraint || constraint.Reference == nil {
+			continue
+		}
+		columns := atlasConstraintColumnNames(constraint)
+		if len(columns) == 0 {
+			continue
+		}
+		ref := constraint.Reference
+		foreignKeys = append(foreignKeys, txtarPostgresShowForeignKey{
+			sourceTable: schemaName + "." + tableName,
+			name:        atlasDefaultForeignKeyName(tableName, columns, constraint.Name),
+			columns:     columns,
+			refTable:    txtarPostgresQualifiedTableName(schemaName, ref.Table),
+			refColumns:  ref.ReferencedColumns(),
+			onUpdate:    ref.OnUpdate,
+			onDelete:    ref.OnDelete,
+		})
+	}
+	return foreignKeys
+}
+
+func txtarPostgresShowForeignKeyLine(foreignKey txtarPostgresShowForeignKey) string {
+	return fmt.Sprintf("%q %s", foreignKey.name, txtarPostgresShowForeignKeySpec(foreignKey))
+}
+
+func txtarPostgresShowForeignKeySpec(foreignKey txtarPostgresShowForeignKey) string {
+	return fmt.Sprintf(
+		"FOREIGN KEY (%s) REFERENCES %s(%s)%s",
+		txtarPostgresIdentifierList(foreignKey.columns),
+		foreignKey.refTable,
+		txtarPostgresIdentifierList(foreignKey.refColumns),
+		txtarPostgresShowForeignKeyActions(foreignKey),
+	)
+}
+
+func txtarPostgresIdentifierList(columns []string) string {
+	out := make([]string, 0, len(columns))
+	for _, column := range columns {
+		out = append(out, atlasSQLIdentifier(column))
+	}
+	return strings.Join(out, ", ")
+}
+
+func txtarPostgresQualifiedTableName(schemaName, tableName string) string {
+	tableName = atlasSQLIdentifier(tableName)
+	if strings.Contains(tableName, ".") {
+		return tableName
+	}
+	return schemaName + "." + tableName
+}
+
+func txtarPostgresShowForeignKeyActions(foreignKey txtarPostgresShowForeignKey) string {
+	var parts []string
+	if action := txtarPostgresShowForeignKeyAction(foreignKey.onUpdate); action != "" {
+		parts = append(parts, "ON UPDATE "+action)
+	}
+	if action := txtarPostgresShowForeignKeyAction(foreignKey.onDelete); action != "" {
+		parts = append(parts, "ON DELETE "+action)
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return " " + strings.Join(parts, " ")
+}
+
+func txtarPostgresShowForeignKeyAction(action string) string {
+	normalized := strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(action)), "_", " ")
+	if normalized == "" || normalized == "NO ACTION" {
+		return ""
+	}
+	return normalized
 }
 
 func txtarPostgresColumnType(column *ast.ColumnNode) string {
