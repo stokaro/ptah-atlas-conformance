@@ -28,6 +28,7 @@ var (
 	mysqlIntegerDisplayWidthRE = regexp.MustCompile(`\b(bigint|int|integer|mediumint|smallint|tinyint)\(\d+\)`)
 	mysqlDefaultCharsetRE      = regexp.MustCompile(`(?m)\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
 	mysqlUTF8MB4IntroducerRE   = regexp.MustCompile(`(?i)\b_utf8mb4'`)
+	flywayUndoMigrationRE      = regexp.MustCompile(`^U\d+\.sql$`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
 
@@ -728,6 +729,7 @@ type txtarMigrateDiffArgs struct {
 	devURL    string
 	to        []string
 	dir       string
+	dirFormat string
 	dirSet    bool
 	env       string
 	name      string
@@ -828,10 +830,11 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 			}
 		case "--dir":
 			if i+1 < len(args) {
-				if strings.Contains(args[i+1], "?format=") {
+				var ok bool
+				out.dir, out.dirFormat, ok = txtarMigrateDiffDirAndFormat(args[i+1])
+				if !ok {
 					out.blocked = true
 				}
-				out.dir = txtarFileURLPath(args[i+1])
 				out.dirSet = true
 				i++
 			}
@@ -857,9 +860,14 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 				out.blocked = true
 			}
 		case "--dir-format":
-			out.blocked = true
 			if i+1 < len(args) {
+				out.dirFormat = args[i+1]
+				if !txtarSupportedMigrateDiffDirFormat(out.dirFormat) {
+					out.blocked = true
+				}
 				i++
+			} else {
+				out.blocked = true
 			}
 		default:
 			switch {
@@ -868,10 +876,11 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 			case strings.HasPrefix(arg, "--to="):
 				out.to = append(out.to, strings.TrimPrefix(arg, "--to="))
 			case strings.HasPrefix(arg, "--dir="):
-				if strings.Contains(arg, "?format=") {
+				var ok bool
+				out.dir, out.dirFormat, ok = txtarMigrateDiffDirAndFormat(strings.TrimPrefix(arg, "--dir="))
+				if !ok {
 					out.blocked = true
 				}
-				out.dir = txtarFileURLPath(strings.TrimPrefix(arg, "--dir="))
 				out.dirSet = true
 			case strings.HasPrefix(arg, "--format="):
 				var ok bool
@@ -885,7 +894,10 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 			case strings.HasPrefix(arg, "--qualifier="):
 				out.qualifier = strings.TrimPrefix(arg, "--qualifier=")
 			case strings.HasPrefix(arg, "--dir-format="):
-				out.blocked = true
+				out.dirFormat = strings.TrimPrefix(arg, "--dir-format=")
+				if !txtarSupportedMigrateDiffDirFormat(out.dirFormat) {
+					out.blocked = true
+				}
 			case strings.HasPrefix(arg, "-"):
 				out.blocked = true
 			case !seenName:
@@ -897,6 +909,34 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 		}
 	}
 	return out
+}
+
+func txtarMigrateDiffDirAndFormat(value string) (string, string, bool) {
+	dir := txtarFileURLPath(value)
+	_, query, ok := strings.Cut(value, "?")
+	if !ok {
+		return dir, "", true
+	}
+	for _, part := range strings.Split(query, "&") {
+		key, val, ok := strings.Cut(part, "=")
+		if !ok || key != "format" {
+			return dir, "", false
+		}
+		if !txtarSupportedMigrateDiffDirFormat(val) {
+			return dir, "", false
+		}
+		return dir, val, true
+	}
+	return dir, "", true
+}
+
+func txtarSupportedMigrateDiffDirFormat(format string) bool {
+	switch format {
+	case "", "atlas", "dbmate", "flyway", "golang-migrate", "goose", "liquibase":
+		return true
+	default:
+		return false
+	}
 }
 
 func txtarMigrateDiffSQLFormatIndent(format string) (string, bool) {
@@ -1338,25 +1378,21 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		if !ok {
 			return txtarCommandResult{unsupported: "atlas migrate diff"}
 		}
-		name := txtarNextMigrationFile(runtime, args.dir)
-		if args.name != "" {
-			name = txtarNextNamedMigrationFile(runtime, args.dir, args.name)
+		incrementalDownSQL, ok := renderTxtarMigrateDiffAddColumnDownSQL(fx, current, targetStatements, args.qualifier)
+		if !ok {
+			return txtarCommandResult{unsupported: "atlas migrate diff"}
 		}
-		runtime.files[name] = incrementalSQL
-		runtime.addParentDirs(name)
-		if err := runtime.refreshMigrationHash(args.dir); err != nil {
+		if err := txtarWriteMigrateDiff(runtime, args, incrementalSQL, incrementalDownSQL); err != nil {
 			return txtarCommandResult{err: err}
 		}
 		return txtarCommandResult{}
 	}
 
-	name := txtarNextMigrationFile(runtime, args.dir)
-	if args.name != "" {
-		name = txtarNextNamedMigrationFile(runtime, args.dir, args.name)
+	downSQL, ok := renderTxtarMigrateDiffCreateDownSQL(fx, targetStatements, args.qualifier)
+	if !ok {
+		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
-	runtime.files[name] = sql
-	runtime.addParentDirs(name)
-	if err := runtime.refreshMigrationHash(args.dir); err != nil {
+	if err := txtarWriteMigrateDiff(runtime, args, sql, downSQL); err != nil {
 		return txtarCommandResult{err: err}
 	}
 	return txtarCommandResult{}
@@ -1364,7 +1400,7 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 
 func txtarCurrentMigrationState(runtime *txtarRuntime, dir string) ([]ast.Node, bool) {
 	var state []ast.Node
-	for _, file := range txtarMigrationSQLFilesInDir(runtime, dir) {
+	for _, file := range txtarMigrationApplySQLFilesInDir(runtime, dir) {
 		statements, failing, err := txtarParseMigrationStatements(runtime.files[file])
 		if err != nil || failing != "" {
 			return nil, false
@@ -1375,6 +1411,74 @@ func txtarCurrentMigrationState(runtime *txtarRuntime, dir string) ([]ast.Node, 
 		}
 	}
 	return state, true
+}
+
+func txtarWriteMigrateDiff(runtime *txtarRuntime, args txtarMigrateDiffArgs, upSQL, downSQL string) error {
+	version := txtarNextMigrateDiffVersion(runtime, args)
+	switch args.dirFormat {
+	case "", "atlas":
+		name := txtarNextMigrationFile(runtime, args.dir)
+		if args.name != "" {
+			name = txtarNextNamedMigrationFile(runtime, args.dir, args.name)
+		}
+		runtime.files[name] = upSQL
+		runtime.addParentDirs(name)
+	case "golang-migrate":
+		runtime.files[path.Join(args.dir, fmt.Sprintf("%d.down.sql", version))] = txtarFormatMigrationCommentCase(downSQL)
+		runtime.files[path.Join(args.dir, fmt.Sprintf("%d.up.sql", version))] = txtarFormatMigrationCommentCase(upSQL)
+		runtime.addParentDirs(path.Join(args.dir, fmt.Sprintf("%d.up.sql", version)))
+	case "goose":
+		runtime.files[path.Join(args.dir, fmt.Sprintf("%d.sql", version))] = "-- +goose Up\n" +
+			txtarFormatMigrationCommentCase(upSQL) + "\n-- +goose Down\n" +
+			txtarFormatMigrationCommentCase(downSQL)
+		runtime.addParentDirs(path.Join(args.dir, fmt.Sprintf("%d.sql", version)))
+	case "dbmate":
+		runtime.files[path.Join(args.dir, fmt.Sprintf("%d.sql", version))] = "-- migrate:up\n" +
+			txtarFormatMigrationCommentCase(upSQL) + "\n-- migrate:down\n" +
+			txtarFormatMigrationCommentCase(downSQL)
+		runtime.addParentDirs(path.Join(args.dir, fmt.Sprintf("%d.sql", version)))
+	case "flyway":
+		runtime.files[path.Join(args.dir, fmt.Sprintf("U%d.sql", version))] = txtarFormatMigrationCommentCase(downSQL)
+		runtime.files[path.Join(args.dir, fmt.Sprintf("V%d.sql", version))] = txtarFormatMigrationCommentCase(upSQL)
+		runtime.addParentDirs(path.Join(args.dir, fmt.Sprintf("V%d.sql", version)))
+	case "liquibase":
+		runtime.files[path.Join(args.dir, fmt.Sprintf("%d.sql", version))] = txtarLiquibaseMigrationSQL(upSQL, downSQL)
+		runtime.addParentDirs(path.Join(args.dir, fmt.Sprintf("%d.sql", version)))
+	default:
+		return fmt.Errorf("unsupported migrate diff dir format %q", args.dirFormat)
+	}
+	return runtime.refreshMigrationHash(args.dir)
+}
+
+func txtarNextMigrateDiffVersion(runtime *txtarRuntime, args txtarMigrateDiffArgs) int {
+	switch args.dirFormat {
+	case "flyway":
+		return txtarCountMigrationFilesWithPrefix(runtime, args.dir, "V") + 1
+	case "golang-migrate":
+		return txtarCountMigrationFilesWithSuffix(runtime, args.dir, ".up.sql") + 1
+	default:
+		return len(txtarMigrationSQLFilesInDir(runtime, args.dir)) + 1
+	}
+}
+
+func txtarCountMigrationFilesWithPrefix(runtime *txtarRuntime, dir, prefix string) int {
+	count := 0
+	for _, file := range txtarMigrationSQLFilesInDir(runtime, dir) {
+		if strings.HasPrefix(path.Base(file), prefix) {
+			count++
+		}
+	}
+	return count
+}
+
+func txtarCountMigrationFilesWithSuffix(runtime *txtarRuntime, dir, suffix string) int {
+	count := 0
+	for _, file := range txtarMigrationSQLFilesInDir(runtime, dir) {
+		if strings.HasSuffix(path.Base(file), suffix) {
+			count++
+		}
+	}
+	return count
 }
 
 func txtarMigrateDiffStatesMatch(fx Fixture, current, target []ast.Node, indent string) bool {
@@ -1410,12 +1514,9 @@ func renderTxtarMigrateDiffAddColumnSQL(
 			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
 		}
 		fmt.Fprintf(&out, "-- Modify %q table\n", atlasSQLIdentifier(change.tableName))
-		tableOpts := atlasInspectSQLOptions{
-			schemaAttrs: atlasTableSchemaAttrs(outputDialect, change.targetTable, atlasSchemaAttrs{}),
-		}
 		parts := make([]string, 0, len(change.columns))
 		for _, column := range change.columns {
-			parts = append(parts, "ADD COLUMN "+renderAtlasColumnSQL(outputDialect, quote, column, true, tableOpts))
+			parts = append(parts, "ADD COLUMN "+renderAtlasColumnSQL(outputDialect, quote, column, true, atlasInspectSQLOptions{}))
 		}
 		fmt.Fprintf(&out, "ALTER TABLE %s ", quote(tableName))
 		if indent == "" {
@@ -1428,6 +1529,62 @@ func renderTxtarMigrateDiffAddColumnSQL(
 	return out.String(), true
 }
 
+func renderTxtarMigrateDiffAddColumnDownSQL(
+	fx Fixture,
+	current []ast.Node,
+	target []ast.Node,
+	qualifier string,
+) (string, bool) {
+	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
+	changes, ok := txtarMigrateDiffAddColumnChanges(dialect, current, target)
+	if !ok || len(changes) == 0 {
+		return "", false
+	}
+	quote := atlasIdentifierQuoter(dialect)
+	var out strings.Builder
+	for _, change := range changes {
+		tableName := change.tableName
+		if qualifier != "" {
+			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+		}
+		fmt.Fprintf(&out, "-- reverse: modify %q table\n", atlasSQLIdentifier(change.tableName))
+		parts := make([]string, 0, len(change.columns))
+		for _, column := range change.columns {
+			parts = append(parts, "DROP COLUMN "+quote(column.Name))
+		}
+		fmt.Fprintf(&out, "ALTER TABLE %s %s;\n", quote(tableName), strings.Join(parts, ", "))
+	}
+	return out.String(), true
+}
+
+func renderTxtarMigrateDiffCreateDownSQL(fx Fixture, statements []ast.Node, qualifier string) (string, bool) {
+	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
+	quote := atlasIdentifierQuoter(dialect)
+	var tables []string
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			continue
+		}
+		tableName := atlasSQLIdentifier(table.Name)
+		tables = append(tables, tableName)
+	}
+	if len(tables) == 0 {
+		return "", false
+	}
+	var out strings.Builder
+	for i := len(tables) - 1; i >= 0; i-- {
+		tableName := tables[i]
+		outputName := tableName
+		if qualifier != "" {
+			outputName = qualifier + "." + tableName
+		}
+		fmt.Fprintf(&out, "-- reverse: create %q table\n", tableName)
+		fmt.Fprintf(&out, "DROP TABLE %s;\n", quote(outputName))
+	}
+	return out.String(), true
+}
+
 func txtarMigrateDiffOutputDialect(dialect string) string {
 	if dialect == "mariadb" {
 		// Atlas migrate diff fixtures compare against the generic migration file;
@@ -1435,6 +1592,45 @@ func txtarMigrateDiffOutputDialect(dialect string) string {
 		return "mysql"
 	}
 	return dialect
+}
+
+func txtarFormatMigrationCommentCase(sql string) string {
+	sql = strings.ReplaceAll(sql, "-- Create ", "-- create ")
+	sql = strings.ReplaceAll(sql, "-- Modify ", "-- modify ")
+	return sql
+}
+
+func txtarLiquibaseMigrationSQL(upSQL, downSQL string) string {
+	upSQL = txtarFormatMigrationCommentCase(upSQL)
+	downSQL = txtarFormatMigrationCommentCase(downSQL)
+	upComment := txtarFirstAtlasMigrationComment(upSQL)
+	downSQL = strings.TrimSpace(txtarStripAtlasMigrationComments(downSQL))
+	return "--liquibase formatted sql\n" +
+		"--changeset atlas:0-0\n" +
+		"--comment: " + upComment + "\n" +
+		strings.TrimSpace(txtarStripAtlasMigrationComments(upSQL)) + "\n" +
+		"--rollback: " + downSQL + "\n"
+}
+
+func txtarFirstAtlasMigrationComment(sql string) string {
+	for _, line := range strings.Split(sql, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "-- ") {
+			return strings.TrimPrefix(line, "-- ")
+		}
+	}
+	return "migration"
+}
+
+func txtarStripAtlasMigrationComments(sql string) string {
+	var lines []string
+	for _, line := range strings.Split(sql, "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "--") {
+			continue
+		}
+		lines = append(lines, line)
+	}
+	return strings.TrimSpace(strings.Join(lines, "\n"))
 }
 
 type txtarMigrateDiffAddColumnChange struct {
@@ -2905,6 +3101,7 @@ func txtarMigrateApplySummaryLine(files []string, startVersion string) string {
 }
 
 func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
+	data = txtarMigrationUpSQL(data)
 	var statements []ast.Node
 	for _, raw := range strings.Split(data, ";") {
 		stmt := txtarExecutableMigrationStatement(raw)
@@ -2924,6 +3121,15 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 		statements = append(statements, list.Statements...)
 	}
 	return statements, "", nil
+}
+
+func txtarMigrationUpSQL(data string) string {
+	for _, marker := range []string{"\n-- +goose Down", "\n-- migrate:down"} {
+		if before, _, ok := strings.Cut(data, marker); ok {
+			return before
+		}
+	}
+	return data
 }
 
 func txtarExecutableMigrationStatement(raw string) string {
@@ -4667,6 +4873,14 @@ func txtarCmpmigActualFile(runtime *txtarRuntime, index string) (string, bool) {
 
 func txtarMigrationSQLFiles(runtime *txtarRuntime) []string {
 	return txtarMigrationSQLFilesInDir(runtime, "migrations")
+}
+
+func txtarMigrationApplySQLFilesInDir(runtime *txtarRuntime, dir string) []string {
+	files := txtarMigrationSQLFilesInDir(runtime, dir)
+	return slices.DeleteFunc(files, func(name string) bool {
+		base := path.Base(name)
+		return strings.HasSuffix(base, ".down.sql") || flywayUndoMigrationRE.MatchString(base)
+	})
 }
 
 func txtarMigrationSQLFilesInDir(runtime *txtarRuntime, dir string) []string {
