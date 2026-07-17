@@ -1,12 +1,14 @@
 package probe
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"testing/fstest"
 
+	"github.com/stokaro/ptah/core/ast"
 	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
 )
@@ -3135,6 +3137,178 @@ CREATE TABLE `+"`users`"+` (
 		t.Fatalf("expected Gap result, got %#v", results[0])
 	}
 	assertResultDetailContains(t, results, "unsupported: apply")
+}
+
+func TestTxtarScriptProbeExecutesMySQLColumnGeneratedInspectFixture(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/column-generated-inspect.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, string(data))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-generated-inspect.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLColumnGeneratedFixture(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/column-generated.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, string(data))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-generated.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeChecksMySQLColumnGeneratedExpectedFailureMessage(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql*
+
+apply 1.hcl
+! apply 2.hcl 'wrong generated column message'
+
+-- 1.hcl --
+schema "script_case" {}
+
+table "users" {
+  schema = schema.script_case
+  column "a" {
+    type = int
+  }
+  column "b" {
+    type = int
+    as = "a * 2"
+  }
+}
+
+-- 2.hcl --
+schema "script_case" {}
+
+table "users" {
+  schema = schema.script_case
+  column "a" {
+    type = int
+  }
+  column "b" {
+    type = int
+  }
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-generated-wrong-message.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+}
+
+func TestTxtarScriptProbeKeepsMariaDBGeneratedColumnsUnsupported(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only maria*
+
+apply 1.hcl
+cmphcl 1.inspect.hcl
+
+-- 1.hcl --
+schema "script_case" {}
+
+table "users" {
+  schema = schema.script_case
+  column "a" {
+    type = int
+  }
+  column "b" {
+    type = int
+    as = "a * 2"
+  }
+}
+
+-- 1.inspect.hcl --
+table "users" {
+  schema = schema.script_case
+}
+schema "script_case" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_general_ci"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/mariadb-column-generated.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+}
+
+func TestRenderAtlasInspectHCLRejectsIndexWithoutRenderedTable(t *testing.T) {
+	_, err := renderAtlasInspectHCL("mysql", "script_case", []ast.Node{
+		&ast.IndexNode{Name: "idx_missing", Table: "missing", Columns: []string{"id"}},
+	})
+	if !errors.Is(err, errUnsupportedInspectHCL) {
+		t.Fatalf("expected unsupported inspect HCL error, got %v", err)
+	}
+}
+
+func TestRenderAtlasInspectHCLRejectsEmptyIndexParts(t *testing.T) {
+	_, err := renderAtlasInspectHCL("mysql", "script_case", []ast.Node{
+		&ast.CreateTableNode{
+			Name:    "users",
+			Columns: []*ast.ColumnNode{{Name: "id", Type: "int", Nullable: true}},
+		},
+		&ast.IndexNode{Name: "idx_empty", Table: "users"},
+	})
+	if !errors.Is(err, errUnsupportedInspectHCL) {
+		t.Fatalf("expected unsupported inspect HCL error, got %v", err)
+	}
 }
 
 func TestTxtarScriptProbeExecutesMySQLIndexPrefixFixture(t *testing.T) {
