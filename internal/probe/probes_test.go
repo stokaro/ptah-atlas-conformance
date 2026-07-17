@@ -612,6 +612,63 @@ CREATE TABLE `+"`t1`"+` (
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLMigrateDiffChecks(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/check.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "check.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestAtlasNormalizeMySQLCheckExprIsIdempotent(t *testing.T) {
+	cases := map[string]string{
+		"`name` in (_utf8mb4'a',_utf8mb4'b')":   "`name` in (_utf8mb4'a',_utf8mb4'b')",
+		"``name`` in (_utf8mb4'a',_utf8mb4'b')": "`name` in (_utf8mb4'a',_utf8mb4'b')",
+		"`a``b` = _utf8mb4'x'":                  "`a``b` = _utf8mb4'x'",
+	}
+	for input, want := range cases {
+		if got := atlasNormalizeCheckExpr("mysql", input); got != want {
+			t.Fatalf("atlasNormalizeCheckExpr(%q) = %q, want %q", input, got, want)
+		}
+	}
+}
+
+func TestTxtarParseGeneratedCheckAlterStatement(t *testing.T) {
+	node, ok := txtarParseGeneratedCheckAlterStatement(
+		"ALTER TABLE `t1` DROP CHECK `t1_check`, ADD CONSTRAINT `t1_check` CHECK ((`name` <> _utf8mb4'b') or (`age` > 10))",
+	)
+	if !ok {
+		t.Fatal("expected generated check ALTER statement to parse")
+	}
+	alter, ok := node.(*ast.AlterTableNode)
+	if !ok {
+		t.Fatalf("expected AlterTableNode, got %T", node)
+	}
+	if alter.Name != "t1" || len(alter.Operations) != 2 {
+		t.Fatalf("unexpected alter node: %#v", alter)
+	}
+	drop, ok := alter.Operations[0].(*ast.DropConstraintOperation)
+	if !ok || !drop.Check || drop.ConstraintName != "t1_check" {
+		t.Fatalf("unexpected drop operation: %#v", alter.Operations[0])
+	}
+	add, ok := alter.Operations[1].(*ast.AddConstraintOperation)
+	if !ok || add.Constraint == nil || add.Constraint.Type != ast.CheckConstraint ||
+		add.Constraint.Name != "t1_check" ||
+		add.Constraint.Expression != "(`name` <> _utf8mb4'b') or (`age` > 10)" {
+		t.Fatalf("unexpected add operation: %#v", alter.Operations[1])
+	}
+}
+
 func TestTxtarScriptProbeExecutesMariaDBSchemaInspectChecks(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
