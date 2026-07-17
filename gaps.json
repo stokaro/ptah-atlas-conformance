@@ -2653,9 +2653,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-json.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 3 supported command(s)"
   },
   {
     "probe": "txtar-script",
