@@ -3430,33 +3430,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate set",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate set",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate set",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 21 supported command(s), checked 12 assertion(s)"
   },
   {
     "probe": "txtar-script",

@@ -1455,7 +1455,36 @@ func runTxtarMigrateSet(runtime *txtarRuntime, fields []string) (txtarCommandRes
 		}, true
 	}
 
-	return txtarCommandResult{unsupported: "atlas migrate set"}, true
+	version := revisions[0]
+	if !txtarMigrationVersionExists(runtime, dir, version) {
+		return txtarCommandResult{
+			stderr: fmt.Sprintf("Error: migration with version %q not found\n", version),
+			failed: true,
+			err:    fmt.Errorf("migration with version %q not found", version),
+		}, true
+	}
+	runtime.markMigrationsAppliedThrough(dir, version)
+	return txtarCommandResult{}, true
+}
+
+func txtarMigrationVersionExists(runtime *txtarRuntime, dir, version string) bool {
+	for _, file := range txtarMigrationSQLFilesInDir(runtime, dir) {
+		if atlasMigrationVersion(file) == version {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *txtarRuntime) markMigrationsAppliedThrough(dir, version string) {
+	r.appliedMigrations = map[string]bool{}
+	for _, file := range txtarMigrationSQLFilesInDir(r, dir) {
+		r.appliedMigrations[file] = true
+		r.appliedVersion = atlasMigrationVersion(file)
+		if r.appliedVersion == version {
+			return
+		}
+	}
 }
 
 func txtarMigrateSetRevisions(args []string) []string {
@@ -2311,7 +2340,7 @@ func txtarApplyMigrationFiles(
 			return txtarCommandResult{unsupported: "atlas migrate apply"}, nil
 		}
 		if failing != "" {
-			return txtarFailedMigrationApplyResult(runtime, args, committed, batchStatements, file, failing)
+			return txtarFailedMigrationApplyResult(runtime, args, committed, batchStatements, file, failing, stdout.String())
 		}
 
 		fmt.Fprintf(&stdout, "-- migrating version %s\n", version)
@@ -2367,7 +2396,10 @@ func txtarParseSQLiteMigrationStatements(data string) ([]ast.Node, string, error
 		}
 		list, err := parser.NewParser(stmt + ";").Parse()
 		if err != nil {
-			return nil, "", err
+			if len(statements) == 0 {
+				return nil, "", err
+			}
+			return statements, stmt, nil
 		}
 		statements = append(statements, list.Statements...)
 	}
@@ -2381,6 +2413,7 @@ func txtarFailedMigrationApplyResult(
 	batchStatements []ast.Node,
 	file string,
 	failing string,
+	stdout string,
 ) (txtarCommandResult, error) {
 	switch args.txMode {
 	case "none":
@@ -2394,6 +2427,7 @@ func txtarFailedMigrationApplyResult(
 		runtime.dbStatements = committed
 	}
 	return txtarCommandResult{
+		stdout: stdout,
 		stderr: fmt.Sprintf("Error: executing statement %q from version %q\n", failing+";", atlasMigrationVersion(file)),
 	}, fmt.Errorf("executing statement %q from version %q", failing+";", atlasMigrationVersion(file))
 }
