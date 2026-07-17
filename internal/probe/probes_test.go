@@ -77,6 +77,36 @@ func TestCorpusProbeMarksImportedButUnmeasuredArtifacts(t *testing.T) {
 	if result[0].Stage != "import" {
 		t.Fatalf("expected HCL import stage, got %#v", result[0])
 	}
+
+	result = CorpusProbe{}.Run(Fixture{Name: "templates/app.tmpl", Kind: FixtureKindOther})
+	if len(result) != 1 {
+		t.Fatalf("expected 1 other result, got %d: %#v", len(result), result)
+	}
+	if result[0].Outcome != Gap {
+		t.Fatalf("expected unknown artifact Gap, got %#v", result[0])
+	}
+	if result[0].Stage != "unmeasured" {
+		t.Fatalf("expected unmeasured stage, got %#v", result[0])
+	}
+}
+
+func TestCorpusProbeClassifiesAtlasSDKTemplateRunnerFixturesAsOutOfScope(t *testing.T) {
+	for _, name := range []string{
+		"sdk/tmplrun/testdata/app.tmpl",
+		"sdk/tmplrun/testdata/foo.go",
+	} {
+		result := CorpusProbe{}.Run(Fixture{Name: name, Kind: FixtureKindOther})
+		if len(result) != 1 {
+			t.Fatalf("expected 1 result for %s, got %d: %#v", name, len(result), result)
+		}
+		if result[0].Outcome != OK {
+			t.Fatalf("expected SDK template-runner fixture OK, got %#v", result[0])
+		}
+		if result[0].Stage != "out-of-scope" {
+			t.Fatalf("expected out-of-scope stage, got %#v", result[0])
+		}
+		assertResultDetailContains(t, result, "no database schema or migration surface")
+	}
 }
 
 func TestAtlasHCLProbeReportsSchemaParseSupport(t *testing.T) {

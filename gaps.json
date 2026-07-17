@@ -975,18 +975,16 @@
   {
     "probe": "corpus-inventory",
     "fixture": "sdk/tmplrun/testdata/app.tmpl",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet",
-    "issue": "stokaro/ptah#289"
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "Atlas SDK template-runner fixture has no database schema or migration surface"
   },
   {
     "probe": "corpus-inventory",
     "fixture": "sdk/tmplrun/testdata/foo.go",
-    "stage": "unmeasured",
-    "outcome": "gap",
-    "detail": "Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet",
-    "issue": "stokaro/ptah#289"
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "Atlas SDK template-runner fixture has no database schema or migration surface"
   },
   {
     "probe": "corpus-inventory",
