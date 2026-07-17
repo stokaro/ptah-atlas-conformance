@@ -73,6 +73,15 @@ func (CorpusProbe) Run(fx Fixture) []Result {
 			Detail:  "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse",
 		}}
 	default:
+		if atlasSDKTemplateRunnerFixture(fx.Name) {
+			return []Result{{
+				Probe:   "corpus-inventory",
+				Fixture: fx.Name,
+				Stage:   "out-of-scope",
+				Outcome: OK,
+				Detail:  "Atlas SDK template-runner fixture has no database schema or migration surface",
+			}}
+		}
 		return []Result{{
 			Probe:   "corpus-inventory",
 			Fixture: fx.Name,
@@ -82,6 +91,10 @@ func (CorpusProbe) Run(fx Fixture) []Result {
 			Issue:   "stokaro/ptah#289",
 		}}
 	}
+}
+
+func atlasSDKTemplateRunnerFixture(name string) bool {
+	return strings.HasPrefix(name, "sdk/tmplrun/testdata/")
 }
 
 // AtlasHCLProbe feeds standalone Atlas HCL files into Ptah's Atlas HCL schema

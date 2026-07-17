@@ -6,23 +6,21 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 182 unwaived non-OK observation(s)
+## Status: NOT DONE — 180 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260716225918-fda82fce15ef`
-- Outcomes: **423 ok**, **182 gap**, **0 fail**, **0 panic**
-- Gate: **182 unwaived non-OK** (fails CI), 0 waived
-- Corpus inventory: **158 imported fixture(s)**, **156 measured**, **2 imported-but-unmeasured**
+- Outcomes: **425 ok**, **180 gap**, **0 fail**, **0 panic**
+- Gate: **180 unwaived non-OK** (fails CI), 0 waived
+- Corpus inventory: **158 imported fixture(s)**, **158 measured**, **0 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
-| **RED** | **gap** | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | unmeasured | Atlas test artifact is vendored but no conformance probe consumes this fixture kind yet | #289 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | unsupported: atlas schema inspect hcl | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | unsupported: atlas schema inspect format | #285 |
@@ -350,6 +348,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | corpus-inventory | `schemahcl/testdata/b.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `schemahcl/testdata/nested/c.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `schemahcl/testdata/variables.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `sdk/tmplrun/testdata/app.tmpl` | out-of-scope | Atlas SDK template-runner fixture has no database schema or migration surface |  |
+| — | ok | corpus-inventory | `sdk/tmplrun/testdata/foo.go` | out-of-scope | Atlas SDK template-runner fixture has no database schema or migration surface |  |
 | — | ok | corpus-inventory | `sql/migrate/testdata/golang-migrate` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `sql/migrate/testdata/lex` | import | imported SQL directory: 20 sql file(s), atlas.sum=false, 20 support file(s) |  |
 | — | ok | corpus-inventory | `sql/migrate/testdata/lexbegintry` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 1 support file(s) |  |
@@ -630,4 +630,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#285** — 180 finding(s)
-- **stokaro/ptah#289** — 2 finding(s)
