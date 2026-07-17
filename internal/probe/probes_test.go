@@ -2006,6 +2006,24 @@ func TestTxtarScriptProbeExecutesMySQLSchemaApplyDatasourceFixture(t *testing.T)
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLProjectURLEscapeFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/cli-project-url-escape.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "cli-project-url-escape.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarResolveAtlasSQLTenantsRequiresExactPattern(t *testing.T) {
 	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar")
 	if err != nil {
@@ -2029,6 +2047,66 @@ func TestTxtarResolveAtlasSQLTenantsRequiresExactPattern(t *testing.T) {
 		"pattern": "script_%",
 	}); ok {
 		t.Fatalf("expected wildcard pattern to stay unsupported, got %#v", tenants)
+	}
+}
+
+func TestTxtarResolveSchemaInspectEnvEscapesProjectURLPassword(t *testing.T) {
+	project := `variable "pass" {
+  default = "&pass?"
+}
+
+locals {
+  escaped_pass = urlescape(var.pass)
+}
+
+env "local" {
+  url = "mysql://a8m:${local.escaped_pass}@localhost:3308/script_case"
+}
+
+env "failed" {
+  url = "mysql://a8m:${var.pass}@localhost:3308/script_case"
+}
+`
+	runtime := &txtarRuntime{files: map[string]string{"atlas.hcl": project}}
+	fx := Fixture{Name: "mysql/case.txtar"}
+	sourceURL, result, ok := txtarResolveSchemaInspectEnv(fx, runtime, "local")
+	if !ok || result != nil {
+		t.Fatalf("expected resolved local URL, ok=%v result=%#v", ok, result)
+	}
+	if sourceURL != "mysql://a8m:%26pass%3F@localhost:3308/script_case" {
+		t.Fatalf("source URL = %q", sourceURL)
+	}
+	_, result, ok = txtarResolveSchemaInspectEnv(fx, runtime, "failed")
+	if !ok || result == nil || !result.failed {
+		t.Fatalf("expected failed raw URL result, ok=%v result=%#v", ok, result)
+	}
+	if !strings.Contains(result.stderr, `invalid port ":&pass" after host`) {
+		t.Fatalf("expected invalid port stderr, got %q", result.stderr)
+	}
+}
+
+func TestTxtarExecSQLMySQLAuthNoopIsNarrow(t *testing.T) {
+	supported := []string{
+		`CREATE USER IF NOT EXISTS "a8m"@"%" IDENTIFIED BY "&pass?"`,
+		`GRANT ALL PRIVILEGES ON *.* TO "a8m"@"%" WITH GRANT OPTION`,
+		`DROP USER "a8m"@"%"`,
+	}
+	for _, stmt := range supported {
+		if !txtarExecSQLMySQLAuthNoop(stmt) {
+			t.Fatalf("expected auth no-op support for %q", stmt)
+		}
+	}
+
+	unsupported := []string{
+		`CREATE USER "a8m"@"%" IDENTIFIED BY "&pass?"`,
+		`CREATE DATABASE script_case`,
+		`CREATE TABLE users (id int)`,
+		`GRANT SELECT ON *.* TO "a8m"@"%"`,
+	}
+	for _, stmt := range unsupported {
+		if txtarExecSQLMySQLAuthNoop(stmt) {
+			t.Fatalf("expected auth no-op rejection for %q", stmt)
+		}
 	}
 }
 
