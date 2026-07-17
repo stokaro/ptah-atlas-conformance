@@ -758,6 +758,168 @@ schema "script_column_json" {
 	}
 }
 
+func TestTxtarScriptProbeExecutesMariaDBColumnTimePrecisionFixture(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "column-time-precision-maria.txtar")
+	writeTestFile(t, path, `only maria*
+
+apply 1.hcl
+cmpshow foo 1.sql
+cmphcl 1.inspect.hcl
+
+-- 1.hcl --
+schema "script_column_time_precision_maria" {}
+
+table "foo" {
+  schema = schema.script_column_time_precision_maria
+  column "id" {
+    null = false
+    type = char(36)
+  }
+  column "precision_default" {
+    null = false
+    type = timestamp
+    default = sql("CURRENT_TIMESTAMP")
+    on_update = sql("CURRENT_TIMESTAMP")
+  }
+  column "create_time" {
+    null = false
+    type = timestamp(6)
+    default = sql("CURRENT_TIMESTAMP(6)")
+  }
+  column "update_time" {
+    null = false
+    type = datetime(6)
+    default = sql("CURRENT_TIMESTAMP(6)")
+    on_update = sql("CURRENT_TIMESTAMP(6)")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `+"`foo`"+` (
+  `+"`id`"+` char(36) NOT NULL,
+  `+"`precision_default`"+` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `+"`create_time`"+` timestamp(6) NOT NULL DEFAULT current_timestamp(6),
+  `+"`update_time`"+` datetime(6) NOT NULL DEFAULT current_timestamp(6) ON UPDATE current_timestamp(6),
+  PRIMARY KEY (`+"`id`"+`)
+)
+
+-- 1.inspect.hcl --
+table "foo" {
+  schema = schema.script_column_time_precision_maria
+  column "id" {
+    null = false
+    type = char(36)
+  }
+  column "precision_default" {
+    null    = false
+    type    = timestamp
+    default = sql("CURRENT_TIMESTAMP")
+    on_update = sql("CURRENT_TIMESTAMP")
+  }
+  column "create_time" {
+    null    = false
+    type    = timestamp(6)
+    default = sql("CURRENT_TIMESTAMP(6)")
+  }
+  column "update_time" {
+    null    = false
+    type    = datetime(6)
+    default = sql("CURRENT_TIMESTAMP(6)")
+    on_update = sql("CURRENT_TIMESTAMP(6)")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+schema "script_column_time_precision_maria" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_general_ci"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-time-precision-maria.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLColumnTimePrecisionFixture(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "column-time-precision-mysql.txtar")
+	writeTestFile(t, path, `only mysql56 mysql57 mysql8
+
+apply 1.hcl
+cmpshow foo 1.sql
+
+-- 1.hcl --
+schema "script_column_time_precision_mysql" {}
+
+table "foo" {
+  schema = schema.script_column_time_precision_mysql
+  column "id" {
+    null = false
+    type = char(36)
+  }
+  column "precision_default" {
+    null = false
+    type = timestamp
+    default = sql("CURRENT_TIMESTAMP")
+    on_update = sql("CURRENT_TIMESTAMP")
+  }
+  column "create_time" {
+    null = false
+    type = timestamp(6)
+    default = sql("CURRENT_TIMESTAMP(6)")
+  }
+  column "update_time" {
+    null = false
+    type = datetime(6)
+    default = sql("CURRENT_TIMESTAMP(6)")
+    on_update = sql("CURRENT_TIMESTAMP(6)")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `+"`foo`"+` (
+  `+"`id`"+` char(36) NOT NULL,
+  `+"`precision_default`"+` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `+"`create_time`"+` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `+"`update_time`"+` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`+"`id`"+`)
+)
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-time-precision-mysql.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesSchemaInspectHCLAndCmp(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
