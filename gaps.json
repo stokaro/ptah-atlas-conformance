@@ -2349,33 +2349,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect hcl",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect sql",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/check.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect hcl",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/check.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect sql",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
