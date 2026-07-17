@@ -476,7 +476,7 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarCmpShow(fx, runtime, fields); ok {
 		return result
 	}
-	if result, ok := runTxtarSchemaApply(runtime, fields); ok {
+	if result, ok := runTxtarSchemaApply(fx, runtime, fields); ok {
 		return result
 	}
 	if result, ok := runTxtarSchemaDiff(fx, runtime, fields); ok {
@@ -1821,7 +1821,7 @@ func txtarSQLiteApplyTableSupported(table *ast.CreateTableNode) bool {
 		return false
 	}
 	for _, column := range table.Columns {
-		if column.Unique || column.Default != nil || column.Check != "" || column.CheckName != "" ||
+		if column.Unique || column.Check != "" || column.CheckName != "" ||
 			column.Comment != "" || column.ForeignKey != nil {
 			return false
 		}
@@ -2024,7 +2024,7 @@ func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 			err:    fmt.Errorf("cmpshow %s %s: %s missing", fields[1], fields[2], fields[2]),
 		}, true
 	}
-	if txtarTableHasIndexes(fx, runtime.dbStatements, fields[1]) {
+	if txtarTableNeedsSQLShowCompare(fx, runtime.dbStatements, fields[1]) {
 		return txtarCmpShowSQL(fx, runtime, fields[1], fields[2], expectedSQL)
 	}
 	expectedStatements, err := txtarParseExpectedShowSQL(expectedSQL)
@@ -2044,11 +2044,20 @@ func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 	return txtarCommandResult{}, true
 }
 
-func txtarTableHasIndexes(fx Fixture, statements []ast.Node, name string) bool {
+func txtarTableNeedsSQLShowCompare(fx Fixture, statements []ast.Node, name string) bool {
 	schemaName := txtarFixtureSchemaName(fx)
 	for _, stmt := range statements {
 		index, ok := stmt.(*ast.IndexNode)
 		if ok && atlasHCLTableIdentifier(index.Table, schemaName) == name {
+			return true
+		}
+	}
+	table, ok := txtarFindTable(schemaName, statements, name)
+	if !ok {
+		return false
+	}
+	for _, column := range table.Columns {
+		if column.Default != nil || column.GeneratedExpression != "" {
 			return true
 		}
 	}
@@ -2069,14 +2078,27 @@ func txtarCmpShowSQL(
 	if !ok {
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
-	if txtarNormalizeShowSQL(actual) != txtarNormalizeShowSQL(expectedSQL) {
+	expected := txtarCanonicalShowSQL(fx, expectedSQL)
+	if txtarNormalizeShowSQL(actual) != txtarNormalizeShowSQL(expected) {
 		return txtarCommandResult{
 			failed: true,
 			err: fmt.Errorf("cmpshow %s %s did not match: got %q want %q",
-				tableName, expectedName, oneLine(actual), oneLine(expectedSQL)),
+				tableName, expectedName, oneLine(actual), oneLine(expected)),
 		}, true
 	}
 	return txtarCommandResult{}, true
+}
+
+func txtarCanonicalShowSQL(fx Fixture, sql string) string {
+	statements, err := txtarParseExpectedShowSQL(sql)
+	if err != nil {
+		return sql
+	}
+	out, ok := txtarVirtualStateShowSQL(fx, statements)
+	if !ok {
+		return sql
+	}
+	return out
 }
 
 func txtarVirtualStateShowSQL(fx Fixture, statements []ast.Node) (string, bool) {
@@ -2184,78 +2206,148 @@ func atlasMigrationVersion(name string) string {
 	return base
 }
 
-func runTxtarSchemaApply(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+func runTxtarSchemaApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "apply" {
 		return txtarCommandResult{}, false
 	}
 
-	var sourceURL, file, to string
-	hasEnv := false
-	for i := 3; i < len(fields); i++ {
-		switch fields[i] {
-		case "-u", "--url":
-			if i+1 < len(fields) {
-				sourceURL = fields[i+1]
-				i++
-			}
-		case "-f", "--file":
-			if i+1 < len(fields) {
-				file = fields[i+1]
-				i++
-			}
-		case "--to":
-			if i+1 < len(fields) {
-				to = fields[i+1]
-				i++
-			}
-		case "--env":
-			hasEnv = true
-			if i+1 < len(fields) {
-				i++
-			}
-		default:
-			switch {
-			case strings.HasPrefix(fields[i], "-u="):
-				sourceURL = strings.TrimPrefix(fields[i], "-u=")
-			case strings.HasPrefix(fields[i], "--url="):
-				sourceURL = strings.TrimPrefix(fields[i], "--url=")
-			case strings.HasPrefix(fields[i], "-f="):
-				file = strings.TrimPrefix(fields[i], "-f=")
-			case strings.HasPrefix(fields[i], "--file="):
-				file = strings.TrimPrefix(fields[i], "--file=")
-			case strings.HasPrefix(fields[i], "--to="):
-				to = strings.TrimPrefix(fields[i], "--to=")
-			case strings.HasPrefix(fields[i], "--env="):
-				hasEnv = true
-			}
-		}
-	}
-	if hasEnv {
+	args := parseTxtarSchemaApplyArgs(fields[3:])
+	if args.hasEnv {
 		return txtarCommandResult{unsupported: "atlas schema apply"}, true
 	}
-	if sourceURL == "" {
+	if args.sourceURL == "" {
 		return txtarCommandResult{
 			stderr: "Error: \"url\" not set\n",
 			failed: true,
 			err:    fmt.Errorf("\"url\" not set"),
 		}, true
 	}
-	if file == "" && to == "" {
+	if len(args.files) == 0 && args.to == "" {
 		return txtarCommandResult{
 			stderr: "Error: one of flag(s) \"file\" or \"to\" is required\n",
 			failed: true,
 			err:    fmt.Errorf("one of flag(s) \"file\" or \"to\" is required"),
 		}, true
 	}
-	if file != "" && txtarFileLooksLikeAtlasProject(runtime.files[file]) {
+	statements, err := txtarSchemaApplyStatements(fx, runtime, args)
+	if errors.Is(err, errUnsupportedInspectHCL) {
+		return txtarCommandResult{unsupported: "atlas schema apply"}, true
+	}
+	if errors.Is(err, errAtlasProjectFile) {
 		return txtarCommandResult{
 			stderr: "Error: cannot parse project file\n",
 			failed: true,
-			err:    fmt.Errorf("cannot parse project file"),
+			err:    errAtlasProjectFile,
 		}, true
 	}
-	return txtarCommandResult{unsupported: "atlas schema apply"}, true
+	if err != nil {
+		return txtarCommandResult{err: err}, true
+	}
+	if !txtarFixtureSupportsVirtualApply(fx, statements) {
+		return txtarCommandResult{unsupported: "atlas schema apply"}, true
+	}
+	if txtarVirtualStatesEqual(fx, runtime.dbStatements, statements) {
+		runtime.hasVirtualDBState = true
+		runtime.dbStatements = statements
+		return txtarCommandResult{stdout: "Schema is synced, no changes to be made\n"}, true
+	}
+	runtime.hasVirtualDBState = true
+	runtime.dbStatements = statements
+	return txtarCommandResult{}, true
 }
+
+type txtarSchemaApplyArgs struct {
+	sourceURL string
+	files     []string
+	to        string
+	hasEnv    bool
+}
+
+func parseTxtarSchemaApplyArgs(fields []string) txtarSchemaApplyArgs {
+	var args txtarSchemaApplyArgs
+	for i := 0; i < len(fields); i++ {
+		switch fields[i] {
+		case "-u", "--url":
+			if i+1 < len(fields) {
+				args.sourceURL = fields[i+1]
+				i++
+			}
+		case "-f", "--file":
+			if i+1 < len(fields) {
+				args.files = append(args.files, fields[i+1])
+				i++
+			}
+		case "--to":
+			if i+1 < len(fields) {
+				args.to = fields[i+1]
+				i++
+			}
+		case "--env":
+			args.hasEnv = true
+			if i+1 < len(fields) {
+				i++
+			}
+		default:
+			switch {
+			case strings.HasPrefix(fields[i], "-u="):
+				args.sourceURL = strings.TrimPrefix(fields[i], "-u=")
+			case strings.HasPrefix(fields[i], "--url="):
+				args.sourceURL = strings.TrimPrefix(fields[i], "--url=")
+			case strings.HasPrefix(fields[i], "-f="):
+				args.files = append(args.files, strings.TrimPrefix(fields[i], "-f="))
+			case strings.HasPrefix(fields[i], "--file="):
+				args.files = append(args.files, strings.TrimPrefix(fields[i], "--file="))
+			case strings.HasPrefix(fields[i], "--to="):
+				args.to = strings.TrimPrefix(fields[i], "--to=")
+			case strings.HasPrefix(fields[i], "--env="):
+				args.hasEnv = true
+			}
+		}
+	}
+	return args
+}
+
+func txtarSchemaApplyStatements(fx Fixture, runtime *txtarRuntime, args txtarSchemaApplyArgs) ([]ast.Node, error) {
+	if len(args.files) > 0 && args.to != "" {
+		return nil, errUnsupportedInspectHCL
+	}
+	files := args.files
+	if args.to != "" {
+		if !strings.HasPrefix(args.to, "file://") {
+			return nil, errUnsupportedInspectHCL
+		}
+		files = []string{txtarFileURLPath(args.to)}
+	}
+	var chunks []string
+	for _, file := range files {
+		data, ok := runtime.files[file]
+		if !ok {
+			return nil, fmt.Errorf("file %q not found in txtar archive", file)
+		}
+		if txtarFileLooksLikeAtlasProject(data) {
+			return nil, errAtlasProjectFile
+		}
+		chunks = append(chunks, data)
+	}
+	return txtarHCLStatements(fx, strings.Join(files, ","), strings.Join(chunks, "\n"))
+}
+
+func txtarVirtualStatesEqual(fx Fixture, current, next []ast.Node) bool {
+	if len(current) == 0 {
+		return false
+	}
+	currentSQL, ok := txtarVirtualStateShowSQL(fx, current)
+	if !ok {
+		return false
+	}
+	nextSQL, ok := txtarVirtualStateShowSQL(fx, next)
+	if !ok {
+		return false
+	}
+	return txtarNormalizeShowSQL(currentSQL) == txtarNormalizeShowSQL(nextSQL)
+}
+
+var errAtlasProjectFile = errors.New("cannot parse project file")
 
 func txtarFileLooksLikeAtlasProject(data string) bool {
 	return strings.Contains(data, `env "`)
@@ -3851,7 +3943,23 @@ func atlasDefaultSQL(def *ast.DefaultValue) string {
 	if def.Expression != "" {
 		return def.Expression
 	}
-	return def.Value
+	value := strings.TrimSpace(def.Value)
+	if value == "" || atlasDefaultLiteralIsRawSQL(value) {
+		return value
+	}
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
+func atlasDefaultLiteralIsRawSQL(value string) bool {
+	if strings.HasPrefix(value, "'") || strings.HasPrefix(value, "\"") || strings.HasPrefix(value, "`") {
+		return true
+	}
+	switch strings.ToLower(value) {
+	case "true", "false", "null":
+		return true
+	}
+	_, err := strconv.ParseFloat(value, 64)
+	return err == nil
 }
 
 func renderAtlasCheckSQL(quote func(string) string, name, expr string) string {
@@ -4012,6 +4120,9 @@ func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.Constrain
 }
 
 func atlasColumnType(dialect, typ string) string {
+	if strings.HasPrefix(typ, "sql(") {
+		return typ
+	}
 	normalized := strings.ToLower(typ)
 	if dialect == "sqlite" {
 		if base, _, ok := strings.Cut(normalized, "("); ok {

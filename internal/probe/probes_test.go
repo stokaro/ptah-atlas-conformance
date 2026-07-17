@@ -2272,16 +2272,16 @@ table "users" {
   column "a" {
     null = false
     type = int
-    default = 1
+    comment = "still unsupported by virtual apply"
   }
 }
 
 -- expected.sql --
-CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL DEFAULT 1)
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL)
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
-		Name:  "sqlite/default.txtar",
+		Name:  "sqlite/comment.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},
@@ -3382,6 +3382,118 @@ schema "main" {}
 
 	results := TxtarScriptProbe{}.Run(Fixture{
 		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesSQLiteSchemaApplyMultifileCmpShow(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema apply -f users.hcl -f schema.hcl -u URL --auto-approve
+cmpshow users expected.sql
+
+-- users.hcl --
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+  column "status" {
+    null = true
+    type = text
+    default = "hello"
+  }
+}
+-- schema.hcl --
+schema "main" {
+}
+-- expected.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` int NOT NULL, `+"`"+`status`+"`"+` text NULL DEFAULT 'hello')
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-apply-multifile.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesSQLiteSchemaApplyToFileAndDBInspect(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema apply --url URL --dev-url DEV_URL --to file://schema.v1.hcl --auto-approve
+atlas schema apply --url URL --dev-url DEV_URL --to file://schema.v1.hcl --auto-approve
+stdout 'Schema is synced, no changes to be made'
+atlas schema inspect --url URL > got
+cmp schema.v1.hcl.inspected got
+atlas schema apply --url URL --dev-url DEV_URL --to file://schema.v2.hcl --auto-approve
+atlas schema apply --url URL --dev-url DEV_URL --to file://schema.v2.hcl --auto-approve
+stdout 'Schema is synced, no changes to be made'
+atlas schema inspect --url URL > got
+cmp schema.v2.hcl.inspected got
+
+-- schema.v1.hcl --
+table "t" {
+  schema = schema.main
+  column "c" {
+    null = true
+    type = sql("USER_DEFINED")
+  }
+}
+schema "main" {
+}
+-- schema.v1.hcl.inspected --
+table "t" {
+  schema = schema.main
+  column "c" {
+    null = true
+    type = sql("USER_DEFINED")
+  }
+}
+schema "main" {
+}
+-- schema.v2.hcl --
+table "t" {
+  schema = schema.main
+  column "c" {
+    null = true
+    type = sql("USER_TYPE")
+  }
+}
+schema "main" {
+}
+-- schema.v2.hcl.inspected --
+table "t" {
+  schema = schema.main
+  column "c" {
+    null = true
+    type = sql("USER_TYPE")
+  }
+}
+schema "main" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/column-user-defined.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},
