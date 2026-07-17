@@ -1951,6 +1951,24 @@ func TestTxtarScriptProbeExecutesMySQLIndexUniqueFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLProjectSchemasFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/cli-project-schemas.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "cli-project-schemas.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarParseInsertRows(t *testing.T) {
 	tableName, rows, ok := txtarParseInsertRows("INSERT INTO $db.t (c, d) VALUES (1, 1), (1, 2), (1, 3)")
 	if !ok {
