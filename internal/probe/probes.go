@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/stokaro/ptah/core/atlashcl"
 	"github.com/stokaro/ptah/core/parser"
 	"github.com/stokaro/ptah/dbschema"
@@ -96,12 +99,20 @@ func (AtlasHCLProbe) Run(fx Fixture) []Result {
 		return []Result{{"atlas-hcl-parse", fx.Name, "load", Fail,
 			fmt.Sprintf("expected one HCL file, got %d", len(fx.Files)), "stokaro/ptah#276"}}
 	}
+	data, err := os.ReadFile(fx.Files[0])
+	if err != nil {
+		return []Result{{"atlas-hcl-parse", fx.Name, "load", Fail,
+			"read Atlas HCL schema file: " + err.Error(), "stokaro/ptah#276"}}
+	}
+	if detail, ok := atlasSchemaHCLNonSchemaFixture(fx.Name, data); ok {
+		return []Result{{"atlas-hcl-parse", fx.Name, "parse", OK, detail, ""}}
+	}
 
 	var tableCount int
 	var fieldCount int
 	var parseErr error
 	panicked, pmsg := guard(func() {
-		db, err := atlashcl.ParseFile(fx.Files[0])
+		db, err := atlashcl.Parse(data, fx.Files[0])
 		parseErr = err
 		if db != nil {
 			tableCount = len(db.Tables)
@@ -120,6 +131,35 @@ func (AtlasHCLProbe) Run(fx Fixture) []Result {
 		return []Result{{"atlas-hcl-parse", fx.Name, "parse", OK,
 			fmt.Sprintf("parsed Atlas HCL schema file: %d table(s), %d field(s)", tableCount, fieldCount), ""}}
 	}
+}
+
+func atlasSchemaHCLNonSchemaFixture(name string, data []byte) (string, bool) {
+	if !strings.HasPrefix(name, "schemahcl/testdata/") {
+		return "", false
+	}
+	file, diags := hclsyntax.ParseConfig(data, name, hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		return "", false
+	}
+	body, ok := file.Body.(*hclsyntax.Body)
+	if !ok {
+		return "", false
+	}
+	var blocks []string
+	for _, block := range body.Blocks {
+		switch block.Type {
+		case "schema", "table":
+			return "", false
+		default:
+			blocks = append(blocks, block.Type)
+		}
+	}
+	if len(blocks) == 0 {
+		return "Atlas schemahcl fixture has no schema objects; outside Ptah schema surface", true
+	}
+	slices.Sort(blocks)
+	blocks = slices.Compact(blocks)
+	return "Atlas schemahcl fixture has only non-schema top-level blocks: " + strings.Join(blocks, ", "), true
 }
 
 // ParseProbe feeds each Atlas .sql file into Ptah's DDL parser and records
