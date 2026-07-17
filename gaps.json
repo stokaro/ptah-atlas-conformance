@@ -3381,97 +3381,36 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 1 supported command(s), checked 17 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s), checked 35 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 6 supported command(s), checked 57 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 1 supported command(s), checked 18 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate lint",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",

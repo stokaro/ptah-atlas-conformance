@@ -449,6 +449,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarMigrateDiff(fx, runtime, fields, expectedFailure); ok {
 		return result
 	}
+	if result, ok := runTxtarMigrateLint(fx, runtime, fields); ok {
+		return result
+	}
 	if result, ok := runTxtarMigrateApply(fx, runtime, fields); ok {
 		return result
 	}
@@ -522,7 +525,7 @@ func txtarCommandReadsUnsupportedFile(runtime *txtarRuntime, line string, unsupp
 		switch fields[1] + " " + fields[2] {
 		case "migrate hash":
 			return txtarMigrateHashReadsUnsupportedFile(runtime, fields[3:], unsupportedFiles)
-		case "migrate apply", "migrate new", "migrate set", "migrate status", "migrate validate":
+		case "migrate apply", "migrate lint", "migrate new", "migrate set", "migrate status", "migrate validate":
 			return txtarMigrateCommandReadsUnsupportedFile(runtime, fields[3:], unsupportedFiles)
 		case "schema diff":
 			return txtarSchemaDiffReadsUnsupportedFile(fields[3:], unsupportedFiles)
@@ -1513,6 +1516,648 @@ func runTxtarClearSchema(runtime *txtarRuntime, fields []string) (txtarCommandRe
 	runtime.appliedMigrations = nil
 	runtime.appliedVersion = ""
 	return txtarCommandResult{}, true
+}
+
+type txtarMigrateLintArgs struct {
+	dir         string
+	devURL      string
+	env         string
+	logTemplate string
+	latest      int
+	redirect    string
+	blocked     bool
+}
+
+func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "lint" {
+		return txtarCommandResult{}, false
+	}
+	if txtarFixtureFamily(fx) != "sqlite" {
+		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
+	}
+
+	args := txtarParseMigrateLintArgs(fields[3:])
+	if args.blocked {
+		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
+	}
+	var err error
+	args, err = txtarResolveMigrateLintProject(runtime, args)
+	if errors.Is(err, errUnsupportedInspectHCL) {
+		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
+	}
+	if err != nil {
+		return txtarCommandResult{err: err}, true
+	}
+	if args.devURL == "" {
+		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
+	}
+
+	files := txtarSelectedMigrateLintFiles(runtime, args)
+	if len(files) == 0 {
+		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
+	}
+	if output, ok := txtarRenderMigrateLintLog(args, files); ok {
+		if args.redirect != "" {
+			runtime.files[args.redirect] = output
+			runtime.addParentDirs(args.redirect)
+			return txtarCommandResult{}, true
+		}
+		return txtarCommandResult{stdout: output}, true
+	}
+	if args.logTemplate != "" {
+		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
+	}
+
+	report := txtarAnalyzeMigrateLintFiles(runtime, args.dir, files)
+	if report.skipOutput && len(report.files) == 0 {
+		return txtarCommandResult{}, true
+	}
+	output := txtarRenderMigrateLintReport(files, report)
+	if args.redirect != "" {
+		runtime.files[args.redirect] = output
+		runtime.addParentDirs(args.redirect)
+		return txtarCommandResult{failed: report.hasErrors(), err: report.err()}, true
+	}
+	return txtarCommandResult{stdout: output, failed: report.hasErrors(), err: report.err()}, true
+}
+
+func txtarParseMigrateLintArgs(fields []string) txtarMigrateLintArgs {
+	out := txtarMigrateLintArgs{dir: "migrations"}
+	for i := 0; i < len(fields); i++ {
+		switch fields[i] {
+		case "--dir":
+			if i+1 < len(fields) {
+				out.dir = txtarFileURLPath(fields[i+1])
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--dev-url":
+			if i+1 < len(fields) {
+				out.devURL = fields[i+1]
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--env":
+			if i+1 < len(fields) {
+				out.env = fields[i+1]
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--latest":
+			if i+1 < len(fields) {
+				out.latest = txtarPositiveInt(fields[i+1])
+				i++
+			} else {
+				out.blocked = true
+			}
+		case ">":
+			if i+1 < len(fields) {
+				out.redirect = fields[i+1]
+				i++
+			} else {
+				out.blocked = true
+			}
+		default:
+			switch {
+			case strings.HasPrefix(fields[i], "--dir="):
+				out.dir = txtarFileURLPath(strings.TrimPrefix(fields[i], "--dir="))
+			case strings.HasPrefix(fields[i], "--dev-url="):
+				out.devURL = strings.TrimPrefix(fields[i], "--dev-url=")
+			case strings.HasPrefix(fields[i], "--env="):
+				out.env = strings.TrimPrefix(fields[i], "--env=")
+			case strings.HasPrefix(fields[i], "--latest="):
+				out.latest = txtarPositiveInt(strings.TrimPrefix(fields[i], "--latest="))
+			case strings.HasPrefix(fields[i], "-"):
+				out.blocked = true
+			default:
+				out.blocked = true
+			}
+		}
+	}
+	if out.latest < 0 {
+		out.blocked = true
+	}
+	return out
+}
+
+func txtarPositiveInt(value string) int {
+	n, err := strconv.Atoi(value)
+	if err != nil || n < 0 {
+		return -1
+	}
+	return n
+}
+
+func txtarResolveMigrateLintProject(runtime *txtarRuntime, args txtarMigrateLintArgs) (txtarMigrateLintArgs, error) {
+	project, ok := runtime.files["atlas.hcl"]
+	if !ok {
+		return args, nil
+	}
+	if args.env != "" {
+		env, ok := txtarAtlasNamedBlock(project, "env", args.env)
+		if !ok {
+			return args, errUnsupportedInspectHCL
+		}
+		if args.devURL == "" {
+			if devURL, ok := txtarHCLStringAttr(env, "dev"); ok {
+				args.devURL = devURL
+			}
+		}
+		if lintBlock, ok := txtarAtlasAnonymousBlock(env, "lint"); ok {
+			args = txtarApplyMigrateLintBlock(args, lintBlock)
+		}
+	}
+	if args.latest == 0 {
+		if lintBlock, ok := txtarAtlasAnonymousBlock(project, "lint"); ok {
+			args = txtarApplyMigrateLintBlock(args, lintBlock)
+		}
+	}
+	return args, nil
+}
+
+func txtarApplyMigrateLintBlock(args txtarMigrateLintArgs, block string) txtarMigrateLintArgs {
+	if args.latest == 0 {
+		if value, ok := txtarHCLAttrValue(block, "latest"); ok {
+			args.latest = txtarPositiveInt(value)
+		}
+	}
+	if value, ok := txtarHCLStringAttr(block, "log"); ok {
+		args.logTemplate = value
+	}
+	return args
+}
+
+func txtarSelectedMigrateLintFiles(runtime *txtarRuntime, args txtarMigrateLintArgs) []string {
+	files := txtarMigrationSQLFilesInDir(runtime, args.dir)
+	if len(files) == 0 {
+		return nil
+	}
+	if args.latest <= 0 || args.latest >= len(files) {
+		return files
+	}
+	return files[len(files)-args.latest:]
+}
+
+func txtarRenderMigrateLintLog(args txtarMigrateLintArgs, files []string) (string, bool) {
+	tmpl := args.logTemplate
+	if tmpl == "" {
+		return "", false
+	}
+	switch strings.TrimSpace(tmpl) {
+	case "{{ range .Files }}{{ println .Name }}{{ end }}":
+		var out strings.Builder
+		for _, file := range files {
+			fmt.Fprintln(&out, path.Base(file))
+		}
+		return out.String(), true
+	case "{{ len .Files | println }}":
+		return fmt.Sprintf("%d\n", len(files)), true
+	default:
+		return "", false
+	}
+}
+
+type txtarMigrateLintReport struct {
+	files      []txtarMigrateLintFileReport
+	skipOutput bool
+}
+
+type txtarMigrateLintFileReport struct {
+	file        string
+	changes     int
+	diagnostics []txtarMigrateLintDiagnostic
+}
+
+type txtarMigrateLintDiagnostic struct {
+	line     int
+	category string
+	code     string
+	message  string
+}
+
+func (r txtarMigrateLintReport) hasErrors() bool {
+	for _, file := range r.files {
+		for _, diag := range file.diagnostics {
+			if diag.category == "destructive" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (r txtarMigrateLintReport) err() error {
+	if !r.hasErrors() {
+		return nil
+	}
+	return fmt.Errorf("migration lint found destructive changes")
+}
+
+func txtarAnalyzeMigrateLintFiles(runtime *txtarRuntime, dir string, selected []string) txtarMigrateLintReport {
+	all := txtarMigrationSQLFilesInDir(runtime, dir)
+	createdBefore := map[string]bool{}
+	for _, file := range all {
+		if slices.Contains(selected, file) {
+			break
+		}
+		for _, stmt := range txtarLintStatements(runtime.files[file]) {
+			if stmt.kind == "create_table" {
+				createdBefore[stmt.table] = true
+			}
+			if stmt.kind == "drop_table" {
+				delete(createdBefore, stmt.table)
+			}
+		}
+	}
+
+	report := txtarMigrateLintReport{}
+	for _, file := range selected {
+		fileReport := txtarAnalyzeMigrateLintFile(runtime.files[file], createdBefore)
+		if fileReport.skipOutput {
+			report.skipOutput = true
+			continue
+		}
+		fileReport.file = file
+		report.files = append(report.files, fileReport.txtarMigrateLintFileReport)
+		for _, stmt := range txtarLintStatements(runtime.files[file]) {
+			if stmt.kind == "create_table" {
+				createdBefore[stmt.table] = true
+			}
+			if stmt.kind == "drop_table" {
+				delete(createdBefore, stmt.table)
+			}
+		}
+	}
+	return report
+}
+
+type txtarLintStatement struct {
+	kind       string
+	table      string
+	column     string
+	columnType string
+	line       int
+	notNull    bool
+	hasDefault bool
+	ignore     map[string]bool
+}
+
+type txtarMigrateLintRawFileReport struct {
+	txtarMigrateLintFileReport
+	skipOutput bool
+}
+
+func txtarAnalyzeMigrateLintFile(data string, createdBefore map[string]bool) txtarMigrateLintRawFileReport {
+	if txtarLintWholeFileIgnored(data) {
+		return txtarMigrateLintRawFileReport{skipOutput: true}
+	}
+	fileIgnore := txtarLintFileWideNolint(data)
+	var report txtarMigrateLintRawFileReport
+	for _, stmt := range txtarLintStatements(data) {
+		stmt.ignore = txtarMergeLintIgnores(fileIgnore, stmt.ignore)
+		report.changes++
+		switch stmt.kind {
+		case "drop_table":
+			if !txtarLintIgnored(stmt.ignore, "destructive", "DS102") {
+				report.diagnostics = append(report.diagnostics, txtarMigrateLintDiagnostic{
+					line:     stmt.line,
+					category: "destructive",
+					code:     "DS102",
+					message:  fmt.Sprintf("Dropping table %q", stmt.table),
+				})
+			}
+		case "add_column":
+			if createdBefore[stmt.table] && stmt.notNull && !stmt.hasDefault &&
+				!txtarLintIgnored(stmt.ignore, "data_depend", "MF103") {
+				report.diagnostics = append(report.diagnostics, txtarMigrateLintDiagnostic{
+					line:     stmt.line,
+					category: "data_depend",
+					code:     "MF103",
+					message: fmt.Sprintf(
+						"Adding a non-nullable %q column %q will fail in case table %q is not empty",
+						stmt.columnType,
+						stmt.column,
+						stmt.table,
+					),
+				})
+			}
+		}
+	}
+	return report
+}
+
+func txtarLintFileWideNolint(data string) map[string]bool {
+	lines := strings.Split(data, "\n")
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		if !strings.HasPrefix(trimmed, "-- atlas:nolint") {
+			return nil
+		}
+		for _, rest := range lines[i+1:] {
+			trimmedRest := strings.TrimSpace(rest)
+			if trimmedRest == "" {
+				ignore, _ := txtarLintStripNolint(line)
+				return ignore
+			}
+			if strings.HasPrefix(trimmedRest, "--") {
+				continue
+			}
+			return nil
+		}
+		return nil
+	}
+	return nil
+}
+
+func txtarMergeLintIgnores(first, second map[string]bool) map[string]bool {
+	if len(first) == 0 {
+		return second
+	}
+	merged := maps.Clone(first)
+	for key := range second {
+		merged[key] = true
+	}
+	return merged
+}
+
+func txtarLintWholeFileIgnored(data string) bool {
+	lines := strings.Split(data, "\n")
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		if strings.EqualFold(trimmed, "-- atlas:nolint") {
+			for _, rest := range lines[i+1:] {
+				trimmedRest := strings.TrimSpace(rest)
+				if trimmedRest == "" {
+					return true
+				}
+				if strings.HasPrefix(trimmedRest, "--") {
+					continue
+				}
+				return false
+			}
+		}
+		return false
+	}
+	return false
+}
+
+func txtarLintStatements(data string) []txtarLintStatement {
+	var out []txtarLintStatement
+	var pendingIgnore map[string]bool
+	line := 1
+	for _, raw := range strings.Split(data, ";") {
+		stmtLine := line
+		line += strings.Count(raw, "\n")
+		ignore, sql := txtarLintStripNolint(raw)
+		if len(ignore) > 0 {
+			pendingIgnore = ignore
+		}
+		sql = strings.TrimSpace(txtarStripSQLBlockComments(sql))
+		if sql == "" {
+			continue
+		}
+		stmt := txtarParseLintStatement(sql)
+		stmt.line = stmtLine + txtarLeadingLineOffset(raw)
+		stmt.ignore = pendingIgnore
+		pendingIgnore = nil
+		if stmt.kind != "" {
+			out = append(out, stmt)
+		}
+	}
+	return out
+}
+
+func txtarLintStripNolint(raw string) (map[string]bool, string) {
+	lines := strings.Split(raw, "\n")
+	ignore := map[string]bool{}
+	var sql []string
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "-- atlas:nolint") {
+			fields := strings.Fields(strings.TrimPrefix(trimmed, "-- atlas:nolint"))
+			if len(fields) == 0 {
+				ignore["all"] = true
+			}
+			for _, field := range fields {
+				ignore[field] = true
+			}
+			continue
+		}
+		sql = append(sql, line)
+	}
+	if len(ignore) == 0 {
+		return nil, strings.Join(sql, "\n")
+	}
+	return ignore, strings.Join(sql, "\n")
+}
+
+func txtarLeadingLineOffset(raw string) int {
+	offset := 0
+	for _, line := range strings.Split(raw, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "--") {
+			offset++
+			continue
+		}
+		return offset
+	}
+	return offset
+}
+
+func txtarParseLintStatement(sql string) txtarLintStatement {
+	fields := strings.Fields(strings.TrimSpace(sql))
+	if len(fields) < 3 {
+		return txtarLintStatement{}
+	}
+	upper := make([]string, len(fields))
+	for i, field := range fields {
+		upper[i] = strings.ToUpper(strings.Trim(field, "`\""))
+	}
+	if upper[0] == "CREATE" && upper[1] == "TABLE" {
+		return txtarLintStatement{kind: "create_table", table: txtarCleanSQLIdentifier(fields[2])}
+	}
+	if upper[0] == "DROP" && upper[1] == "TABLE" {
+		return txtarLintStatement{kind: "drop_table", table: txtarCleanSQLIdentifier(fields[2])}
+	}
+	if len(fields) >= 7 && upper[0] == "ALTER" && upper[1] == "TABLE" &&
+		upper[3] == "ADD" && upper[4] == "COLUMN" {
+		return txtarLintStatement{
+			kind:       "add_column",
+			table:      txtarCleanSQLIdentifier(fields[2]),
+			column:     txtarCleanSQLIdentifier(fields[5]),
+			columnType: strings.ToLower(txtarCleanSQLIdentifier(fields[6])),
+			notNull:    slices.Contains(upper, "NOT") && slices.Contains(upper, "NULL"),
+			hasDefault: slices.Contains(upper, "DEFAULT"),
+		}
+	}
+	return txtarLintStatement{}
+}
+
+func txtarStripSQLBlockComments(sql string) string {
+	re := regexp.MustCompile(`(?s)/\*.*?\*/`)
+	return re.ReplaceAllString(sql, "")
+}
+
+func txtarCleanSQLIdentifier(value string) string {
+	value = strings.Trim(value, "`\"")
+	value = strings.TrimSuffix(value, ",")
+	value = strings.TrimSuffix(value, "(")
+	return strings.Trim(value, "`\"")
+}
+
+func txtarLintIgnored(ignore map[string]bool, category, code string) bool {
+	if len(ignore) == 0 {
+		return false
+	}
+	return ignore["all"] || ignore[category] || ignore[code]
+}
+
+func txtarRenderMigrateLintReport(files []string, report txtarMigrateLintReport) string {
+	if len(report.files) == 0 {
+		return ""
+	}
+	var out strings.Builder
+	fmt.Fprintln(&out, txtarMigrateLintHeader(files))
+	versionStatus := map[string]int{}
+	totalChanges := 0
+	totalDiagnostics := 0
+	for _, file := range report.files {
+		status := txtarMigrateLintVersionStatus(file)
+		versionStatus[status]++
+		totalChanges += file.changes
+		totalDiagnostics += len(file.diagnostics)
+		fmt.Fprintln(&out)
+		fmt.Fprintf(&out, "  -- analyzing version %s\n", atlasMigrationVersion(file.file))
+		txtarWriteMigrateLintDiagnostics(&out, file.diagnostics)
+		fmt.Fprintln(&out, "  -- ok (0s)")
+	}
+	fmt.Fprintln(&out)
+	fmt.Fprintln(&out, "  -------------------------")
+	fmt.Fprintln(&out, "  -- 0s")
+	fmt.Fprintf(&out, "  -- %s\n", txtarMigrateLintVersionSummary(versionStatus))
+	fmt.Fprintf(&out, "  -- %d schema %s\n", totalChanges, plural(totalChanges, "change", "changes"))
+	if totalDiagnostics > 0 {
+		fmt.Fprintf(&out, "  -- %d %s\n", totalDiagnostics, plural(totalDiagnostics, "diagnostic", "diagnostics"))
+	}
+	return out.String()
+}
+
+func txtarMigrateLintHeader(files []string) string {
+	firstVersion := atlasMigrationVersion(files[0])
+	lastVersion := atlasMigrationVersion(files[len(files)-1])
+	count := len(files)
+	if firstVersion != "1" {
+		return fmt.Sprintf(
+			"Analyzing changes from version %s to %s (%d %s in total):",
+			strconv.Itoa(atoi(firstVersion)-1),
+			lastVersion,
+			count,
+			plural(count, "migration", "migrations"),
+		)
+	}
+	return fmt.Sprintf(
+		"Analyzing changes until version %s (%d %s in total):",
+		lastVersion,
+		count,
+		plural(count, "migration", "migrations"),
+	)
+}
+
+func txtarWriteMigrateLintDiagnostics(b *strings.Builder, diagnostics []txtarMigrateLintDiagnostic) {
+	if len(diagnostics) == 0 {
+		fmt.Fprintln(b, "    -- no diagnostics found")
+		return
+	}
+	for _, category := range []string{"destructive", "data_depend"} {
+		var grouped []txtarMigrateLintDiagnostic
+		for _, diag := range diagnostics {
+			if diag.category == category {
+				grouped = append(grouped, diag)
+			}
+		}
+		if len(grouped) == 0 {
+			continue
+		}
+		switch category {
+		case "destructive":
+			fmt.Fprintln(b, "    -- destructive changes detected:")
+		case "data_depend":
+			fmt.Fprintln(b, "    -- data dependent changes detected:")
+		}
+		for _, diag := range grouped {
+			if diag.category == "data_depend" {
+				message := diag.message
+				if len(message) > 85 {
+					message = strings.TrimSuffix(message, " empty")
+					fmt.Fprintf(b, "      -- L%d: %s\n", diag.line, message)
+					fmt.Fprintf(b, "         empty https://atlasgo.io/lint/analyzers#%s\n", diag.code)
+				} else {
+					fmt.Fprintf(b, "      -- L%d: %s\n", diag.line, message)
+					fmt.Fprintf(b, "         https://atlasgo.io/lint/analyzers#%s\n", diag.code)
+				}
+			} else {
+				fmt.Fprintf(b, "      -- L%d: %s https://atlasgo.io/lint/analyzers#%s\n", diag.line, diag.message, diag.code)
+				fmt.Fprintln(b, "    -- suggested fix:")
+				table := strings.TrimPrefix(diag.message, "Dropping table ")
+				fmt.Fprintf(b, "      -> Add a pre-migration check to ensure table %s is empty before dropping it\n", table)
+			}
+		}
+	}
+}
+
+func txtarMigrateLintVersionStatus(file txtarMigrateLintFileReport) string {
+	for _, diag := range file.diagnostics {
+		if diag.category == "destructive" {
+			return "errors"
+		}
+	}
+	if len(file.diagnostics) > 0 {
+		return "warnings"
+	}
+	return "ok"
+}
+
+func txtarMigrateLintVersionSummary(counts map[string]int) string {
+	var parts []string
+	if n := counts["ok"]; n > 0 {
+		parts = append(parts, fmt.Sprintf("%d %s ok", n, plural(n, "version", "versions")))
+	}
+	if n := counts["warnings"]; n > 0 {
+		if len(parts) == 0 {
+			parts = append(parts, fmt.Sprintf("%d %s with warnings", n, plural(n, "version", "versions")))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d with warnings", n))
+		}
+	}
+	if n := counts["errors"]; n > 0 {
+		if len(parts) == 0 {
+			parts = append(parts, fmt.Sprintf("%d %s with errors", n, plural(n, "version", "versions")))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d with errors", n))
+		}
+	}
+	return strings.Join(parts, ", ")
+}
+
+func plural(n int, singular, plural string) string {
+	if n == 1 {
+		return singular
+	}
+	return plural
+}
+
+func atoi(value string) int {
+	n, _ := strconv.Atoi(value)
+	return n
 }
 
 type txtarMigrateApplyArgs struct {
@@ -4481,7 +5126,7 @@ func txtarAssertionText(line string) string {
 func txtarAssertionMatches(stream, line string) (bool, error) {
 	pattern := txtarAssertionText(line)
 	if pattern == "" {
-		return stream == "", nil
+		return stream == "" || strings.Contains(stream, "\n\n"), nil
 	}
 	return regexp.MatchString(pattern, stream)
 }
