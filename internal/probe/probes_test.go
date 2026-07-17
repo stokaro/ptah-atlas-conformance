@@ -2323,6 +2323,112 @@ func TestTxtarNormalizeMySQLShowSQL(t *testing.T) {
 	}
 }
 
+func TestTxtarNormalizeMySQLShowSQLPreservesTinyintOne(t *testing.T) {
+	booleanAlias := "CREATE TABLE `users` (`a` tinyint(1) NOT NULL)"
+	plainTinyint := "CREATE TABLE `users` (`a` tinyint(4) NOT NULL)"
+
+	if txtarNormalizeMySQLShowSQL(booleanAlias) == txtarNormalizeMySQLShowSQL(plainTinyint) {
+		t.Fatalf("tinyint(1) must remain distinct from plain tinyint:\ngot  %q\nwant not %q",
+			txtarNormalizeMySQLShowSQL(booleanAlias), txtarNormalizeMySQLShowSQL(plainTinyint))
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLBoolColumnApplyCmpShowAndSynced(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmpshow users 1.sql
+synced 2.hcl
+apply 3.hcl
+cmpshow users 3.sql
+synced 3.hcl
+
+-- 1.hcl --
+schema "$db" {
+  charset = "$charset"
+  collate = "$collate"
+}
+
+table "users" {
+  schema = schema.$db
+  column "a" {
+    type = bool
+  }
+  column "b" {
+    type = boolean
+  }
+  column "c" {
+    type = tinyint(1)
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (
+  `+"`"+`a`+"`"+` tinyint(1) NOT NULL,
+  `+"`"+`b`+"`"+` tinyint(1) NOT NULL,
+  `+"`"+`c`+"`"+` tinyint(1) NOT NULL
+)
+-- 2.hcl --
+schema "$db" {
+  charset = "$charset"
+  collate = "$collate"
+}
+
+table "users" {
+  schema = schema.$db
+  column "a" {
+    type = boolean
+  }
+  column "b" {
+    type = tinyint(1)
+  }
+  column "c" {
+    type = bool
+  }
+}
+
+-- 3.hcl --
+schema "$db" {
+  charset = "$charset"
+  collate = "$collate"
+}
+
+table "users" {
+  schema = schema.$db
+  column "a" {
+    type = boolean
+  }
+  column "b" {
+    type = tinyint
+  }
+  column "c" {
+    type = bool
+  }
+}
+
+-- 3.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (
+  `+"`"+`a`+"`"+` tinyint(1) NOT NULL,
+  `+"`"+`b`+"`"+` tinyint(4) NOT NULL,
+  `+"`"+`c`+"`"+` tinyint(1) NOT NULL
+)
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-bool.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesMySQLApplyCmpShowAndExist(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
