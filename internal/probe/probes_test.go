@@ -1654,6 +1654,116 @@ env "failed" {
 	}
 }
 
+func TestTxtarScriptProbeExecutesSQLiteExecSQLAndCmpHCL(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `execsql 'CREATE TABLE tbl (col)'
+cmphcl expected.hcl
+
+-- expected.hcl --
+table "tbl" {
+  schema = schema.main
+  column "col" {
+    null = true
+    type = blob
+  }
+}
+schema "main" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/column-default.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsPostgresExecSQLUniqueConstraintAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `execsql 'CREATE TABLE script_index_unique_constraint.users (name text, last text, nickname text UNIQUE, UNIQUE(name, last))'
+cmphcl expected.hcl
+
+-- expected.hcl --
+table "users" {
+  schema = schema.script_index_unique_constraint
+  column "name" {
+    null = true
+    type = text
+  }
+  column "last" {
+    null = true
+    type = text
+  }
+  column "nickname" {
+    null = true
+    type = text
+  }
+  unique "users_name_last_key" {
+    columns = [column.name, column.last]
+  }
+  unique "users_nickname_key" {
+    columns = [column.nickname]
+  }
+}
+schema "script_index_unique_constraint" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/index-unique-constraint.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: execsql")
+	if strings.Contains(results[0].Detail, "cmphcl") {
+		t.Fatalf("dependent cmphcl should not be reported after unsupported execsql: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeKeepsCmpHCLWithoutVirtualDBStateAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `cmphcl expected.hcl
+
+-- expected.hcl --
+schema "main" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: cmphcl")
+}
+
 func TestTxtarScriptProbeExecutesMigrateHash(t *testing.T) {
 	expected := atlasSumBytes(t, map[string]string{
 		"1_first.sql": "SELECT 1;\n",

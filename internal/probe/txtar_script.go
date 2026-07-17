@@ -229,8 +229,9 @@ type txtarCommandResult struct {
 }
 
 type txtarRuntime struct {
-	files map[string]string
-	dirs  map[string]bool
+	files        map[string]string
+	dirs         map[string]bool
+	dbStatements []ast.Node
 }
 
 func newTxtarRuntime(data string) *txtarRuntime {
@@ -442,6 +443,12 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 		return result
 	}
 	if result, ok := runTxtarMigrateStatus(runtime, fields); ok {
+		return result
+	}
+	if result, ok := runTxtarExecSQL(fx, runtime, fields); ok {
+		return result
+	}
+	if result, ok := runTxtarCmpHCL(fx, runtime, fields); ok {
 		return result
 	}
 	if result, ok := runTxtarSchemaApply(runtime, fields); ok {
@@ -804,6 +811,56 @@ func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommand
   -- Pending Files:   %d
 `, nextVersion, len(files))
 	return txtarCommandResult{stdout: stdout}, true
+}
+
+func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 1 || fields[0] != "execsql" {
+		return txtarCommandResult{}, false
+	}
+	if txtarFixtureFamily(fx) != "sqlite" {
+		return txtarCommandResult{unsupported: "execsql"}, true
+	}
+	if len(fields) != 2 {
+		return txtarCommandResult{unsupported: "execsql"}, true
+	}
+
+	list, err := parser.NewParser(fields[1]).Parse()
+	if err != nil {
+		return txtarCommandResult{unsupported: "execsql"}, true
+	}
+	runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
+	return txtarCommandResult{}, true
+}
+
+func runTxtarCmpHCL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 1 || fields[0] != "cmphcl" {
+		return txtarCommandResult{}, false
+	}
+	if len(fields) != 2 {
+		return txtarCommandResult{unsupported: "cmphcl"}, true
+	}
+	if len(runtime.dbStatements) == 0 {
+		return txtarCommandResult{unsupported: "cmphcl"}, true
+	}
+
+	actual, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), txtarFixtureSchemaName(fx), runtime.dbStatements)
+	if err != nil {
+		return txtarCommandResult{unsupported: "cmphcl"}, true
+	}
+	expected, ok := runtime.files[fields[1]]
+	if !ok {
+		return txtarCommandResult{
+			failed: true,
+			err:    fmt.Errorf("cmphcl %s: %s missing", fields[1], fields[1]),
+		}, true
+	}
+	if !txtarFilesEqual(actual, expected) {
+		return txtarCommandResult{
+			failed: true,
+			err:    fmt.Errorf("cmphcl %s did not match: got %q want %q", fields[1], oneLine(actual), oneLine(expected)),
+		}, true
+	}
+	return txtarCommandResult{}, true
 }
 
 func atlasMigrationVersion(name string) string {
@@ -2205,6 +2262,9 @@ func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.Constrain
 
 func atlasColumnType(dialect, typ string) string {
 	normalized := strings.ToLower(typ)
+	if dialect == "sqlite" && normalized == "" {
+		return "blob"
+	}
 	if dialect == "postgresql" && normalized == "int" {
 		return "integer"
 	}
@@ -2235,10 +2295,16 @@ func txtarFixtureDialect(fx Fixture) string {
 	if slices.Contains(parts, "mariadb") {
 		return "mariadb"
 	}
+	if slices.Contains(parts, "sqlite") {
+		return "sqlite"
+	}
 	return "postgresql"
 }
 
 func txtarFixtureSchemaName(fx Fixture) string {
+	if txtarFixtureFamily(fx) == "sqlite" {
+		return "main"
+	}
 	base := strings.TrimSuffix(filepath.Base(fx.Name), filepath.Ext(fx.Name))
 	return "script_" + strings.ReplaceAll(base, "-", "_")
 }
