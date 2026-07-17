@@ -892,6 +892,90 @@ schema "script_primary_key_parts" {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresSchemaInspectHCLWithUniqueAndForeignKeys(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://schema.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- schema.sql --
+create table t1(a int primary key, b int unique);
+create table t0(b int primary key references t1(b));
+
+-- expected.hcl --
+table "t0" {
+  schema = schema.script_index_unique_constraint
+  column "b" {
+    null = false
+    type = integer
+  }
+  primary_key {
+    columns = [column.b]
+  }
+  foreign_key "t0_b_fkey" {
+    columns     = [column.b]
+    ref_columns = [table.t1.column.b]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "t1" {
+  schema = schema.script_index_unique_constraint
+  column "a" {
+    null = false
+    type = integer
+  }
+  column "b" {
+    null = true
+    type = integer
+  }
+  primary_key {
+    columns = [column.a]
+  }
+  unique "t1_b_key" {
+    columns = [column.b]
+  }
+}
+schema "script_index_unique_constraint" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/index-unique-constraint.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeCmpToleratesOnlyFinalNewline(t *testing.T) {
+	cases := []struct {
+		name  string
+		left  string
+		right string
+		equal bool
+	}{
+		{name: "exact", left: "same", right: "same", equal: true},
+		{name: "final newline", left: "same\n", right: "same", equal: true},
+		{name: "content mismatch", left: "same\n", right: "other", equal: false},
+		{name: "internal newline mismatch", left: "a\nb\n", right: "ab", equal: false},
+	}
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := txtarFilesEqual(tt.left, tt.right); got != tt.equal {
+				t.Fatalf("txtarFilesEqual() = %t, want %t", got, tt.equal)
+			}
+		})
+	}
+}
+
 func TestTxtarScriptProbeKeepsUnsupportedSchemaInspectHCLAsGap(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")

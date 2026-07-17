@@ -1096,6 +1096,7 @@ func txtarSQLFormatIndent(format string) string {
 func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (string, error) {
 	var b strings.Builder
 	schemaAttrs := atlasSchemaAttrsFromStatements(dialect, schemaName, statements)
+	var tables []*ast.CreateTableNode
 	for _, stmt := range statements {
 		table, ok := stmt.(*ast.CreateTableNode)
 		if !ok {
@@ -1104,6 +1105,12 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 			}
 			return "", fmt.Errorf("%w: statement %T", errUnsupportedInspectHCL, stmt)
 		}
+		tables = append(tables, table)
+	}
+	slices.SortFunc(tables, func(a, b *ast.CreateTableNode) int {
+		return cmp.Compare(atlasHCLTableIdentifier(a.Name, schemaName), atlasHCLTableIdentifier(b.Name, schemaName))
+	})
+	for _, table := range tables {
 		if err := renderAtlasTableHCL(&b, dialect, schemaName, table); err != nil {
 			return "", err
 		}
@@ -1113,13 +1120,13 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 }
 
 func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *ast.CreateTableNode) error {
-	fmt.Fprintf(b, "table %q {\n", atlasHCLTableIdentifier(table.Name, schemaName))
+	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
+	fmt.Fprintf(b, "table %q {\n", tableName)
 	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
 	var primaryColumns []ast.ConstraintColumn
+	var foreignKeys []*atlasHCLForeignKey
+	var uniques []*atlasHCLUnique
 	for _, column := range table.Columns {
-		if column.Unique || column.ForeignKey != nil {
-			return fmt.Errorf("%w: column %q", errUnsupportedInspectHCL, column.Name)
-		}
 		fmt.Fprintf(b, "  column %q {\n", atlasHCLIdentifier(column.Name))
 		fmt.Fprintf(b, "    null = %t\n", column.Nullable)
 		fmt.Fprintf(b, "    type = %s\n", atlasColumnType(dialect, column.Type))
@@ -1127,11 +1134,29 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 		if column.Primary {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
 		}
+		if column.ForeignKey != nil {
+			foreignKeys = append(foreignKeys, atlasColumnForeignKey(tableName, column))
+		}
+		if column.Unique {
+			uniques = append(uniques, atlasColumnUnique(tableName, column))
+		}
 	}
 	for _, constraint := range table.Constraints {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
 			primaryColumns = append(primaryColumns, atlasConstraintColumns(constraint)...)
+		case ast.ForeignKeyConstraint:
+			foreignKey, err := atlasConstraintForeignKey(tableName, schemaName, constraint)
+			if err != nil {
+				return err
+			}
+			foreignKeys = append(foreignKeys, foreignKey)
+		case ast.UniqueConstraint:
+			unique, err := atlasConstraintUnique(tableName, constraint)
+			if err != nil {
+				return err
+			}
+			uniques = append(uniques, unique)
 		case ast.CheckConstraint:
 		default:
 			return fmt.Errorf("%w: constraint %s", errUnsupportedInspectHCL, constraint.Type)
@@ -1142,11 +1167,84 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 			return err
 		}
 	}
+	for _, foreignKey := range foreignKeys {
+		if err := renderAtlasForeignKeyHCL(b, foreignKey); err != nil {
+			return err
+		}
+	}
+	for _, unique := range uniques {
+		if err := renderAtlasUniqueHCL(b, unique); err != nil {
+			return err
+		}
+	}
 	if err := renderAtlasCheckHCLBlocks(b, dialect, table); err != nil {
 		return err
 	}
 	b.WriteString("}\n")
 	return nil
+}
+
+type atlasHCLForeignKey struct {
+	name       string
+	columns    []string
+	refTable   string
+	refColumns []string
+	onUpdate   string
+	onDelete   string
+}
+
+type atlasHCLUnique struct {
+	name    string
+	columns []string
+}
+
+func atlasColumnForeignKey(tableName string, column *ast.ColumnNode) *atlasHCLForeignKey {
+	ref := column.ForeignKey
+	return &atlasHCLForeignKey{
+		name:       atlasDefaultForeignKeyName(tableName, []string{column.Name}, ref.Name),
+		columns:    []string{column.Name},
+		refTable:   atlasSQLIdentifier(ref.Table),
+		refColumns: []string{ref.Column},
+		onUpdate:   ref.OnUpdate,
+		onDelete:   ref.OnDelete,
+	}
+}
+
+func atlasConstraintForeignKey(tableName, schemaName string, constraint *ast.ConstraintNode) (*atlasHCLForeignKey, error) {
+	if constraint.Reference == nil {
+		return nil, fmt.Errorf("%w: foreign key %q missing reference", errUnsupportedInspectHCL, constraint.Name)
+	}
+	columns := atlasConstraintColumnNames(constraint)
+	if len(columns) == 0 {
+		return nil, fmt.Errorf("%w: foreign key %q missing columns", errUnsupportedInspectHCL, constraint.Name)
+	}
+	ref := constraint.Reference
+	return &atlasHCLForeignKey{
+		name:       atlasDefaultForeignKeyName(tableName, columns, constraint.Name),
+		columns:    columns,
+		refTable:   atlasHCLTableIdentifier(ref.Table, schemaName),
+		refColumns: []string{ref.Column},
+		onUpdate:   ref.OnUpdate,
+		onDelete:   ref.OnDelete,
+	}, nil
+}
+
+func atlasColumnUnique(tableName string, column *ast.ColumnNode) *atlasHCLUnique {
+	return &atlasHCLUnique{
+		name:    atlasDefaultUniqueName(tableName, []string{column.Name}, ""),
+		columns: []string{column.Name},
+	}
+}
+
+func atlasConstraintUnique(tableName string, constraint *ast.ConstraintNode) (*atlasHCLUnique, error) {
+	columns := atlasConstraintColumnNames(constraint)
+	if len(columns) == 0 {
+		return nil, fmt.Errorf("%w: unique %q missing columns", errUnsupportedInspectHCL, constraint.Name)
+	}
+	return &atlasHCLUnique{
+		name:    atlasDefaultUniqueName(tableName, columns, constraint.Name),
+		columns: columns,
+	}, nil
 }
 
 func renderAtlasCheckHCLBlocks(b *strings.Builder, dialect string, table *ast.CreateTableNode) error {
@@ -1256,6 +1354,35 @@ func renderAtlasPrimaryKeyHCL(b *strings.Builder, columns []ast.ConstraintColumn
 	return nil
 }
 
+func renderAtlasForeignKeyHCL(b *strings.Builder, foreignKey *atlasHCLForeignKey) error {
+	columnRefs, err := atlasHCLColumnRefsFromNames(foreignKey.columns)
+	if err != nil {
+		return err
+	}
+	refColumnRefs, err := atlasHCLRefColumnRefs(foreignKey.refTable, foreignKey.refColumns)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(b, "  foreign_key %q {\n", foreignKey.name)
+	fmt.Fprintf(b, "    columns     = [%s]\n", strings.Join(columnRefs, ", "))
+	fmt.Fprintf(b, "    ref_columns = [%s]\n", strings.Join(refColumnRefs, ", "))
+	fmt.Fprintf(b, "    on_update   = %s\n", atlasHCLAction(foreignKey.onUpdate))
+	fmt.Fprintf(b, "    on_delete   = %s\n", atlasHCLAction(foreignKey.onDelete))
+	b.WriteString("  }\n")
+	return nil
+}
+
+func renderAtlasUniqueHCL(b *strings.Builder, unique *atlasHCLUnique) error {
+	columnRefs, err := atlasHCLColumnRefsFromNames(unique.columns)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(b, "  unique %q {\n", unique.name)
+	fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(columnRefs, ", "))
+	b.WriteString("  }\n")
+	return nil
+}
+
 func atlasPrimaryKeyCanUseColumnsAttr(columns []ast.ConstraintColumn) bool {
 	for _, column := range columns {
 		if column.Prefix != "" || column.Desc {
@@ -1277,6 +1404,41 @@ func atlasHCLColumnRefs(columns []ast.ConstraintColumn) ([]string, error) {
 	return refs, nil
 }
 
+func atlasHCLColumnRefsFromNames(columns []string) ([]string, error) {
+	refs := make([]string, 0, len(columns))
+	for _, column := range columns {
+		name := atlasHCLIdentifier(column)
+		if strings.ContainsAny(name, " ()`\"") {
+			return nil, fmt.Errorf("%w: column %q", errUnsupportedInspectHCL, column)
+		}
+		refs = append(refs, "column."+name)
+	}
+	return refs, nil
+}
+
+func atlasHCLRefColumnRefs(table string, columns []string) ([]string, error) {
+	table = atlasHCLIdentifier(table)
+	if strings.ContainsAny(table, " ()`\"") {
+		return nil, fmt.Errorf("%w: referenced table %q", errUnsupportedInspectHCL, table)
+	}
+	refs := make([]string, 0, len(columns))
+	for _, column := range columns {
+		name := atlasHCLIdentifier(column)
+		if strings.ContainsAny(name, " ()`\"") {
+			return nil, fmt.Errorf("%w: referenced column %q", errUnsupportedInspectHCL, column)
+		}
+		refs = append(refs, "table."+table+".column."+name)
+	}
+	return refs, nil
+}
+
+func atlasHCLAction(action string) string {
+	if action == "" {
+		return "NO_ACTION"
+	}
+	return strings.ReplaceAll(strings.ToUpper(action), " ", "_")
+}
+
 func atlasConstraintColumns(constraint *ast.ConstraintNode) []ast.ConstraintColumn {
 	if len(constraint.ColumnParts) > 0 {
 		return constraint.ColumnParts
@@ -1286,6 +1448,41 @@ func atlasConstraintColumns(constraint *ast.ConstraintNode) []ast.ConstraintColu
 		columns = append(columns, ast.ConstraintColumn{Name: column})
 	}
 	return columns
+}
+
+func atlasConstraintColumnNames(constraint *ast.ConstraintNode) []string {
+	if len(constraint.ColumnParts) > 0 {
+		columns := make([]string, 0, len(constraint.ColumnParts))
+		for _, part := range constraint.ColumnParts {
+			columns = append(columns, part.Name)
+		}
+		return columns
+	}
+	return slices.Clone(constraint.Columns)
+}
+
+func atlasDefaultForeignKeyName(table string, columns []string, explicit string) string {
+	if explicit != "" {
+		return atlasHCLIdentifier(explicit)
+	}
+	return atlasDefaultConstraintName(table, columns, "fkey")
+}
+
+func atlasDefaultUniqueName(table string, columns []string, explicit string) string {
+	if explicit != "" {
+		return atlasHCLIdentifier(explicit)
+	}
+	return atlasDefaultConstraintName(table, columns, "key")
+}
+
+func atlasDefaultConstraintName(table string, columns []string, suffix string) string {
+	parts := make([]string, 0, len(columns)+2)
+	parts = append(parts, atlasHCLIdentifier(table))
+	for _, column := range columns {
+		parts = append(parts, atlasHCLIdentifier(column))
+	}
+	parts = append(parts, suffix)
+	return strings.Join(parts, "_")
 }
 
 func atlasHCLIdentifier(name string) string {
@@ -1626,11 +1823,21 @@ func txtarFilesMismatch(files map[string]string, left, right string) string {
 		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, right, left)
 	case !rok:
 		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, right, right)
-	case l != r:
+	case !txtarFilesEqual(l, r):
 		return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, right, oneLine(l), oneLine(r))
 	default:
 		return ""
 	}
+}
+
+func txtarFilesEqual(left, right string) bool {
+	if left == right {
+		return true
+	}
+	// Atlas txtar fixtures sometimes store the final file at EOF without the
+	// trailing newline that the inspected text renderer emits. Treat exactly one
+	// final newline as non-substantive; all other byte differences still fail.
+	return strings.TrimSuffix(left, "\n") == strings.TrimSuffix(right, "\n")
 }
 
 func txtarValidateJSON(files map[string]string, name string) error {
