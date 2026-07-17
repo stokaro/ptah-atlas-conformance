@@ -3565,9 +3565,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/column-generated.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 9 supported command(s)"
   },
   {
     "probe": "txtar-script",
