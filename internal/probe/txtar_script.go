@@ -1764,9 +1764,6 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCom
 	if len(fields) < 1 || fields[0] != "apply" {
 		return txtarCommandResult{}, false
 	}
-	if !txtarFixtureSupportsVirtualApply(fx) {
-		return txtarCommandResult{unsupported: "apply"}, true
-	}
 	if len(fields) != 2 {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
@@ -1781,13 +1778,70 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCom
 	if err != nil {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
+	if !txtarFixtureSupportsVirtualApply(fx, data, statements) {
+		return txtarCommandResult{unsupported: "apply"}, true
+	}
 	runtime.hasVirtualDBState = true
 	runtime.dbStatements = statements
 	return txtarCommandResult{}, true
 }
 
-func txtarFixtureSupportsVirtualApply(fx Fixture) bool {
-	return path.Base(fx.Name) == "cli-inspect.txtar"
+func txtarFixtureSupportsVirtualApply(fx Fixture, data string, statements []ast.Node) bool {
+	if path.Base(fx.Name) == "cli-inspect.txtar" {
+		return true
+	}
+	return txtarFixtureFamily(fx) == "sqlite" && txtarSQLiteVirtualApplyStateSupported(data, statements)
+}
+
+func txtarSQLiteVirtualApplyStateSupported(data string, statements []ast.Node) bool {
+	if txtarHCLHasUnsupportedSQLiteApplySyntax(data) {
+		return false
+	}
+	for _, stmt := range statements {
+		switch node := stmt.(type) {
+		case *ast.CreateSchemaNode:
+			continue
+		case *ast.CreateTableNode:
+			if !txtarSQLiteApplyTableSupported(node) {
+				return false
+			}
+		case *ast.IndexNode:
+			if !txtarSQLiteApplyIndexSupported(node) {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+func txtarHCLHasUnsupportedSQLiteApplySyntax(data string) bool {
+	return regexp.MustCompile(`(?m)^\s*as(\s|=|\{)`).MatchString(data) ||
+		regexp.MustCompile(`(?m)^\s*(strict|without_rowid)\s*=`).MatchString(data)
+}
+
+func txtarSQLiteApplyTableSupported(table *ast.CreateTableNode) bool {
+	if len(table.Options) > 0 || table.SelectBody != "" || table.Comment != "" {
+		return false
+	}
+	for _, column := range table.Columns {
+		if column.Unique || column.Default != nil || column.Check != "" || column.CheckName != "" ||
+			column.Comment != "" || column.ForeignKey != nil {
+			return false
+		}
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.PrimaryKeyConstraint {
+			return false
+		}
+	}
+	return true
+}
+
+func txtarSQLiteApplyIndexSupported(index *ast.IndexNode) bool {
+	return len(index.Columns) > 0 && index.Type == "" && index.Operator == "" &&
+		index.Comment == "" && !index.Concurrently
 }
 
 func txtarHCLStatements(fx Fixture, name, data string) ([]ast.Node, error) {
@@ -1931,9 +1985,12 @@ func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 			err:    fmt.Errorf("cmpshow %s %s: %s missing", fields[1], fields[2], fields[2]),
 		}, true
 	}
+	if txtarTableHasIndexes(fx, runtime.dbStatements, fields[1]) {
+		return txtarCmpShowSQL(fx, runtime, fields[1], fields[2], expectedSQL)
+	}
 	expectedStatements, err := txtarParseExpectedShowSQL(expectedSQL)
 	if err != nil {
-		return txtarCommandResult{unsupported: "cmpshow"}, true
+		return txtarCmpShowSQL(fx, runtime, fields[1], fields[2], expectedSQL)
 	}
 	expected, ok := txtarTableHCL(fx, expectedStatements, fields[1])
 	if !ok {
@@ -1946,6 +2003,89 @@ func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 		}, true
 	}
 	return txtarCommandResult{}, true
+}
+
+func txtarTableHasIndexes(fx Fixture, statements []ast.Node, name string) bool {
+	schemaName := txtarFixtureSchemaName(fx)
+	for _, stmt := range statements {
+		index, ok := stmt.(*ast.IndexNode)
+		if ok && atlasHCLTableIdentifier(index.Table, schemaName) == name {
+			return true
+		}
+	}
+	return false
+}
+
+func txtarCmpShowSQL(
+	fx Fixture,
+	runtime *txtarRuntime,
+	tableName string,
+	expectedName string,
+	expectedSQL string,
+) (txtarCommandResult, bool) {
+	if txtarFixtureFamily(fx) != "sqlite" {
+		return txtarCommandResult{unsupported: "cmpshow"}, true
+	}
+	actual, ok := txtarTableShowSQL(fx, runtime.dbStatements, tableName)
+	if !ok {
+		return txtarCommandResult{unsupported: "cmpshow"}, true
+	}
+	if txtarNormalizeShowSQL(actual) != txtarNormalizeShowSQL(expectedSQL) {
+		return txtarCommandResult{
+			failed: true,
+			err: fmt.Errorf("cmpshow %s %s did not match: got %q want %q",
+				tableName, expectedName, oneLine(actual), oneLine(expectedSQL)),
+		}, true
+	}
+	return txtarCommandResult{}, true
+}
+
+func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, bool) {
+	schemaName := txtarFixtureSchemaName(fx)
+	filtered := make([]ast.Node, 0, len(statements))
+	for _, stmt := range statements {
+		switch node := stmt.(type) {
+		case *ast.CreateTableNode:
+			if atlasHCLTableIdentifier(node.Name, schemaName) == name {
+				filtered = append(filtered, node)
+			}
+		case *ast.IndexNode:
+			if atlasHCLTableIdentifier(node.Table, schemaName) == name {
+				filtered = append(filtered, node)
+			}
+		}
+	}
+	if len(filtered) == 0 {
+		return "", false
+	}
+	filtered = atlasUnqualifyTableStatements(schemaName, filtered)
+	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), filtered, "")
+	if err != nil {
+		return "", false
+	}
+	return out, true
+}
+
+func txtarNormalizeShowSQL(sql string) string {
+	var lines []string
+	for _, line := range strings.Split(sql, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "-- ") {
+			continue
+		}
+		lines = append(lines, txtarNormalizeShowSQLLine(line))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func txtarNormalizeShowSQLLine(line string) string {
+	line = strings.TrimSuffix(line, ";")
+	beforeWhere, afterWhere, hasWhere := strings.Cut(line, " WHERE ")
+	beforeWhere = strings.ReplaceAll(beforeWhere, `"`, "`")
+	if hasWhere {
+		return beforeWhere + " WHERE " + afterWhere
+	}
+	return beforeWhere
 }
 
 func txtarParseExpectedShowSQL(data string) ([]ast.Node, error) {
@@ -3689,6 +3829,10 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 		quoted = append(quoted, quote(column))
 	}
 	b.WriteString(strings.Join(quoted, ", "))
+	if index.Condition != "" {
+		fmt.Fprintf(b, ") WHERE %s;\n", index.Condition)
+		return
+	}
 	b.WriteString(");\n")
 }
 
