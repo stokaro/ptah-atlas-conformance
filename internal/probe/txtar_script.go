@@ -385,7 +385,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			}
 			continue
 		}
-		result := runTxtarCommand(fx, runtime, commandLine)
+		result := runTxtarCommand(fx, runtime, commandLine, expectedFailure)
 		last = result
 		if result.unsupported != "" {
 			summary.unsupported = append(summary.unsupported, result.unsupported)
@@ -424,7 +424,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 	return summary
 }
 
-func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string) txtarCommandResult {
+func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFailure bool) txtarCommandResult {
 	fields := txtarCommandFields(line)
 	if result, ok := runTxtarFileCommand(runtime, fields); ok {
 		return result
@@ -433,6 +433,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string) txtarComman
 		return result
 	}
 	if result, ok := runTxtarMigrateValidate(runtime, fields); ok {
+		return result
+	}
+	if result, ok := runTxtarMigrateDiff(fields, expectedFailure); ok {
 		return result
 	}
 	if result, ok := runTxtarMigrateStatus(runtime, fields); ok {
@@ -634,6 +637,96 @@ func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarComma
 		}, true
 	}
 	return txtarCommandResult{}, true
+}
+
+type txtarMigrateDiffArgs struct {
+	devURL  string
+	to      []string
+	blocked bool
+}
+
+func runTxtarMigrateDiff(fields []string, expectedFailure bool) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "diff" {
+		return txtarCommandResult{}, false
+	}
+
+	args := txtarParseMigrateDiffArgs(fields[3:])
+	switch {
+	case args.blocked:
+		return txtarCommandResult{unsupported: "atlas migrate diff"}, true
+	case expectedFailure && args.devURL == "":
+		return txtarCommandResult{
+			stderr: "Error: \"dev-url\" not set\n",
+			failed: true,
+			err:    fmt.Errorf("\"dev-url\" not set"),
+		}, true
+	case expectedFailure && len(args.to) == 0:
+		return txtarCommandResult{
+			stderr: "Error: \"to\" not set\n",
+			failed: true,
+			err:    fmt.Errorf("\"to\" not set"),
+		}, true
+	default:
+		return txtarCommandResult{unsupported: "atlas migrate diff"}, true
+	}
+}
+
+func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
+	var out txtarMigrateDiffArgs
+	seenName := false
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch arg {
+		case "--dev-url":
+			if i+1 < len(args) {
+				out.devURL = args[i+1]
+				i++
+			}
+		case "--to":
+			if i+1 < len(args) {
+				out.to = append(out.to, args[i+1])
+				i++
+			}
+		case "--dir":
+			if i+1 < len(args) {
+				if strings.Contains(args[i+1], "?format=") {
+					out.blocked = true
+				}
+				i++
+			}
+		case "--format":
+			if i+1 < len(args) {
+				i++
+			}
+		case "--qualifier", "--env", "--dir-format":
+			out.blocked = true
+			if i+1 < len(args) {
+				i++
+			}
+		default:
+			switch {
+			case strings.HasPrefix(arg, "--dev-url="):
+				out.devURL = strings.TrimPrefix(arg, "--dev-url=")
+			case strings.HasPrefix(arg, "--to="):
+				out.to = append(out.to, strings.TrimPrefix(arg, "--to="))
+			case strings.HasPrefix(arg, "--dir="):
+				if strings.Contains(arg, "?format=") {
+					out.blocked = true
+				}
+			case strings.HasPrefix(arg, "--format="):
+				continue
+			case strings.HasPrefix(arg, "--qualifier="), strings.HasPrefix(arg, "--env="), strings.HasPrefix(arg, "--dir-format="):
+				out.blocked = true
+			case strings.HasPrefix(arg, "-"):
+				out.blocked = true
+			case !seenName:
+				seenName = true
+			default:
+				out.blocked = true
+			}
+		}
+	}
+	return out
 }
 
 func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
