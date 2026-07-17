@@ -435,6 +435,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string) txtarComman
 	if result, ok := runTxtarMigrateValidate(runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarSchemaApply(runtime, fields); ok {
+		return result
+	}
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "inspect" {
 		if key, ok := txtarCommandKeyFields(fields); ok {
 			return txtarCommandResult{unsupported: key}
@@ -628,6 +631,83 @@ func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarComma
 		}, true
 	}
 	return txtarCommandResult{}, true
+}
+
+func runTxtarSchemaApply(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "apply" {
+		return txtarCommandResult{}, false
+	}
+
+	var sourceURL, file, to string
+	hasEnv := false
+	for i := 3; i < len(fields); i++ {
+		switch fields[i] {
+		case "-u", "--url":
+			if i+1 < len(fields) {
+				sourceURL = fields[i+1]
+				i++
+			}
+		case "-f", "--file":
+			if i+1 < len(fields) {
+				file = fields[i+1]
+				i++
+			}
+		case "--to":
+			if i+1 < len(fields) {
+				to = fields[i+1]
+				i++
+			}
+		case "--env":
+			hasEnv = true
+			if i+1 < len(fields) {
+				i++
+			}
+		default:
+			switch {
+			case strings.HasPrefix(fields[i], "-u="):
+				sourceURL = strings.TrimPrefix(fields[i], "-u=")
+			case strings.HasPrefix(fields[i], "--url="):
+				sourceURL = strings.TrimPrefix(fields[i], "--url=")
+			case strings.HasPrefix(fields[i], "-f="):
+				file = strings.TrimPrefix(fields[i], "-f=")
+			case strings.HasPrefix(fields[i], "--file="):
+				file = strings.TrimPrefix(fields[i], "--file=")
+			case strings.HasPrefix(fields[i], "--to="):
+				to = strings.TrimPrefix(fields[i], "--to=")
+			case strings.HasPrefix(fields[i], "--env="):
+				hasEnv = true
+			}
+		}
+	}
+	if hasEnv {
+		return txtarCommandResult{unsupported: "atlas schema apply"}, true
+	}
+	if sourceURL == "" {
+		return txtarCommandResult{
+			stderr: "Error: \"url\" not set\n",
+			failed: true,
+			err:    fmt.Errorf("\"url\" not set"),
+		}, true
+	}
+	if file == "" && to == "" {
+		return txtarCommandResult{
+			stderr: "Error: one of flag(s) \"file\" or \"to\" is required\n",
+			failed: true,
+			err:    fmt.Errorf("one of flag(s) \"file\" or \"to\" is required"),
+		}, true
+	}
+	if file != "" && txtarFileLooksLikeAtlasProject(runtime.files[file]) {
+		return txtarCommandResult{
+			stderr: "Error: cannot parse project file\n",
+			failed: true,
+			err:    fmt.Errorf("cannot parse project file"),
+		}, true
+	}
+	return txtarCommandResult{unsupported: "atlas schema apply"}, true
+}
+
+func txtarFileLooksLikeAtlasProject(data string) bool {
+	return strings.Contains(data, `env "`)
 }
 
 func txtarMigrateDiffDir(args []string) string {
@@ -1016,6 +1096,7 @@ func nonFlagArgs(args []string) []string {
 
 func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string) txtarCommandResult {
 	var sourceURL, devURL, format, redirect string
+	hasEnv := false
 	for i := 3; i < len(fields); i++ {
 		switch fields[i] {
 		case "-u", "--url":
@@ -1038,9 +1119,30 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 				redirect = fields[i+1]
 				i++
 			}
+		case "--env":
+			hasEnv = true
+			if i+1 < len(fields) {
+				i++
+			}
+		default:
+			switch {
+			case strings.HasPrefix(fields[i], "-u="):
+				sourceURL = strings.TrimPrefix(fields[i], "-u=")
+			case strings.HasPrefix(fields[i], "--url="):
+				sourceURL = strings.TrimPrefix(fields[i], "--url=")
+			case strings.HasPrefix(fields[i], "--env="):
+				hasEnv = true
+			}
 		}
 	}
 	const filePrefix = "file://"
+	if sourceURL == "" && !hasEnv {
+		return txtarCommandResult{
+			stderr: "Error: \"url\" not set\n",
+			failed: true,
+			err:    fmt.Errorf("\"url\" not set"),
+		}
+	}
 	if !strings.HasPrefix(sourceURL, filePrefix) {
 		return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
 	}
