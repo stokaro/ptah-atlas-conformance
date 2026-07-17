@@ -1154,10 +1154,24 @@ func txtarJoinHCLSourceFiles(runtime *txtarRuntime, files []string, vars map[str
 			data = defaultRe.ReplaceAllString(data, "default = "+strconv.Quote("'"+value+"'"))
 			data = strings.ReplaceAll(data, "var."+key, strconv.Quote(value))
 		}
+		data = txtarInlineAtlasSchemaNameAttrs(data)
 		out.WriteString(strings.TrimSpace(data))
 		out.WriteString("\n")
 	}
 	return out.String()
+}
+
+func txtarInlineAtlasSchemaNameAttrs(data string) string {
+	// Ptah HCL does not support Atlas's schema name override yet. Keep this
+	// rewrite narrow: it only handles schema blocks that contain the name attr.
+	re := regexp.MustCompile(`(?ms)schema\s+"([^"]+)"\s*\{\s*name\s*=\s*"([^"]+)"\s*\}`)
+	for _, match := range re.FindAllStringSubmatch(data, -1) {
+		alias := match[1]
+		name := match[2]
+		data = strings.ReplaceAll(data, match[0], fmt.Sprintf("schema %q {\n}", name))
+		data = strings.ReplaceAll(data, "schema."+alias, "schema."+name)
+	}
+	return data
 }
 
 func txtarStripHCLVariableBlocks(data string) string {
@@ -3465,6 +3479,9 @@ func atoi(value string) int {
 type txtarMigrateApplyArgs struct {
 	dir       string
 	txMode    string
+	env       string
+	tenant    string
+	vars      map[string]string
 	logJSON   bool
 	limit     int
 	dryRun    bool
@@ -3483,6 +3500,13 @@ func runTxtarMigrateApply(fx Fixture, runtime *txtarRuntime, fields []string) (t
 	}
 
 	args := txtarParseMigrateApplyArgs(fields[3:])
+	if args.env != "" {
+		var ok bool
+		args, ok = txtarResolveMigrateApplyEnv(fx, runtime, args)
+		if !ok {
+			args.blocked = true
+		}
+	}
 	if args.blocked {
 		return txtarCommandResult{unsupported: "atlas migrate apply"}, true
 	}
@@ -3566,6 +3590,20 @@ func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
 			} else {
 				out.blocked = true
 			}
+		case "--env":
+			if i+1 < len(args) {
+				out.env = args[i+1]
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--var":
+			if i+1 < len(args) {
+				out.vars = txtarAddAtlasVar(out.vars, args[i+1])
+				i++
+			} else {
+				out.blocked = true
+			}
 		case "--log":
 			if i+1 < len(args) {
 				out.logJSON = txtarMigrateApplyJSONLog(args[i+1])
@@ -3587,6 +3625,10 @@ func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
 				out.hasTxMode = true
 			case strings.HasPrefix(arg, "--revisions-schema="):
 				continue
+			case strings.HasPrefix(arg, "--env="):
+				out.env = strings.TrimPrefix(arg, "--env=")
+			case strings.HasPrefix(arg, "--var="):
+				out.vars = txtarAddAtlasVar(out.vars, strings.TrimPrefix(arg, "--var="))
 			case strings.HasPrefix(arg, "--log="):
 				out.logJSON = txtarMigrateApplyJSONLog(strings.TrimPrefix(arg, "--log="))
 				out.blocked = out.blocked || !out.logJSON
@@ -3604,6 +3646,31 @@ func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
 		}
 	}
 	return out
+}
+
+func txtarResolveMigrateApplyEnv(
+	fx Fixture,
+	runtime *txtarRuntime,
+	args txtarMigrateApplyArgs,
+) (txtarMigrateApplyArgs, bool) {
+	if txtarFixtureFamily(fx) != "mysql" {
+		return args, false
+	}
+	project, ok := runtime.files["atlas.hcl"]
+	if !ok {
+		return args, false
+	}
+	env, ok := txtarAtlasNamedBlock(project, "env", args.env)
+	if !ok {
+		return args, false
+	}
+	resolved, ok := txtarResolveAtlasSQLTenants(project, env, args.vars)
+	if !ok || len(resolved) != 1 {
+		return args, false
+	}
+	args.tenant = resolved[0]
+	args.hasURL = true
+	return args, true
 }
 
 func txtarMigrateApplyJSONLog(format string) bool {
@@ -5569,7 +5636,7 @@ func runTxtarSchemaApply(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 	}
 	runtime.hasVirtualDBState = true
 	runtime.dbStatements = statements
-	return txtarCommandResult{stdout: txtarSchemaApplyOutput(fx, statements)}, true
+	return txtarCommandResult{stdout: txtarSchemaApplyOutput(fx, args, statements)}, true
 }
 
 type txtarSchemaApplyArgs struct {
@@ -5577,6 +5644,8 @@ type txtarSchemaApplyArgs struct {
 	files     []string
 	to        string
 	env       string
+	tenant    string
+	logTenant bool
 	vars      map[string]string
 }
 
@@ -5666,7 +5735,17 @@ func txtarResolveSchemaApplyEnv(
 	}
 	if txtarFixtureFamily(fx) != "sqlite" {
 		if _, ok := txtarHCLAttrValue(env, "for_each"); ok {
-			return args, errUnsupportedInspectHCL
+			resolved, ok := txtarResolveAtlasSQLTenants(project, env, args.vars)
+			if !ok || len(resolved) != 1 {
+				return args, errUnsupportedInspectHCL
+			}
+			args.tenant = resolved[0]
+			args.vars = maps.Clone(args.vars)
+			if args.vars == nil {
+				args.vars = map[string]string{}
+			}
+			args.vars["tenant"] = args.tenant
+			args.logTenant = txtarAtlasSchemaApplyLogsTenant(env)
 		}
 	}
 	if args.sourceURL == "" {
@@ -5677,6 +5756,9 @@ func txtarResolveSchemaApplyEnv(
 	envVars, err := txtarAtlasEnvVars(env, args.vars)
 	if err != nil {
 		return args, err
+	}
+	if args.tenant != "" {
+		envVars["tenant"] = args.tenant
 	}
 	if len(args.files) == 0 && args.to == "" {
 		target, ok := txtarAtlasEnvSourceTargetWithVars(runtime, project, env, envVars)
@@ -5691,7 +5773,7 @@ func txtarResolveSchemaApplyEnv(
 	return args, nil
 }
 
-func txtarSchemaApplyOutput(fx Fixture, statements []ast.Node) string {
+func txtarSchemaApplyOutput(fx Fixture, args txtarSchemaApplyArgs, statements []ast.Node) string {
 	switch txtarFixtureFamily(fx) {
 	case "mysql", "mariadb":
 	default:
@@ -5701,7 +5783,150 @@ func txtarSchemaApplyOutput(fx Fixture, statements []ast.Node) string {
 	if err != nil {
 		return ""
 	}
+	if args.logTenant {
+		return txtarSchemaApplyTenantJSONLog(fx, args, statements)
+	}
 	return out
+}
+
+func txtarSchemaApplyTenantJSONLog(fx Fixture, args txtarSchemaApplyArgs, statements []ast.Node) string {
+	unqualified := atlasUnqualifyTableStatements(args.tenant, statements)
+	applied, err := txtarSchemaApplyTenantLogApplied(txtarFixtureDialect(fx), unqualified)
+	if err != nil {
+		return ""
+	}
+	data, err := json.Marshal(map[string]any{
+		"Applied": applied,
+		"Tenant":  args.tenant,
+	})
+	if err != nil {
+		return ""
+	}
+	return string(data) + "\n"
+}
+
+func txtarSchemaApplyTenantLogApplied(dialect string, statements []ast.Node) ([]string, error) {
+	if txtarSchemaApplyTenantLogTableCount(statements) <= 1 {
+		sql, err := txtarSchemaApplyTenantLogSQL(dialect, statements)
+		if err != nil {
+			return nil, err
+		}
+		return []string{sql}, nil
+	}
+
+	out := make([]string, 0, len(statements))
+	for _, stmt := range statements {
+		if _, ok := stmt.(*ast.IndexNode); ok {
+			continue
+		}
+		group := txtarSchemaApplyTenantLogStatementGroup(stmt, statements)
+		sql, err := txtarSchemaApplyTenantLogSQL(dialect, group)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, sql)
+	}
+	return out, nil
+}
+
+func txtarSchemaApplyTenantLogTableCount(statements []ast.Node) int {
+	count := 0
+	for _, stmt := range statements {
+		if _, ok := stmt.(*ast.CreateTableNode); ok {
+			count++
+		}
+	}
+	return count
+}
+
+func txtarSchemaApplyTenantLogSQL(dialect string, statements []ast.Node) (string, error) {
+	sql, err := renderAtlasInspectSQL(dialect, statements, "  ")
+	if err != nil {
+		return "", err
+	}
+	sql = strings.TrimSpace(txtarStripAtlasMigrationComments(sql))
+	sql = mysqlDefaultCharsetRE.ReplaceAllString(sql, "")
+	return strings.TrimSuffix(strings.TrimSpace(sql), ";") + ";", nil
+}
+
+func txtarSchemaApplyTenantLogStatementGroup(stmt ast.Node, statements []ast.Node) []ast.Node {
+	table, ok := stmt.(*ast.CreateTableNode)
+	if !ok {
+		return []ast.Node{stmt}
+	}
+	group := []ast.Node{stmt}
+	for _, candidate := range statements {
+		index, ok := candidate.(*ast.IndexNode)
+		if ok && index.Table == table.Name {
+			group = append(group, candidate)
+		}
+	}
+	return group
+}
+
+func txtarResolveAtlasSQLTenants(project string, env string, vars map[string]string) ([]string, bool) {
+	// This models the Atlas datasource fixture shape exactly. Broader HCL or
+	// SQL datasource semantics should stay red until Ptah supports them.
+	forEach, ok := txtarHCLAttrValue(env, "for_each")
+	if !ok || txtarCompactHCLExpr(forEach) != "toset(data.sql.tenants.values)" {
+		return nil, false
+	}
+	envURL, ok := txtarHCLAttrValue(env, "url")
+	if !ok || txtarCompactHCLExpr(envURL) != "urlsetpath(var.url,each.value)" {
+		return nil, false
+	}
+	block, ok := txtarAtlasDataSQLBlock(project, "tenants")
+	if !ok || !txtarAtlasDataSQLTenantsQuery(block) {
+		return nil, false
+	}
+	args, ok := txtarHCLAttrValue(block, "args")
+	if !ok {
+		return nil, false
+	}
+	varName, ok := txtarAtlasSingleVarListRef(args)
+	if !ok {
+		return nil, false
+	}
+	pattern, ok := vars[varName]
+	if !ok || pattern == "" || strings.Contains(pattern, "%") {
+		return nil, false
+	}
+	return []string{pattern}, true
+}
+
+func txtarAtlasDataSQLBlock(data, name string) (string, bool) {
+	re := regexp.MustCompile(`(?m)^\s*data\s+"sql"\s+"` + regexp.QuoteMeta(name) + `"\s*\{`)
+	loc := re.FindStringIndex(data)
+	if loc == nil {
+		return "", false
+	}
+	body, _, ok := txtarHCLBlockBody(data, loc[1]-1)
+	return body, ok
+}
+
+func txtarAtlasDataSQLTenantsQuery(block string) bool {
+	return strings.Contains(block, "information_schema") &&
+		strings.Contains(block, "schemata") &&
+		strings.Contains(block, "schema_name") &&
+		strings.Contains(block, "LIKE ?")
+}
+
+func txtarAtlasSingleVarListRef(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	if !strings.HasPrefix(value, "[") || !strings.HasSuffix(value, "]") {
+		return "", false
+	}
+	return txtarAtlasVarRef(strings.TrimSpace(value[1 : len(value)-1]))
+}
+
+func txtarCompactHCLExpr(value string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(value)), "")
+}
+
+func txtarAtlasSchemaApplyLogsTenant(env string) bool {
+	return strings.Contains(env, "json_merge") &&
+		strings.Contains(env, "Tenant") &&
+		strings.Contains(env, "each.value")
 }
 
 func txtarAtlasEnvVars(env string, cliVars map[string]string) (map[string]string, error) {
@@ -5805,6 +6030,9 @@ func txtarCheckSchemaApplySourceVars(runtime *txtarRuntime, args txtarSchemaAppl
 			continue
 		}
 		for _, name := range txtarHCLRequiredVariables(data) {
+			if _, ok := args.vars[name]; ok {
+				continue
+			}
 			if strings.Contains(data, "var."+name) {
 				return &txtarMissingAtlasVariableError{name: name}
 			}
