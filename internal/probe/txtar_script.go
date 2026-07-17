@@ -4780,7 +4780,7 @@ func txtarPostgresApplyExpressionDefaultSupported(column *ast.ColumnNode) bool {
 func txtarPostgresApplyColumnTypeSupported(columnType string) bool {
 	normalized := strings.ToLower(strings.TrimSpace(columnType))
 	if strings.HasPrefix(normalized, "sql(") {
-		return false
+		return txtarPostgresRawArrayType(columnType) != ""
 	}
 	switch normalized {
 	case "smallserial", "serial", "bigserial":
@@ -5903,6 +5903,9 @@ func txtarPostgresShowForeignKeyAction(action string) string {
 }
 
 func txtarPostgresColumnType(column *ast.ColumnNode) string {
+	if rawArrayType := txtarPostgresRawArrayType(column.Type); rawArrayType != "" {
+		return rawArrayType
+	}
 	typ := atlasColumnType("postgresql", column.Type)
 	normalized := strings.ToLower(typ)
 	switch {
@@ -5950,6 +5953,59 @@ func txtarPostgresColumnType(column *ast.ColumnNode) string {
 		return "interval day to second" + strings.TrimPrefix(normalized, "day_to_second")
 	default:
 		return typ
+	}
+}
+
+func txtarPostgresRawArrayType(columnType string) string {
+	raw, ok := atlasSQLRawType(columnType)
+	if !ok {
+		return ""
+	}
+	normalized := spaceRunRE.ReplaceAllString(strings.ToLower(strings.TrimSpace(raw)), " ")
+	switch {
+	case normalized == "int[1]" || normalized == "int array[1]":
+		return "integer[]"
+	case normalized == "point [][1]":
+		return "point[]"
+	case strings.HasPrefix(normalized, "varchar("):
+		size, ok := txtarPostgresArrayTypeSize(normalized, "varchar")
+		if ok {
+			return "character varying(" + size + ")[]"
+		}
+	case strings.HasPrefix(normalized, "character varying("):
+		size, ok := txtarPostgresArrayTypeSize(normalized, "character varying")
+		if ok {
+			return "character varying(" + size + ")[]"
+		}
+	}
+	return ""
+}
+
+func atlasSQLRawType(columnType string) (string, bool) {
+	trimmed := strings.TrimSpace(columnType)
+	if !strings.HasPrefix(trimmed, "sql(") || !strings.HasSuffix(trimmed, ")") {
+		return "", false
+	}
+	quoted := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(trimmed, "sql("), ")"))
+	raw, err := strconv.Unquote(quoted)
+	if err != nil {
+		return "", false
+	}
+	return raw, true
+}
+
+func txtarPostgresArrayTypeSize(raw, prefix string) (string, bool) {
+	rest := strings.TrimPrefix(raw, prefix+"(")
+	size, suffix, ok := strings.Cut(rest, ")")
+	if !ok || strings.TrimSpace(size) == "" {
+		return "", false
+	}
+	suffix = strings.TrimSpace(suffix)
+	switch suffix {
+	case "[]", "array", "array[1]", "[10][]":
+		return size, true
+	default:
+		return "", false
 	}
 }
 
@@ -8904,6 +8960,11 @@ func renderAtlasColumnSQL(
 func atlasColumnSQLType(dialect string, column *ast.ColumnNode, opts atlasInspectSQLOptions) string {
 	if opts.mariaDBJSONStorage && atlasMariaDBJSONColumn(dialect, column) {
 		return "longtext"
+	}
+	if dialect == "postgresql" {
+		if rawArrayType := txtarPostgresRawArrayType(column.Type); rawArrayType != "" {
+			return rawArrayType
+		}
 	}
 	return atlasColumnType(dialect, column.Type)
 }
