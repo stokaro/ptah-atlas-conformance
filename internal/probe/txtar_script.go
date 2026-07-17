@@ -1352,19 +1352,17 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
 		targetStatements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), targetStatements)
 	}
+	migrationFiles := txtarMigrationSQLFilesInDir(runtime, args.dir)
 	sql, err := renderTxtarMigrateDiffSQLStatements(fx, targetStatements, args.indent, args.qualifier)
-	if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
-		return txtarCommandResult{unsupported: "atlas migrate diff"}
-	}
-	if err != nil {
+	if err != nil && !errors.Is(err, errUnsupportedInspectSQL) && !errors.Is(err, errUnsupportedInspectHCL) {
 		return txtarCommandResult{err: err}
 	}
-	if txtarMigrationDirHasSQL(runtime, args.dir, sql) {
+	if err == nil && txtarMigrationDirHasSQL(runtime, args.dir, sql) {
 		return txtarCommandResult{
 			stdout: "The migration directory is synced with the desired state, no changes to be made\n",
 		}
 	}
-	if len(txtarMigrationSQLFilesInDir(runtime, args.dir)) > 0 {
+	if len(migrationFiles) > 0 {
 		current, ok := txtarCurrentMigrationState(runtime, args.dir)
 		if !ok {
 			return txtarCommandResult{unsupported: "atlas migrate diff"}
@@ -1398,12 +1396,25 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 			)
 		}
 		if !ok {
+			incrementalSQL, incrementalDownSQL, ok = renderTxtarMigrateDiffDropIndexSQL(
+				fx,
+				current,
+				targetStatements,
+				args.qualifier,
+			)
+		}
+		if !ok {
 			return txtarCommandResult{unsupported: "atlas migrate diff"}
 		}
 		if err := txtarWriteMigrateDiff(runtime, args, incrementalSQL, incrementalDownSQL); err != nil {
 			return txtarCommandResult{err: err}
 		}
 		return txtarCommandResult{}
+	}
+	// Existing migration directories can still be handled by narrow incremental
+	// renderers when full initial-create rendering is not available.
+	if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
+		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
 
 	downSQL, ok := renderTxtarMigrateDiffCreateDownSQL(fx, targetStatements, args.qualifier)
@@ -1712,6 +1723,54 @@ func renderTxtarMigrateDiffPrimaryKeyChangeDirectionSQL(
 	return out.String(), true
 }
 
+func renderTxtarMigrateDiffDropIndexSQL(
+	fx Fixture,
+	current []ast.Node,
+	target []ast.Node,
+	qualifier string,
+) (string, string, bool) {
+	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
+	changes, ok := txtarMigrateDiffDropIndexChanges(dialect, current, target)
+	if !ok || len(changes) == 0 {
+		return "", "", false
+	}
+	upSQL, ok := renderTxtarMigrateDiffDropIndexDirectionSQL(dialect, changes, qualifier, false)
+	if !ok {
+		return "", "", false
+	}
+	downSQL, ok := renderTxtarMigrateDiffDropIndexDirectionSQL(dialect, changes, qualifier, true)
+	if !ok {
+		return "", "", false
+	}
+	return upSQL, downSQL, true
+}
+
+func renderTxtarMigrateDiffDropIndexDirectionSQL(
+	dialect string,
+	changes []txtarMigrateDiffDropIndexChange,
+	qualifier string,
+	reverse bool,
+) (string, bool) {
+	quote := atlasIdentifierQuoter(dialect)
+	var out strings.Builder
+	for _, change := range changes {
+		tableName := change.tableName
+		if qualifier != "" {
+			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+		}
+		if change.index == nil || change.index.Name == "" {
+			return "", false
+		}
+		fmt.Fprintf(&out, "-- Modify %q table\n", atlasSQLIdentifier(change.tableName))
+		if reverse {
+			fmt.Fprintf(&out, "ALTER TABLE %s ADD %s;\n", quote(tableName), renderAtlasIndexSQL(dialect, quote, change.index))
+			continue
+		}
+		fmt.Fprintf(&out, "ALTER TABLE %s DROP INDEX %s;\n", quote(tableName), quote(change.index.Name))
+	}
+	return out.String(), true
+}
+
 func renderTxtarMigrateDiffCreateDownSQL(fx Fixture, statements []ast.Node, qualifier string) (string, bool) {
 	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
 	quote := atlasIdentifierQuoter(dialect)
@@ -1805,6 +1864,289 @@ type txtarMigrateDiffPrimaryKeyChange struct {
 	addedColumns []*ast.ColumnNode
 	current      []ast.ConstraintColumn
 	target       []ast.ConstraintColumn
+}
+
+type txtarMigrateDiffDropIndexChange struct {
+	tableName string
+	index     *ast.IndexNode
+}
+
+func txtarMigrateDiffDropIndexChanges(dialect string, current, target []ast.Node) ([]txtarMigrateDiffDropIndexChange, bool) {
+	if !atlasSupportsInlineIndexes(dialect) {
+		return nil, false
+	}
+	if changes, ok := txtarMigrateDiffDropIndexNodeChanges(dialect, current, target); ok && len(changes) > 0 {
+		return changes, true
+	}
+	// Ptah's generic parser currently stores MySQL inline INDEX declarations as
+	// table constraints, so support the same drop-index shape through that AST.
+	return txtarMigrateDiffDropUniqueConstraintChanges(dialect, current, target)
+}
+
+func txtarMigrateDiffDropIndexNodeChanges(
+	dialect string,
+	current []ast.Node,
+	target []ast.Node,
+) ([]txtarMigrateDiffDropIndexChange, bool) {
+	currentIndexes := atlasIndexesByTable(dialect, current)
+	targetIndexes := atlasIndexesByTable(dialect, target)
+	var changes []txtarMigrateDiffDropIndexChange
+	for tableName, indexes := range currentIndexes {
+		targetByName := txtarIndexesByName(targetIndexes[tableName])
+		for _, index := range indexes {
+			targetIndex, ok := targetByName[atlasSQLIdentifier(index.Name)]
+			switch {
+			case !ok:
+				changes = append(changes, txtarMigrateDiffDropIndexChange{tableName: tableName, index: index})
+			case !txtarIndexesEquivalent(dialect, index, targetIndex):
+				return nil, false
+			}
+		}
+	}
+	dropped := txtarDropIndexChangeKeys(changes)
+	for tableName, indexes := range targetIndexes {
+		currentByName := txtarIndexesByName(currentIndexes[tableName])
+		for _, index := range indexes {
+			if _, ok := currentByName[atlasSQLIdentifier(index.Name)]; !ok {
+				return nil, false
+			}
+		}
+	}
+	currentWithoutDrops := txtarRemoveDroppedIndexes(current, dropped)
+	currentSQL, err := renderAtlasInspectSQL(dialect, currentWithoutDrops, "")
+	if err != nil {
+		return nil, false
+	}
+	targetSQL, err := renderAtlasInspectSQL(dialect, target, "")
+	if err != nil {
+		return nil, false
+	}
+	if currentSQL != targetSQL {
+		return nil, false
+	}
+	slices.SortStableFunc(changes, func(a, b txtarMigrateDiffDropIndexChange) int {
+		if a.tableName != b.tableName {
+			return cmp.Compare(a.tableName, b.tableName)
+		}
+		return cmp.Compare(a.index.Name, b.index.Name)
+	})
+	return changes, true
+}
+
+func txtarMigrateDiffDropUniqueConstraintChanges(
+	dialect string,
+	current []ast.Node,
+	target []ast.Node,
+) ([]txtarMigrateDiffDropIndexChange, bool) {
+	currentTables := txtarCreateTablesByName(current)
+	targetTables := txtarCreateTablesByName(target)
+	if len(currentTables) != len(targetTables) {
+		return nil, false
+	}
+	var changes []txtarMigrateDiffDropIndexChange
+	for tableName, currentTable := range currentTables {
+		targetTable, ok := targetTables[tableName]
+		if !ok {
+			return nil, false
+		}
+		tableChanges, ok := txtarMigrateDiffDropTableUniqueConstraintChanges(dialect, currentTable, targetTable)
+		if !ok {
+			return nil, false
+		}
+		changes = append(changes, tableChanges...)
+	}
+	slices.SortStableFunc(changes, func(a, b txtarMigrateDiffDropIndexChange) int {
+		if a.tableName != b.tableName {
+			return cmp.Compare(a.tableName, b.tableName)
+		}
+		return cmp.Compare(a.index.Name, b.index.Name)
+	})
+	return changes, true
+}
+
+func txtarMigrateDiffDropTableUniqueConstraintChanges(
+	dialect string,
+	current *ast.CreateTableNode,
+	target *ast.CreateTableNode,
+) ([]txtarMigrateDiffDropIndexChange, bool) {
+	currentUniques := txtarUniqueConstraintsByName(current)
+	targetUniques := txtarUniqueConstraintsByName(target)
+	var changes []txtarMigrateDiffDropIndexChange
+	dropped := map[string]bool{}
+	for name, currentUnique := range currentUniques {
+		targetUnique, ok := targetUniques[name]
+		switch {
+		case !ok:
+			dropped[name] = true
+			changes = append(changes, txtarMigrateDiffDropIndexChange{
+				tableName: atlasSQLIdentifier(current.Name),
+				index:     txtarIndexFromUniqueConstraint(current.Name, currentUnique),
+			})
+		case !txtarUniqueConstraintsEquivalent(currentUnique, targetUnique):
+			return nil, false
+		}
+	}
+	for name := range targetUniques {
+		if _, ok := currentUniques[name]; !ok {
+			return nil, false
+		}
+	}
+	currentWithoutDrops := txtarCloneTableWithoutUniqueConstraints(current, dropped)
+	if !txtarTablesEquivalentForDropIndex(dialect, currentWithoutDrops, target) {
+		return nil, false
+	}
+	return changes, true
+}
+
+func txtarUniqueConstraintsByName(table *ast.CreateTableNode) map[string]*ast.ConstraintNode {
+	byName := map[string]*ast.ConstraintNode{}
+	for _, constraint := range table.Constraints {
+		if constraint.Type == ast.UniqueConstraint && constraint.Name != "" {
+			byName[atlasSQLIdentifier(constraint.Name)] = constraint
+		}
+	}
+	return byName
+}
+
+func txtarUniqueConstraintsEquivalent(left, right *ast.ConstraintNode) bool {
+	return txtarConstraintColumnsEqual(atlasConstraintColumns(left), atlasConstraintColumns(right))
+}
+
+func txtarConstraintColumnsEqual(left, right []ast.ConstraintColumn) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for i := range left {
+		if atlasSQLIdentifier(left[i].Name) != atlasSQLIdentifier(right[i].Name) ||
+			left[i].Prefix != right[i].Prefix ||
+			left[i].Desc != right[i].Desc {
+			return false
+		}
+	}
+	return true
+}
+
+func txtarIndexFromUniqueConstraint(tableName string, constraint *ast.ConstraintNode) *ast.IndexNode {
+	return &ast.IndexNode{
+		Name:    atlasSQLIdentifier(constraint.Name),
+		Table:   atlasSQLIdentifier(tableName),
+		Columns: atlasConstraintColumnNames(constraint),
+		Unique:  true,
+		Parts:   txtarIndexPartsFromConstraint(constraint),
+	}
+}
+
+func txtarIndexPartsFromConstraint(constraint *ast.ConstraintNode) []ast.IndexPart {
+	columns := atlasConstraintColumns(constraint)
+	parts := make([]ast.IndexPart, 0, len(columns))
+	for _, column := range columns {
+		parts = append(parts, ast.IndexPart{
+			Name:   column.Name,
+			Prefix: column.Prefix,
+			Desc:   column.Desc,
+		})
+	}
+	return parts
+}
+
+func txtarCloneTableWithoutUniqueConstraints(table *ast.CreateTableNode, dropped map[string]bool) *ast.CreateTableNode {
+	clone := *table
+	clone.Constraints = slices.DeleteFunc(slices.Clone(table.Constraints), func(constraint *ast.ConstraintNode) bool {
+		return constraint.Type == ast.UniqueConstraint && dropped[atlasSQLIdentifier(constraint.Name)]
+	})
+	return &clone
+}
+
+func txtarTablesEquivalentForDropIndex(dialect string, current *ast.CreateTableNode, target *ast.CreateTableNode) bool {
+	if current.SelectBody != target.SelectBody || current.Comment != target.Comment || !maps.Equal(current.Options, target.Options) {
+		return false
+	}
+	if len(current.Columns) != len(target.Columns) {
+		return false
+	}
+	for i := range current.Columns {
+		if !txtarColumnsEquivalent(dialect, current.Columns[i], target.Columns[i]) {
+			return false
+		}
+	}
+	return txtarConstraintListsEquivalent(current.Constraints, target.Constraints)
+}
+
+func txtarConstraintListsEquivalent(left, right []*ast.ConstraintNode) bool {
+	leftKeys := txtarConstraintKeys(left)
+	rightKeys := txtarConstraintKeys(right)
+	return slices.Equal(leftKeys, rightKeys)
+}
+
+func txtarConstraintKeys(constraints []*ast.ConstraintNode) []string {
+	keys := make([]string, 0, len(constraints))
+	for _, constraint := range constraints {
+		keys = append(keys, txtarConstraintKey(constraint))
+	}
+	slices.Sort(keys)
+	return keys
+}
+
+func txtarConstraintKey(constraint *ast.ConstraintNode) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s|%s|", constraint.Type, atlasSQLIdentifier(constraint.Name))
+	for _, column := range atlasConstraintColumns(constraint) {
+		fmt.Fprintf(&b, "%s:%s:%t,", atlasSQLIdentifier(column.Name), column.Prefix, column.Desc)
+	}
+	if constraint.Reference != nil {
+		ref := constraint.Reference
+		fmt.Fprintf(&b, "|ref=%s:%s:%s:%s", atlasSQLIdentifier(ref.Table), strings.Join(txtarSQLIdentifiers(ref.ReferencedColumns()), ","),
+			ref.OnUpdate, ref.OnDelete)
+	}
+	if constraint.Expression != "" {
+		fmt.Fprintf(&b, "|expr=%s", constraint.Expression)
+	}
+	return b.String()
+}
+
+func txtarSQLIdentifiers(values []string) []string {
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		out = append(out, atlasSQLIdentifier(value))
+	}
+	return out
+}
+
+func txtarIndexesByName(indexes []*ast.IndexNode) map[string]*ast.IndexNode {
+	byName := make(map[string]*ast.IndexNode, len(indexes))
+	for _, index := range indexes {
+		byName[atlasSQLIdentifier(index.Name)] = index
+	}
+	return byName
+}
+
+func txtarIndexesEquivalent(dialect string, left, right *ast.IndexNode) bool {
+	quote := atlasIdentifierQuoter(dialect)
+	return renderAtlasIndexSQL(dialect, quote, left) == renderAtlasIndexSQL(dialect, quote, right)
+}
+
+func txtarDropIndexChangeKeys(changes []txtarMigrateDiffDropIndexChange) map[string]bool {
+	keys := make(map[string]bool, len(changes))
+	for _, change := range changes {
+		keys[txtarIndexKey(change.tableName, change.index.Name)] = true
+	}
+	return keys
+}
+
+func txtarRemoveDroppedIndexes(statements []ast.Node, dropped map[string]bool) []ast.Node {
+	out := make([]ast.Node, 0, len(statements))
+	for _, stmt := range statements {
+		index, ok := stmt.(*ast.IndexNode)
+		if ok && dropped[txtarIndexKey(index.Table, index.Name)] {
+			continue
+		}
+		out = append(out, stmt)
+	}
+	return out
+}
+
+func txtarIndexKey(tableName, indexName string) string {
+	return atlasSQLIdentifier(tableName) + "\x00" + atlasSQLIdentifier(indexName)
 }
 
 func txtarMigrateDiffPrimaryKeyChanges(dialect string, current, target []ast.Node) ([]txtarMigrateDiffPrimaryKeyChange, bool) {
@@ -3403,6 +3745,8 @@ func txtarApplyStatementToVirtualState(current []ast.Node, stmt ast.Node) ([]ast
 	switch node := stmt.(type) {
 	case *ast.CreateSchemaNode, *ast.CreateTableNode, *ast.IndexNode:
 		return append(current, node), nil
+	case *ast.DropIndexNode:
+		return txtarApplyDropIndexToVirtualState(current, node)
 	case *ast.AlterTableNode:
 		return txtarApplyAlterTableToVirtualState(current, node)
 	default:
@@ -3448,6 +3792,44 @@ func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTabl
 		}
 	}
 	return next, nil
+}
+
+func txtarApplyDropIndexToVirtualState(current []ast.Node, drop *ast.DropIndexNode) ([]ast.Node, error) {
+	next := make([]ast.Node, 0, len(current))
+	dropped := false
+	for _, stmt := range current {
+		index, ok := stmt.(*ast.IndexNode)
+		if ok && txtarDropIndexMatches(index, drop) {
+			dropped = true
+			continue
+		}
+		if table, ok := stmt.(*ast.CreateTableNode); ok && txtarDropUniqueConstraintFromTable(table, drop) {
+			dropped = true
+		}
+		next = append(next, stmt)
+	}
+	if !dropped {
+		return nil, fmt.Errorf("unsupported virtual drop index %s", drop.Name)
+	}
+	return next, nil
+}
+
+func txtarDropIndexMatches(index *ast.IndexNode, drop *ast.DropIndexNode) bool {
+	if atlasSQLIdentifier(index.Name) != atlasSQLIdentifier(drop.Name) {
+		return false
+	}
+	return drop.Table == "" || atlasSQLIdentifier(index.Table) == atlasSQLIdentifier(drop.Table)
+}
+
+func txtarDropUniqueConstraintFromTable(table *ast.CreateTableNode, drop *ast.DropIndexNode) bool {
+	if drop.Table != "" && atlasSQLIdentifier(table.Name) != atlasSQLIdentifier(drop.Table) {
+		return false
+	}
+	before := len(table.Constraints)
+	table.Constraints = slices.DeleteFunc(table.Constraints, func(constraint *ast.ConstraintNode) bool {
+		return constraint.Type == ast.UniqueConstraint && atlasSQLIdentifier(constraint.Name) == atlasSQLIdentifier(drop.Name)
+	})
+	return len(table.Constraints) != before
 }
 
 func txtarApplyAddColumnToTables(statements []ast.Node, tableName string, column *ast.ColumnNode) bool {
@@ -3619,6 +4001,10 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 			statements = append(statements, fallback)
 			continue
 		}
+		if fallback, ok := txtarParseGeneratedDropIndexAlterStatement(stmt); ok {
+			statements = append(statements, fallback)
+			continue
+		}
 		list, err := parser.NewParser(stmt + ";").Parse()
 		if err != nil {
 			if fallback, ok := txtarParseGeneratedCheckAlterStatement(stmt); ok {
@@ -3633,6 +4019,27 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 		statements = append(statements, list.Statements...)
 	}
 	return statements, "", nil
+}
+
+func txtarParseGeneratedDropIndexAlterStatement(stmt string) (ast.Node, bool) {
+	stmt = strings.TrimSpace(stmt)
+	rest, ok := strings.CutPrefix(stmt, "ALTER TABLE ")
+	if !ok {
+		return nil, false
+	}
+	tableName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok {
+		return nil, false
+	}
+	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), "DROP INDEX ")
+	if !ok {
+		return nil, false
+	}
+	indexName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok || strings.TrimSpace(rest) != "" {
+		return nil, false
+	}
+	return ast.NewDropIndex(indexName).SetTable(tableName), true
 }
 
 func txtarParseGeneratedPrimaryKeyAlterStatement(stmt string) (ast.Node, bool) {
