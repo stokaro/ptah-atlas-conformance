@@ -2429,6 +2429,31 @@ CREATE TABLE `+"`"+`users`+"`"+` (
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLColumnDefaultExprFixture(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/column-default-expr.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, string(data))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-default-expr.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesMySQLApplyCmpShowAndExist(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
