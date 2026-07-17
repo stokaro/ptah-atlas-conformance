@@ -1514,6 +1514,73 @@ SELECT 2;
 	}
 }
 
+func TestTxtarScriptProbeExecutesCleanMigrateStatus(t *testing.T) {
+	expected := atlasSumBytes(t, map[string]string{
+		"1.sql": "CREATE TABLE users (id int);\n",
+		"2.sql": "ALTER TABLE users ADD COLUMN name text;\n",
+	})
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+atlas migrate status --url URL --revisions-schema $db
+cmp stdout status_clean.txt
+
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+-- migrations/2.sql --
+ALTER TABLE users ADD COLUMN name text;
+-- migrations/atlas.sum --
+`+string(expected)+`-- status_clean.txt --
+Migration Status: PENDING
+  -- Current Version: No migration applied yet
+  -- Next Version:    1
+  -- Executed Files:  0
+  -- Pending Files:   2
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "executed 2 supported command") {
+		t.Fatalf("detail missing hash/status execution: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeKeepsMigrateStatusWithoutChecksumAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate status --url URL --revisions-schema $db
+
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate status") {
+		t.Fatalf("detail missing migrate status gap: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeExecutesMigrateValidate(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")

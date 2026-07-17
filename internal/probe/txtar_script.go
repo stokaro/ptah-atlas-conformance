@@ -435,6 +435,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string) txtarComman
 	if result, ok := runTxtarMigrateValidate(runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarMigrateStatus(runtime, fields); ok {
+		return result
+	}
 	if result, ok := runTxtarSchemaApply(runtime, fields); ok {
 		return result
 	}
@@ -631,6 +634,38 @@ func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarComma
 		}, true
 	}
 	return txtarCommandResult{}, true
+}
+
+func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "status" {
+		return txtarCommandResult{}, false
+	}
+
+	dir := txtarMigrateCommandDir(fields[3:])
+	if _, ok := runtime.files[path.Join(dir, migratesum.AtlasFileName)]; !ok {
+		return txtarCommandResult{unsupported: "atlas migrate status"}, true
+	}
+	files := txtarMigrationSQLFilesInDir(runtime, dir)
+	if len(files) == 0 {
+		return txtarCommandResult{unsupported: "atlas migrate status"}, true
+	}
+	nextVersion := atlasMigrationVersion(files[0])
+	stdout := fmt.Sprintf(`Migration Status: PENDING
+  -- Current Version: No migration applied yet
+  -- Next Version:    %s
+  -- Executed Files:  0
+  -- Pending Files:   %d
+`, nextVersion, len(files))
+	return txtarCommandResult{stdout: stdout}, true
+}
+
+func atlasMigrationVersion(name string) string {
+	base := strings.TrimSuffix(path.Base(name), ".sql")
+	version, _, hasDescription := strings.Cut(base, "_")
+	if hasDescription {
+		return version
+	}
+	return base
 }
 
 func runTxtarSchemaApply(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
@@ -1009,9 +1044,13 @@ func txtarCmpmigActualFile(runtime *txtarRuntime, index string) (string, bool) {
 }
 
 func txtarMigrationSQLFiles(runtime *txtarRuntime) []string {
+	return txtarMigrationSQLFilesInDir(runtime, "migrations")
+}
+
+func txtarMigrationSQLFilesInDir(runtime *txtarRuntime, dir string) []string {
 	var files []string
 	for name := range runtime.files {
-		if txtarMigrateHashReadsFile("migrations", name) {
+		if txtarMigrateHashReadsFile(dir, name) {
 			files = append(files, name)
 		}
 	}
