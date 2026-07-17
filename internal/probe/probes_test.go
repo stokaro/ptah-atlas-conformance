@@ -2525,6 +2525,98 @@ CREATE TABLE `+"`"+`pets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, `+"`"+`name`
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLMigrateApplyAndAlterIndex(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql
+
+! atlas migrate apply
+stderr 'checksum file not found'
+stdout 'atlas migrate hash'
+atlas migrate hash
+atlas migrate apply --url URL --revisions-schema $db
+stdout 'Migrating to version 3 \(3 migrations in total\):'
+stdout '-- migrating version 2'
+stdout '-> ALTER TABLE `+"`users`"+` ADD UNIQUE INDEX `+"`age`"+` \(`+"`age`"+`\);'
+stdout '-- 3 migrations'
+stdout '-- 3 sql statements'
+cmpshow users users.sql
+cmpshow pets pets.sql
+atlas migrate apply --url URL --revisions-schema $db
+stdout 'No migration files to execute'
+clearSchema
+atlas migrate apply --url URL --revisions-schema $db 1
+stdout 'Migrating to version 1 \(1 migrations in total\):'
+cmpshow users users_1.sql
+atlas migrate apply --url URL --revisions-schema $db 1
+stdout 'Migrating to version 2 from 1 \(1 migrations in total\):'
+cmpshow users users.sql
+
+-- migrations/1_first.sql --
+CREATE TABLE `+"`users`"+` (`+"`id`"+` bigint NOT NULL AUTO_INCREMENT, `+"`age`"+` bigint NOT NULL, `+"`name`"+` varchar(255) NOT NULL, PRIMARY KEY (`+"`id`"+`)) CHARSET utf8mb4 COLLATE utf8mb4_bin;
+-- migrations/2_second.sql --
+ALTER TABLE `+"`users`"+` ADD UNIQUE INDEX `+"`age`"+` (`+"`age`"+`);
+-- migrations/3_third.sql --
+CREATE TABLE `+"`pets`"+` (`+"`id`"+` bigint NOT NULL AUTO_INCREMENT, `+"`name`"+` varchar(255) NOT NULL, PRIMARY KEY (`+"`id`"+`)) CHARSET utf8mb4 COLLATE utf8mb4_bin;
+-- users.sql --
+CREATE TABLE `+"`users`"+` (
+  `+"`id`"+` bigint(20) NOT NULL AUTO_INCREMENT,
+  `+"`age`"+` bigint(20) NOT NULL,
+  `+"`name`"+` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`+"`id`"+`),
+  UNIQUE KEY `+"`age`"+` (`+"`age`"+`)
+)
+-- mysql8/users.sql --
+CREATE TABLE `+"`users`"+` (
+  `+"`id`"+` bigint NOT NULL AUTO_INCREMENT,
+  `+"`age`"+` bigint NOT NULL,
+  `+"`name`"+` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`+"`id`"+`),
+  UNIQUE KEY `+"`age`"+` (`+"`age`"+`)
+)
+-- users_1.sql --
+CREATE TABLE `+"`users`"+` (
+  `+"`id`"+` bigint(20) NOT NULL AUTO_INCREMENT,
+  `+"`age`"+` bigint(20) NOT NULL,
+  `+"`name`"+` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`+"`id`"+`)
+)
+-- mysql8/users_1.sql --
+CREATE TABLE `+"`users`"+` (
+  `+"`id`"+` bigint NOT NULL AUTO_INCREMENT,
+  `+"`age`"+` bigint NOT NULL,
+  `+"`name`"+` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`+"`id`"+`)
+)
+-- pets.sql --
+CREATE TABLE `+"`pets`"+` (
+  `+"`id`"+` bigint(20) NOT NULL AUTO_INCREMENT,
+  `+"`name`"+` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`+"`id`"+`)
+)
+-- mysql8/pets.sql --
+CREATE TABLE `+"`pets`"+` (
+  `+"`id`"+` bigint NOT NULL AUTO_INCREMENT,
+  `+"`name`"+` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`+"`id`"+`)
+)
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/cli-migrate-apply.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesSQLiteMigrateApplyTxModes(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
