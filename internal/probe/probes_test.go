@@ -436,6 +436,45 @@ CREATE TABLE "users" ("id" integer NOT NULL, PRIMARY KEY ("id"));
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresSchemaInspectSQLWithCheckConstraints(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . "  " }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- a.sql --
+CREATE TABLE t1 (
+  a int CONSTRAINT c1 CHECK (a > 0),
+  b int CONSTRAINT c2 CHECK (b > 0),
+  CONSTRAINT c3 CHECK (a < b)
+);
+
+-- expected.sql --
+-- Create "t1" table
+CREATE TABLE "t1" (
+  "a" integer NULL,
+  "b" integer NULL,
+  CONSTRAINT "c1" CHECK (a > 0),
+  CONSTRAINT "c2" CHECK (b > 0),
+  CONSTRAINT "c3" CHECK (a < b)
+);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesMySQLSchemaInspectSQLAndCmp(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -471,6 +510,40 @@ CREATE TABLE `+"`users`"+` (`+"`id`"+` int NOT NULL, PRIMARY KEY (`+"`id`"+`), S
 	}
 }
 
+func TestTxtarScriptProbeKeepsMySQLSchemaInspectSQLChecksAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . "  " }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- a.sql --
+CREATE TABLE t1 (
+  a int CHECK (a > 0)
+);
+
+-- expected.sql --
+-- MySQL normalizes check expressions during real inspection.
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas schema inspect sql")
+	if strings.Contains(results[0].Detail, "cmp inspected.sql expected.sql") {
+		t.Fatalf("unsupported SQL inspect should not run dependent cmp: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeExecutesSchemaInspectHCLAndCmp(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -492,6 +565,59 @@ table "users" {
   }
   primary_key {
     columns = [column.id]
+  }
+}
+schema "script_case" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesPostgresSchemaInspectHCLWithCheckConstraints(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- a.sql --
+CREATE TABLE t1 (
+  a int CONSTRAINT c1 CHECK (a > 0),
+  b int CONSTRAINT c2 CHECK (b > 0),
+  CONSTRAINT c3 CHECK (a < b)
+);
+
+-- expected.hcl --
+table "t1" {
+  schema = schema.script_case
+  column "a" {
+    null = true
+    type = integer
+  }
+  column "b" {
+    null = true
+    type = integer
+  }
+  check "c1" {
+    expr = "(a > 0)"
+  }
+  check "c2" {
+    expr = "(b > 0)"
+  }
+  check "c3" {
+    expr = "(a < b)"
   }
 }
 schema "script_case" {
