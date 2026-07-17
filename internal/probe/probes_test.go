@@ -2309,6 +2309,74 @@ CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL, `+"`"+`b`+"`"+` 
 	}
 }
 
+func TestTxtarNormalizeMySQLShowSQL(t *testing.T) {
+	actual := "-- Create \"users\" table\n" +
+		"CREATE TABLE `users` (`rank` bigint NOT NULL, UNIQUE KEY `rank_idx` (`rank`)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;\n"
+	expected := "CREATE TABLE `users` (\n" +
+		"  `rank` bigint(20) NOT NULL,\n" +
+		"  UNIQUE KEY `rank_idx` (`rank`)\n" +
+		")\n"
+
+	if txtarNormalizeMySQLShowSQL(actual) != txtarNormalizeMySQLShowSQL(expected) {
+		t.Fatalf("normalized MySQL show SQL mismatch:\ngot  %q\nwant %q",
+			txtarNormalizeMySQLShowSQL(actual), txtarNormalizeMySQLShowSQL(expected))
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLApplyCmpShowAndExist(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+exist users
+cmpshow users 1.sql
+apply 0.hcl
+! exist users
+
+-- 1.hcl --
+schema "$db" {
+  charset = "$charset"
+  collate = "$collate"
+}
+
+table "users" {
+  schema = schema.$db
+  column "rank" {
+    type = bigint
+  }
+  index "rank_idx" {
+    unique = true
+    columns = [table.users.column.rank]
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (
+  `+"`"+`rank`+"`"+` bigint(20) NOT NULL,
+  UNIQUE KEY `+"`"+`rank_idx`+"`"+` (`+"`"+`rank`+"`"+`)
+)
+
+-- 0.hcl --
+schema "$db" {
+  charset = "$charset"
+  collate = "$collate"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/index-add-drop.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeKeepsUnsupportedGenericApplyBlockingDBAssertions(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
