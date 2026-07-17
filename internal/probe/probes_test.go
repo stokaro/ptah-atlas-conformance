@@ -1915,6 +1915,42 @@ func TestTxtarScriptProbeExecutesMySQLPrimaryKeyPartsFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLMigrateDiffModeNormalizedFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/cli-migrate-diff-mode-normalized.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "cli-migrate-diff-mode-normalized.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarParseGeneratedDropIndexAlterStatement(t *testing.T) {
+	node, ok := txtarParseGeneratedDropIndexAlterStatement("ALTER TABLE `tbl` DROP INDEX `u_ref_id`")
+	if !ok {
+		t.Fatal("expected generated drop-index ALTER statement to parse")
+	}
+	drop, ok := node.(*ast.DropIndexNode)
+	if !ok {
+		t.Fatalf("expected DropIndexNode, got %T", node)
+	}
+	if drop.Name != "u_ref_id" || drop.Table != "tbl" {
+		t.Fatalf("unexpected drop index node: %#v", drop)
+	}
+
+	if _, ok := txtarParseGeneratedDropIndexAlterStatement("ALTER TABLE `tbl` DROP INDEX `u_ref_id`, ADD INDEX `i_ref_id` (`ref_id`)"); ok {
+		t.Fatal("expected composite ALTER statement to stay on the general parser path")
+	}
+}
+
 func TestTxtarParseGeneratedPrimaryKeyAlterStatement(t *testing.T) {
 	node, ok := txtarParseGeneratedPrimaryKeyAlterStatement(
 		"ALTER TABLE `t1` ADD COLUMN `id2` tinytext NOT NULL, DROP PRIMARY KEY, ADD PRIMARY KEY (`id` (7), `id2` (1))",
