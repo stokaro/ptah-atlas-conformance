@@ -345,7 +345,7 @@ func TestTxtarScriptProbeReportsCommandSurface(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `# comment
-! atlas migrate diff --to file://schema.hcl
+atlas migrate diff --to file://schema.hcl
 stdout 'planned'
 atlas migrate apply --url URL
 cmpshow users expected.sql
@@ -1154,6 +1154,110 @@ CREATE TABLE users (id INT);
 	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
 	if strings.Contains(results[0].Detail, "cmpmig") {
 		t.Fatalf("dependent cmpmig should not be reported after unsupported migration producer: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeChecksExpectedMigrateDiffValidationFailures(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `exec mkdir migrations
+
+! atlas migrate diff --to file://1.hcl --dir file://migrations
+stderr '"dev-url" not set'
+
+! atlas migrate diff --dev-url URL --dir file://migrations
+stderr '"to" not set'
+
+-- 1.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsInitialMigrateDiffAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `exec mkdir migrations
+atlas migrate diff --dev-url URL --to file://./1.hcl first
+cmpmig 0 1.sql
+
+-- 1.hcl --
+schema "script_cli_migrate_diff" {}
+
+table "users" {
+  schema = schema.script_cli_migrate_diff
+  column "id" {
+    null = false
+    type = bigint
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
+-- 1.sql --
+-- Create "users" table
+CREATE TABLE "users" ("id" bigint NOT NULL, PRIMARY KEY ("id"));
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/cli-migrate-diff.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
+		t.Fatalf("detail missing migrate diff gap: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeKeepsIncrementalMigrateDiffAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+atlas migrate diff --dev-url URL --to file://schema.hcl second
+
+-- migrations/1_first.sql --
+CREATE TABLE users (id bigint NOT NULL);
+-- schema.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
+		t.Fatalf("detail missing migrate diff gap: %s", results[0].Detail)
 	}
 }
 
