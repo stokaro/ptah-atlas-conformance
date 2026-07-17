@@ -2713,9 +2713,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-identity.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
