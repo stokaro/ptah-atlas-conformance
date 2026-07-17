@@ -1397,6 +1397,174 @@ func TestTxtarScriptProbeExecutesSQLiteSQLMigrateDiffAndSchemaDiff(t *testing.T)
 	}
 }
 
+func TestTxtarScriptProbeExecutesSQLiteEnvMigrateDiffFixtures(t *testing.T) {
+	for _, fixture := range []string{
+		"cli-migrate-diff-minimal-env.txtar",
+		"cli-migrate-diff-datasrc-hcl.txtar",
+		"cli-migrate-diff-datasrc-hcl-paths.txtar",
+		"cli-migrate-project-multifile.txtar",
+		"cli-migrate-project.txtar",
+	} {
+		t.Run(fixture, func(t *testing.T) {
+			data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/sqlite/" + fixture)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			dir := t.TempDir()
+			path := filepath.Join(dir, "case.txtar")
+			writeTestFile(t, path, string(data))
+
+			results := TxtarScriptProbe{}.Run(Fixture{
+				Name:  "sqlite/" + fixture,
+				Kind:  FixtureKindTxtar,
+				Dir:   dir,
+				Files: []string{path},
+			})
+
+			if len(results) != 1 {
+				t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+			}
+			if results[0].Outcome != OK {
+				t.Fatalf("expected OK result, got %#v", results[0])
+			}
+		})
+	}
+}
+
+func TestTxtarScriptProbeResolvesSQLiteEnvMigrationDirForHashValidate(t *testing.T) {
+	runtime := newTxtarRuntime(`-- atlas.hcl --
+env "local" {
+  dev = "sqlite://dev"
+  src = "1.hcl"
+  migration {
+    dir = "file://custom"
+    format = atlas
+  }
+}
+-- 1.hcl --
+schema "main" {}
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+}
+`)
+	fx := Fixture{Name: "sqlite/custom-dir.txtar", Kind: FixtureKindTxtar}
+
+	result, ok := runTxtarMigrateDiff(fx, runtime, txtarCommandFields("atlas migrate diff --env local"), false)
+	if !ok || result.err != nil || result.failed || result.unsupported != "" {
+		t.Fatalf("migrate diff result = %#v, ok = %v", result, ok)
+	}
+	if _, ok := runtime.files["custom/1.sql"]; !ok {
+		t.Fatalf("expected custom/1.sql to be generated, files: %#v", runtime.files)
+	}
+	if _, ok := runtime.files["custom/atlas.sum"]; !ok {
+		t.Fatalf("expected custom/atlas.sum to be generated, files: %#v", runtime.files)
+	}
+
+	result, ok = runTxtarMigrateValidate(runtime, txtarCommandFields("atlas migrate validate --env local"))
+	if !ok || result.err != nil || result.failed {
+		t.Fatalf("validate result = %#v, ok = %v", result, ok)
+	}
+
+	runtime.files["custom/2.sql"] = ""
+	runtime.addParentDirs("custom/2.sql")
+	result, ok = runTxtarMigrateValidate(runtime, txtarCommandFields("atlas migrate validate --env local"))
+	if !ok || !result.failed || !strings.Contains(result.stderr, "checksum mismatch") {
+		t.Fatalf("expected checksum mismatch, got result = %#v, ok = %v", result, ok)
+	}
+
+	result, ok = runTxtarMigrateHash(runtime, txtarCommandFields("atlas migrate hash --env local"))
+	if !ok || result.err != nil || result.failed {
+		t.Fatalf("hash result = %#v, ok = %v", result, ok)
+	}
+	result, ok = runTxtarMigrateValidate(runtime, txtarCommandFields("atlas migrate validate --env local"))
+	if !ok || result.err != nil || result.failed {
+		t.Fatalf("validate after hash result = %#v, ok = %v", result, ok)
+	}
+}
+
+func TestTxtarScriptProbeKeepsEnvDirDependentCommandsBlocked(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff --env local --qualifier main
+atlas migrate validate --env local
+
+-- atlas.hcl --
+env "local" {
+  dev = "sqlite://dev"
+  src = "1.hcl"
+  migration {
+    dir = "file://custom"
+    format = atlas
+  }
+}
+-- 1.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/custom-dir-blocked.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
+	for _, leaked := range []string{"atlas migrate validate", "checksum file not found", "checksum mismatch"} {
+		if strings.Contains(results[0].Detail, leaked) {
+			t.Fatalf("dependent command leaked into detail %q: %s", leaked, results[0].Detail)
+		}
+	}
+}
+
+func TestTxtarAtlasProjectBlockParsingIgnoresQuotedAndCommentedBraces(t *testing.T) {
+	project := `env "other" {
+  note = "quoted } brace should not end this block"
+  dev = "sqlite://other"
+  src = "missing.hcl"
+}
+
+env "local" {
+  note = "literal { } and escaped \" quote"
+  // comment { should not affect nesting }
+  # another comment } should not affect nesting
+  dev = "sqlite://dev"
+  src = "1.hcl"
+  migration {
+    /* block comment { } should not affect nesting */
+    dir = "file://custom"
+  }
+}
+`
+
+	env, ok := txtarAtlasNamedBlock(project, "env", "local")
+	if !ok {
+		t.Fatal("local env block was not found")
+	}
+	devURL, ok := txtarHCLStringAttr(env, "dev")
+	if !ok || devURL != "sqlite://dev" {
+		t.Fatalf("dev = %q, ok = %v", devURL, ok)
+	}
+	migration, ok := txtarAtlasAnonymousBlock(env, "migration")
+	if !ok {
+		t.Fatal("migration block was not found")
+	}
+	dir, ok := txtarHCLStringAttr(migration, "dir")
+	if !ok || dir != "file://custom" {
+		t.Fatalf("migration dir = %q, ok = %v", dir, ok)
+	}
+}
+
 func TestTxtarScriptProbeKeepsInitialMigrateDiffAsGap(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
