@@ -2131,6 +2131,47 @@ func TestTxtarScriptProbeKeepsPostgresPartialIndexWhereAsGap(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresIndexDescFixture(t *testing.T) {
+	fixture := "index-desc.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsPostgresComplexExpressionIndexAsGap(t *testing.T) {
+	fixture := "index-expr.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: apply") {
+		t.Fatalf("detail missing expression-index apply gap: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarResolveAtlasSQLTenantsRequiresExactPattern(t *testing.T) {
 	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar")
 	if err != nil {

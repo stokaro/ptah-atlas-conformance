@@ -2785,17 +2785,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: synced",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 9 supported command(s)"
   },
   {
     "probe": "txtar-script",
