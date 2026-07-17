@@ -802,6 +802,96 @@ schema "script_primary_key_parts" {
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLSchemaInspectHCLSourceWithPrimaryKeyParts(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas schema inspect -u file://schema.hcl --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- schema.hcl --
+table "t1" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      column = column.id
+      prefix = 7
+    }
+  }
+}
+table "t2" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      desc   = true
+      column = column.id
+      prefix = 7
+    }
+  }
+}
+schema "script_primary_key_parts" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_bin"
+}
+
+-- expected.hcl --
+table "t1" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      column = column.id
+      prefix = 7
+    }
+  }
+}
+table "t2" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      desc   = true
+      column = column.id
+      prefix = 7
+    }
+  }
+}
+schema "script_primary_key_parts" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_bin"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/primary-key-parts.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeKeepsUnsupportedSchemaInspectHCLAsGap(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
