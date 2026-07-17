@@ -1820,7 +1820,7 @@ CREATE TABLE t1(id int);
 	}
 }
 
-func TestTxtarScriptProbeKeepsMySQLIncrementalMigrateDiffAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesMySQLIncrementalMigrateDiffPrimaryKeyParts(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `only mysql8
@@ -1892,12 +1892,57 @@ ALTER TABLE `+"`t1`"+` ADD COLUMN `+"`id2`"+` tinytext NOT NULL, DROP PRIMARY KE
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
-	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
-	if strings.Contains(results[0].Detail, "cmpmig") {
-		t.Fatalf("dependent cmpmig should not be reported after unsupported incremental diff: %s", results[0].Detail)
+}
+
+func TestTxtarScriptProbeExecutesMySQLPrimaryKeyPartsFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/primary-key-parts.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "primary-key-parts.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarParseGeneratedPrimaryKeyAlterStatement(t *testing.T) {
+	node, ok := txtarParseGeneratedPrimaryKeyAlterStatement(
+		"ALTER TABLE `t1` ADD COLUMN `id2` tinytext NOT NULL, DROP PRIMARY KEY, ADD PRIMARY KEY (`id` (7), `id2` (1))",
+	)
+	if !ok {
+		t.Fatal("expected generated primary-key ALTER statement to parse")
+	}
+	alter, ok := node.(*ast.AlterTableNode)
+	if !ok {
+		t.Fatalf("expected AlterTableNode, got %T", node)
+	}
+	if alter.Name != "t1" || len(alter.Operations) != 3 {
+		t.Fatalf("unexpected alter node: %#v", alter)
+	}
+	if _, ok := alter.Operations[0].(*ast.AddColumnOperation); !ok {
+		t.Fatalf("unexpected add-column operation: %#v", alter.Operations[0])
+	}
+	drop, ok := alter.Operations[1].(*ast.DropConstraintOperation)
+	if !ok || drop.ConstraintName != "PRIMARY" {
+		t.Fatalf("unexpected drop operation: %#v", alter.Operations[1])
+	}
+	add, ok := alter.Operations[2].(*ast.AddConstraintOperation)
+	if !ok || add.Constraint == nil || add.Constraint.Type != ast.PrimaryKeyConstraint ||
+		!txtarPrimaryKeyColumnsEqual(add.Constraint.ColumnParts, []ast.ConstraintColumn{
+			{Name: "id", Prefix: "7"},
+			{Name: "id2", Prefix: "1"},
+		}) {
+		t.Fatalf("unexpected add primary-key operation: %#v", alter.Operations[2])
 	}
 }
 

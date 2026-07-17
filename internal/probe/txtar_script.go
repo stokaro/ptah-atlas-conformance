@@ -1390,6 +1390,14 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 			)
 		}
 		if !ok {
+			incrementalSQL, incrementalDownSQL, ok = renderTxtarMigrateDiffPrimaryKeyChangeSQL(
+				fx,
+				current,
+				targetStatements,
+				args.qualifier,
+			)
+		}
+		if !ok {
 			return txtarCommandResult{unsupported: "atlas migrate diff"}
 		}
 		if err := txtarWriteMigrateDiff(runtime, args, incrementalSQL, incrementalDownSQL); err != nil {
@@ -1642,6 +1650,68 @@ func renderTxtarMigrateDiffCheckChangeDirectionSQL(
 	return out.String(), true
 }
 
+func renderTxtarMigrateDiffPrimaryKeyChangeSQL(
+	fx Fixture,
+	current []ast.Node,
+	target []ast.Node,
+	qualifier string,
+) (string, string, bool) {
+	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
+	changes, ok := txtarMigrateDiffPrimaryKeyChanges(dialect, current, target)
+	if !ok || len(changes) == 0 {
+		return "", "", false
+	}
+	upSQL, ok := renderTxtarMigrateDiffPrimaryKeyChangeDirectionSQL(dialect, changes, qualifier, false)
+	if !ok {
+		return "", "", false
+	}
+	downSQL, ok := renderTxtarMigrateDiffPrimaryKeyChangeDirectionSQL(dialect, changes, qualifier, true)
+	if !ok {
+		return "", "", false
+	}
+	return upSQL, downSQL, true
+}
+
+func renderTxtarMigrateDiffPrimaryKeyChangeDirectionSQL(
+	dialect string,
+	changes []txtarMigrateDiffPrimaryKeyChange,
+	qualifier string,
+	reverse bool,
+) (string, bool) {
+	quote := atlasIdentifierQuoter(dialect)
+	var out strings.Builder
+	for _, change := range changes {
+		tableName := change.tableName
+		if qualifier != "" {
+			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+		}
+		primaryKey := change.target
+		comment := "-- Modify %q table\n"
+		if reverse {
+			primaryKey = change.current
+			comment = "-- reverse: modify %q table\n"
+		}
+		if len(primaryKey) == 0 {
+			return "", false
+		}
+		fmt.Fprintf(&out, comment, atlasSQLIdentifier(change.tableName))
+		parts := make([]string, 0, len(change.addedColumns)+3)
+		if !reverse {
+			for _, column := range change.addedColumns {
+				parts = append(parts, "ADD COLUMN "+renderAtlasColumnSQL(dialect, quote, column, true, atlasInspectSQLOptions{}))
+			}
+		}
+		parts = append(parts, "DROP PRIMARY KEY", "ADD "+renderAtlasPrimaryKeySQL(quote, primaryKey))
+		if reverse {
+			for _, column := range change.addedColumns {
+				parts = append(parts, "DROP COLUMN "+quote(column.Name))
+			}
+		}
+		fmt.Fprintf(&out, "ALTER TABLE %s %s;\n", quote(tableName), strings.Join(parts, ", "))
+	}
+	return out.String(), true
+}
+
 func renderTxtarMigrateDiffCreateDownSQL(fx Fixture, statements []ast.Node, qualifier string) (string, bool) {
 	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
 	quote := atlasIdentifierQuoter(dialect)
@@ -1728,6 +1798,144 @@ type txtarMigrateDiffCheckChange struct {
 	tableName string
 	current   atlasCheckBlock
 	target    atlasCheckBlock
+}
+
+type txtarMigrateDiffPrimaryKeyChange struct {
+	tableName    string
+	addedColumns []*ast.ColumnNode
+	current      []ast.ConstraintColumn
+	target       []ast.ConstraintColumn
+}
+
+func txtarMigrateDiffPrimaryKeyChanges(dialect string, current, target []ast.Node) ([]txtarMigrateDiffPrimaryKeyChange, bool) {
+	currentTables := txtarCreateTablesByName(current)
+	targetTables := txtarCreateTablesByName(target)
+	if len(currentTables) != len(targetTables) {
+		return nil, false
+	}
+	var changes []txtarMigrateDiffPrimaryKeyChange
+	for tableName, targetTable := range targetTables {
+		currentTable, ok := currentTables[tableName]
+		if !ok {
+			return nil, false
+		}
+		change, changed, ok := txtarMigrateDiffTablePrimaryKeyChange(dialect, currentTable, targetTable)
+		if !ok {
+			return nil, false
+		}
+		if changed {
+			change.tableName = tableName
+			changes = append(changes, change)
+		}
+	}
+	slices.SortStableFunc(changes, func(a, b txtarMigrateDiffPrimaryKeyChange) int {
+		return cmp.Compare(a.tableName, b.tableName)
+	})
+	return changes, true
+}
+
+func txtarMigrateDiffTablePrimaryKeyChange(
+	dialect string,
+	current *ast.CreateTableNode,
+	target *ast.CreateTableNode,
+) (txtarMigrateDiffPrimaryKeyChange, bool, bool) {
+	currentPrimaryKey, ok := txtarTablePrimaryKey(current)
+	if !ok {
+		return txtarMigrateDiffPrimaryKeyChange{}, false, false
+	}
+	targetPrimaryKey, ok := txtarTablePrimaryKey(target)
+	if !ok {
+		return txtarMigrateDiffPrimaryKeyChange{}, false, false
+	}
+	addedColumns, ok := txtarMigrateDiffAddedColumnsIgnoringPrimaryKey(dialect, current, target)
+	if !ok {
+		return txtarMigrateDiffPrimaryKeyChange{}, false, false
+	}
+	if txtarPrimaryKeyColumnsEqual(currentPrimaryKey, targetPrimaryKey) {
+		return txtarMigrateDiffPrimaryKeyChange{}, false, true
+	}
+	return txtarMigrateDiffPrimaryKeyChange{
+		addedColumns: addedColumns,
+		current:      currentPrimaryKey,
+		target:       targetPrimaryKey,
+	}, true, true
+}
+
+func txtarMigrateDiffAddedColumnsIgnoringPrimaryKey(
+	dialect string,
+	current *ast.CreateTableNode,
+	target *ast.CreateTableNode,
+) ([]*ast.ColumnNode, bool) {
+	currentColumns := map[string]*ast.ColumnNode{}
+	for _, column := range current.Columns {
+		currentColumns[atlasSQLIdentifier(column.Name)] = column
+	}
+	var added []*ast.ColumnNode
+	currentBase := txtarCloneTableWithoutPrimaryKey(current)
+	targetBase := txtarCloneTableWithoutPrimaryKey(target)
+	targetBase.Columns = nil
+	for _, column := range target.Columns {
+		name := atlasSQLIdentifier(column.Name)
+		currentColumn, ok := currentColumns[name]
+		switch {
+		case !ok:
+			added = append(added, column)
+		case !txtarColumnsEquivalent(dialect, currentColumn, column):
+			return nil, false
+		default:
+			targetBase.Columns = append(targetBase.Columns, column)
+		}
+	}
+	if len(current.Columns)+len(added) != len(target.Columns) {
+		return nil, false
+	}
+	if !txtarTablesEquivalentBySQL(dialect, currentBase, targetBase) {
+		return nil, false
+	}
+	return added, true
+}
+
+func txtarTablePrimaryKey(table *ast.CreateTableNode) ([]ast.ConstraintColumn, bool) {
+	var primaryColumns []ast.ConstraintColumn
+	for _, column := range table.Columns {
+		if column.Primary {
+			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
+		}
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type == ast.PrimaryKeyConstraint {
+			primaryColumns = append(primaryColumns, atlasConstraintColumns(constraint)...)
+		}
+	}
+	return primaryColumns, len(primaryColumns) > 0
+}
+
+func txtarPrimaryKeyColumnsEqual(left, right []ast.ConstraintColumn) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for i := range left {
+		if atlasSQLIdentifier(left[i].Name) != atlasSQLIdentifier(right[i].Name) ||
+			left[i].Prefix != right[i].Prefix ||
+			left[i].Desc != right[i].Desc {
+			return false
+		}
+	}
+	return true
+}
+
+func txtarCloneTableWithoutPrimaryKey(table *ast.CreateTableNode) *ast.CreateTableNode {
+	clone := *table
+	clone.Columns = make([]*ast.ColumnNode, 0, len(table.Columns))
+	for _, column := range table.Columns {
+		columnClone := *column
+		columnClone.Primary = false
+		clone.Columns = append(clone.Columns, &columnClone)
+	}
+	clone.Constraints = slices.DeleteFunc(slices.Clone(table.Constraints), func(constraint *ast.ConstraintNode) bool {
+		return constraint.Type == ast.PrimaryKeyConstraint
+	})
+	return &clone
 }
 
 func txtarMigrateDiffCheckChanges(dialect string, current, target []ast.Node) ([]txtarMigrateDiffCheckChange, bool) {
@@ -3220,10 +3428,19 @@ func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTabl
 				continue
 			}
 			if !txtarApplyAddCheckConstraintToTables(next, alter.Name, op.Constraint) {
+				if txtarApplyAddPrimaryKeyConstraintToTables(next, alter.Name, op.Constraint) {
+					continue
+				}
 				return nil, fmt.Errorf("unsupported virtual alter constraint %s", txtarConstraintType(op.Constraint))
 			}
 		case *ast.DropConstraintOperation:
-			if !op.Check || !txtarApplyDropCheckConstraintFromTables(next, alter.Name, op.ConstraintName) {
+			switch {
+			case op.Check && txtarApplyDropCheckConstraintFromTables(next, alter.Name, op.ConstraintName):
+				continue
+			case txtarPrimaryKeyConstraintName(op.ConstraintName) &&
+				txtarApplyDropPrimaryKeyConstraintFromTables(next, alter.Name):
+				continue
+			default:
 				return nil, fmt.Errorf("unsupported virtual alter drop constraint %s", op.ConstraintName)
 			}
 		default:
@@ -3243,6 +3460,54 @@ func txtarApplyAddColumnToTables(statements []ast.Node, tableName string, column
 		}
 	}
 	return false
+}
+
+func txtarApplyAddPrimaryKeyConstraintToTables(statements []ast.Node, tableName string, constraint *ast.ConstraintNode) bool {
+	if constraint == nil || constraint.Type != ast.PrimaryKeyConstraint || len(atlasConstraintColumns(constraint)) == 0 {
+		return false
+	}
+	tableName = atlasSQLIdentifier(tableName)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok && atlasSQLIdentifier(table.Name) == tableName {
+			table.Constraints = append(table.Constraints, constraint)
+			return true
+		}
+	}
+	return false
+}
+
+func txtarApplyDropPrimaryKeyConstraintFromTables(statements []ast.Node, tableName string) bool {
+	tableName = atlasSQLIdentifier(tableName)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok || atlasSQLIdentifier(table.Name) != tableName {
+			continue
+		}
+		if txtarDropPrimaryKeyConstraintFromTable(table) {
+			return true
+		}
+	}
+	return false
+}
+
+func txtarDropPrimaryKeyConstraintFromTable(table *ast.CreateTableNode) bool {
+	dropped := false
+	for _, column := range table.Columns {
+		if column.Primary {
+			column.Primary = false
+			dropped = true
+		}
+	}
+	before := len(table.Constraints)
+	table.Constraints = slices.DeleteFunc(table.Constraints, func(constraint *ast.ConstraintNode) bool {
+		return constraint.Type == ast.PrimaryKeyConstraint
+	})
+	return dropped || len(table.Constraints) != before
+}
+
+func txtarPrimaryKeyConstraintName(name string) bool {
+	return strings.EqualFold(atlasSQLIdentifier(name), "PRIMARY")
 }
 
 func txtarApplyAddCheckConstraintToTables(statements []ast.Node, tableName string, constraint *ast.ConstraintNode) bool {
@@ -3350,6 +3615,10 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 		if strings.Contains(stmt, "THIS IS A FAILING STATEMENT") {
 			return statements, stmt, nil
 		}
+		if fallback, ok := txtarParseGeneratedPrimaryKeyAlterStatement(stmt); ok {
+			statements = append(statements, fallback)
+			continue
+		}
 		list, err := parser.NewParser(stmt + ";").Parse()
 		if err != nil {
 			if fallback, ok := txtarParseGeneratedCheckAlterStatement(stmt); ok {
@@ -3364,6 +3633,132 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 		statements = append(statements, list.Statements...)
 	}
 	return statements, "", nil
+}
+
+func txtarParseGeneratedPrimaryKeyAlterStatement(stmt string) (ast.Node, bool) {
+	stmt = strings.TrimSpace(stmt)
+	rest, ok := strings.CutPrefix(stmt, "ALTER TABLE ")
+	if !ok {
+		return nil, false
+	}
+	tableName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok {
+		return nil, false
+	}
+	parts, ok := txtarSplitTopLevelComma(rest)
+	if !ok {
+		return nil, false
+	}
+	var operations []ast.AlterOperation
+	seenDropPrimary := false
+	seenAddPrimary := false
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		switch {
+		case strings.HasPrefix(part, "ADD COLUMN "):
+			operation, ok := txtarParseGeneratedAlterOperation(tableName, part)
+			if !ok {
+				return nil, false
+			}
+			operations = append(operations, operation)
+		case strings.EqualFold(part, "DROP PRIMARY KEY"):
+			operations = append(operations, &ast.DropConstraintOperation{ConstraintName: "PRIMARY"})
+			seenDropPrimary = true
+		case strings.HasPrefix(part, "ADD PRIMARY KEY "):
+			operation, ok := txtarParseGeneratedAlterOperation(tableName, part)
+			if !ok {
+				return nil, false
+			}
+			operations = append(operations, operation)
+			seenAddPrimary = true
+		default:
+			return nil, false
+		}
+	}
+	if !seenDropPrimary || !seenAddPrimary || len(operations) == 0 {
+		return nil, false
+	}
+	return &ast.AlterTableNode{Name: tableName, Operations: operations}, true
+}
+
+func txtarParseGeneratedAlterOperation(tableName, operation string) (ast.AlterOperation, bool) {
+	sql := fmt.Sprintf("ALTER TABLE %s %s;", atlasIdentifierQuoter("mysql")(tableName), operation)
+	list, err := parser.NewParser(sql).Parse()
+	if err != nil || len(list.Statements) != 1 {
+		return nil, false
+	}
+	alter, ok := list.Statements[0].(*ast.AlterTableNode)
+	if !ok || len(alter.Operations) != 1 {
+		return nil, false
+	}
+	return alter.Operations[0], true
+}
+
+func txtarSplitTopLevelComma(value string) ([]string, bool) {
+	var parts []string
+	start := 0
+	depth := 0
+	for i := 0; i < len(value); i++ {
+		switch value[i] {
+		case '\'':
+			next, ok := txtarSQLStringEnd(value, i)
+			if !ok {
+				return nil, false
+			}
+			i = next
+		case '`':
+			next, ok := txtarSQLQuotedIdentifierEnd(value, i)
+			if !ok {
+				return nil, false
+			}
+			i = next
+		case '(':
+			depth++
+		case ')':
+			if depth == 0 {
+				return nil, false
+			}
+			depth--
+		case ',':
+			if depth == 0 {
+				parts = append(parts, value[start:i])
+				start = i + 1
+			}
+		}
+	}
+	if depth != 0 {
+		return nil, false
+	}
+	parts = append(parts, value[start:])
+	return parts, true
+}
+
+func txtarSQLStringEnd(value string, start int) (int, bool) {
+	for i := start + 1; i < len(value); i++ {
+		if value[i] != '\'' {
+			continue
+		}
+		if i+1 < len(value) && value[i+1] == '\'' {
+			i++
+			continue
+		}
+		return i, true
+	}
+	return 0, false
+}
+
+func txtarSQLQuotedIdentifierEnd(value string, start int) (int, bool) {
+	for i := start + 1; i < len(value); i++ {
+		if value[i] != '`' {
+			continue
+		}
+		if i+1 < len(value) && value[i+1] == '`' {
+			i++
+			continue
+		}
+		return i, true
+	}
+	return 0, false
 }
 
 func txtarParseGeneratedCheckAlterStatement(stmt string) (ast.Node, bool) {
