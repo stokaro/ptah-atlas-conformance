@@ -137,6 +137,59 @@ person "rotemtam" {
 	assertResultDetailContains(t, results, "Ptah cannot model this Atlas HCL schema file")
 }
 
+func TestAtlasHCLProbeClassifiesSchemaHCLGenericFixturesAsOutOfScope(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "person.hcl")
+	writeTestFile(t, path, `
+person "rotemtam" {
+  hobby = "ice-cream"
+}
+`)
+
+	results := AtlasHCLProbe{}.Run(Fixture{
+		Name:  "schemahcl/testdata/person.hcl",
+		Kind:  FixtureKindHCL,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected non-schema schemahcl fixture OK, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "only non-schema top-level blocks: person")
+}
+
+func TestAtlasHCLProbeDoesNotClassifySchemaHCLSchemaFixturesAsOutOfScope(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "schema.hcl")
+	writeTestFile(t, path, `
+schema "main" {}
+
+table "users" {
+  schema = schema.main
+  unsupported "thing" {}
+}
+`)
+
+	results := AtlasHCLProbe{}.Run(Fixture{
+		Name:  "schemahcl/testdata/schema.hcl",
+		Kind:  FixtureKindHCL,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected schema-shaped HCL gap, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "Ptah cannot model this Atlas HCL schema file")
+}
+
 func TestParseProbeRendersAtlasSQLTemplates(t *testing.T) {
 	dir := t.TempDir()
 	first := filepath.Join(dir, "1.sql")

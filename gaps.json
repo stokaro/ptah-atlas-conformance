@@ -1139,31 +1139,29 @@
     "probe": "atlas-hcl-parse",
     "fixture": "schemahcl/testdata/a.hcl",
     "stage": "parse",
-    "outcome": "gap",
-    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/a.hcl:1,1-7: unsupported top-level block \"person\"",
-    "issue": "stokaro/ptah#276"
+    "outcome": "ok",
+    "detail": "Atlas schemahcl fixture has only non-schema top-level blocks: person"
   },
   {
     "probe": "atlas-hcl-parse",
     "fixture": "schemahcl/testdata/b.hcl",
     "stage": "parse",
-    "outcome": "gap",
-    "detail": "Ptah cannot model this Atlas HCL schema file: parse Atlas HCL schema at third_party/atlas/upstream/schemahcl/testdata/b.hcl:1,1-7: unsupported top-level block \"person\"",
-    "issue": "stokaro/ptah#276"
+    "outcome": "ok",
+    "detail": "Atlas schemahcl fixture has only non-schema top-level blocks: person"
   },
   {
     "probe": "atlas-hcl-parse",
     "fixture": "schemahcl/testdata/nested/c.hcl",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+    "detail": "Atlas schemahcl fixture has no schema objects; outside Ptah schema surface"
   },
   {
     "probe": "atlas-hcl-parse",
     "fixture": "schemahcl/testdata/variables.hcl",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+    "detail": "Atlas schemahcl fixture has only non-schema top-level blocks: variable"
   },
   {
     "probe": "sql-parse",
