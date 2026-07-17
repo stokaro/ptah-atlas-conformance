@@ -26,6 +26,7 @@ import (
 var (
 	mysqlIntegerDisplayWidthRE = regexp.MustCompile(`\b(bigint|int|integer|mediumint|smallint|tinyint)\(\d+\)`)
 	mysqlDefaultCharsetRE      = regexp.MustCompile(`\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
+	mysqlUTF8MB4IntroducerRE   = regexp.MustCompile(`(?i)\b_utf8mb4'`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
 
@@ -2568,7 +2569,7 @@ func txtarMySQLVirtualApplyStateSupported(dialect string, statements []ast.Node)
 				return false
 			}
 		case *ast.IndexNode:
-			if !txtarMySQLApplyIndexSupported(node) {
+			if !txtarMySQLApplyIndexSupported(dialect, node) {
 				return false
 			}
 		default:
@@ -2641,7 +2642,7 @@ func txtarMySQLApplyTableOptionsSupported(dialect string, options map[string]str
 	return true
 }
 
-func txtarMySQLApplyIndexSupported(index *ast.IndexNode) bool {
+func txtarMySQLApplyIndexSupported(dialect string, index *ast.IndexNode) bool {
 	if len(index.EffectiveParts()) == 0 || index.Concurrently || index.Operator != "" ||
 		index.Comment != "" || index.Condition != "" {
 		return false
@@ -2653,7 +2654,7 @@ func txtarMySQLApplyIndexSupported(index *ast.IndexNode) bool {
 		return false
 	}
 	for _, part := range index.EffectiveParts() {
-		if part.Expr != "" {
+		if part.Expr != "" && dialect != "mysql" {
 			return false
 		}
 	}
@@ -3091,6 +3092,10 @@ func txtarNormalizeMySQLShowSQL(sql string) string {
 	normalized := txtarNormalizeShowSQL(sql)
 	normalized = normalizeMySQLIntegerDisplayWidths(normalized)
 	normalized = mysqlDefaultCharsetRE.ReplaceAllString(normalized, "")
+	// MySQL SHOW CREATE TABLE injects default-charset introducers for string
+	// literals inside expressions. Ptah preserves the Atlas HCL expression text,
+	// so compare the literal value while still keeping the quoted contents.
+	normalized = mysqlUTF8MB4IntroducerRE.ReplaceAllString(normalized, "'")
 	normalized = strings.TrimSuffix(normalized, ";")
 	normalized = spaceRunRE.ReplaceAllString(normalized, " ")
 	for _, repl := range []struct {
