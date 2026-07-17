@@ -3398,7 +3398,7 @@ func TestTxtarScriptProbeExecutesMySQLForeignKeyModifyActionFixture(t *testing.T
 	}
 }
 
-func TestTxtarScriptProbeKeepsMySQLCompositeForeignKeyUnsupported(t *testing.T) {
+func TestTxtarScriptProbeExecutesMySQLCompositeForeignKeyFixture(t *testing.T) {
 	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/foreign-key.txtar")
 	if err != nil {
 		t.Fatal(err)
@@ -3418,10 +3418,9 @@ func TestTxtarScriptProbeKeepsMySQLCompositeForeignKeyUnsupported(t *testing.T) 
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
-	assertResultDetailContains(t, results, "unsupported: apply")
 }
 
 func TestTxtarScriptProbeExecutesMySQLIndexPrefixFixture(t *testing.T) {

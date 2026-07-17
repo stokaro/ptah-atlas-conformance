@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 97 unwaived non-OK observation(s)
+## Status: NOT DONE — 96 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260717135855-b2e6e50c6c87`
-- Outcomes: **475 ok**, **97 gap**, **0 fail**, **0 panic**
-- Gate: **97 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260717155853-b95e981bd57c`
+- Outcomes: **476 ok**, **96 gap**, **0 fail**, **0 panic**
+- Gate: **96 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **158 measured**, **0 imported-but-unmeasured**
 
 ## Findings
@@ -51,7 +51,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | unsupported: execsql | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -556,6 +555,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | executed 7 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | executed 8 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | executed 7 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
@@ -596,4 +596,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#285** — 97 finding(s)
+- **stokaro/ptah#285** — 96 finding(s)
