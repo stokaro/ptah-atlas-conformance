@@ -459,6 +459,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarSchemaApply(runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarSchemaDiff(fx, runtime, fields); ok {
+		return result
+	}
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "inspect" {
 		if key, ok := txtarCommandKeyFields(fields); ok {
 			return txtarCommandResult{unsupported: key}
@@ -1113,6 +1116,83 @@ func runTxtarSchemaApply(runtime *txtarRuntime, fields []string) (txtarCommandRe
 
 func txtarFileLooksLikeAtlasProject(data string) bool {
 	return strings.Contains(data, `env "`)
+}
+
+type txtarSchemaDiffArgs struct {
+	devURL  string
+	from    string
+	to      string
+	blocked bool
+}
+
+func runTxtarSchemaDiff(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "diff" {
+		return txtarCommandResult{}, false
+	}
+
+	args := txtarParseSchemaDiffArgs(fields[3:])
+	if args.blocked || txtarFixtureFamily(fx) != "sqlite" || args.devURL == "" || args.from == "" || args.to == "" {
+		return txtarCommandResult{unsupported: "atlas schema diff"}, true
+	}
+	if !strings.HasPrefix(args.from, "file://") || !strings.HasPrefix(args.to, "file://") {
+		return txtarCommandResult{unsupported: "atlas schema diff"}, true
+	}
+	dir := txtarFileURLPath(args.from)
+	targetSQL, err := renderTxtarMigrateDiffSQL(fx, runtime, args.to)
+	if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
+		return txtarCommandResult{unsupported: "atlas schema diff"}, true
+	}
+	if err != nil {
+		return txtarCommandResult{err: err}, true
+	}
+	if !txtarMigrationDirHasSQL(runtime, dir, targetSQL) {
+		return txtarCommandResult{unsupported: "atlas schema diff"}, true
+	}
+	return txtarCommandResult{stdout: "Schemas are synced, no changes to be made.\n"}, true
+}
+
+func txtarParseSchemaDiffArgs(args []string) txtarSchemaDiffArgs {
+	var out txtarSchemaDiffArgs
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch arg {
+		case "--dev-url":
+			if i+1 < len(args) {
+				out.devURL = args[i+1]
+				i++
+			}
+		case "--from":
+			if i+1 < len(args) {
+				out.from = args[i+1]
+				i++
+			}
+		case "--to":
+			if i+1 < len(args) {
+				out.to = args[i+1]
+				i++
+			}
+		case "--exclude":
+			if i+1 < len(args) {
+				i++
+			}
+		default:
+			switch {
+			case strings.HasPrefix(arg, "--dev-url="):
+				out.devURL = strings.TrimPrefix(arg, "--dev-url=")
+			case strings.HasPrefix(arg, "--from="):
+				out.from = strings.TrimPrefix(arg, "--from=")
+			case strings.HasPrefix(arg, "--to="):
+				out.to = strings.TrimPrefix(arg, "--to=")
+			case strings.HasPrefix(arg, "--exclude="):
+				continue
+			case strings.HasPrefix(arg, "-"):
+				out.blocked = true
+			default:
+				out.blocked = true
+			}
+		}
+	}
+	return out
 }
 
 func txtarMigrateDiffDir(args []string) string {
@@ -2379,11 +2459,11 @@ func renderAtlasInspectSQL(dialect string, statements []ast.Node, indent string)
 				return "", err
 			}
 		case *ast.IndexNode:
-			if !atlasSupportsInlineIndexes(dialect) {
-				return "", fmt.Errorf("unsupported inspect statement %T", stmt)
-			}
 			if !tableNames[node.Table] {
 				return "", fmt.Errorf("unsupported inspect statement %T without matching table", stmt)
+			}
+			if !atlasSupportsInlineIndexes(dialect) {
+				renderAtlasStandaloneIndexSQL(&b, dialect, node)
 			}
 		case *ast.CreateSchemaNode:
 			continue
@@ -2437,21 +2517,34 @@ func renderAtlasCreateTableSQL(
 	fmt.Fprintf(b, "-- Create %q table\n", atlasSQLIdentifier(table.Name))
 
 	parts := make([]string, 0, len(table.Columns)+len(table.Constraints)+len(indexes))
+	var primaryColumns []ast.ConstraintColumn
 	for _, column := range table.Columns {
-		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != ""))
-		if column.Primary {
-			parts = append(parts, renderAtlasPrimaryKeySQL(quote, []ast.ConstraintColumn{{Name: column.Name}}))
+		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != "" || dialect == "sqlite"))
+		if column.Primary && !atlasColumnPrimaryKeyInline(dialect, column) {
+			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
 		}
+		if column.ForeignKey != nil {
+			parts = append(parts, renderAtlasColumnForeignKeySQL(dialect, quote, table.Name, column))
+		}
+	}
+	if len(primaryColumns) > 0 {
+		parts = append(parts, renderAtlasPrimaryKeySQL(quote, primaryColumns))
 	}
 	checks, err := atlasCheckSQLParts(dialect, quote, table)
 	if err != nil {
 		return err
 	}
 	parts = append(parts, checks...)
+	unnamedSQLiteForeignKeys := 0
 	for _, constraint := range table.Constraints {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
 			parts = append(parts, renderAtlasPrimaryKeySQL(quote, atlasConstraintColumns(constraint)))
+		case ast.ForeignKeyConstraint:
+			parts = append(parts, renderAtlasConstraintForeignKeySQL(dialect, quote, table.Name, constraint, unnamedSQLiteForeignKeys))
+			if dialect == "sqlite" && constraint.Name == "" {
+				unnamedSQLiteForeignKeys++
+			}
 		case ast.CheckConstraint:
 			continue
 		default:
@@ -2486,18 +2579,48 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	b.WriteString(";\n")
+	for _, column := range table.Columns {
+		if column.Unique && !atlasSupportsInlineIndexes(dialect) {
+			index := &ast.IndexNode{
+				Name:    atlasDefaultSQLUniqueIndexName(dialect, table.Name, column.Name),
+				Table:   table.Name,
+				Columns: []string{column.Name},
+				Unique:  true,
+			}
+			renderAtlasStandaloneIndexSQL(b, dialect, index)
+		}
+	}
 	return nil
 }
 
 func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast.ColumnNode, explicitNull bool) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s", quote(column.Name), atlasColumnType(dialect, column.Type))
-	if !column.Nullable {
+	if atlasColumnPrimaryKeyInline(dialect, column) {
+		b.WriteString(" NOT NULL PRIMARY KEY")
+		if column.AutoInc {
+			b.WriteString(" AUTOINCREMENT")
+		}
+	} else if !column.Nullable {
 		b.WriteString(" NOT NULL")
 	} else if explicitNull {
 		b.WriteString(" NULL")
 	}
+	if column.Default != nil {
+		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(column.Default))
+	}
 	return b.String()
+}
+
+func atlasColumnPrimaryKeyInline(dialect string, column *ast.ColumnNode) bool {
+	return dialect == "sqlite" && column.Primary && column.AutoInc
+}
+
+func atlasDefaultSQL(def *ast.DefaultValue) string {
+	if def.Expression != "" {
+		return def.Expression
+	}
+	return def.Value
 }
 
 func renderAtlasCheckSQL(quote func(string) string, name, expr string) string {
@@ -2554,6 +2677,77 @@ func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string
 	return b.String()
 }
 
+func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *ast.IndexNode) {
+	quote := atlasIdentifierQuoter(dialect)
+	fmt.Fprintf(b, "-- Create index %q to table: %q\n", atlasSQLIdentifier(index.Name), atlasSQLIdentifier(index.Table))
+	b.WriteString("CREATE ")
+	if index.Unique {
+		b.WriteString("UNIQUE ")
+	}
+	fmt.Fprintf(b, "INDEX %s ON %s (", quote(index.Name), quote(index.Table))
+	quoted := make([]string, 0, len(index.Columns))
+	for _, column := range index.Columns {
+		quoted = append(quoted, quote(column))
+	}
+	b.WriteString(strings.Join(quoted, ", "))
+	b.WriteString(");\n")
+}
+
+func renderAtlasColumnForeignKeySQL(
+	dialect string,
+	quote func(string) string,
+	tableName string,
+	column *ast.ColumnNode,
+) string {
+	ref := column.ForeignKey
+	name := atlasDefaultForeignKeyName(tableName, []string{column.Name}, ref.Name)
+	return atlasForeignKeySQL(dialect, quote, name, []string{column.Name}, ref)
+}
+
+func renderAtlasConstraintForeignKeySQL(
+	dialect string,
+	quote func(string) string,
+	tableName string,
+	constraint *ast.ConstraintNode,
+	unnamedSQLitePosition int,
+) string {
+	name := atlasDefaultForeignKeyName(tableName, atlasConstraintColumnNames(constraint), constraint.Name)
+	if dialect == "sqlite" && constraint.Name == "" {
+		name = strconv.Itoa(unnamedSQLitePosition)
+	}
+	return atlasForeignKeySQL(dialect, quote, name, atlasConstraintColumnNames(constraint), constraint.Reference)
+}
+
+func atlasForeignKeySQL(
+	dialect string,
+	quote func(string) string,
+	name string,
+	columns []string,
+	ref *ast.ForeignKeyRef,
+) string {
+	quotedColumns := make([]string, 0, len(columns))
+	for _, column := range columns {
+		quotedColumns = append(quotedColumns, quote(column))
+	}
+	onUpdate := ref.OnUpdate
+	if onUpdate == "" && dialect == "sqlite" {
+		onUpdate = "NO ACTION"
+	}
+	onDelete := ref.OnDelete
+	if onDelete == "" && dialect == "sqlite" {
+		onDelete = "NO ACTION"
+	}
+	return fmt.Sprintf(
+		"CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s) ON UPDATE %s ON DELETE %s",
+		quote(name),
+		strings.Join(quotedColumns, ", "),
+		quote(ref.Table),
+		quote(ref.Column),
+		strings.ReplaceAll(onUpdate, "_", " "),
+		strings.ReplaceAll(onDelete, "_", " "),
+	)
+}
+
 func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.ConstraintColumn) string {
 	quoted := make([]string, 0, len(columns))
 	for _, column := range columns {
@@ -2571,6 +2765,14 @@ func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.Constrain
 
 func atlasColumnType(dialect, typ string) string {
 	normalized := strings.ToLower(typ)
+	if dialect == "sqlite" {
+		if base, _, ok := strings.Cut(normalized, "("); ok {
+			switch base {
+			case "varchar", "decimal":
+				return base
+			}
+		}
+	}
 	if dialect == "sqlite" && normalized == "" {
 		return "blob"
 	}
@@ -2578,6 +2780,13 @@ func atlasColumnType(dialect, typ string) string {
 		return "integer"
 	}
 	return normalized
+}
+
+func atlasDefaultSQLUniqueIndexName(dialect, tableName, columnName string) string {
+	if dialect == "sqlite" {
+		return atlasSQLIdentifier(tableName) + "_" + atlasSQLIdentifier(columnName)
+	}
+	return atlasDefaultUniqueName(tableName, []string{columnName}, "")
 }
 
 func atlasIdentifierQuoter(dialect string) func(string) string {
