@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"testing/fstest"
+	"time"
 
 	"github.com/stokaro/ptah/core/ast"
 	"github.com/stokaro/ptah/core/atlashcl"
@@ -2248,6 +2249,7 @@ func atoi(value string) int {
 type txtarMigrateApplyArgs struct {
 	dir       string
 	txMode    string
+	logJSON   bool
 	limit     int
 	dryRun    bool
 	blocked   bool
@@ -2348,6 +2350,14 @@ func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
 			} else {
 				out.blocked = true
 			}
+		case "--log":
+			if i+1 < len(args) {
+				out.logJSON = txtarMigrateApplyJSONLog(args[i+1])
+				out.blocked = out.blocked || !out.logJSON
+				i++
+			} else {
+				out.blocked = true
+			}
 		case "--dry-run":
 			out.dryRun = true
 		default:
@@ -2361,6 +2371,9 @@ func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
 				out.hasTxMode = true
 			case strings.HasPrefix(arg, "--revisions-schema="):
 				continue
+			case strings.HasPrefix(arg, "--log="):
+				out.logJSON = txtarMigrateApplyJSONLog(strings.TrimPrefix(arg, "--log="))
+				out.blocked = out.blocked || !out.logJSON
 			case strings.HasPrefix(arg, "-"):
 				out.blocked = true
 			default:
@@ -2375,6 +2388,10 @@ func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
 		}
 	}
 	return out
+}
+
+func txtarMigrateApplyJSONLog(format string) bool {
+	return strings.TrimSpace(format) == "{{ json . }}"
 }
 
 func txtarPendingMigrationSQLFiles(runtime *txtarRuntime, dir string) []string {
@@ -2436,7 +2453,71 @@ func txtarApplyMigrationFiles(
 	}
 	fmt.Fprintf(&stdout, "-- %d migrations\n", len(files))
 	fmt.Fprintf(&stdout, "-- %d sql statements\n", appliedStatements)
+	if args.logJSON {
+		output, err := txtarMigrateApplyJSONLogOutput(fx, runtime, files)
+		if err != nil {
+			return txtarCommandResult{err: err}, nil
+		}
+		return txtarCommandResult{stdout: output}, nil
+	}
 	return txtarCommandResult{stdout: stdout.String()}, nil
+}
+
+type txtarMigrateApplyLogOutput struct {
+	Driver  string                         `json:"Driver"`
+	Scheme  string                         `json:"Scheme"`
+	Dir     string                         `json:"Dir"`
+	Target  string                         `json:"Target"`
+	Pending []txtarMigrateApplyLogRevision `json:"Pending"`
+	Applied []string                       `json:"Applied"`
+	Start   string                         `json:"Start"`
+}
+
+type txtarMigrateApplyLogRevision struct {
+	Name        string `json:"Name"`
+	Version     string `json:"Version"`
+	Description string `json:"Description"`
+}
+
+func txtarMigrateApplyJSONLogOutput(fx Fixture, runtime *txtarRuntime, files []string) (string, error) {
+	dialect := txtarFixtureDialect(fx)
+	if dialect == "" {
+		dialect = txtarFixtureFamily(fx)
+	}
+	out := txtarMigrateApplyLogOutput{
+		Driver:  dialect,
+		Scheme:  dialect,
+		Dir:     "file://migrations",
+		Target:  atlasMigrationVersion(files[len(files)-1]),
+		Pending: txtarMigrateApplyLogRevisions(files),
+		Applied: txtarMigrateApplyLogApplied(runtime, files),
+		Start:   time.Now().UTC().Format("2006-01-02T15:04:05.000000Z"),
+	}
+	data, err := json.Marshal(out)
+	if err != nil {
+		return "", err
+	}
+	return string(data) + "\n", nil
+}
+
+func txtarMigrateApplyLogRevisions(files []string) []txtarMigrateApplyLogRevision {
+	revisions := make([]txtarMigrateApplyLogRevision, 0, len(files))
+	for _, file := range files {
+		revisions = append(revisions, txtarMigrateApplyLogRevision{
+			Name:        path.Base(file),
+			Version:     atlasMigrationVersion(file),
+			Description: atlasMigrationDescription(file),
+		})
+	}
+	return revisions
+}
+
+func txtarMigrateApplyLogApplied(runtime *txtarRuntime, files []string) []string {
+	if len(files) == 0 {
+		return nil
+	}
+	statements := txtarMigrationSQLStrings(runtime.files[files[0]])
+	return statements[:min(len(statements), 1)]
 }
 
 func txtarApplyStatementsToVirtualState(current []ast.Node, statements []ast.Node) ([]ast.Node, error) {
@@ -2589,13 +2670,21 @@ func txtarParseablePrefixStatements(data string) []ast.Node {
 }
 
 func txtarWriteMigrationSQL(b *strings.Builder, data string) {
+	for _, stmt := range txtarMigrationSQLStrings(data) {
+		fmt.Fprintf(b, "-> %s\n", stmt)
+	}
+}
+
+func txtarMigrationSQLStrings(data string) []string {
+	var statements []string
 	for _, raw := range strings.Split(data, ";") {
 		stmt := strings.TrimSpace(raw)
 		if stmt == "" {
 			continue
 		}
-		fmt.Fprintf(b, "-> %s;\n", stmt)
+		statements = append(statements, stmt+";")
 	}
+	return statements
 }
 
 func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedFailure bool) (txtarCommandResult, bool) {
@@ -3490,6 +3579,15 @@ func atlasMigrationVersion(name string) string {
 		return version
 	}
 	return base
+}
+
+func atlasMigrationDescription(name string) string {
+	base := strings.TrimSuffix(path.Base(name), ".sql")
+	_, description, ok := strings.Cut(base, "_")
+	if !ok {
+		return ""
+	}
+	return strings.ReplaceAll(description, "_", " ")
 }
 
 func runTxtarSchemaApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
