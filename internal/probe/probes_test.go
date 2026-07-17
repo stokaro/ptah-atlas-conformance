@@ -3507,10 +3507,15 @@ schema "main" {
 	}
 }
 
-func TestTxtarScriptProbeKeepsSchemaApplyEnvAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesSQLiteSchemaApplyEnvSourceAndInspect(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `atlas schema apply --env local --auto-approve
+atlas schema inspect --env local > inspected.hcl
+cmp 1.hcl inspected.hcl
+atlas schema apply --env local --auto-approve -f 2.hcl
+atlas schema inspect --env local > inspected.hcl
+cmp 2.hcl inspected.hcl
 
 -- atlas.hcl --
 env "local" {
@@ -3518,11 +3523,29 @@ env "local" {
   src = "./1.hcl"
 }
 -- 1.hcl --
-schema "main" {}
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+}
+schema "main" {
+}
+-- 2.hcl --
+table "other" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+}
+schema "main" {
+}
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
-		Name:  "sqlite/case.txtar",
+		Name:  "sqlite/cli-schema-project-file.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},
@@ -3531,8 +3554,119 @@ schema "main" {}
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if !strings.Contains(results[0].Detail, "unsupported: atlas schema apply") {
-		t.Fatalf("detail missing schema apply gap: %s", results[0].Detail)
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesSQLiteSchemaApplyEnvVars(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas schema apply --env local --auto-approve
+stderr 'missing value for required variable "user_status_default"'
+
+atlas schema apply --env local --auto-approve --var user_status_default=hello
+cmpshow users expected.sql
+
+-- atlas.hcl --
+variable "user_status_default" {
+  type = string
+}
+env "local" {
+  url = "URL"
+  src = "./1.hcl"
+  def_val = var.user_status_default
+}
+-- 1.hcl --
+variable "def_val" {
+  type = string
+}
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+  column "status" {
+    null = true
+    type = text
+    default = var.def_val
+  }
+}
+schema "main" {
+}
+-- expected.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` int NOT NULL, `+"`"+`status`+"`"+` text NULL DEFAULT 'hello')
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-project-vars.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeReportsSQLiteSchemaApplyMissingSourceVar(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas schema apply --env local --auto-approve
+stderr 'missing value for required variable "def_val"'
+
+atlas schema apply --env local_with_vals --auto-approve
+cmpshow users expected.sql
+
+-- atlas.hcl --
+env "local" {
+  url = "URL"
+  src = "./1.hcl"
+}
+env "local_with_vals" {
+  url = "URL"
+  src = "./1.hcl"
+  def_val = "hello"
+}
+-- 1.hcl --
+variable "def_val" {
+  type = string
+}
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+  column "status" {
+    null = true
+    type = text
+    default = var.def_val
+  }
+}
+schema "main" {
+}
+-- expected.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` int NOT NULL, `+"`"+`status`+"`"+` text NULL DEFAULT 'hello')
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-apply-vars.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 
