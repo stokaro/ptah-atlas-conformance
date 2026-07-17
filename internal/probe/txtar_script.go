@@ -1019,8 +1019,11 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 		if errors.Is(err, errUnsupportedInspectHCL) {
 			return txtarCommandResult{unsupported: "atlas schema inspect hcl"}
 		}
-	case "{{ sql . }}":
-		output, err = renderTxtarSQL(fx, sql)
+	case "{{ sql . }}", `{{ sql . "  " }}`:
+		output, err = renderTxtarSQL(fx, sql, txtarSQLFormatIndent(format))
+		if errors.Is(err, errUnsupportedInspectSQL) {
+			return txtarCommandResult{unsupported: "atlas schema inspect sql"}
+		}
 	default:
 		return txtarCommandResult{unsupported: "atlas schema inspect format"}
 	}
@@ -1035,6 +1038,7 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 }
 
 var errUnsupportedInspectHCL = errors.New("unsupported inspect HCL")
+var errUnsupportedInspectSQL = errors.New("unsupported inspect SQL")
 
 func renderTxtarHCL(fx Fixture, sql string) (string, error) {
 	list, err := parser.NewParser(sql).Parse()
@@ -1048,16 +1052,23 @@ func renderTxtarHCL(fx Fixture, sql string) (string, error) {
 	return out, nil
 }
 
-func renderTxtarSQL(fx Fixture, sql string) (string, error) {
+func renderTxtarSQL(fx Fixture, sql string, indent string) (string, error) {
 	list, err := parser.NewParser(sql).Parse()
 	if err != nil {
 		return "", fmt.Errorf("parse inspect file: %w", err)
 	}
-	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), list.Statements)
+	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), list.Statements, indent)
 	if err != nil {
 		return "", fmt.Errorf("render inspect SQL: %w", err)
 	}
 	return out, nil
+}
+
+func txtarSQLFormatIndent(format string) string {
+	if format == `{{ sql . "  " }}` {
+		return "  "
+	}
+	return ""
 }
 
 func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (string, error) {
@@ -1080,7 +1091,7 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
 	var primaryColumns []string
 	for _, column := range table.Columns {
-		if column.Check != "" || column.Unique || column.ForeignKey != nil {
+		if column.Unique || column.ForeignKey != nil {
 			return fmt.Errorf("%w: column %q", errUnsupportedInspectHCL, column.Name)
 		}
 		fmt.Fprintf(b, "  column %q {\n", column.Name)
@@ -1092,10 +1103,13 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 		}
 	}
 	for _, constraint := range table.Constraints {
-		if constraint.Type != ast.PrimaryKeyConstraint {
+		switch constraint.Type {
+		case ast.PrimaryKeyConstraint:
+			primaryColumns = append(primaryColumns, constraint.Columns...)
+		case ast.CheckConstraint:
+		default:
 			return fmt.Errorf("%w: constraint %s", errUnsupportedInspectHCL, constraint.Type)
 		}
-		primaryColumns = append(primaryColumns, constraint.Columns...)
 	}
 	if len(primaryColumns) > 0 {
 		refs, err := atlasHCLColumnRefs(primaryColumns)
@@ -1106,8 +1120,42 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
 		b.WriteString("  }\n")
 	}
+	if err := renderAtlasCheckHCLBlocks(b, dialect, table); err != nil {
+		return err
+	}
 	b.WriteString("}\n")
 	return nil
+}
+
+func renderAtlasCheckHCLBlocks(b *strings.Builder, dialect string, table *ast.CreateTableNode) error {
+	if !atlasSupportsInspectChecks(dialect) && atlasTableHasChecks(table) {
+		return fmt.Errorf("%w: check constraints", errUnsupportedInspectHCL)
+	}
+	for _, column := range table.Columns {
+		if column.Check == "" {
+			continue
+		}
+		if column.CheckName == "" {
+			return fmt.Errorf("%w: unnamed column check %q", errUnsupportedInspectHCL, column.Name)
+		}
+		renderAtlasCheckHCLBlock(b, column.CheckName, column.Check)
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.CheckConstraint {
+			continue
+		}
+		if constraint.Name == "" {
+			return fmt.Errorf("%w: unnamed table check", errUnsupportedInspectHCL)
+		}
+		renderAtlasCheckHCLBlock(b, constraint.Name, constraint.Expression)
+	}
+	return nil
+}
+
+func renderAtlasCheckHCLBlock(b *strings.Builder, name, expr string) {
+	fmt.Fprintf(b, "  check %q {\n", name)
+	fmt.Fprintf(b, "    expr = %q\n", "("+expr+")")
+	b.WriteString("  }\n")
 }
 
 func renderAtlasSchemaHCL(b *strings.Builder, dialect, schemaName string) {
@@ -1134,14 +1182,14 @@ func atlasHCLColumnRefs(columns []string) ([]string, error) {
 	return refs, nil
 }
 
-func renderAtlasInspectSQL(dialect string, statements []ast.Node) (string, error) {
+func renderAtlasInspectSQL(dialect string, statements []ast.Node, indent string) (string, error) {
 	tableNames := atlasTableNames(statements)
 	indexesByTable := atlasIndexesByTable(dialect, statements)
 	var b strings.Builder
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateTableNode:
-			if err := renderAtlasCreateTableSQL(&b, dialect, node, indexesByTable[node.Name]); err != nil {
+			if err := renderAtlasCreateTableSQL(&b, dialect, node, indexesByTable[node.Name], indent); err != nil {
 				return "", err
 			}
 		case *ast.IndexNode:
@@ -1192,29 +1240,57 @@ func renderAtlasCreateTableSQL(
 	dialect string,
 	table *ast.CreateTableNode,
 	indexes []*ast.IndexNode,
+	indent string,
 ) error {
+	if !atlasSupportsInspectChecks(dialect) && atlasTableHasChecks(table) {
+		return fmt.Errorf("%w: check constraints", errUnsupportedInspectSQL)
+	}
 	quote := atlasIdentifierQuoter(dialect)
 	fmt.Fprintf(b, "-- Create %q table\n", table.Name)
-	fmt.Fprintf(b, "CREATE TABLE %s (", quote(table.Name))
 
 	parts := make([]string, 0, len(table.Columns)+len(table.Constraints)+len(indexes))
 	for _, column := range table.Columns {
-		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column))
+		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != ""))
 		if column.Primary {
 			parts = append(parts, renderAtlasPrimaryKeySQL(quote, []string{column.Name}))
 		}
 	}
+	columnChecks, err := atlasColumnCheckSQLParts(quote, table)
+	if err != nil {
+		return err
+	}
+	parts = append(parts, columnChecks...)
 	for _, constraint := range table.Constraints {
-		if constraint.Type != ast.PrimaryKeyConstraint {
+		switch constraint.Type {
+		case ast.PrimaryKeyConstraint:
+			parts = append(parts, renderAtlasPrimaryKeySQL(quote, constraint.Columns))
+		case ast.CheckConstraint:
+			if constraint.Name == "" {
+				return fmt.Errorf("%w: unnamed table check", errUnsupportedInspectSQL)
+			}
+			parts = append(parts, renderAtlasCheckSQL(quote, constraint.Name, constraint.Expression))
+		default:
 			return fmt.Errorf("unsupported inspect constraint %s", constraint.Type)
 		}
-		parts = append(parts, renderAtlasPrimaryKeySQL(quote, constraint.Columns))
 	}
 	for _, index := range indexes {
 		parts = append(parts, renderAtlasIndexSQL(quote, index))
 	}
 
-	b.WriteString(strings.Join(parts, ", "))
+	fmt.Fprintf(b, "CREATE TABLE %s (", quote(table.Name))
+	if indent == "" {
+		b.WriteString(strings.Join(parts, ", "))
+	} else {
+		b.WriteString("\n")
+		for i, part := range parts {
+			b.WriteString(indent)
+			b.WriteString(part)
+			if i < len(parts)-1 {
+				b.WriteString(",")
+			}
+			b.WriteString("\n")
+		}
+	}
 	b.WriteString(")")
 	if dialect == "mysql" {
 		b.WriteString(" CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
@@ -1223,13 +1299,51 @@ func renderAtlasCreateTableSQL(
 	return nil
 }
 
-func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast.ColumnNode) string {
+func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast.ColumnNode, explicitNull bool) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s", quote(column.Name), atlasColumnType(dialect, column.Type))
 	if !column.Nullable {
 		b.WriteString(" NOT NULL")
+	} else if explicitNull {
+		b.WriteString(" NULL")
 	}
 	return b.String()
+}
+
+func renderAtlasCheckSQL(quote func(string) string, name, expr string) string {
+	return fmt.Sprintf("CONSTRAINT %s CHECK (%s)", quote(name), expr)
+}
+
+func atlasColumnCheckSQLParts(quote func(string) string, table *ast.CreateTableNode) ([]string, error) {
+	var parts []string
+	for _, column := range table.Columns {
+		if column.Check == "" {
+			continue
+		}
+		if column.CheckName == "" {
+			return nil, fmt.Errorf("%w: unnamed column check %q", errUnsupportedInspectSQL, column.Name)
+		}
+		parts = append(parts, renderAtlasCheckSQL(quote, column.CheckName, column.Check))
+	}
+	return parts, nil
+}
+
+func atlasTableHasChecks(table *ast.CreateTableNode) bool {
+	for _, column := range table.Columns {
+		if column.Check != "" {
+			return true
+		}
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type == ast.CheckConstraint {
+			return true
+		}
+	}
+	return false
+}
+
+func atlasSupportsInspectChecks(dialect string) bool {
+	return dialect == "postgresql"
 }
 
 func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string {
