@@ -2385,22 +2385,6 @@
   },
   {
     "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/check.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/check.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-inspect-file.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
@@ -2545,14 +2529,6 @@
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: atlas migrate diff",
@@ -2730,22 +2706,6 @@
     "stage": "script-runtime",
     "outcome": "gap",
     "detail": "unsupported: execsql",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
     "issue": "stokaro/ptah#285"
   },
   {

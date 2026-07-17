@@ -1489,7 +1489,7 @@ CREATE TABLE users (id INT);
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
-		Name:  "sqlite/case.txtar",
+		Name:  "postgres/case.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},
@@ -1606,6 +1606,205 @@ CREATE TABLE `+"`users`"+` (`+"`id`"+` int NOT NULL);
 	}
 	if results[0].Outcome != OK {
 		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLNamedInitialMigrateDiff(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas migrate diff v1 --to file://schema.hcl --dev-url URL
+cmpmig 0 migration.sql
+atlas migrate diff v1-check --to file://schema.hcl --dev-url URL
+stdout 'The migration directory is synced with the desired state, no changes to be made'
+
+-- schema.hcl --
+table "t1" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      desc   = true
+      column = column.id
+      prefix = 7
+    }
+  }
+}
+schema "script_primary_key_parts" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+-- migration.sql --
+-- Create "t1" table
+CREATE TABLE `+"`t1`"+` (`+"`id`"+` tinytext NOT NULL, PRIMARY KEY (`+"`id`"+` (7) DESC)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/primary-key-parts.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLFormattedInitialMigrateDiff(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas migrate diff v1 --to file://schema.sql --dev-url URL --format '{{ sql . "  " }}'
+cmpmig 0 migration.sql
+
+-- schema.sql --
+CREATE TABLE t1(
+  name varchar(20),
+  age int
+);
+-- migration.sql --
+-- Create "t1" table
+CREATE TABLE `+"`t1`"+` (
+  `+"`name`"+` varchar(20) NULL,
+  `+"`age`"+` int NULL
+) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/check.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeRejectsUnsupportedMigrateDiffFormat(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas migrate diff v1 --to file://schema.sql --dev-url URL --format '{{ json . }}'
+cmpmig 0 migration.sql
+
+-- schema.sql --
+CREATE TABLE t1(id int);
+-- migration.sql --
+{}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/check.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
+	if strings.Contains(results[0].Detail, "cmpmig") {
+		t.Fatalf("dependent cmpmig should not be reported after unsupported format: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeKeepsMySQLIncrementalMigrateDiffAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas migrate diff v1 --to file://schema.v1.hcl --dev-url URL
+cmpmig 0 migration.v1.sql
+atlas migrate diff v2 --to file://schema.v2.hcl --dev-url URL
+cmpmig 1 migration.v2.sql
+
+-- schema.v1.hcl --
+table "t1" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      column = column.id
+      prefix = 7
+    }
+  }
+}
+schema "script_primary_key_parts" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+-- migration.v1.sql --
+-- Create "t1" table
+CREATE TABLE `+"`t1`"+` (`+"`id`"+` tinytext NOT NULL, PRIMARY KEY (`+"`id`"+` (7))) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- schema.v2.hcl --
+table "t1" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  column "id2" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      column = column.id
+      prefix = 7
+    }
+    on {
+      column = column.id2
+      prefix = 1
+    }
+  }
+}
+schema "script_primary_key_parts" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+-- migration.v2.sql --
+-- Modify "t1" table
+ALTER TABLE `+"`t1`"+` ADD COLUMN `+"`id2`"+` tinytext NOT NULL, DROP PRIMARY KEY, ADD PRIMARY KEY (`+"`id`"+` (7), `+"`id2`"+` (1));
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/primary-key-parts.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
+	if strings.Contains(results[0].Detail, "cmpmig") {
+		t.Fatalf("dependent cmpmig should not be reported after unsupported incremental diff: %s", results[0].Detail)
 	}
 }
 
