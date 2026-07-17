@@ -413,6 +413,9 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			delete(unsupportedFiles, redirect)
 		}
 		clearUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
+		if txtarCommandClearsDBState(commandLine) {
+			dbStateUnsupported = false
+		}
 		failed := result.failed || result.err != nil
 		switch {
 		case expectedFailure && !failed:
@@ -448,6 +451,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 		return result
 	}
 	if result, ok := runTxtarMigrateStatus(runtime, fields); ok {
+		return result
+	}
+	if result, ok := runTxtarClearSchema(runtime, fields); ok {
 		return result
 	}
 	if result, ok := runTxtarApply(fx, runtime, fields); ok {
@@ -1476,6 +1482,18 @@ func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommand
 	return txtarCommandResult{stdout: stdout}, true
 }
 
+func runTxtarClearSchema(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) == 0 || fields[0] != "clearSchema" {
+		return txtarCommandResult{}, false
+	}
+	if len(fields) != 1 {
+		return txtarCommandResult{unsupported: "clearSchema"}, true
+	}
+	runtime.hasVirtualDBState = false
+	runtime.dbStatements = nil
+	return txtarCommandResult{}, true
+}
+
 func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
 	if len(fields) < 1 || fields[0] != "apply" {
 		return txtarCommandResult{}, false
@@ -1922,6 +1940,11 @@ func txtarCommandMutatesDBState(line string) bool {
 	default:
 		return false
 	}
+}
+
+func txtarCommandClearsDBState(line string) bool {
+	fields := txtarCommandFields(line)
+	return len(fields) == 1 && fields[0] == "clearSchema"
 }
 
 func txtarAtlasCommandMutatesDBState(group, command string) bool {

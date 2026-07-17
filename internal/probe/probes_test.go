@@ -1775,7 +1775,7 @@ validJSON stdout
 func TestTxtarScriptProbeSkipsDBAssertionsAfterUnsupportedDBMutation(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `clearSchema
+	writeTestFile(t, path, `atlas schema clean --url URL
 exist users
 synced 2.hcl
 cmpshow users expected.sql
@@ -1806,7 +1806,7 @@ table "users" {
 	if results[0].Outcome != Gap {
 		t.Fatalf("expected Gap result, got %#v", results[0])
 	}
-	if !strings.Contains(results[0].Detail, "unsupported: clearSchema") {
+	if !strings.Contains(results[0].Detail, "unsupported: atlas schema clean") {
 		t.Fatalf("detail missing original unsupported DB mutation: %s", results[0].Detail)
 	}
 	for _, dependent := range []string{"exist", "synced", "cmpshow", "cmphcl"} {
@@ -1849,10 +1849,57 @@ table "users" {}
 	assertResultDetailContains(t, results, "unsupported: cmphcl")
 }
 
-func TestTxtarScriptProbeSkipsDBURLInspectAfterUnsupportedDBMutation(t *testing.T) {
+func TestTxtarScriptProbeExecutesClearSchema(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `clearSchema
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "executed 1 supported command")
+}
+
+func TestTxtarScriptProbeClearSchemaResetsUnsupportedDBState(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema clean --url URL
+clearSchema
+cmphcl expected.hcl
+
+-- expected.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas schema clean")
+	assertResultDetailContains(t, results, "unsupported: cmphcl")
+}
+
+func TestTxtarScriptProbeSkipsDBURLInspectAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema clean --url URL
 atlas schema inspect --url URL > inspected.hcl
 cmp inspected.hcl expected.hcl
 
@@ -1870,7 +1917,7 @@ schema "main" {}
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	assertResultDetailContains(t, results, "unsupported: clearSchema")
+	assertResultDetailContains(t, results, "unsupported: atlas schema clean")
 	if strings.Contains(results[0].Detail, "atlas schema inspect") {
 		t.Fatalf("dependent DB URL inspect should not be reported after unsupported DB mutation: %s", results[0].Detail)
 	}
@@ -1879,7 +1926,7 @@ schema "main" {}
 func TestTxtarScriptProbeKeepsFileURLInspectAfterUnsupportedDBMutation(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `clearSchema
+	writeTestFile(t, path, `atlas schema clean --url URL
 atlas schema inspect --url file://schema.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
 cmp inspected.sql expected.sql
 
@@ -1904,9 +1951,9 @@ CREATE TABLE "users" ("id" integer NOT NULL, PRIMARY KEY ("id"));
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
 	if results[0].Outcome != Gap {
-		t.Fatalf("expected original clearSchema gap, got %#v", results[0])
+		t.Fatalf("expected original schema clean gap, got %#v", results[0])
 	}
-	if !strings.Contains(results[0].Detail, "unsupported: clearSchema") {
+	if !strings.Contains(results[0].Detail, "unsupported: atlas schema clean") {
 		t.Fatalf("detail missing original unsupported DB mutation: %s", results[0].Detail)
 	}
 	if strings.Contains(results[0].Detail, "atlas schema inspect") {
@@ -2665,7 +2712,7 @@ schema "main" {}
 func TestTxtarScriptProbeSkipsMigrationCommandsAfterUnsupportedDBMutation(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `clearSchema
+	writeTestFile(t, path, `atlas schema clean --url URL
 atlas migrate status --url URL
 atlas migrate apply --url URL
 atlas migrate set 1 --url URL
@@ -2681,7 +2728,7 @@ atlas migrate set 1 --url URL
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	assertResultDetailContains(t, results, "unsupported: clearSchema")
+	assertResultDetailContains(t, results, "unsupported: atlas schema clean")
 	for _, dependent := range []string{"atlas migrate status", "atlas migrate apply", "atlas migrate set"} {
 		if strings.Contains(results[0].Detail, dependent) {
 			t.Fatalf("dependent command %q should not be reported after unsupported DB mutation: %s",
@@ -2693,7 +2740,7 @@ atlas migrate set 1 --url URL
 func TestTxtarScriptProbeSkipsSchemaMutationCommandsAfterUnsupportedDBMutation(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `clearSchema
+	writeTestFile(t, path, `atlas schema clean --url URL
 atlas schema apply --url URL --to file://2.hcl
 atlas schema clean --url URL
 
@@ -2711,8 +2758,8 @@ schema "main" {}
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	assertResultDetailContains(t, results, "unsupported: clearSchema")
-	for _, dependent := range []string{"atlas schema apply", "atlas schema clean"} {
+	assertResultDetailContains(t, results, "unsupported: atlas schema clean")
+	for _, dependent := range []string{"atlas schema apply"} {
 		if strings.Contains(results[0].Detail, dependent) {
 			t.Fatalf("dependent command %q should not be reported after unsupported DB mutation: %s",
 				dependent, results[0].Detail)
@@ -2723,7 +2770,7 @@ schema "main" {}
 func TestTxtarScriptProbeSkipsRawDBCommandsAfterUnsupportedDBMutation(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `clearSchema
+	writeTestFile(t, path, `atlas schema clean --url URL
 apply 2.hcl
 execsql 'INSERT INTO users (id) VALUES (1)'
 ! exist users
@@ -2742,7 +2789,7 @@ schema "main" {}
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	assertResultDetailContains(t, results, "unsupported: clearSchema")
+	assertResultDetailContains(t, results, "unsupported: atlas schema clean")
 	for _, dependent := range []string{"execsql", "exist"} {
 		if strings.Contains(results[0].Detail, dependent) {
 			t.Fatalf("dependent command %q should not be reported after unsupported DB mutation: %s",
