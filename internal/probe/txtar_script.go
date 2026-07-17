@@ -2603,8 +2603,8 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 		return false
 	}
 	for _, column := range table.Columns {
-		if column.Comment != "" || column.Default != nil || column.GeneratedExpression != "" ||
-			column.Unique || column.Check != "" || column.CheckName != "" || column.ForeignKey != nil {
+		if column.Comment != "" || column.GeneratedExpression != "" || column.Unique ||
+			column.Check != "" || column.CheckName != "" || column.ForeignKey != nil {
 			return false
 		}
 		switch strings.ToLower(column.Type) {
@@ -4297,8 +4297,14 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 	var uniques []*atlasHCLUnique
 	for _, column := range table.Columns {
 		fmt.Fprintf(b, "  column %q {\n", atlasHCLIdentifier(column.Name))
-		fmt.Fprintf(b, "    null = %t\n", column.Nullable)
-		fmt.Fprintf(b, "    type = %s\n", atlasColumnType(dialect, column.Type))
+		if column.Default != nil {
+			fmt.Fprintf(b, "    null    = %t\n", column.Nullable)
+			fmt.Fprintf(b, "    type    = %s\n", atlasColumnType(dialect, column.Type))
+			fmt.Fprintf(b, "    default = %s\n", atlasDefaultHCL(column.Default))
+		} else {
+			fmt.Fprintf(b, "    null = %t\n", column.Nullable)
+			fmt.Fprintf(b, "    type = %s\n", atlasColumnType(dialect, column.Type))
+		}
 		b.WriteString("  }\n")
 		if column.Primary {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
@@ -4351,6 +4357,13 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 	}
 	b.WriteString("}\n")
 	return nil
+}
+
+func atlasDefaultHCL(def *ast.DefaultValue) string {
+	if def.Expression != "" {
+		return "sql(" + strconv.Quote(def.Expression) + ")"
+	}
+	return strconv.Quote(def.Value)
 }
 
 func renderAtlasMySQLTableHCLAttrs(b *strings.Builder, dialect string, table *ast.CreateTableNode) {
@@ -5086,7 +5099,10 @@ func atlasDefaultSQL(def *ast.DefaultValue) string {
 		return def.Expression
 	}
 	value := strings.TrimSpace(def.Value)
-	if value == "" || atlasDefaultLiteralIsRawSQL(value) {
+	if value == "" && def.HasLiteral() {
+		return "''"
+	}
+	if atlasDefaultLiteralIsRawSQL(value) {
 		return value
 	}
 	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
@@ -5450,10 +5466,10 @@ func txtarFilesEqual(left, right string) bool {
 	if left == right {
 		return true
 	}
-	// Atlas txtar fixtures sometimes store the final file at EOF without the
-	// trailing newline that the inspected text renderer emits. Treat exactly one
-	// final newline as non-substantive; all other byte differences still fail.
-	return strings.TrimSuffix(left, "\n") == strings.TrimSuffix(right, "\n")
+	// Atlas txtar fixtures differ on whether the final section keeps a trailing
+	// blank line. Treat only trailing newlines as non-substantive; spaces and
+	// any content differences still fail.
+	return strings.TrimRight(left, "\n") == strings.TrimRight(right, "\n")
 }
 
 func txtarValidateJSON(files map[string]string, name string) error {
