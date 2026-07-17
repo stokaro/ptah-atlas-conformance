@@ -15,6 +15,8 @@ import (
 	"testing/fstest"
 
 	"github.com/stokaro/ptah/core/ast"
+	"github.com/stokaro/ptah/core/atlashcl"
+	"github.com/stokaro/ptah/core/convert/fromschema"
 	"github.com/stokaro/ptah/core/parser"
 	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
@@ -1015,7 +1017,7 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 	var err error
 	switch format {
 	case "":
-		output, err = renderTxtarHCL(fx, sql)
+		output, err = renderTxtarHCL(fx, name, sql)
 		if errors.Is(err, errUnsupportedInspectHCL) {
 			return txtarCommandResult{unsupported: "atlas schema inspect hcl"}
 		}
@@ -1040,11 +1042,31 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 var errUnsupportedInspectHCL = errors.New("unsupported inspect HCL")
 var errUnsupportedInspectSQL = errors.New("unsupported inspect SQL")
 
-func renderTxtarHCL(fx Fixture, sql string) (string, error) {
+func renderTxtarHCL(fx Fixture, name, data string) (string, error) {
+	if strings.HasSuffix(name, ".hcl") {
+		return renderTxtarHCLFromAtlasHCL(fx, name, data)
+	}
+	return renderTxtarHCLFromSQL(fx, data)
+}
+
+func renderTxtarHCLFromSQL(fx Fixture, sql string) (string, error) {
 	list, err := parser.NewParser(sql).Parse()
 	if err != nil {
 		return "", fmt.Errorf("%w: parse inspect file: %v", errUnsupportedInspectHCL, err)
 	}
+	out, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), txtarFixtureSchemaName(fx), list.Statements)
+	if err != nil {
+		return "", fmt.Errorf("render inspect HCL: %w", err)
+	}
+	return out, nil
+}
+
+func renderTxtarHCLFromAtlasHCL(fx Fixture, name, data string) (string, error) {
+	db, err := atlashcl.Parse([]byte(data), name)
+	if err != nil {
+		return "", fmt.Errorf("%w: parse inspect HCL file: %v", errUnsupportedInspectHCL, err)
+	}
+	list := fromschema.FromDatabase(*db, txtarFixtureDialect(fx))
 	out, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), txtarFixtureSchemaName(fx), list.Statements)
 	if err != nil {
 		return "", fmt.Errorf("render inspect HCL: %w", err)
@@ -1073,21 +1095,25 @@ func txtarSQLFormatIndent(format string) string {
 
 func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (string, error) {
 	var b strings.Builder
+	schemaAttrs := atlasSchemaAttrsFromStatements(dialect, schemaName, statements)
 	for _, stmt := range statements {
 		table, ok := stmt.(*ast.CreateTableNode)
 		if !ok {
+			if _, ok := stmt.(*ast.CreateSchemaNode); ok {
+				continue
+			}
 			return "", fmt.Errorf("%w: statement %T", errUnsupportedInspectHCL, stmt)
 		}
 		if err := renderAtlasTableHCL(&b, dialect, schemaName, table); err != nil {
 			return "", err
 		}
 	}
-	renderAtlasSchemaHCL(&b, dialect, schemaName)
+	renderAtlasSchemaHCL(&b, schemaName, schemaAttrs)
 	return b.String(), nil
 }
 
 func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *ast.CreateTableNode) error {
-	fmt.Fprintf(b, "table %q {\n", atlasHCLIdentifier(table.Name))
+	fmt.Fprintf(b, "table %q {\n", atlasHCLTableIdentifier(table.Name, schemaName))
 	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
 	var primaryColumns []ast.ConstraintColumn
 	for _, column := range table.Columns {
@@ -1154,15 +1180,46 @@ func renderAtlasCheckHCLBlock(b *strings.Builder, name, expr string) {
 	b.WriteString("  }\n")
 }
 
-func renderAtlasSchemaHCL(b *strings.Builder, dialect, schemaName string) {
-	fmt.Fprintf(b, "schema %q {\n", schemaName)
+type atlasSchemaAttrs struct {
+	charset string
+	collate string
+}
+
+func atlasSchemaAttrsFromStatements(dialect, schemaName string, statements []ast.Node) atlasSchemaAttrs {
+	attrs := atlasDefaultSchemaAttrs(dialect)
+	for _, stmt := range statements {
+		schema, ok := stmt.(*ast.CreateSchemaNode)
+		if !ok || atlasSQLIdentifier(schema.Name) != schemaName {
+			continue
+		}
+		if schema.Charset != "" {
+			attrs.charset = schema.Charset
+		}
+		if schema.Collate != "" {
+			attrs.collate = schema.Collate
+		}
+	}
+	return attrs
+}
+
+func atlasDefaultSchemaAttrs(dialect string) atlasSchemaAttrs {
 	switch dialect {
 	case "mysql":
-		b.WriteString("  charset = \"utf8mb4\"\n")
-		b.WriteString("  collate = \"utf8mb4_0900_ai_ci\"\n")
+		return atlasSchemaAttrs{charset: "utf8mb4", collate: "utf8mb4_0900_ai_ci"}
 	case "mariadb":
-		b.WriteString("  charset = \"utf8mb4\"\n")
-		b.WriteString("  collate = \"utf8mb4_general_ci\"\n")
+		return atlasSchemaAttrs{charset: "utf8mb4", collate: "utf8mb4_general_ci"}
+	default:
+		return atlasSchemaAttrs{}
+	}
+}
+
+func renderAtlasSchemaHCL(b *strings.Builder, schemaName string, attrs atlasSchemaAttrs) {
+	fmt.Fprintf(b, "schema %q {\n", schemaName)
+	if attrs.charset != "" {
+		fmt.Fprintf(b, "  charset = %q\n", attrs.charset)
+	}
+	if attrs.collate != "" {
+		fmt.Fprintf(b, "  collate = %q\n", attrs.collate)
 	}
 	b.WriteString("}\n")
 }
@@ -1233,6 +1290,14 @@ func atlasConstraintColumns(constraint *ast.ConstraintNode) []ast.ConstraintColu
 
 func atlasHCLIdentifier(name string) string {
 	return atlasSQLIdentifier(name)
+}
+
+func atlasHCLTableIdentifier(name, schemaName string) string {
+	name = atlasHCLIdentifier(name)
+	if unqualified, ok := strings.CutPrefix(name, schemaName+"."); ok {
+		return unqualified
+	}
+	return name
 }
 
 func atlasSQLIdentifier(name string) string {
