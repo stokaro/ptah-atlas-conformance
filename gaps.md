@@ -6,22 +6,21 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 115 unwaived non-OK observation(s)
+## Status: NOT DONE — 114 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260717075325-c6de43537daa`
-- Outcomes: **459 ok**, **115 gap**, **0 fail**, **0 panic**
-- Gate: **115 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260717100434-3fb561cc7da7`
+- Outcomes: **460 ok**, **114 gap**, **0 fail**, **0 panic**
+- Gate: **114 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **158 measured**, **0 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -559,6 +558,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-down | `txtar-down` | 20240305171146/down | down.sql captured 1 statement(s) |  |
 | — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/up | migration.sql captured 1 statement(s) |  |
 | — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/down | down.sql captured 2 statement(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | executed 6 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | executed 2 supported command(s), checked 2 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | executed 3 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | executed 9 supported command(s) |  |
@@ -598,4 +598,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#285** — 115 finding(s)
+- **stokaro/ptah#285** — 114 finding(s)
