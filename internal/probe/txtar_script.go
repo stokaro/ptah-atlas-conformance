@@ -2694,14 +2694,48 @@ func txtarMySQLSchemasSupported(dialect string, statements []ast.Node) bool {
 		if !ok {
 			continue
 		}
-		if schema.Charset != "" && schema.Charset != defaults.charset {
+		if schema.Charset != "" && !atlasMySQLSchemaCharsetSupported(schema.Charset, defaults.charset) {
 			return false
 		}
-		if schema.Collate != "" && schema.Collate != defaults.collate {
+		if schema.Collate != "" && !atlasMySQLSchemaCollateSupported(schema.Collate, defaults.collate, statements) {
 			return false
 		}
 	}
 	return true
+}
+
+func atlasMySQLSchemaCharsetSupported(charset, defaultCharset string) bool {
+	return strings.EqualFold(charset, defaultCharset)
+}
+
+func atlasMySQLSchemaCollateSupported(collate, defaultCollate string, statements []ast.Node) bool {
+	if strings.EqualFold(collate, defaultCollate) {
+		return true
+	}
+	return strings.EqualFold(collate, "utf8mb4_general_ci") && !atlasMySQLStatementsHaveCollatableColumns(statements)
+}
+
+func atlasMySQLStatementsHaveCollatableColumns(statements []ast.Node) bool {
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			continue
+		}
+		for _, column := range table.Columns {
+			if atlasMySQLColumnTypeUsesSchemaCollation(column.Type) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func atlasMySQLColumnTypeUsesSchemaCollation(columnType string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(atlasSQLIdentifier(columnType)))
+	return strings.Contains(normalized, "char") ||
+		strings.Contains(normalized, "text") ||
+		strings.HasPrefix(normalized, "enum") ||
+		strings.HasPrefix(normalized, "set")
 }
 
 func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) bool {
@@ -2733,7 +2767,7 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 }
 
 func txtarMySQLApplyColumnForeignKeySupported(ref *ast.ForeignKeyRef) bool {
-	return ref.Table != "" && ref.Column != ""
+	return ref.Table != "" && len(ref.ReferencedColumns()) > 0
 }
 
 func txtarMySQLApplyTableOptionsSupported(dialect string, options map[string]string) bool {
@@ -4622,6 +4656,13 @@ func renderAtlasTableHCL(
 			return err
 		}
 	}
+	if dialect == "mysql" || dialect == "mariadb" {
+		for _, index := range atlasForeignKeyIndexHCLs(tableName, table, indexes) {
+			if err := renderAtlasIndexHCL(b, index); err != nil {
+				return err
+			}
+		}
+	}
 	for _, unique := range uniques {
 		if err := renderAtlasUniqueHCL(b, unique); err != nil {
 			return err
@@ -4637,6 +4678,26 @@ func renderAtlasTableHCL(
 	}
 	b.WriteString("}\n")
 	return nil
+}
+
+func atlasForeignKeyIndexHCLs(tableName string, table *ast.CreateTableNode, indexes []*ast.IndexNode) []*ast.IndexNode {
+	namesByColumns := atlasForeignKeyIndexNamesByColumns(tableName, table, indexes)
+	keys := make([]string, 0, len(namesByColumns))
+	for key := range namesByColumns {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	out := make([]*ast.IndexNode, 0, len(keys))
+	for _, key := range keys {
+		columns := strings.Split(key, "\x00")
+		out = append(out, &ast.IndexNode{
+			Name:    namesByColumns[key],
+			Table:   tableName,
+			Columns: columns,
+		})
+	}
+	return out
 }
 
 func atlasDefaultHCL(def *ast.DefaultValue) string {
@@ -4750,7 +4811,7 @@ func atlasColumnForeignKey(tableName string, column *ast.ColumnNode) *atlasHCLFo
 		name:       atlasDefaultForeignKeyName(tableName, []string{column.Name}, ref.Name),
 		columns:    []string{column.Name},
 		refTable:   atlasSQLIdentifier(ref.Table),
-		refColumns: []string{ref.Column},
+		refColumns: ref.ReferencedColumns(),
 		onUpdate:   ref.OnUpdate,
 		onDelete:   ref.OnDelete,
 	}
@@ -4769,7 +4830,7 @@ func atlasConstraintForeignKey(tableName, schemaName string, constraint *ast.Con
 		name:       atlasDefaultForeignKeyName(tableName, columns, constraint.Name),
 		columns:    columns,
 		refTable:   atlasHCLTableIdentifier(ref.Table, schemaName),
-		refColumns: []string{ref.Column},
+		refColumns: ref.ReferencedColumns(),
 		onUpdate:   ref.OnUpdate,
 		onDelete:   ref.OnDelete,
 	}, nil
@@ -5100,7 +5161,7 @@ func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
 
 	fmt.Fprintf(b, "  index %q {\n", atlasHCLIdentifier(index.Name))
 	if index.Unique {
-		b.WriteString("    unique = true\n")
+		b.WriteString("    unique  = true\n")
 	}
 	parts := index.EffectiveParts()
 	if len(parts) == 0 {
@@ -5399,6 +5460,7 @@ func renderAtlasCreateTableSQL(
 				parts = append(parts, renderAtlasColumnForeignKeyIndexSQL(quote, name, column))
 			}
 		}
+		parts = append(parts, renderAtlasConstraintForeignKeyIndexSQLs(quote, table, indexes)...)
 	}
 	for _, column := range columnForeignKeys {
 		parts = append(parts, renderAtlasColumnForeignKeySQL(dialect, quote, table.Name, column))
@@ -5770,7 +5832,54 @@ func renderAtlasColumnForeignKeyIndexSQL(
 	name string,
 	column *ast.ColumnNode,
 ) string {
-	return fmt.Sprintf("KEY %s (%s)", quote(name), quote(column.Name))
+	return renderAtlasForeignKeyIndexSQL(quote, name, []string{column.Name})
+}
+
+func renderAtlasConstraintForeignKeyIndexSQLs(
+	quote func(string) string,
+	table *ast.CreateTableNode,
+	indexes []*ast.IndexNode,
+) []string {
+	namesByColumns := atlasForeignKeyIndexNamesByColumns(table.Name, table, indexes)
+	keys := make([]string, 0, len(namesByColumns))
+	for key := range namesByColumns {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	indexSQL := make([]string, 0, len(keys))
+	for _, key := range keys {
+		columns := strings.Split(key, "\x00")
+		indexSQL = append(indexSQL, renderAtlasForeignKeyIndexSQL(quote, namesByColumns[key], columns))
+	}
+	return indexSQL
+}
+
+func atlasForeignKeyIndexNamesByColumns(tableName string, table *ast.CreateTableNode, indexes []*ast.IndexNode) map[string]string {
+	namesByColumns := map[string]string{}
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.ForeignKeyConstraint {
+			continue
+		}
+		columns := atlasConstraintColumnNames(constraint)
+		if len(columns) == 0 {
+			continue
+		}
+		name := atlasDefaultForeignKeyName(tableName, columns, constraint.Name)
+		if atlasIndexNameExists(indexes, name) {
+			continue
+		}
+		namesByColumns[strings.Join(columns, "\x00")] = name
+	}
+	return namesByColumns
+}
+
+func renderAtlasForeignKeyIndexSQL(quote func(string) string, name string, columns []string) string {
+	quotedColumns := make([]string, 0, len(columns))
+	for _, column := range columns {
+		quotedColumns = append(quotedColumns, quote(column))
+	}
+	return fmt.Sprintf("KEY %s (%s)", quote(name), strings.Join(quotedColumns, ","))
 }
 
 func atlasIndexNameExists(indexes []*ast.IndexNode, name string) bool {
@@ -5807,12 +5916,17 @@ func atlasForeignKeySQL(
 	for _, column := range columns {
 		quotedColumns = append(quotedColumns, quote(column))
 	}
+	refColumns := ref.ReferencedColumns()
+	quotedRefColumns := make([]string, 0, len(refColumns))
+	for _, column := range refColumns {
+		quotedRefColumns = append(quotedRefColumns, quote(column))
+	}
 	sql := fmt.Sprintf(
 		"CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)",
 		quote(name),
 		strings.Join(quotedColumns, ", "),
-		quote(ref.Table),
-		quote(ref.Column),
+		quote(atlasUnqualifiedSQLTableName(ref.Table)),
+		strings.Join(quotedRefColumns, ", "),
 	)
 	if dialect == "sqlite" {
 		if action := atlasForeignKeySQLAction(dialect, ref.OnUpdate); action != "" {
@@ -5830,6 +5944,14 @@ func atlasForeignKeySQL(
 		sql += " ON UPDATE " + action
 	}
 	return sql
+}
+
+func atlasUnqualifiedSQLTableName(table string) string {
+	table = atlasSQLIdentifier(table)
+	if _, unqualified, ok := strings.Cut(table, "."); ok {
+		return unqualified
+	}
+	return table
 }
 
 func atlasForeignKeySQLAction(dialect, action string) string {
