@@ -1919,6 +1919,93 @@ CREATE TABLE users (id INT NOT NULL);
 	}
 }
 
+func TestTxtarScriptProbeChecksExpectedSchemaInspectMissingURLFailure(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas schema inspect
+stderr '"url" not set'
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeChecksExpectedSchemaApplyValidationFailures(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas schema apply -f 1.hcl
+stderr '"url" not set'
+
+! atlas schema apply --url URL
+stderr 'one of flag\(s\) "file" or "to" is required'
+
+! atlas schema apply -f atlas.hcl -u URL
+stderr 'cannot parse project file'
+
+-- atlas.hcl --
+env "local" {
+  url = "URL"
+  src = "./1.hcl"
+}
+-- 1.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsSchemaApplyEnvAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema apply --env local --auto-approve
+
+-- atlas.hcl --
+env "local" {
+  url = "URL"
+  src = "./1.hcl"
+}
+-- 1.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas schema apply") {
+		t.Fatalf("detail missing schema apply gap: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeReportsUnexpectedSchemaInspectFailure(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
