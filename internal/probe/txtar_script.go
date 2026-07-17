@@ -25,7 +25,7 @@ import (
 
 var (
 	mysqlIntegerDisplayWidthRE = regexp.MustCompile(`\b(bigint|int|integer|mediumint|smallint|tinyint)\(\d+\)`)
-	mysqlDefaultCharsetRE      = regexp.MustCompile(`\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
+	mysqlDefaultCharsetRE      = regexp.MustCompile(`(?m)\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
 	mysqlUTF8MB4IntroducerRE   = regexp.MustCompile(`(?i)\b_utf8mb4'`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
@@ -2496,6 +2496,9 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 }
 
 func txtarExpectedApplyFailure(current, next []ast.Node) string {
+	if failure := txtarForeignKeySetNullFailure(next); failure != "" {
+		return failure
+	}
 	currentTables := atlasCreateTablesByName(current)
 	nextTables := atlasCreateTablesByName(next)
 	for tableName, nextTable := range nextTables {
@@ -2508,6 +2511,33 @@ func txtarExpectedApplyFailure(current, next []ast.Node) string {
 		}
 	}
 	return ""
+}
+
+func txtarForeignKeySetNullFailure(statements []ast.Node) string {
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			continue
+		}
+		for _, column := range table.Columns {
+			if column.Nullable || column.ForeignKey == nil {
+				continue
+			}
+			if atlasForeignKeyActionIsSetNull(column.ForeignKey.OnDelete) ||
+				atlasForeignKeyActionIsSetNull(column.ForeignKey.OnUpdate) {
+				return fmt.Sprintf(
+					"foreign key constraint was %q SET NULL, but column %q is NOT NULL",
+					atlasSQLIdentifier(column.Name),
+					atlasSQLIdentifier(column.Name),
+				)
+			}
+		}
+	}
+	return ""
+}
+
+func atlasForeignKeyActionIsSetNull(action string) bool {
+	return strings.EqualFold(strings.ReplaceAll(action, " ", "_"), "SET_NULL")
 }
 
 func atlasCreateTablesByName(statements []ast.Node) map[string]*ast.CreateTableNode {
@@ -2683,7 +2713,10 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 	}
 	for _, column := range table.Columns {
 		if column.Comment != "" || column.Unique ||
-			column.Check != "" || column.CheckName != "" || column.ForeignKey != nil {
+			column.Check != "" || column.CheckName != "" {
+			return false
+		}
+		if column.ForeignKey != nil && !txtarMySQLApplyColumnForeignKeySupported(column.ForeignKey) {
 			return false
 		}
 		if column.GeneratedExpression != "" && dialect != "mysql" {
@@ -2697,6 +2730,10 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 		}
 	}
 	return true
+}
+
+func txtarMySQLApplyColumnForeignKeySupported(ref *ast.ForeignKeyRef) bool {
+	return ref.Table != "" && ref.Column != ""
 }
 
 func txtarMySQLApplyTableOptionsSupported(dialect string, options map[string]string) bool {
@@ -2851,11 +2888,13 @@ func runTxtarExist(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCom
 	default:
 		return txtarCommandResult{unsupported: "exist"}, true
 	}
-	if len(fields) != 2 || !runtime.hasVirtualDBState {
+	if len(fields) < 2 || !runtime.hasVirtualDBState {
 		return txtarCommandResult{unsupported: "exist"}, true
 	}
-	if _, ok := txtarFindTable(txtarFixtureSchemaName(fx), runtime.dbStatements, fields[1]); !ok {
-		return txtarCommandResult{failed: true, err: fmt.Errorf("table %s does not exist", fields[1])}, true
+	for _, tableName := range fields[1:] {
+		if _, ok := txtarFindTable(txtarFixtureSchemaName(fx), runtime.dbStatements, tableName); !ok {
+			return txtarCommandResult{failed: true, err: fmt.Errorf("table %s does not exist", tableName)}, true
+		}
 	}
 	return txtarCommandResult{}, true
 }
@@ -2933,41 +2972,54 @@ func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 	if len(fields) < 1 || fields[0] != "cmpshow" {
 		return txtarCommandResult{}, false
 	}
-	if len(fields) != 3 {
+	if len(fields) < 3 {
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
 	if !runtime.hasVirtualDBState {
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
-	actual, ok := txtarTableHCL(fx, runtime.dbStatements, fields[1])
+	tableNames := fields[1 : len(fields)-1]
+	expectedName := fields[len(fields)-1]
+	if len(tableNames) != 1 {
+		expectedSQL, ok := runtime.files[expectedName]
+		if !ok {
+			return txtarCommandResult{
+				failed: true,
+				err:    fmt.Errorf("cmpshow %s %s: %s missing", strings.Join(tableNames, " "), expectedName, expectedName),
+			}, true
+		}
+		return txtarCmpShowSQL(fx, runtime, tableNames, expectedName, expectedSQL)
+	}
+	actual, ok := txtarTableHCL(fx, runtime.dbStatements, tableNames[0])
 	if !ok {
 		return txtarCommandResult{
 			failed: true,
-			err:    fmt.Errorf("cmpshow %s %s: table %s missing", fields[1], fields[2], fields[1]),
+			err:    fmt.Errorf("cmpshow %s %s: table %s missing", tableNames[0], expectedName, tableNames[0]),
 		}, true
 	}
-	expectedSQL, ok := runtime.files[fields[2]]
+	expectedSQL, ok := runtime.files[expectedName]
 	if !ok {
 		return txtarCommandResult{
 			failed: true,
-			err:    fmt.Errorf("cmpshow %s %s: %s missing", fields[1], fields[2], fields[2]),
+			err:    fmt.Errorf("cmpshow %s %s: %s missing", tableNames[0], expectedName, expectedName),
 		}, true
 	}
-	if txtarTableNeedsSQLShowCompare(fx, runtime.dbStatements, fields[1]) {
-		return txtarCmpShowSQL(fx, runtime, fields[1], fields[2], expectedSQL)
+	if txtarTableNeedsSQLShowCompare(fx, runtime.dbStatements, tableNames[0]) {
+		return txtarCmpShowSQL(fx, runtime, tableNames, expectedName, expectedSQL)
 	}
 	expectedStatements, err := txtarParseExpectedShowSQL(expectedSQL)
 	if err != nil {
-		return txtarCmpShowSQL(fx, runtime, fields[1], fields[2], expectedSQL)
+		return txtarCmpShowSQL(fx, runtime, tableNames, expectedName, expectedSQL)
 	}
-	expected, ok := txtarTableHCL(fx, expectedStatements, fields[1])
+	expected, ok := txtarTableHCL(fx, expectedStatements, tableNames[0])
 	if !ok {
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
 	if !txtarFilesEqual(actual, expected) {
 		return txtarCommandResult{
 			failed: true,
-			err:    fmt.Errorf("cmpshow %s %s did not match: got %q want %q", fields[1], fields[2], oneLine(actual), oneLine(expected)),
+			err: fmt.Errorf("cmpshow %s %s did not match: got %q want %q",
+				tableNames[0], expectedName, oneLine(actual), oneLine(expected)),
 		}, true
 	}
 	return txtarCommandResult{}, true
@@ -3000,7 +3052,7 @@ func txtarTableNeedsSQLShowCompare(fx Fixture, statements []ast.Node, name strin
 func txtarCmpShowSQL(
 	fx Fixture,
 	runtime *txtarRuntime,
-	tableName string,
+	tableNames []string,
 	expectedName string,
 	expectedSQL string,
 ) (txtarCommandResult, bool) {
@@ -3009,16 +3061,17 @@ func txtarCmpShowSQL(
 	default:
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
-	actual, ok := txtarTableShowSQL(fx, runtime.dbStatements, tableName)
+	actual, ok := txtarTablesShowSQL(fx, runtime.dbStatements, tableNames)
 	if !ok {
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
 	expected := txtarCanonicalShowSQL(fx, expectedSQL)
 	if txtarNormalizeFixtureShowSQL(fx, actual) != txtarNormalizeFixtureShowSQL(fx, expected) {
+		tableLabel := strings.Join(tableNames, " ")
 		return txtarCommandResult{
 			failed: true,
 			err: fmt.Errorf("cmpshow %s %s did not match: got %q want %q",
-				tableName, expectedName, oneLine(actual), oneLine(expected)),
+				tableLabel, expectedName, oneLine(actual), oneLine(expected)),
 		}, true
 	}
 	return txtarCommandResult{}, true
@@ -3042,6 +3095,7 @@ func txtarVirtualStateShowSQL(fx Fixture, statements []ast.Node) (string, bool) 
 	unqualified := atlasUnqualifyTableStatements(schemaName, statements)
 	out, err := renderAtlasInspectSQLWithOptions(txtarFixtureDialect(fx), unqualified, "", atlasInspectSQLOptions{
 		mariaDBJSONStorage: true,
+		showDefaultNull:    true,
 	})
 	if err != nil {
 		return "", false
@@ -3121,18 +3175,34 @@ func atlasMariaDBJSONCheckMatches(columnName, expr string) bool {
 }
 
 func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, bool) {
+	return txtarTablesShowSQL(fx, statements, []string{name})
+}
+
+func txtarTablesShowSQL(fx Fixture, statements []ast.Node, names []string) (string, bool) {
 	schemaName := txtarFixtureSchemaName(fx)
+	wanted := map[string]bool{}
+	for _, name := range names {
+		wanted[name] = true
+	}
+	found := map[string]bool{}
 	filtered := make([]ast.Node, 0, len(statements))
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateTableNode:
-			if atlasHCLTableIdentifier(node.Name, schemaName) == name {
+			tableName := atlasHCLTableIdentifier(node.Name, schemaName)
+			if wanted[tableName] {
 				filtered = append(filtered, node)
+				found[tableName] = true
 			}
 		case *ast.IndexNode:
-			if atlasHCLTableIdentifier(node.Table, schemaName) == name {
+			if wanted[atlasHCLTableIdentifier(node.Table, schemaName)] {
 				filtered = append(filtered, node)
 			}
+		}
+	}
+	for _, name := range names {
+		if !found[name] {
+			return "", false
 		}
 	}
 	if len(filtered) == 0 {
@@ -3141,6 +3211,7 @@ func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, 
 	filtered = atlasUnqualifyTableStatements(schemaName, filtered)
 	out, err := renderAtlasInspectSQLWithOptions(txtarFixtureDialect(fx), filtered, "", atlasInspectSQLOptions{
 		mariaDBJSONStorage: true,
+		showDefaultNull:    true,
 	})
 	if err != nil {
 		return "", false
@@ -5223,6 +5294,7 @@ func renderAtlasInspectSQL(dialect string, statements []ast.Node, indent string)
 
 type atlasInspectSQLOptions struct {
 	mariaDBJSONStorage bool
+	showDefaultNull    bool
 }
 
 func renderAtlasInspectSQLWithOptions(
@@ -5306,17 +5378,30 @@ func renderAtlasCreateTableSQL(
 
 	parts := make([]string, 0, len(table.Columns)+len(table.Constraints)+len(indexes))
 	var primaryColumns []ast.ConstraintColumn
+	var columnForeignKeys []*ast.ColumnNode
 	for _, column := range table.Columns {
 		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != "" || dialect == "sqlite", opts))
 		if column.Primary && !atlasColumnPrimaryKeyInline(dialect, column) {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
 		}
 		if column.ForeignKey != nil {
-			parts = append(parts, renderAtlasColumnForeignKeySQL(dialect, quote, table.Name, column))
+			columnForeignKeys = append(columnForeignKeys, column)
 		}
 	}
 	if len(primaryColumns) > 0 {
 		parts = append(parts, renderAtlasPrimaryKeySQL(quote, primaryColumns))
+	}
+	if dialect == "mysql" || dialect == "mariadb" {
+		for _, column := range columnForeignKeys {
+			ref := column.ForeignKey
+			name := atlasDefaultForeignKeyName(table.Name, []string{column.Name}, ref.Name)
+			if !atlasIndexNameExists(indexes, name) {
+				parts = append(parts, renderAtlasColumnForeignKeyIndexSQL(quote, name, column))
+			}
+		}
+	}
+	for _, column := range columnForeignKeys {
+		parts = append(parts, renderAtlasColumnForeignKeySQL(dialect, quote, table.Name, column))
 	}
 	checks, err := atlasCheckSQLParts(dialect, quote, table)
 	if err != nil {
@@ -5443,6 +5528,8 @@ func renderAtlasColumnSQL(
 		}
 	} else if !column.Nullable && !generated {
 		b.WriteString(" NOT NULL")
+	} else if opts.showDefaultNull && (dialect == "mysql" || dialect == "mariadb") && column.Nullable && !generated {
+		b.WriteString(" DEFAULT NULL")
 	} else if explicitNull {
 		b.WriteString(" NULL")
 	}
@@ -5678,6 +5765,23 @@ func renderAtlasColumnForeignKeySQL(
 	return atlasForeignKeySQL(dialect, quote, name, []string{column.Name}, ref)
 }
 
+func renderAtlasColumnForeignKeyIndexSQL(
+	quote func(string) string,
+	name string,
+	column *ast.ColumnNode,
+) string {
+	return fmt.Sprintf("KEY %s (%s)", quote(name), quote(column.Name))
+}
+
+func atlasIndexNameExists(indexes []*ast.IndexNode, name string) bool {
+	for _, index := range indexes {
+		if atlasSQLIdentifier(index.Name) == atlasSQLIdentifier(name) {
+			return true
+		}
+	}
+	return false
+}
+
 func renderAtlasConstraintForeignKeySQL(
 	dialect string,
 	quote func(string) string,
@@ -5703,23 +5807,36 @@ func atlasForeignKeySQL(
 	for _, column := range columns {
 		quotedColumns = append(quotedColumns, quote(column))
 	}
-	onUpdate := ref.OnUpdate
-	if onUpdate == "" && dialect == "sqlite" {
-		onUpdate = "NO ACTION"
-	}
-	onDelete := ref.OnDelete
-	if onDelete == "" && dialect == "sqlite" {
-		onDelete = "NO ACTION"
-	}
-	return fmt.Sprintf(
-		"CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s) ON UPDATE %s ON DELETE %s",
+	sql := fmt.Sprintf(
+		"CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)",
 		quote(name),
 		strings.Join(quotedColumns, ", "),
 		quote(ref.Table),
 		quote(ref.Column),
-		strings.ReplaceAll(onUpdate, "_", " "),
-		strings.ReplaceAll(onDelete, "_", " "),
 	)
+	if dialect == "sqlite" {
+		if action := atlasForeignKeySQLAction(dialect, ref.OnUpdate); action != "" {
+			sql += " ON UPDATE " + action
+		}
+		if action := atlasForeignKeySQLAction(dialect, ref.OnDelete); action != "" {
+			sql += " ON DELETE " + action
+		}
+		return sql
+	}
+	if action := atlasForeignKeySQLAction(dialect, ref.OnDelete); action != "" {
+		sql += " ON DELETE " + action
+	}
+	if action := atlasForeignKeySQLAction(dialect, ref.OnUpdate); action != "" {
+		sql += " ON UPDATE " + action
+	}
+	return sql
+}
+
+func atlasForeignKeySQLAction(dialect, action string) string {
+	if action == "" && dialect == "sqlite" {
+		action = "NO ACTION"
+	}
+	return strings.ReplaceAll(action, "_", " ")
 }
 
 func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.ConstraintColumn) string {

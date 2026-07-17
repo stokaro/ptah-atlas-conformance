@@ -3311,6 +3311,119 @@ func TestRenderAtlasInspectHCLRejectsEmptyIndexParts(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLForeignKeyAddFixture(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/foreign-key-add.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, string(data))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/foreign-key-add.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarExpectedApplyFailureDetectsMySQLForeignKeySetNullOnNotNullColumn(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/foreign-key-add.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fx := Fixture{Name: "mysql/foreign-key-add.txtar"}
+	runtime := newTxtarRuntime(string(data))
+	statements, err := txtarHCLStatements(fx, "invalid-on-delete-action.hcl", runtime.files["invalid-on-delete-action.hcl"])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got := txtarExpectedApplyFailure(nil, statements)
+	const want = `foreign key constraint was "author_id" SET NULL, but column "author_id" is NOT NULL`
+	if got != want {
+		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
+func TestTxtarMySQLForeignKeyAddBaseStateIsSupported(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/foreign-key-add.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fx := Fixture{Name: "mysql/foreign-key-add.txtar"}
+	runtime := newTxtarRuntime(string(data))
+	statements, err := txtarHCLStatements(fx, "1.hcl", runtime.files["1.hcl"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !txtarFixtureSupportsVirtualApply(fx, statements) {
+		t.Fatalf("expected 1.hcl to be supported")
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLForeignKeyModifyActionFixture(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/foreign-key-modify-action.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, string(data))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/foreign-key-modify-action.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsMySQLCompositeForeignKeyUnsupported(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/foreign-key.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, string(data))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/foreign-key.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+}
+
 func TestTxtarScriptProbeExecutesMySQLIndexPrefixFixture(t *testing.T) {
 	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/index-prefix.txtar")
 	if err != nil {
