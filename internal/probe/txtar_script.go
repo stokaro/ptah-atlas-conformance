@@ -1817,12 +1817,11 @@ func txtarSQLiteVirtualApplyStateSupported(data string, statements []ast.Node) b
 }
 
 func txtarHCLHasUnsupportedSQLiteApplySyntax(data string) bool {
-	return regexp.MustCompile(`(?m)^\s*as(\s|=|\{)`).MatchString(data) ||
-		regexp.MustCompile(`(?m)^\s*(strict|without_rowid)\s*=`).MatchString(data)
+	return regexp.MustCompile(`(?m)^\s*as(\s|=|\{)`).MatchString(data)
 }
 
 func txtarSQLiteApplyTableSupported(table *ast.CreateTableNode) bool {
-	if len(table.Options) > 0 || table.SelectBody != "" || table.Comment != "" {
+	if !txtarSQLiteApplyTableOptionsSupported(table.Options) || table.SelectBody != "" || table.Comment != "" {
 		return false
 	}
 	for _, column := range table.Columns {
@@ -1833,6 +1832,18 @@ func txtarSQLiteApplyTableSupported(table *ast.CreateTableNode) bool {
 	}
 	for _, constraint := range table.Constraints {
 		if constraint.Type != ast.PrimaryKeyConstraint {
+			return false
+		}
+	}
+	return true
+}
+
+func txtarSQLiteApplyTableOptionsSupported(options map[string]string) bool {
+	for key := range options {
+		switch key {
+		case "STRICT", "WITHOUT_ROWID":
+			continue
+		default:
 			return false
 		}
 	}
@@ -3709,6 +3720,13 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	b.WriteString(")")
+	if dialect == "sqlite" {
+		options, err := renderAtlasSQLiteTableOptions(table.Options)
+		if err != nil {
+			return err
+		}
+		b.WriteString(options)
+	}
 	if attrs := atlasDefaultSchemaAttrs(dialect); attrs.charset != "" || attrs.collate != "" {
 		if attrs.charset != "" {
 			fmt.Fprintf(b, " CHARSET %s", attrs.charset)
@@ -3730,6 +3748,36 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	return nil
+}
+
+func renderAtlasSQLiteTableOptions(options map[string]string) (string, error) {
+	parts := make([]string, 0, len(options))
+	for key := range options {
+		switch key {
+		case "STRICT", "WITHOUT_ROWID":
+			continue
+		default:
+			return "", fmt.Errorf("unsupported inspect table option %s", key)
+		}
+	}
+	if tableOptionEnabled(options, "WITHOUT_ROWID") {
+		parts = append(parts, "WITHOUT ROWID")
+	}
+	if tableOptionEnabled(options, "STRICT") {
+		parts = append(parts, "STRICT")
+	}
+	if len(parts) == 0 {
+		return "", nil
+	}
+	return " " + strings.Join(parts, ", "), nil
+}
+
+func tableOptionEnabled(options map[string]string, key string) bool {
+	value, ok := options[key]
+	if !ok {
+		return false
+	}
+	return strings.EqualFold(value, "true") || value == ""
 }
 
 func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast.ColumnNode, explicitNull bool) string {
