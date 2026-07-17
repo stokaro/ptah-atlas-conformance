@@ -380,7 +380,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			}
 			continue
 		}
-		if txtarCommandReadsUnsupportedFile(commandLine, unsupportedFiles) {
+		if txtarCommandReadsUnsupportedFile(runtime, commandLine, unsupportedFiles) {
 			last = txtarCommandResult{unsupported: "blocked by unsupported file"}
 			markUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
 			if !expectedFailure && txtarCommandMutatesDBState(commandLine) {
@@ -438,6 +438,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarMigrateValidate(runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarMigrateNew(runtime, fields); ok {
+		return result
+	}
 	if result, ok := runTxtarMigrateDiff(fx, runtime, fields, expectedFailure); ok {
 		return result
 	}
@@ -479,7 +482,7 @@ func txtarCommandFields(line string) []string {
 	return fields
 }
 
-func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]bool) bool {
+func txtarCommandReadsUnsupportedFile(runtime *txtarRuntime, line string, unsupportedFiles map[string]bool) bool {
 	fields := txtarCommandFields(line)
 	if len(fields) == 0 {
 		return false
@@ -501,9 +504,9 @@ func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]b
 		}
 		switch fields[1] + " " + fields[2] {
 		case "migrate hash":
-			return txtarMigrateHashReadsUnsupportedFile(fields[3:], unsupportedFiles)
+			return txtarMigrateHashReadsUnsupportedFile(runtime, fields[3:], unsupportedFiles)
 		case "migrate apply", "migrate new", "migrate set", "migrate status", "migrate validate":
-			return txtarMigrateCommandReadsUnsupportedFile(fields[3:], unsupportedFiles)
+			return txtarMigrateCommandReadsUnsupportedFile(runtime, fields[3:], unsupportedFiles)
 		case "schema diff":
 			return txtarSchemaDiffReadsUnsupportedFile(fields[3:], unsupportedFiles)
 		}
@@ -526,12 +529,12 @@ func txtarCmpmigReadsUnsupportedFile(fields []string, unsupportedFiles map[strin
 	return false
 }
 
-func txtarMigrateHashReadsUnsupportedFile(args []string, unsupportedFiles map[string]bool) bool {
-	return txtarMigrateCommandReadsUnsupportedFile(args, unsupportedFiles)
+func txtarMigrateHashReadsUnsupportedFile(runtime *txtarRuntime, args []string, unsupportedFiles map[string]bool) bool {
+	return txtarMigrateCommandReadsUnsupportedFile(runtime, args, unsupportedFiles)
 }
 
-func txtarMigrateCommandReadsUnsupportedFile(args []string, unsupportedFiles map[string]bool) bool {
-	dir := txtarMigrateCommandDir(args)
+func txtarMigrateCommandReadsUnsupportedFile(runtime *txtarRuntime, args []string, unsupportedFiles map[string]bool) bool {
+	dir := txtarMigrateCommandRuntimeDir(runtime, args)
 	if unsupportedFiles[dir] {
 		return true
 	}
@@ -604,23 +607,15 @@ func runTxtarMigrateHash(runtime *txtarRuntime, fields []string) (txtarCommandRe
 		return txtarCommandResult{}, false
 	}
 
-	dir := txtarMigrateHashDir(fields[3:])
-	fsys, ok := runtime.subFS(dir)
-	if !ok {
-		return txtarCommandResult{failed: true, err: fmt.Errorf("migration directory %q missing", dir)}, true
-	}
-	sum, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
-	if err != nil {
+	dir := txtarMigrateHashDir(runtime, fields[3:])
+	if err := runtime.refreshMigrationHash(dir); err != nil {
 		return txtarCommandResult{err: err}, true
 	}
-	sumPath := path.Join(dir, migratesum.AtlasFileName)
-	runtime.files[sumPath] = string(sum.Bytes())
-	runtime.addParentDirs(sumPath)
 	return txtarCommandResult{}, true
 }
 
-func txtarMigrateHashDir(args []string) string {
-	return txtarMigrateCommandDir(args)
+func txtarMigrateHashDir(runtime *txtarRuntime, args []string) string {
+	return txtarMigrateCommandRuntimeDir(runtime, args)
 }
 
 func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
@@ -628,7 +623,7 @@ func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarComma
 		return txtarCommandResult{}, false
 	}
 
-	dir := txtarMigrateCommandDir(fields[3:])
+	dir := txtarMigrateCommandRuntimeDir(runtime, fields[3:])
 	fsys, ok := runtime.subFS(dir)
 	if !ok {
 		return txtarCommandResult{failed: true, err: fmt.Errorf("migration directory %q missing", dir)}, true
@@ -657,10 +652,53 @@ func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarComma
 	return txtarCommandResult{}, true
 }
 
+func runTxtarMigrateNew(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "new" {
+		return txtarCommandResult{}, false
+	}
+
+	name := txtarMigrateNewName(fields[3:])
+	if name == "" {
+		return txtarCommandResult{unsupported: "atlas migrate new"}, true
+	}
+	dir := txtarMigrateCommandRuntimeDir(runtime, fields[3:])
+	file := txtarNextNamedMigrationFile(runtime, dir, name)
+	runtime.files[file] = ""
+	runtime.addParentDirs(file)
+	if err := runtime.refreshMigrationHash(dir); err != nil {
+		return txtarCommandResult{err: err}, true
+	}
+	return txtarCommandResult{}, true
+}
+
+func txtarMigrateNewName(args []string) string {
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch arg {
+		case "--dir", "--env", "--edit":
+			if i+1 < len(args) {
+				i++
+			}
+		default:
+			switch {
+			case strings.HasPrefix(arg, "--dir="), strings.HasPrefix(arg, "--env="), strings.HasPrefix(arg, "--edit="):
+				continue
+			case strings.HasPrefix(arg, "-"):
+				continue
+			default:
+				return arg
+			}
+		}
+	}
+	return ""
+}
+
 type txtarMigrateDiffArgs struct {
 	devURL  string
 	to      []string
 	dir     string
+	dirSet  bool
+	env     string
 	name    string
 	blocked bool
 }
@@ -671,6 +709,13 @@ func runTxtarMigrateDiff(fx Fixture, runtime *txtarRuntime, fields []string, exp
 	}
 
 	args := txtarParseMigrateDiffArgs(fields[3:])
+	if args.env != "" {
+		var ok bool
+		args, ok = txtarResolveMigrateDiffEnv(fx, runtime, args)
+		if !ok {
+			args.blocked = true
+		}
+	}
 	switch {
 	case args.blocked:
 		return txtarCommandResult{unsupported: "atlas migrate diff"}, true
@@ -713,13 +758,19 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 					out.blocked = true
 				}
 				out.dir = txtarFileURLPath(args[i+1])
+				out.dirSet = true
 				i++
 			}
 		case "--format":
 			if i+1 < len(args) {
 				i++
 			}
-		case "--qualifier", "--env", "--dir-format":
+		case "--env":
+			if i+1 < len(args) {
+				out.env = args[i+1]
+				i++
+			}
+		case "--qualifier", "--dir-format":
 			out.blocked = true
 			if i+1 < len(args) {
 				i++
@@ -735,9 +786,12 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 					out.blocked = true
 				}
 				out.dir = txtarFileURLPath(strings.TrimPrefix(arg, "--dir="))
+				out.dirSet = true
 			case strings.HasPrefix(arg, "--format="):
 				continue
-			case strings.HasPrefix(arg, "--qualifier="), strings.HasPrefix(arg, "--env="), strings.HasPrefix(arg, "--dir-format="):
+			case strings.HasPrefix(arg, "--env="):
+				out.env = strings.TrimPrefix(arg, "--env=")
+			case strings.HasPrefix(arg, "--qualifier="), strings.HasPrefix(arg, "--dir-format="):
 				out.blocked = true
 			case strings.HasPrefix(arg, "-"):
 				out.blocked = true
@@ -750,6 +804,381 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 		}
 	}
 	return out
+}
+
+func txtarResolveMigrateDiffEnv(fx Fixture, runtime *txtarRuntime, args txtarMigrateDiffArgs) (txtarMigrateDiffArgs, bool) {
+	if txtarFixtureFamily(fx) != "sqlite" {
+		return args, false
+	}
+	project, ok := runtime.files["atlas.hcl"]
+	if !ok {
+		return args, false
+	}
+	env, ok := txtarAtlasNamedBlock(project, "env", args.env)
+	if !ok {
+		return args, false
+	}
+	if args.devURL == "" {
+		devURL, ok := txtarHCLStringAttr(env, "dev")
+		if !ok {
+			return args, false
+		}
+		args.devURL = devURL
+	}
+	if len(args.to) == 0 {
+		target, ok := txtarAtlasEnvSourceTarget(runtime, project, env)
+		if !ok {
+			return args, false
+		}
+		args.to = []string{target}
+	}
+	if !args.dirSet {
+		if migration, ok := txtarAtlasAnonymousBlock(env, "migration"); ok {
+			if dir, ok := txtarHCLStringAttr(migration, "dir"); ok {
+				args.dir = txtarFileURLPath(dir)
+			}
+		}
+	}
+	return args, true
+}
+
+func txtarAtlasEnvSourceTarget(runtime *txtarRuntime, project, env string) (string, bool) {
+	value, ok := txtarHCLAttrValue(env, "src")
+	if !ok {
+		return "", false
+	}
+	if refName, ok := txtarAtlasDataHCLSchemaRef(value); ok {
+		return txtarAtlasDataHCLSchemaTarget(runtime, project, refName)
+	}
+	return txtarAtlasHCLSourceTarget(runtime, value)
+}
+
+func txtarAtlasDataHCLSchemaRef(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	const prefix = "data.hcl_schema."
+	const suffix = ".url"
+	if !strings.HasPrefix(value, prefix) || !strings.HasSuffix(value, suffix) {
+		return "", false
+	}
+	name := strings.TrimSuffix(strings.TrimPrefix(value, prefix), suffix)
+	return name, name != ""
+}
+
+func txtarAtlasDataHCLSchemaTarget(runtime *txtarRuntime, project, name string) (string, bool) {
+	block, ok := txtarAtlasDataHCLSchemaBlock(project, name)
+	if !ok {
+		return "", false
+	}
+	files, ok := txtarAtlasDataHCLSchemaFiles(runtime, block)
+	if !ok {
+		return "", false
+	}
+	vars := txtarAtlasHCLVars(block)
+	synthetic := path.Join(".ptah", "data_hcl_schema_"+name+".hcl")
+	runtime.files[synthetic] = txtarJoinHCLSourceFiles(runtime, files, vars)
+	runtime.addParentDirs(synthetic)
+	return "file://" + synthetic, true
+}
+
+func txtarAtlasDataHCLSchemaFiles(runtime *txtarRuntime, block string) ([]string, bool) {
+	if value, ok := txtarHCLStringAttr(block, "path"); ok {
+		file := txtarCleanAtlasPath(value)
+		if _, ok := runtime.files[file]; !ok {
+			return nil, false
+		}
+		return []string{file}, true
+	}
+	value, ok := txtarHCLAttrValue(block, "paths")
+	if !ok {
+		return nil, false
+	}
+	pattern, ok := txtarAtlasGlobPattern(value)
+	if !ok {
+		return nil, false
+	}
+	var files []string
+	for file := range runtime.files {
+		matched, err := path.Match(pattern, file)
+		if err == nil && matched {
+			files = append(files, file)
+		}
+	}
+	slices.Sort(files)
+	return files, len(files) > 0
+}
+
+func txtarAtlasGlobPattern(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	const prefix = "glob("
+	if !strings.HasPrefix(value, prefix) || !strings.HasSuffix(value, ")") {
+		return "", false
+	}
+	quoted := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, prefix), ")"))
+	pattern, ok := txtarHCLQuotedString(quoted)
+	if !ok {
+		return "", false
+	}
+	return txtarCleanAtlasPath(pattern), true
+}
+
+func txtarAtlasHCLVars(block string) map[string]string {
+	varsBlock, ok := txtarAtlasAnonymousBlock(block, "vars")
+	if !ok {
+		return nil
+	}
+	vars := map[string]string{}
+	re := regexp.MustCompile(`(?m)^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"([^"]*)"\s*$`)
+	for _, match := range re.FindAllStringSubmatch(varsBlock, -1) {
+		vars[match[1]] = match[2]
+	}
+	return vars
+}
+
+func txtarAtlasHCLSourceTarget(runtime *txtarRuntime, value string) (string, bool) {
+	files, ok := txtarAtlasHCLSourceFiles(runtime, value)
+	if !ok {
+		return "", false
+	}
+	if len(files) == 1 {
+		return "file://" + files[0], true
+	}
+	synthetic := ".ptah/source.hcl"
+	runtime.files[synthetic] = txtarJoinHCLSourceFiles(runtime, files, nil)
+	runtime.addParentDirs(synthetic)
+	return "file://" + synthetic, true
+}
+
+func txtarAtlasHCLSourceFiles(runtime *txtarRuntime, value string) ([]string, bool) {
+	value = strings.TrimSpace(value)
+	if src, ok := txtarHCLQuotedString(value); ok {
+		return txtarAtlasHCLPathFiles(runtime, src)
+	}
+	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
+		var files []string
+		re := regexp.MustCompile(`"([^"]*)"`)
+		for _, match := range re.FindAllStringSubmatch(value, -1) {
+			part, ok := txtarAtlasHCLPathFiles(runtime, match[1])
+			if !ok {
+				return nil, false
+			}
+			files = append(files, part...)
+		}
+		slices.Sort(files)
+		return files, len(files) > 0
+	}
+	return nil, false
+}
+
+func txtarAtlasHCLPathFiles(runtime *txtarRuntime, value string) ([]string, bool) {
+	name := txtarCleanAtlasPath(value)
+	if _, ok := runtime.files[name]; ok {
+		return []string{name}, true
+	}
+	prefix := strings.TrimSuffix(name, "/") + "/"
+	var files []string
+	for file := range runtime.files {
+		if strings.HasPrefix(file, prefix) && path.Ext(file) == ".hcl" {
+			files = append(files, file)
+		}
+	}
+	slices.Sort(files)
+	return files, len(files) > 0
+}
+
+func txtarJoinHCLSourceFiles(runtime *txtarRuntime, files []string, vars map[string]string) string {
+	var out strings.Builder
+	for _, file := range files {
+		data := runtime.files[file]
+		data = txtarStripHCLVariableBlocks(data)
+		for key, value := range vars {
+			defaultRe := regexp.MustCompile(`default\s*=\s*var\.` + regexp.QuoteMeta(key) + `\b`)
+			data = defaultRe.ReplaceAllString(data, "default = "+strconv.Quote("'"+value+"'"))
+			data = strings.ReplaceAll(data, "var."+key, strconv.Quote(value))
+		}
+		out.WriteString(strings.TrimSpace(data))
+		out.WriteString("\n")
+	}
+	return out.String()
+}
+
+func txtarStripHCLVariableBlocks(data string) string {
+	re := regexp.MustCompile(`(?m)^\s*variable\s+"[^"]+"\s*\{`)
+	for {
+		loc := re.FindStringIndex(data)
+		if loc == nil {
+			return data
+		}
+		_, end, ok := txtarHCLBlockBody(data, loc[1]-1)
+		if !ok {
+			return data
+		}
+		data = data[:loc[0]] + data[end:]
+	}
+}
+
+func txtarAtlasDataHCLSchemaBlock(data, name string) (string, bool) {
+	re := regexp.MustCompile(`(?m)^\s*data\s+"hcl_schema"\s+"` + regexp.QuoteMeta(name) + `"\s*\{`)
+	loc := re.FindStringIndex(data)
+	if loc == nil {
+		return "", false
+	}
+	body, _, ok := txtarHCLBlockBody(data, loc[1]-1)
+	return body, ok
+}
+
+func txtarAtlasNamedBlock(data, kind, name string) (string, bool) {
+	re := regexp.MustCompile(`(?m)^\s*` + regexp.QuoteMeta(kind) + `\s+"` + regexp.QuoteMeta(name) + `"\s*\{`)
+	loc := re.FindStringIndex(data)
+	if loc == nil {
+		return "", false
+	}
+	body, _, ok := txtarHCLBlockBody(data, loc[1]-1)
+	return body, ok
+}
+
+func txtarAtlasAnonymousBlock(data, kind string) (string, bool) {
+	re := regexp.MustCompile(`(?m)^\s*` + regexp.QuoteMeta(kind) + `\s*(?:=\s*)?\{`)
+	loc := re.FindStringIndex(data)
+	if loc == nil {
+		return "", false
+	}
+	body, _, ok := txtarHCLBlockBody(data, loc[1]-1)
+	return body, ok
+}
+
+func txtarHCLBlockBody(data string, open int) (string, int, bool) {
+	if open < 0 || open >= len(data) || data[open] != '{' {
+		return "", 0, false
+	}
+	depth := 0
+	inString := false
+	inLineComment := false
+	inBlockComment := false
+	escaped := false
+	for i := open; i < len(data); i++ {
+		ch := data[i]
+		next := byte(0)
+		if i+1 < len(data) {
+			next = data[i+1]
+		}
+		if inLineComment {
+			if ch == '\n' {
+				inLineComment = false
+			}
+			continue
+		}
+		if inBlockComment {
+			if ch == '*' && next == '/' {
+				inBlockComment = false
+				i++
+			}
+			continue
+		}
+		if inString {
+			switch {
+			case escaped:
+				escaped = false
+			case ch == '\\':
+				escaped = true
+			case ch == '"':
+				inString = false
+			}
+			continue
+		}
+		switch data[i] {
+		case '"':
+			inString = true
+		case '#':
+			inLineComment = true
+		case '/':
+			switch next {
+			case '/':
+				inLineComment = true
+				i++
+			case '*':
+				inBlockComment = true
+				i++
+			}
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return data[open+1 : i], i + 1, true
+			}
+		}
+	}
+	return "", 0, false
+}
+
+func txtarHCLStringAttr(data, key string) (string, bool) {
+	value, ok := txtarHCLAttrValue(data, key)
+	if !ok {
+		return "", false
+	}
+	return txtarHCLQuotedString(value)
+}
+
+func txtarHCLAttrValue(data, key string) (string, bool) {
+	re := regexp.MustCompile(`(?m)^\s*` + regexp.QuoteMeta(key) + `\s*=`)
+	loc := re.FindStringIndex(data)
+	if loc == nil {
+		return "", false
+	}
+	start := loc[1]
+	for start < len(data) && (data[start] == ' ' || data[start] == '\t') {
+		start++
+	}
+	if start >= len(data) {
+		return "", false
+	}
+	switch data[start] {
+	case '"':
+		end, ok := txtarHCLQuotedStringEnd(data, start)
+		if !ok {
+			return "", false
+		}
+		return data[start : end+1], true
+	case '[':
+		end := strings.IndexByte(data[start:], ']')
+		if end < 0 {
+			return "", false
+		}
+		return data[start : start+end+1], true
+	default:
+		end := strings.IndexByte(data[start:], '\n')
+		if end < 0 {
+			return strings.TrimSpace(data[start:]), true
+		}
+		return strings.TrimSpace(data[start : start+end]), true
+	}
+}
+
+func txtarHCLQuotedStringEnd(data string, start int) (int, bool) {
+	escaped := false
+	for i := start + 1; i < len(data); i++ {
+		switch {
+		case escaped:
+			escaped = false
+		case data[i] == '\\':
+			escaped = true
+		case data[i] == '"':
+			return i, true
+		}
+	}
+	return 0, false
+}
+
+func txtarHCLQuotedString(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	if len(value) < 2 || value[0] != '"' || value[len(value)-1] != '"' {
+		return "", false
+	}
+	return value[1 : len(value)-1], true
+}
+
+func txtarCleanAtlasPath(value string) string {
+	return path.Clean(strings.TrimPrefix(value, "./"))
 }
 
 func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigrateDiffArgs) txtarCommandResult {
@@ -773,6 +1202,9 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 	name := txtarNextMigrationFile(runtime, args.dir)
 	runtime.files[name] = sql
 	runtime.addParentDirs(name)
+	if err := runtime.refreshMigrationHash(args.dir); err != nil {
+		return txtarCommandResult{err: err}
+	}
 	return txtarCommandResult{}
 }
 
@@ -860,6 +1292,33 @@ func txtarNextMigrationFile(runtime *txtarRuntime, dir string) string {
 	}
 }
 
+func txtarNextNamedMigrationFile(runtime *txtarRuntime, dir, description string) string {
+	dir = path.Clean(dir)
+	next := len(txtarMigrationSQLFilesInDir(runtime, dir)) + 1
+	for {
+		name := path.Join(dir, fmt.Sprintf("%d_%s.sql", next, description))
+		if _, exists := runtime.files[name]; !exists {
+			return name
+		}
+		next++
+	}
+}
+
+func (r *txtarRuntime) refreshMigrationHash(dir string) error {
+	fsys, ok := r.subFS(dir)
+	if !ok {
+		return fmt.Errorf("migration directory %q missing", dir)
+	}
+	sum, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
+	if err != nil {
+		return err
+	}
+	sumPath := path.Join(dir, migratesum.AtlasFileName)
+	r.files[sumPath] = string(sum.Bytes())
+	r.addParentDirs(sumPath)
+	return nil
+}
+
 func runTxtarMigrateSet(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "set" {
 		return txtarCommandResult{}, false
@@ -916,7 +1375,7 @@ func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommand
 		return txtarCommandResult{}, false
 	}
 
-	dir := txtarMigrateCommandDir(fields[3:])
+	dir := txtarMigrateCommandRuntimeDir(runtime, fields[3:])
 	if _, ok := runtime.files[path.Join(dir, migratesum.AtlasFileName)]; !ok {
 		return txtarCommandResult{unsupported: "atlas migrate status"}, true
 	}
@@ -971,7 +1430,7 @@ func txtarHCLStatements(fx Fixture, name, data string) ([]ast.Node, error) {
 		return nil, fmt.Errorf("%w: parse HCL file: %v", errUnsupportedInspectHCL, err)
 	}
 	list := fromschema.FromDatabase(*db, txtarFixtureDialect(fx))
-	return list.Statements, nil
+	return txtarOrderHCLStatementsByTableBlocks(fx, data, list.Statements), nil
 }
 
 func txtarNormalizeAtlasHCL(fx Fixture, data string) string {
@@ -979,6 +1438,55 @@ func txtarNormalizeAtlasHCL(fx Fixture, data string) string {
 	data = strings.ReplaceAll(data, "schema.$db", "schema."+schemaName)
 	data = strings.ReplaceAll(data, `schema "$db"`, fmt.Sprintf("schema %q", schemaName))
 	return data
+}
+
+func txtarOrderHCLStatementsByTableBlocks(fx Fixture, data string, statements []ast.Node) []ast.Node {
+	order := txtarHCLTableOrder(data)
+	if len(order) == 0 {
+		return statements
+	}
+	out := slices.Clone(statements)
+	schemaName := txtarFixtureSchemaName(fx)
+	slices.SortStableFunc(out, func(a, b ast.Node) int {
+		aRank, aOK := txtarHCLStatementTableRank(schemaName, order, a)
+		bRank, bOK := txtarHCLStatementTableRank(schemaName, order, b)
+		switch {
+		case aOK && bOK:
+			return cmp.Compare(aRank, bRank)
+		case aOK:
+			return -1
+		case bOK:
+			return 1
+		default:
+			return 0
+		}
+	})
+	return out
+}
+
+func txtarHCLStatementTableRank(schemaName string, order map[string]int, stmt ast.Node) (int, bool) {
+	switch node := stmt.(type) {
+	case *ast.CreateTableNode:
+		rank, ok := order[atlasUnqualifyTableName(schemaName, node.Name)]
+		return rank, ok
+	case *ast.IndexNode:
+		rank, ok := order[atlasUnqualifyTableName(schemaName, node.Table)]
+		return rank, ok
+	default:
+		return 0, false
+	}
+}
+
+func txtarHCLTableOrder(data string) map[string]int {
+	re := regexp.MustCompile(`(?m)^\s*table\s+"([^"]+)"\s*\{`)
+	matches := re.FindAllStringSubmatch(data, -1)
+	order := make(map[string]int, len(matches))
+	for _, match := range matches {
+		if _, exists := order[match[1]]; !exists {
+			order[match[1]] = len(order)
+		}
+	}
+	return order
 }
 
 func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
@@ -1199,6 +1707,33 @@ func txtarMigrateDiffDir(args []string) string {
 	return txtarMigrateCommandDir(args)
 }
 
+func txtarMigrateCommandRuntimeDir(runtime *txtarRuntime, args []string) string {
+	dir := txtarMigrateCommandDir(args)
+	if dir != "migrations" {
+		return dir
+	}
+	env := txtarMigrateCommandEnv(args)
+	if env == "" {
+		return dir
+	}
+	project, ok := runtime.files["atlas.hcl"]
+	if !ok {
+		return dir
+	}
+	envBlock, ok := txtarAtlasNamedBlock(project, "env", env)
+	if !ok {
+		return dir
+	}
+	migration, ok := txtarAtlasAnonymousBlock(envBlock, "migration")
+	if !ok {
+		return dir
+	}
+	if configured, ok := txtarHCLStringAttr(migration, "dir"); ok {
+		return txtarFileURLPath(configured)
+	}
+	return dir
+}
+
 func txtarMigrateCommandDir(args []string) string {
 	const defaultDir = "migrations"
 	for i := 0; i < len(args); i++ {
@@ -1211,6 +1746,19 @@ func txtarMigrateCommandDir(args []string) string {
 		}
 	}
 	return defaultDir
+}
+
+func txtarMigrateCommandEnv(args []string) string {
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--env" && i+1 < len(args):
+			return args[i+1]
+		case strings.HasPrefix(arg, "--env="):
+			return strings.TrimPrefix(arg, "--env=")
+		}
+	}
+	return ""
 }
 
 func txtarFileURLPath(value string) string {
@@ -1323,9 +1871,9 @@ func markUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsup
 		}
 		switch fields[2] {
 		case "diff":
-			unsupportedFiles[txtarMigrateDiffDir(fields[3:])] = true
+			unsupportedFiles[txtarMigrateCommandRuntimeDir(runtime, fields[3:])] = true
 		case "hash":
-			unsupportedFiles[path.Join(txtarMigrateHashDir(fields[3:]), migratesum.AtlasFileName)] = true
+			unsupportedFiles[path.Join(txtarMigrateHashDir(runtime, fields[3:]), migratesum.AtlasFileName)] = true
 		}
 	}
 }
@@ -1358,7 +1906,7 @@ func clearUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsu
 		}
 	case "atlas":
 		if len(fields) >= 3 && fields[1] == "migrate" && fields[2] == "hash" {
-			delete(unsupportedFiles, path.Join(txtarMigrateHashDir(fields[3:]), migratesum.AtlasFileName))
+			delete(unsupportedFiles, path.Join(txtarMigrateHashDir(runtime, fields[3:]), migratesum.AtlasFileName))
 		}
 	}
 }
