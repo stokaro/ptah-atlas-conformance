@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 140 unwaived non-OK observation(s)
+## Status: NOT DONE — 138 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260717075325-c6de43537daa`
-- Outcomes: **444 ok**, **140 gap**, **0 fail**, **0 panic**
-- Gate: **140 unwaived non-OK** (fails CI), 0 waived
+- Outcomes: **446 ok**, **138 gap**, **0 fail**, **0 panic**
+- Gate: **138 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **158 measured**, **0 imported-but-unmeasured**
 
 ## Findings
@@ -137,7 +137,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | unsupported: apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
@@ -160,7 +159,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | unsupported: atlas schema apply | #285 |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 1 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 2 field(s) |  |
@@ -589,6 +587,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect-file.txtar` | script-runtime | executed 3 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | executed 5 supported command(s), checked 4 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/autoincrement.txtar` | script-runtime | executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | script-runtime | executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-inspect.txtar` | script-runtime | executed 5 supported command(s), checked 4 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | executed 52 supported command(s), checked 31 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar` | script-runtime | executed 1 supported command(s), checked 1 assertion(s) |  |
@@ -601,6 +600,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | executed 8 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/column-default.txtar` | script-runtime | executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | executed 9 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | executed 6 supported command(s), checked 4 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | executed 7 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
@@ -608,4 +608,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#285** — 140 finding(s)
+- **stokaro/ptah#285** — 138 finding(s)
