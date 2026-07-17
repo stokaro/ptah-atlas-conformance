@@ -5151,6 +5151,9 @@ func renderAtlasIndexPartSQL(quote func(string) string, part ast.IndexPart) stri
 	} else {
 		spec = quote(part.Name)
 	}
+	if part.Prefix != "" && part.Expr == "" {
+		spec += " (" + part.Prefix + ")"
+	}
 	if part.Desc {
 		spec += " DESC"
 	}
