@@ -3311,25 +3311,15 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-vars.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-apply-vars.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 3 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
@@ -3533,25 +3523,15 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-project-vars.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema apply",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-project-vars.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 3 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-schema-project-file.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 8 supported command(s), checked 6 assertion(s)"
   },
   {
     "probe": "txtar-script",

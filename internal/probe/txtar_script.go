@@ -898,6 +898,10 @@ func txtarResolveMigrateDiffEnv(fx Fixture, runtime *txtarRuntime, args txtarMig
 }
 
 func txtarAtlasEnvSourceTarget(runtime *txtarRuntime, project, env string) (string, bool) {
+	return txtarAtlasEnvSourceTargetWithVars(runtime, project, env, nil)
+}
+
+func txtarAtlasEnvSourceTargetWithVars(runtime *txtarRuntime, project, env string, vars map[string]string) (string, bool) {
 	value, ok := txtarHCLAttrValue(env, "src")
 	if !ok {
 		return "", false
@@ -905,7 +909,7 @@ func txtarAtlasEnvSourceTarget(runtime *txtarRuntime, project, env string) (stri
 	if refName, ok := txtarAtlasDataHCLSchemaRef(value); ok {
 		return txtarAtlasDataHCLSchemaTarget(runtime, project, refName)
 	}
-	return txtarAtlasHCLSourceTarget(runtime, value)
+	return txtarAtlasHCLSourceTargetWithVars(runtime, value, vars)
 }
 
 func txtarAtlasDataHCLSchemaRef(value string) (string, bool) {
@@ -990,15 +994,19 @@ func txtarAtlasHCLVars(block string) map[string]string {
 }
 
 func txtarAtlasHCLSourceTarget(runtime *txtarRuntime, value string) (string, bool) {
+	return txtarAtlasHCLSourceTargetWithVars(runtime, value, nil)
+}
+
+func txtarAtlasHCLSourceTargetWithVars(runtime *txtarRuntime, value string, vars map[string]string) (string, bool) {
 	files, ok := txtarAtlasHCLSourceFiles(runtime, value)
 	if !ok {
 		return "", false
 	}
-	if len(files) == 1 {
+	if len(files) == 1 && len(vars) == 0 {
 		return "file://" + files[0], true
 	}
 	synthetic := ".ptah/source.hcl"
-	runtime.files[synthetic] = txtarJoinHCLSourceFiles(runtime, files, nil)
+	runtime.files[synthetic] = txtarJoinHCLSourceFiles(runtime, files, vars)
 	runtime.addParentDirs(synthetic)
 	return "file://" + synthetic, true
 }
@@ -2212,9 +2220,22 @@ func runTxtarSchemaApply(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 	}
 
 	args := parseTxtarSchemaApplyArgs(fields[3:])
-	if args.hasEnv {
+	resolved, err := txtarResolveSchemaApplyEnv(fx, runtime, args)
+	var missing *txtarMissingAtlasVariableError
+	if errors.As(err, &missing) {
+		return txtarCommandResult{
+			stderr: fmt.Sprintf("Error: missing value for required variable %q\n", missing.name),
+			failed: true,
+			err:    err,
+		}, true
+	}
+	if errors.Is(err, errUnsupportedInspectHCL) {
 		return txtarCommandResult{unsupported: "atlas schema apply"}, true
 	}
+	if err != nil {
+		return txtarCommandResult{err: err}, true
+	}
+	args = resolved
 	if args.sourceURL == "" {
 		return txtarCommandResult{
 			stderr: "Error: \"url\" not set\n",
@@ -2260,7 +2281,8 @@ type txtarSchemaApplyArgs struct {
 	sourceURL string
 	files     []string
 	to        string
-	hasEnv    bool
+	env       string
+	vars      map[string]string
 }
 
 func parseTxtarSchemaApplyArgs(fields []string) txtarSchemaApplyArgs {
@@ -2283,8 +2305,13 @@ func parseTxtarSchemaApplyArgs(fields []string) txtarSchemaApplyArgs {
 				i++
 			}
 		case "--env":
-			args.hasEnv = true
 			if i+1 < len(fields) {
+				args.env = fields[i+1]
+				i++
+			}
+		case "--var":
+			if i+1 < len(fields) {
+				args.vars = txtarAddAtlasVar(args.vars, fields[i+1])
 				i++
 			}
 		default:
@@ -2300,11 +2327,193 @@ func parseTxtarSchemaApplyArgs(fields []string) txtarSchemaApplyArgs {
 			case strings.HasPrefix(fields[i], "--to="):
 				args.to = strings.TrimPrefix(fields[i], "--to=")
 			case strings.HasPrefix(fields[i], "--env="):
-				args.hasEnv = true
+				args.env = strings.TrimPrefix(fields[i], "--env=")
+			case strings.HasPrefix(fields[i], "--var="):
+				args.vars = txtarAddAtlasVar(args.vars, strings.TrimPrefix(fields[i], "--var="))
 			}
 		}
 	}
 	return args
+}
+
+func txtarAddAtlasVar(vars map[string]string, assignment string) map[string]string {
+	key, value, ok := strings.Cut(assignment, "=")
+	if !ok || key == "" {
+		return vars
+	}
+	if vars == nil {
+		vars = map[string]string{}
+	}
+	vars[key] = value
+	return vars
+}
+
+func txtarResolveSchemaApplyEnv(
+	fx Fixture,
+	runtime *txtarRuntime,
+	args txtarSchemaApplyArgs,
+) (txtarSchemaApplyArgs, error) {
+	if args.env == "" {
+		return args, nil
+	}
+	if txtarFixtureFamily(fx) != "sqlite" {
+		return args, errUnsupportedInspectHCL
+	}
+	project, ok := runtime.files["atlas.hcl"]
+	if !ok {
+		return args, errUnsupportedInspectHCL
+	}
+	env, ok := txtarAtlasNamedBlock(project, "env", args.env)
+	if !ok {
+		return args, errUnsupportedInspectHCL
+	}
+	if args.sourceURL == "" {
+		if sourceURL, ok := txtarHCLStringAttr(env, "url"); ok {
+			args.sourceURL = sourceURL
+		}
+	}
+	envVars, err := txtarAtlasEnvVars(env, args.vars)
+	if err != nil {
+		return args, err
+	}
+	if len(args.files) == 0 && args.to == "" {
+		target, ok := txtarAtlasEnvSourceTargetWithVars(runtime, project, env, envVars)
+		if !ok {
+			return args, errUnsupportedInspectHCL
+		}
+		args.to = target
+	}
+	if err := txtarCheckSchemaApplySourceVars(runtime, args); err != nil {
+		return args, err
+	}
+	return args, nil
+}
+
+func txtarAtlasEnvVars(env string, cliVars map[string]string) (map[string]string, error) {
+	vars := map[string]string{}
+	for _, key := range txtarHCLTopLevelAttrNames(env) {
+		switch key {
+		case "url", "src", "dev":
+			continue
+		}
+		value, ok := txtarHCLAttrValue(env, key)
+		if !ok {
+			continue
+		}
+		if name, ok := txtarAtlasVarRef(value); ok {
+			resolved, ok := cliVars[name]
+			if !ok {
+				return nil, &txtarMissingAtlasVariableError{name: name}
+			}
+			vars[key] = resolved
+			continue
+		}
+		if quoted, ok := txtarHCLQuotedString(value); ok {
+			vars[key] = quoted
+		}
+	}
+	return vars, nil
+}
+
+func txtarHCLTopLevelAttrNames(data string) []string {
+	var names []string
+	for _, line := range strings.Split(txtarHCLTopLevelOnly(data), "\n") {
+		name, _, ok := strings.Cut(strings.TrimSpace(line), "=")
+		if !ok {
+			continue
+		}
+		name = strings.TrimSpace(name)
+		if name == "" || strings.ContainsAny(name, " \t") {
+			continue
+		}
+		names = append(names, name)
+	}
+	return names
+}
+
+func txtarHCLTopLevelOnly(data string) string {
+	var out strings.Builder
+	depth := 0
+	inString := false
+	escaped := false
+	for i := 0; i < len(data); i++ {
+		ch := data[i]
+		if inString {
+			if depth == 0 {
+				out.WriteByte(ch)
+			}
+			switch {
+			case escaped:
+				escaped = false
+			case ch == '\\':
+				escaped = true
+			case ch == '"':
+				inString = false
+			}
+			continue
+		}
+		switch ch {
+		case '"':
+			inString = true
+			if depth == 0 {
+				out.WriteByte(ch)
+			}
+		case '{':
+			depth++
+		case '}':
+			if depth > 0 {
+				depth--
+			}
+		default:
+			if depth == 0 {
+				out.WriteByte(ch)
+			}
+		}
+	}
+	return out.String()
+}
+
+func txtarAtlasVarRef(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	name, ok := strings.CutPrefix(value, "var.")
+	return name, ok && name != ""
+}
+
+func txtarCheckSchemaApplySourceVars(runtime *txtarRuntime, args txtarSchemaApplyArgs) error {
+	files := args.files
+	if args.to != "" && strings.HasPrefix(args.to, "file://") {
+		files = []string{txtarFileURLPath(args.to)}
+	}
+	for _, file := range files {
+		data, ok := runtime.files[file]
+		if !ok {
+			continue
+		}
+		for _, name := range txtarHCLRequiredVariables(data) {
+			if strings.Contains(data, "var."+name) {
+				return &txtarMissingAtlasVariableError{name: name}
+			}
+		}
+	}
+	return nil
+}
+
+func txtarHCLRequiredVariables(data string) []string {
+	re := regexp.MustCompile(`(?m)^\s*variable\s+"([^"]+)"\s*\{`)
+	matches := re.FindAllStringSubmatch(data, -1)
+	names := make([]string, 0, len(matches))
+	for _, match := range matches {
+		names = append(names, match[1])
+	}
+	return names
+}
+
+type txtarMissingAtlasVariableError struct {
+	name string
+}
+
+func (e *txtarMissingAtlasVariableError) Error() string {
+	return fmt.Sprintf("missing value for required variable %q", e.name)
 }
 
 func txtarSchemaApplyStatements(fx Fixture, runtime *txtarRuntime, args txtarSchemaApplyArgs) ([]ast.Node, error) {
@@ -2863,9 +3072,23 @@ func nonFlagArgs(args []string) []string {
 	return out
 }
 
+func txtarResolveSchemaInspectEnv(fx Fixture, runtime *txtarRuntime, name string) (string, bool) {
+	if txtarFixtureFamily(fx) != "sqlite" {
+		return "", false
+	}
+	project, ok := runtime.files["atlas.hcl"]
+	if !ok {
+		return "", false
+	}
+	env, ok := txtarAtlasNamedBlock(project, "env", name)
+	if !ok {
+		return "", false
+	}
+	return txtarHCLStringAttr(env, "url")
+}
+
 func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) txtarCommandResult {
-	var sourceURL, devURL, format, redirect string
-	hasEnv := false
+	var sourceURL, devURL, format, redirect, env string
 	var excludes []string
 	for i := 3; i < len(fields); i++ {
 		switch fields[i] {
@@ -2895,8 +3118,8 @@ func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) t
 				i++
 			}
 		case "--env":
-			hasEnv = true
 			if i+1 < len(fields) {
+				env = fields[i+1]
 				i++
 			}
 		default:
@@ -2906,14 +3129,21 @@ func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) t
 			case strings.HasPrefix(fields[i], "--url="):
 				sourceURL = strings.TrimPrefix(fields[i], "--url=")
 			case strings.HasPrefix(fields[i], "--env="):
-				hasEnv = true
+				env = strings.TrimPrefix(fields[i], "--env=")
 			case strings.HasPrefix(fields[i], "--exclude="):
 				excludes = append(excludes, strings.TrimPrefix(fields[i], "--exclude="))
 			}
 		}
 	}
 	const filePrefix = "file://"
-	if sourceURL == "" && !hasEnv {
+	if sourceURL == "" && env != "" {
+		resolved, ok := txtarResolveSchemaInspectEnv(fx, runtime, env)
+		if !ok {
+			return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
+		}
+		sourceURL = resolved
+	}
+	if sourceURL == "" {
 		return txtarCommandResult{
 			stderr: "Error: \"url\" not set\n",
 			failed: true,
