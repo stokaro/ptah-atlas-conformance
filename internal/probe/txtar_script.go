@@ -464,6 +464,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarApply(fx, runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarSynced(fx, runtime, fields); ok {
+		return result
+	}
 	if result, ok := runTxtarExecSQL(fx, runtime, fields); ok {
 		return result
 	}
@@ -1851,7 +1854,7 @@ func txtarSQLiteApplyTableOptionsSupported(options map[string]string) bool {
 }
 
 func txtarSQLiteApplyIndexSupported(index *ast.IndexNode) bool {
-	return len(index.Columns) > 0 && index.Type == "" && index.Operator == "" &&
+	return len(index.EffectiveParts()) > 0 && index.Type == "" && index.Operator == "" &&
 		index.Comment == "" && !index.Concurrently
 }
 
@@ -1972,6 +1975,38 @@ func runTxtarCmpHCL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 	return txtarCommandResult{}, true
 }
 
+func runTxtarSynced(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 1 || fields[0] != "synced" {
+		return txtarCommandResult{}, false
+	}
+	if len(fields) != 2 || txtarFixtureFamily(fx) != "sqlite" || !runtime.hasVirtualDBState {
+		return txtarCommandResult{unsupported: "synced"}, true
+	}
+	data, ok := runtime.files[fields[1]]
+	if !ok {
+		return txtarCommandResult{failed: true, err: fmt.Errorf("synced %s: file missing", fields[1])}, true
+	}
+	statements, err := txtarHCLStatements(fx, fields[1], data)
+	if err != nil {
+		return txtarCommandResult{unsupported: "synced"}, true
+	}
+	if !txtarSQLiteVirtualApplyStateSupported(data, statements) {
+		return txtarCommandResult{unsupported: "synced"}, true
+	}
+	actual, ok := txtarVirtualStateShowSQL(fx, runtime.dbStatements)
+	if !ok {
+		return txtarCommandResult{unsupported: "synced"}, true
+	}
+	expected, ok := txtarVirtualStateShowSQL(fx, statements)
+	if !ok {
+		return txtarCommandResult{unsupported: "synced"}, true
+	}
+	if txtarNormalizeShowSQL(actual) != txtarNormalizeShowSQL(expected) {
+		return txtarCommandResult{failed: true, err: fmt.Errorf("synced %s did not match: got %q want %q", fields[1], oneLine(actual), oneLine(expected))}, true
+	}
+	return txtarCommandResult{}, true
+}
+
 func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
 	if len(fields) < 1 || fields[0] != "cmpshow" {
 		return txtarCommandResult{}, false
@@ -2049,6 +2084,16 @@ func txtarCmpShowSQL(
 		}, true
 	}
 	return txtarCommandResult{}, true
+}
+
+func txtarVirtualStateShowSQL(fx Fixture, statements []ast.Node) (string, bool) {
+	schemaName := txtarFixtureSchemaName(fx)
+	unqualified := atlasUnqualifyTableStatements(schemaName, statements)
+	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), unqualified, "")
+	if err != nil {
+		return "", false
+	}
+	return out, true
 }
 
 func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, bool) {
@@ -3855,13 +3900,26 @@ func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string
 	}
 	fmt.Fprintf(&b, "INDEX %s (", quote(index.Name))
 
-	quoted := make([]string, 0, len(index.Columns))
-	for _, column := range index.Columns {
-		quoted = append(quoted, quote(column))
+	parts := make([]string, 0, len(index.EffectiveParts()))
+	for _, part := range index.EffectiveParts() {
+		parts = append(parts, renderAtlasIndexPartSQL(quote, part))
 	}
-	b.WriteString(strings.Join(quoted, ", "))
+	b.WriteString(strings.Join(parts, ", "))
 	b.WriteString(")")
 	return b.String()
+}
+
+func renderAtlasIndexPartSQL(quote func(string) string, part ast.IndexPart) string {
+	var spec string
+	if part.Expr != "" {
+		spec = fmt.Sprintf("(%s)", part.Expr)
+	} else {
+		spec = quote(part.Name)
+	}
+	if part.Desc {
+		spec += " DESC"
+	}
+	return spec
 }
 
 func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *ast.IndexNode) {
@@ -3872,11 +3930,11 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 		b.WriteString("UNIQUE ")
 	}
 	fmt.Fprintf(b, "INDEX %s ON %s (", quote(index.Name), quote(index.Table))
-	quoted := make([]string, 0, len(index.Columns))
-	for _, column := range index.Columns {
-		quoted = append(quoted, quote(column))
+	parts := make([]string, 0, len(index.EffectiveParts()))
+	for _, part := range index.EffectiveParts() {
+		parts = append(parts, renderAtlasIndexPartSQL(quote, part))
 	}
-	b.WriteString(strings.Join(quoted, ", "))
+	b.WriteString(strings.Join(parts, ", "))
 	if index.Condition != "" {
 		fmt.Fprintf(b, ") WHERE %s;\n", index.Condition)
 		return
