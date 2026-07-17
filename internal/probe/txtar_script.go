@@ -1529,31 +1529,194 @@ func renderAtlasCheckHCLBlocks(b *strings.Builder, dialect string, table *ast.Cr
 	if !atlasSupportsInspectChecks(dialect) && atlasTableHasChecks(table) {
 		return fmt.Errorf("%w: check constraints", errUnsupportedInspectHCL)
 	}
-	for _, column := range table.Columns {
-		if column.Check == "" {
-			continue
-		}
-		if column.CheckName == "" {
-			return fmt.Errorf("%w: unnamed column check %q", errUnsupportedInspectHCL, column.Name)
-		}
-		renderAtlasCheckHCLBlock(b, column.CheckName, column.Check)
+	checks, err := atlasCheckBlocks(dialect, table, errUnsupportedInspectHCL)
+	if err != nil {
+		return err
 	}
-	for _, constraint := range table.Constraints {
-		if constraint.Type != ast.CheckConstraint {
-			continue
-		}
-		if constraint.Name == "" {
-			return fmt.Errorf("%w: unnamed table check", errUnsupportedInspectHCL)
-		}
-		renderAtlasCheckHCLBlock(b, constraint.Name, constraint.Expression)
+	for _, check := range checks {
+		renderAtlasCheckHCLBlock(b, check.name, atlasCheckHCLExpr(dialect, check.expr))
 	}
 	return nil
 }
 
 func renderAtlasCheckHCLBlock(b *strings.Builder, name, expr string) {
 	fmt.Fprintf(b, "  check %q {\n", name)
-	fmt.Fprintf(b, "    expr = %q\n", "("+expr+")")
+	fmt.Fprintf(b, "    expr = %q\n", expr)
 	b.WriteString("  }\n")
+}
+
+type atlasCheckBlock struct {
+	name string
+	expr string
+}
+
+func atlasCheckBlocks(dialect string, table *ast.CreateTableNode, unsupported error) ([]atlasCheckBlock, error) {
+	var checks []atlasCheckBlock
+	unnamedColumnChecks := 0
+	for _, column := range table.Columns {
+		if column.Check == "" {
+			continue
+		}
+		unnamedColumnChecks++
+		name, err := atlasColumnCheckName(dialect, table.Name, column, unnamedColumnChecks, unsupported)
+		if err != nil {
+			return nil, err
+		}
+		checks = append(checks, atlasCheckBlock{name: name, expr: atlasNormalizeCheckExpr(dialect, column.Check)})
+	}
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.CheckConstraint {
+			continue
+		}
+		if constraint.Name == "" {
+			return nil, fmt.Errorf("%w: unnamed table check", unsupported)
+		}
+		checks = append(checks, atlasCheckBlock{
+			name: atlasSQLIdentifier(constraint.Name),
+			expr: atlasNormalizeCheckExpr(dialect, constraint.Expression),
+		})
+	}
+	slices.SortFunc(checks, func(a, b atlasCheckBlock) int {
+		return cmp.Compare(a.name, b.name)
+	})
+	return checks, nil
+}
+
+func atlasColumnCheckName(
+	dialect string,
+	tableName string,
+	column *ast.ColumnNode,
+	unnamedPosition int,
+	unsupported error,
+) (string, error) {
+	if column.CheckName != "" {
+		return atlasSQLIdentifier(column.CheckName), nil
+	}
+	switch dialect {
+	case "mysql":
+		return fmt.Sprintf("%s_chk_%d", atlasSQLIdentifier(tableName), unnamedPosition), nil
+	case "mariadb":
+		return atlasSQLIdentifier(column.Name), nil
+	default:
+		return "", fmt.Errorf("%w: unnamed column check %q", unsupported, column.Name)
+	}
+}
+
+func atlasCheckHCLExpr(dialect, expr string) string {
+	if dialect == "mariadb" {
+		return expr
+	}
+	return "(" + expr + ")"
+}
+
+func atlasNormalizeCheckExpr(dialect, expr string) string {
+	expr = strings.TrimSpace(expr)
+	switch dialect {
+	case "mysql", "mariadb":
+		expr = atlasQuoteCheckIdentifiers(dialect, expr)
+		expr = strings.ReplaceAll(expr, ", ", ",")
+		if dialect == "mysql" {
+			expr = atlasParenthesizeMySQLCheckOr(expr)
+		}
+		return expr
+	default:
+		return expr
+	}
+}
+
+func atlasQuoteCheckIdentifiers(dialect, expr string) string {
+	var b strings.Builder
+	for i := 0; i < len(expr); {
+		ch := expr[i]
+		switch {
+		case ch == '\'':
+			if dialect == "mysql" {
+				b.WriteString("_utf8mb4")
+			}
+			i = atlasCopySQLStringLiteral(&b, expr, i)
+		case ch == '`':
+			i = atlasCopyQuotedIdentifier(&b, expr, i)
+		case isAtlasCheckIdentStart(ch):
+			start := i
+			for i < len(expr) && isAtlasCheckIdentPart(expr[i]) {
+				i++
+			}
+			token := expr[start:i]
+			if atlasCheckKeyword(token) {
+				b.WriteString(strings.ToLower(token))
+			} else {
+				fmt.Fprintf(&b, "`%s`", strings.ReplaceAll(atlasSQLIdentifier(token), "`", "``"))
+			}
+		default:
+			b.WriteByte(ch)
+			i++
+		}
+	}
+	return b.String()
+}
+
+func atlasCopySQLStringLiteral(b *strings.Builder, expr string, start int) int {
+	b.WriteByte(expr[start])
+	i := start + 1
+	for i < len(expr) {
+		b.WriteByte(expr[i])
+		if expr[i] == '\'' {
+			i++
+			if i < len(expr) && expr[i] == '\'' {
+				b.WriteByte(expr[i])
+				i++
+				continue
+			}
+			break
+		}
+		i++
+	}
+	return i
+}
+
+func atlasCopyQuotedIdentifier(b *strings.Builder, expr string, start int) int {
+	i := start
+	for i < len(expr) {
+		b.WriteByte(expr[i])
+		if expr[i] == '`' {
+			i++
+			break
+		}
+		i++
+	}
+	return i
+}
+
+func isAtlasCheckIdentStart(ch byte) bool {
+	return ch == '_' || ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z'
+}
+
+func isAtlasCheckIdentPart(ch byte) bool {
+	return isAtlasCheckIdentStart(ch) || ch >= '0' && ch <= '9'
+}
+
+func atlasCheckKeyword(token string) bool {
+	switch strings.ToLower(token) {
+	case "and", "between", "false", "in", "is", "like", "not", "null", "or", "true":
+		return true
+	default:
+		return false
+	}
+}
+
+func atlasParenthesizeMySQLCheckOr(expr string) string {
+	parts := strings.Split(expr, " or ")
+	if len(parts) == 1 {
+		return expr
+	}
+	for i, part := range parts {
+		part = strings.TrimSpace(part)
+		if !strings.HasPrefix(part, "(") || !strings.HasSuffix(part, ")") {
+			part = "(" + part + ")"
+		}
+		parts[i] = part
+	}
+	return strings.Join(parts, " or ")
 }
 
 type atlasSchemaAttrs struct {
@@ -1860,20 +2023,17 @@ func renderAtlasCreateTableSQL(
 			parts = append(parts, renderAtlasPrimaryKeySQL(quote, []ast.ConstraintColumn{{Name: column.Name}}))
 		}
 	}
-	columnChecks, err := atlasColumnCheckSQLParts(quote, table)
+	checks, err := atlasCheckSQLParts(dialect, quote, table)
 	if err != nil {
 		return err
 	}
-	parts = append(parts, columnChecks...)
+	parts = append(parts, checks...)
 	for _, constraint := range table.Constraints {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
 			parts = append(parts, renderAtlasPrimaryKeySQL(quote, atlasConstraintColumns(constraint)))
 		case ast.CheckConstraint:
-			if constraint.Name == "" {
-				return fmt.Errorf("%w: unnamed table check", errUnsupportedInspectSQL)
-			}
-			parts = append(parts, renderAtlasCheckSQL(quote, constraint.Name, constraint.Expression))
+			continue
 		default:
 			return fmt.Errorf("unsupported inspect constraint %s", constraint.Type)
 		}
@@ -1897,8 +2057,13 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	b.WriteString(")")
-	if dialect == "mysql" {
-		b.WriteString(" CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
+	if attrs := atlasDefaultSchemaAttrs(dialect); attrs.charset != "" || attrs.collate != "" {
+		if attrs.charset != "" {
+			fmt.Fprintf(b, " CHARSET %s", attrs.charset)
+		}
+		if attrs.collate != "" {
+			fmt.Fprintf(b, " COLLATE %s", attrs.collate)
+		}
 	}
 	b.WriteString(";\n")
 	return nil
@@ -1919,16 +2084,14 @@ func renderAtlasCheckSQL(quote func(string) string, name, expr string) string {
 	return fmt.Sprintf("CONSTRAINT %s CHECK (%s)", quote(name), expr)
 }
 
-func atlasColumnCheckSQLParts(quote func(string) string, table *ast.CreateTableNode) ([]string, error) {
-	var parts []string
-	for _, column := range table.Columns {
-		if column.Check == "" {
-			continue
-		}
-		if column.CheckName == "" {
-			return nil, fmt.Errorf("%w: unnamed column check %q", errUnsupportedInspectSQL, column.Name)
-		}
-		parts = append(parts, renderAtlasCheckSQL(quote, column.CheckName, column.Check))
+func atlasCheckSQLParts(dialect string, quote func(string) string, table *ast.CreateTableNode) ([]string, error) {
+	checks, err := atlasCheckBlocks(dialect, table, errUnsupportedInspectSQL)
+	if err != nil {
+		return nil, err
+	}
+	parts := make([]string, 0, len(checks))
+	for _, check := range checks {
+		parts = append(parts, renderAtlasCheckSQL(quote, check.name, check.expr))
 	}
 	return parts, nil
 }
@@ -1948,7 +2111,7 @@ func atlasTableHasChecks(table *ast.CreateTableNode) bool {
 }
 
 func atlasSupportsInspectChecks(dialect string) bool {
-	return dialect == "postgresql"
+	return dialect == "postgresql" || dialect == "mysql" || dialect == "mariadb"
 }
 
 func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string {
@@ -2009,6 +2172,9 @@ func atlasIdentifierQuoter(dialect string) func(string) string {
 
 func txtarFixtureDialect(fx Fixture) string {
 	parts := strings.Split(filepath.ToSlash(fx.Name), "/")
+	if strings.Contains(strings.ToLower(fx.Name), "maria") {
+		return "mariadb"
+	}
 	if slices.Contains(parts, "mysql") {
 		return "mysql"
 	}

@@ -541,23 +541,62 @@ CREATE TABLE `+"`t1`"+` (`+"`id`"+` tinytext NOT NULL, PRIMARY KEY (`+"`id`"+` (
 	}
 }
 
-func TestTxtarScriptProbeKeepsMySQLSchemaInspectSQLChecksAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesMySQLSchemaInspectChecks(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . "  " }}' > inspected.sql
+	writeTestFile(t, path, `only mysql8
+
+atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . "  " }}' > inspected.sql
 cmp inspected.sql expected.sql
 
 -- a.sql --
-CREATE TABLE t1 (
-  a int CHECK (a > 0)
+CREATE TABLE t1(
+  name varchar(20) CHECK(name in ('a', 'b', 'c')),
+  age int CHECK(age > 0),
+  CONSTRAINT `+"`t1_check`"+` CHECK (name <> 'a' or age > 10)
 );
 
+-- expected.hcl --
+table "t1" {
+  schema = schema.script_check
+  column "name" {
+    null = true
+    type = varchar(20)
+  }
+  column "age" {
+    null = true
+    type = int
+  }
+  check "t1_check" {
+    expr = "((`+"`name`"+` <> _utf8mb4'a') or (`+"`age`"+` > 10))"
+  }
+  check "t1_chk_1" {
+    expr = "(`+"`name`"+` in (_utf8mb4'a',_utf8mb4'b',_utf8mb4'c'))"
+  }
+  check "t1_chk_2" {
+    expr = "(`+"`age`"+` > 0)"
+  }
+}
+schema "script_check" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
 -- expected.sql --
--- MySQL normalizes check expressions during real inspection.
+-- Create "t1" table
+CREATE TABLE `+"`t1`"+` (
+  `+"`name`"+` varchar(20) NULL,
+  `+"`age`"+` int NULL,
+  CONSTRAINT `+"`t1_check`"+` CHECK ((`+"`name`"+` <> _utf8mb4'a') or (`+"`age`"+` > 10)),
+  CONSTRAINT `+"`t1_chk_1`"+` CHECK (`+"`name`"+` in (_utf8mb4'a',_utf8mb4'b',_utf8mb4'c')),
+  CONSTRAINT `+"`t1_chk_2`"+` CHECK (`+"`age`"+` > 0)
+) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
-		Name:  "mysql/case.txtar",
+		Name:  "mysql/check.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},
@@ -566,12 +605,83 @@ CREATE TABLE t1 (
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
-	assertResultDetailContains(t, results, "unsupported: atlas schema inspect sql")
-	if strings.Contains(results[0].Detail, "cmp inspected.sql expected.sql") {
-		t.Fatalf("unsupported SQL inspect should not run dependent cmp: %s", results[0].Detail)
+}
+
+func TestTxtarScriptProbeExecutesMariaDBSchemaInspectChecks(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only maria107
+
+atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . "  " }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- a.sql --
+CREATE TABLE t1(
+  buf json,
+  name varchar(20) CHECK(name in ('a', 'b', 'c')),
+  age int CHECK(age > 0),
+  CONSTRAINT `+"`check1`"+` CHECK (name <> 'a' or age > 10)
+);
+
+-- expected.hcl --
+table "t1" {
+  schema = schema.script_check_maria
+  column "buf" {
+    null = true
+    type = json
+  }
+  column "name" {
+    null = true
+    type = varchar(20)
+  }
+  column "age" {
+    null = true
+    type = int
+  }
+  check "age" {
+    expr = "`+"`age`"+` > 0"
+  }
+  check "check1" {
+    expr = "`+"`name`"+` <> 'a' or `+"`age`"+` > 10"
+  }
+  check "name" {
+    expr = "`+"`name`"+` in ('a','b','c')"
+  }
+}
+schema "script_check_maria" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_general_ci"
+}
+-- expected.sql --
+-- Create "t1" table
+CREATE TABLE `+"`t1`"+` (
+  `+"`buf`"+` json NULL,
+  `+"`name`"+` varchar(20) NULL,
+  `+"`age`"+` int NULL,
+  CONSTRAINT `+"`age`"+` CHECK (`+"`age`"+` > 0),
+  CONSTRAINT `+"`check1`"+` CHECK (`+"`name`"+` <> 'a' or `+"`age`"+` > 10),
+  CONSTRAINT `+"`name`"+` CHECK (`+"`name`"+` in ('a','b','c'))
+) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/check-maria.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 
