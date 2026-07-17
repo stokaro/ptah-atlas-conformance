@@ -1374,11 +1374,21 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 				stdout: "The migration directory is synced with the desired state, no changes to be made\n",
 			}
 		}
-		incrementalSQL, ok := renderTxtarMigrateDiffAddColumnSQL(fx, current, targetStatements, args.indent, args.qualifier)
+		incrementalSQL, incrementalDownSQL, ok := renderTxtarMigrateDiffAddColumnPairSQL(
+			fx,
+			current,
+			targetStatements,
+			args.indent,
+			args.qualifier,
+		)
 		if !ok {
-			return txtarCommandResult{unsupported: "atlas migrate diff"}
+			incrementalSQL, incrementalDownSQL, ok = renderTxtarMigrateDiffCheckChangeSQL(
+				fx,
+				current,
+				targetStatements,
+				args.qualifier,
+			)
 		}
-		incrementalDownSQL, ok := renderTxtarMigrateDiffAddColumnDownSQL(fx, current, targetStatements, args.qualifier)
 		if !ok {
 			return txtarCommandResult{unsupported: "atlas migrate diff"}
 		}
@@ -1557,6 +1567,81 @@ func renderTxtarMigrateDiffAddColumnDownSQL(
 	return out.String(), true
 }
 
+func renderTxtarMigrateDiffAddColumnPairSQL(
+	fx Fixture,
+	current []ast.Node,
+	target []ast.Node,
+	indent string,
+	qualifier string,
+) (string, string, bool) {
+	upSQL, ok := renderTxtarMigrateDiffAddColumnSQL(fx, current, target, indent, qualifier)
+	if !ok {
+		return "", "", false
+	}
+	downSQL, ok := renderTxtarMigrateDiffAddColumnDownSQL(fx, current, target, qualifier)
+	if !ok {
+		return "", "", false
+	}
+	return upSQL, downSQL, true
+}
+
+func renderTxtarMigrateDiffCheckChangeSQL(
+	fx Fixture,
+	current []ast.Node,
+	target []ast.Node,
+	qualifier string,
+) (string, string, bool) {
+	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
+	changes, ok := txtarMigrateDiffCheckChanges(dialect, current, target)
+	if !ok || len(changes) == 0 {
+		return "", "", false
+	}
+	upSQL, ok := renderTxtarMigrateDiffCheckChangeDirectionSQL(dialect, changes, qualifier, false)
+	if !ok {
+		return "", "", false
+	}
+	downSQL, ok := renderTxtarMigrateDiffCheckChangeDirectionSQL(dialect, changes, qualifier, true)
+	if !ok {
+		return "", "", false
+	}
+	return upSQL, downSQL, true
+}
+
+func renderTxtarMigrateDiffCheckChangeDirectionSQL(
+	dialect string,
+	changes []txtarMigrateDiffCheckChange,
+	qualifier string,
+	reverse bool,
+) (string, bool) {
+	quote := atlasIdentifierQuoter(dialect)
+	var out strings.Builder
+	for _, change := range changes {
+		tableName := change.tableName
+		if qualifier != "" {
+			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+		}
+		from := change.current
+		to := change.target
+		comment := "-- Modify %q table\n"
+		if reverse {
+			from, to = to, from
+			comment = "-- reverse: modify %q table\n"
+		}
+		if from.name == "" || to.name == "" {
+			return "", false
+		}
+		fmt.Fprintf(&out, comment, atlasSQLIdentifier(change.tableName))
+		parts := []string{
+			"DROP CHECK " + quote(from.name),
+			"ADD " + renderAtlasCheckSQL(quote, to.name, to.expr),
+		}
+		fmt.Fprintf(&out, "ALTER TABLE %s ", quote(tableName))
+		out.WriteString(strings.Join(parts, ", "))
+		out.WriteString(";\n")
+	}
+	return out.String(), true
+}
+
 func renderTxtarMigrateDiffCreateDownSQL(fx Fixture, statements []ast.Node, qualifier string) (string, bool) {
 	dialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
 	quote := atlasIdentifierQuoter(dialect)
@@ -1637,6 +1722,105 @@ type txtarMigrateDiffAddColumnChange struct {
 	tableName   string
 	targetTable *ast.CreateTableNode
 	columns     []*ast.ColumnNode
+}
+
+type txtarMigrateDiffCheckChange struct {
+	tableName string
+	current   atlasCheckBlock
+	target    atlasCheckBlock
+}
+
+func txtarMigrateDiffCheckChanges(dialect string, current, target []ast.Node) ([]txtarMigrateDiffCheckChange, bool) {
+	currentTables := txtarCreateTablesByName(current)
+	targetTables := txtarCreateTablesByName(target)
+	if len(currentTables) != len(targetTables) {
+		return nil, false
+	}
+	var changes []txtarMigrateDiffCheckChange
+	for tableName, targetTable := range targetTables {
+		currentTable, ok := currentTables[tableName]
+		if !ok {
+			return nil, false
+		}
+		tableChanges, ok := txtarMigrateDiffTableCheckChanges(dialect, currentTable, targetTable)
+		if !ok {
+			return nil, false
+		}
+		for _, change := range tableChanges {
+			change.tableName = tableName
+			changes = append(changes, change)
+		}
+	}
+	slices.SortStableFunc(changes, func(a, b txtarMigrateDiffCheckChange) int {
+		if a.tableName != b.tableName {
+			return cmp.Compare(a.tableName, b.tableName)
+		}
+		return cmp.Compare(a.current.name, b.current.name)
+	})
+	return changes, true
+}
+
+func txtarMigrateDiffTableCheckChanges(
+	dialect string,
+	current *ast.CreateTableNode,
+	target *ast.CreateTableNode,
+) ([]txtarMigrateDiffCheckChange, bool) {
+	currentChecks, err := atlasCheckBlocks(dialect, current, errUnsupportedInspectSQL)
+	if err != nil {
+		return nil, false
+	}
+	targetChecks, err := atlasCheckBlocks(dialect, target, errUnsupportedInspectSQL)
+	if err != nil {
+		return nil, false
+	}
+	currentByName := atlasCheckBlocksByName(currentChecks)
+	targetByName := atlasCheckBlocksByName(targetChecks)
+	if len(currentByName) != len(targetByName) {
+		return nil, false
+	}
+	targetBase := txtarCloneTableWithoutChecks(target)
+	currentBase := txtarCloneTableWithoutChecks(current)
+	if !txtarTablesEquivalentBySQL(dialect, currentBase, targetBase) {
+		return nil, false
+	}
+	var changes []txtarMigrateDiffCheckChange
+	for name, currentCheck := range currentByName {
+		targetCheck, ok := targetByName[name]
+		if !ok {
+			return nil, false
+		}
+		if currentCheck.expr == targetCheck.expr {
+			continue
+		}
+		changes = append(changes, txtarMigrateDiffCheckChange{
+			current: currentCheck,
+			target:  targetCheck,
+		})
+	}
+	return changes, true
+}
+
+func atlasCheckBlocksByName(checks []atlasCheckBlock) map[string]atlasCheckBlock {
+	byName := make(map[string]atlasCheckBlock, len(checks))
+	for _, check := range checks {
+		byName[check.name] = check
+	}
+	return byName
+}
+
+func txtarCloneTableWithoutChecks(table *ast.CreateTableNode) *ast.CreateTableNode {
+	clone := *table
+	clone.Columns = make([]*ast.ColumnNode, 0, len(table.Columns))
+	for _, column := range table.Columns {
+		columnClone := *column
+		columnClone.Check = ""
+		columnClone.CheckName = ""
+		clone.Columns = append(clone.Columns, &columnClone)
+	}
+	clone.Constraints = slices.DeleteFunc(slices.Clone(table.Constraints), func(constraint *ast.ConstraintNode) bool {
+		return constraint.Type == ast.CheckConstraint
+	})
+	return &clone
 }
 
 func txtarMigrateDiffAddColumnChanges(dialect string, current, target []ast.Node) ([]txtarMigrateDiffAddColumnChange, bool) {
@@ -3031,10 +3215,17 @@ func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTabl
 			}
 		case *ast.AddConstraintOperation:
 			index, ok := txtarIndexFromAlterAddConstraint(alter.Name, op.Constraint)
-			if !ok {
+			if ok {
+				next = append(next, index)
+				continue
+			}
+			if !txtarApplyAddCheckConstraintToTables(next, alter.Name, op.Constraint) {
 				return nil, fmt.Errorf("unsupported virtual alter constraint %s", txtarConstraintType(op.Constraint))
 			}
-			next = append(next, index)
+		case *ast.DropConstraintOperation:
+			if !op.Check || !txtarApplyDropCheckConstraintFromTables(next, alter.Name, op.ConstraintName) {
+				return nil, fmt.Errorf("unsupported virtual alter drop constraint %s", op.ConstraintName)
+			}
 		default:
 			return nil, fmt.Errorf("unsupported virtual alter operation %T", op)
 		}
@@ -3052,6 +3243,54 @@ func txtarApplyAddColumnToTables(statements []ast.Node, tableName string, column
 		}
 	}
 	return false
+}
+
+func txtarApplyAddCheckConstraintToTables(statements []ast.Node, tableName string, constraint *ast.ConstraintNode) bool {
+	if constraint == nil || constraint.Type != ast.CheckConstraint || constraint.Name == "" {
+		return false
+	}
+	tableName = atlasSQLIdentifier(tableName)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok && atlasSQLIdentifier(table.Name) == tableName {
+			table.Constraints = append(table.Constraints, constraint)
+			return true
+		}
+	}
+	return false
+}
+
+func txtarApplyDropCheckConstraintFromTables(statements []ast.Node, tableName, constraintName string) bool {
+	tableName = atlasSQLIdentifier(tableName)
+	constraintName = atlasSQLIdentifier(constraintName)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok || atlasSQLIdentifier(table.Name) != tableName {
+			continue
+		}
+		if txtarDropCheckConstraintFromTable(table, constraintName) {
+			return true
+		}
+	}
+	return false
+}
+
+func txtarDropCheckConstraintFromTable(table *ast.CreateTableNode, constraintName string) bool {
+	for _, column := range table.Columns {
+		if column.Check == "" {
+			continue
+		}
+		if atlasSQLIdentifier(column.CheckName) == constraintName {
+			column.Check = ""
+			column.CheckName = ""
+			return true
+		}
+	}
+	before := len(table.Constraints)
+	table.Constraints = slices.DeleteFunc(table.Constraints, func(constraint *ast.ConstraintNode) bool {
+		return constraint.Type == ast.CheckConstraint && atlasSQLIdentifier(constraint.Name) == constraintName
+	})
+	return len(table.Constraints) != before
 }
 
 func txtarIndexFromAlterAddConstraint(tableName string, constraint *ast.ConstraintNode) (*ast.IndexNode, bool) {
@@ -3113,6 +3352,10 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 		}
 		list, err := parser.NewParser(stmt + ";").Parse()
 		if err != nil {
+			if fallback, ok := txtarParseGeneratedCheckAlterStatement(stmt); ok {
+				statements = append(statements, fallback)
+				continue
+			}
 			if len(statements) == 0 {
 				return nil, "", err
 			}
@@ -3121,6 +3364,89 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 		statements = append(statements, list.Statements...)
 	}
 	return statements, "", nil
+}
+
+func txtarParseGeneratedCheckAlterStatement(stmt string) (ast.Node, bool) {
+	stmt = strings.TrimSpace(stmt)
+	rest, ok := strings.CutPrefix(stmt, "ALTER TABLE ")
+	if !ok {
+		return nil, false
+	}
+	tableName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok {
+		return nil, false
+	}
+	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), "DROP CHECK ")
+	if !ok {
+		return nil, false
+	}
+	dropName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok {
+		return nil, false
+	}
+	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), ", ADD CONSTRAINT ")
+	if !ok {
+		return nil, false
+	}
+	addName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok || addName == "" {
+		return nil, false
+	}
+	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), "CHECK ")
+	if !ok {
+		return nil, false
+	}
+	expr, ok := txtarCheckExpression(rest)
+	if !ok {
+		return nil, false
+	}
+	return &ast.AlterTableNode{
+		Name: tableName,
+		Operations: []ast.AlterOperation{
+			&ast.DropConstraintOperation{ConstraintName: dropName, Check: true},
+			&ast.AddConstraintOperation{Constraint: &ast.ConstraintNode{
+				Type:       ast.CheckConstraint,
+				Name:       addName,
+				Expression: expr,
+			}},
+		},
+	}, true
+}
+
+func txtarParseLeadingSQLIdentifier(value string) (string, string, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "", "", false
+	}
+	if value[0] != '`' {
+		fields := strings.Fields(value)
+		if len(fields) == 0 {
+			return "", "", false
+		}
+		return fields[0], strings.TrimPrefix(value, fields[0]), true
+	}
+	var b strings.Builder
+	for i := 1; i < len(value); i++ {
+		if value[i] != '`' {
+			b.WriteByte(value[i])
+			continue
+		}
+		if i+1 < len(value) && value[i+1] == '`' {
+			b.WriteByte('`')
+			i++
+			continue
+		}
+		return b.String(), value[i+1:], true
+	}
+	return "", "", false
+}
+
+func txtarCheckExpression(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	if len(value) < 2 || value[0] != '(' || value[len(value)-1] != ')' {
+		return "", false
+	}
+	return strings.TrimSpace(value[1 : len(value)-1]), true
 }
 
 func txtarMigrationUpSQL(data string) string {
@@ -5688,6 +6014,7 @@ func atlasNormalizeCheckExpr(dialect, expr string) string {
 	switch dialect {
 	case "mysql", "mariadb":
 		expr = atlasQuoteCheckIdentifiers(dialect, expr)
+		expr = atlasCollapseDoubledBacktickDelimiters(expr)
 		expr = strings.ReplaceAll(expr, ", ", ",")
 		if dialect == "mysql" {
 			expr = atlasParenthesizeMySQLCheckOr(expr)
@@ -5708,6 +6035,10 @@ func atlasQuoteCheckIdentifiers(dialect, expr string) string {
 				b.WriteString("_utf8mb4")
 			}
 			i = atlasCopySQLStringLiteral(&b, expr, i)
+		case dialect == "mysql" && strings.HasPrefix(strings.ToLower(expr[i:]), "_utf8mb4'"):
+			b.WriteString("_utf8mb4")
+			i += len("_utf8mb4")
+			i = atlasCopySQLStringLiteral(&b, expr, i)
 		case ch == '`':
 			i = atlasCopyQuotedIdentifier(&b, expr, i)
 		case isAtlasCheckIdentStart(ch):
@@ -5724,6 +6055,29 @@ func atlasQuoteCheckIdentifiers(dialect, expr string) string {
 		default:
 			b.WriteByte(ch)
 			i++
+		}
+	}
+	return b.String()
+}
+
+func atlasCollapseDoubledBacktickDelimiters(expr string) string {
+	var b strings.Builder
+	for i := 0; i < len(expr); {
+		if expr[i] != '`' {
+			b.WriteByte(expr[i])
+			i++
+			continue
+		}
+		start := i
+		for i < len(expr) && expr[i] == '`' {
+			i++
+		}
+		prevIdent := start > 0 && isAtlasCheckIdentPart(expr[start-1])
+		nextIdent := i < len(expr) && isAtlasCheckIdentPart(expr[i])
+		if prevIdent && nextIdent {
+			b.WriteString("``")
+		} else {
+			b.WriteByte('`')
 		}
 	}
 	return b.String()
