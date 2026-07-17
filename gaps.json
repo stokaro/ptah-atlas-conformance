@@ -2411,9 +2411,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-project-url-escape.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: execsql",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 5 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",

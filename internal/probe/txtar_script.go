@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -4921,17 +4922,33 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 		return txtarCommandResult{}, true
 	case "mysql", "mariadb":
 		tableName, rows, ok := txtarParseInsertRows(fields[1])
-		if !ok {
+		if ok {
+			if runtime.dbRows == nil {
+				runtime.dbRows = map[string][]txtarVirtualRow{}
+			}
+			runtime.dbRows[tableName] = append(runtime.dbRows[tableName], rows...)
+			return txtarCommandResult{}, true
+		}
+		if !txtarExecSQLMySQLAuthNoop(fields[1]) {
 			return txtarCommandResult{unsupported: "execsql"}, true
 		}
-		if runtime.dbRows == nil {
-			runtime.dbRows = map[string][]txtarVirtualRow{}
-		}
-		runtime.dbRows[tableName] = append(runtime.dbRows[tableName], rows...)
 		return txtarCommandResult{}, true
 	default:
 		return txtarCommandResult{unsupported: "execsql"}, true
 	}
+}
+
+func txtarExecSQLMySQLAuthNoop(stmt string) bool {
+	stmt = strings.TrimSuffix(strings.TrimSpace(stmt), ";")
+	user := `"[^"]+"\s*@\s*"[^"]+"`
+	patterns := []string{
+		`(?is)^CREATE\s+USER\s+IF\s+NOT\s+EXISTS\s+` + user + `\s+IDENTIFIED\s+BY\s+("[^"]*"|'[^']*')$`,
+		`(?is)^GRANT\s+ALL\s+PRIVILEGES\s+ON\s+\*\.\*\s+TO\s+` + user + `\s+WITH\s+GRANT\s+OPTION$`,
+		`(?is)^DROP\s+USER\s+` + user + `$`,
+	}
+	return slices.ContainsFunc(patterns, func(pattern string) bool {
+		return regexp.MustCompile(pattern).MatchString(stmt)
+	})
 }
 
 func txtarParseInsertRows(stmt string) (string, []txtarVirtualRow, bool) {
@@ -6623,19 +6640,40 @@ func nonFlagArgs(args []string) []string {
 	return out
 }
 
-func txtarResolveSchemaInspectEnv(fx Fixture, runtime *txtarRuntime, name string) (string, bool) {
-	if txtarFixtureFamily(fx) != "sqlite" {
-		return "", false
-	}
+func txtarResolveSchemaInspectEnv(fx Fixture, runtime *txtarRuntime, name string) (string, *txtarCommandResult, bool) {
 	project, ok := runtime.files["atlas.hcl"]
 	if !ok {
-		return "", false
+		return "", nil, false
 	}
 	env, ok := txtarAtlasNamedBlock(project, "env", name)
 	if !ok {
-		return "", false
+		return "", nil, false
 	}
-	return txtarHCLStringAttr(env, "url")
+	switch txtarFixtureFamily(fx) {
+	case "sqlite":
+		sourceURL, ok := txtarHCLStringAttr(env, "url")
+		return sourceURL, nil, ok
+	case "mysql", "mariadb":
+		value, ok := txtarHCLAttrValue(env, "url")
+		if !ok {
+			return "", nil, false
+		}
+		sourceURL, ok := txtarResolveAtlasProjectStringExpr(project, value)
+		if !ok {
+			return "", nil, false
+		}
+		if _, err := url.Parse(sourceURL); err != nil {
+			result := txtarCommandResult{
+				stderr: "Error: " + err.Error() + "\n",
+				failed: true,
+				err:    err,
+			}
+			return "", &result, true
+		}
+		return sourceURL, nil, true
+	default:
+		return "", nil, false
+	}
 }
 
 func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) txtarCommandResult {
@@ -6688,7 +6726,10 @@ func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) t
 	}
 	const filePrefix = "file://"
 	if sourceURL == "" && env != "" {
-		resolved, ok := txtarResolveSchemaInspectEnv(fx, runtime, env)
+		resolved, result, ok := txtarResolveSchemaInspectEnv(fx, runtime, env)
+		if result != nil {
+			return *result
+		}
 		if !ok {
 			return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
 		}
@@ -6703,7 +6744,12 @@ func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) t
 	}
 	if !strings.HasPrefix(sourceURL, filePrefix) {
 		if !runtime.hasVirtualDBState {
-			return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
+			// Atlas URL-escape fixture inspects an empty schema after auth setup.
+			// Keep this limited to env URLs that name the fixture schema.
+			if !txtarSchemaInspectEnvCanUseEmptyDB(fx, sourceURL, env) {
+				return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
+			}
+			runtime.hasVirtualDBState = true
 		}
 		output, err := renderTxtarDBStateInspectHCL(fx, runtime.dbStatements, excludes, format)
 		if errors.Is(err, errUnsupportedInspectHCL) {
@@ -6758,6 +6804,88 @@ func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) t
 		return txtarCommandResult{}
 	}
 	return txtarCommandResult{stdout: output}
+}
+
+func txtarResolveAtlasProjectStringExpr(project string, value string) (string, bool) {
+	resolved, ok := txtarHCLQuotedString(value)
+	if !ok {
+		return "", false
+	}
+	vars := txtarAtlasProjectVariableDefaults(project)
+	locals := txtarAtlasProjectLocals(project, vars)
+	for key, val := range vars {
+		resolved = strings.ReplaceAll(resolved, "${var."+key+"}", val)
+	}
+	for key, val := range locals {
+		resolved = strings.ReplaceAll(resolved, "${local."+key+"}", val)
+	}
+	if strings.Contains(resolved, "${") {
+		return "", false
+	}
+	return resolved, true
+}
+
+func txtarAtlasProjectVariableDefaults(project string) map[string]string {
+	vars := map[string]string{}
+	re := regexp.MustCompile(`(?m)^\s*variable\s+"([^"]+)"\s*\{`)
+	for _, loc := range re.FindAllStringSubmatchIndex(project, -1) {
+		name := project[loc[2]:loc[3]]
+		body, _, ok := txtarHCLBlockBody(project, loc[1]-1)
+		if !ok {
+			continue
+		}
+		value, ok := txtarHCLStringAttr(body, "default")
+		if ok {
+			vars[name] = value
+		}
+	}
+	return vars
+}
+
+func txtarAtlasProjectLocals(project string, vars map[string]string) map[string]string {
+	out := map[string]string{}
+	locals, ok := txtarAtlasAnonymousBlock(project, "locals")
+	if !ok {
+		return out
+	}
+	for _, key := range txtarHCLTopLevelAttrNames(locals) {
+		value, ok := txtarHCLAttrValue(locals, key)
+		if !ok {
+			continue
+		}
+		if source, ok := txtarAtlasURLQueryEscapeVar(value); ok {
+			resolved, ok := vars[source]
+			if ok {
+				out[key] = url.QueryEscape(resolved)
+			}
+		}
+	}
+	return out
+}
+
+func txtarAtlasURLQueryEscapeVar(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	if !strings.HasPrefix(value, "urlescape(") || !strings.HasSuffix(value, ")") {
+		return "", false
+	}
+	return txtarAtlasVarRef(strings.TrimSpace(value[len("urlescape(") : len(value)-1]))
+}
+
+func txtarSchemaInspectEnvCanUseEmptyDB(fx Fixture, sourceURL string, env string) bool {
+	if env == "" {
+		return false
+	}
+	switch txtarFixtureFamily(fx) {
+	case "mysql", "mariadb":
+	default:
+		return false
+	}
+	parsed, err := url.Parse(sourceURL)
+	if err != nil {
+		return false
+	}
+	schemaName := strings.TrimPrefix(parsed.Path, "/")
+	return schemaName == txtarFixtureSchemaName(fx)
 }
 
 var errUnsupportedInspectHCL = errors.New("unsupported inspect HCL")
