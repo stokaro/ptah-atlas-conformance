@@ -3554,9 +3554,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/column-default.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: execsql",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
