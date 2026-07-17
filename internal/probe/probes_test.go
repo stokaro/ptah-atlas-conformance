@@ -685,6 +685,79 @@ CREATE TABLE `+"`t1`"+` (
 	}
 }
 
+func TestTxtarScriptProbeExecutesMariaDBColumnJSONFixture(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "column-json.txtar")
+	writeTestFile(t, path, `only maria*
+
+apply 1.hcl
+cmpshow users 1.sql
+
+# The CHECK "json_valid(`+"`name`"+`)" should not be present in the HCL
+# description because the "longtext" is converted to "json" type.
+cmphcl 1.inspect.hcl
+
+-- 1.hcl --
+schema "script_column_json" {}
+
+table "users" {
+  schema = schema.script_column_json
+  column "id" {
+    null = false
+    type = int
+  }
+  column "name" {
+    null = false
+    type = json
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `+"`users`"+` (
+  `+"`id`"+` int NOT NULL,
+  `+"`name`"+` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`+"`name`"+`)),
+  PRIMARY KEY (`+"`id`"+`)
+)
+
+-- 1.inspect.hcl --
+table "users" {
+  schema = schema.script_column_json
+  column "id" {
+    null = false
+    type = int
+  }
+  column "name" {
+    null = false
+    type = json
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+schema "script_column_json" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_general_ci"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/column-json.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesSchemaInspectHCLAndCmp(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")

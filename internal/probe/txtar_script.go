@@ -2609,7 +2609,9 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 		}
 		switch strings.ToLower(column.Type) {
 		case "json":
-			return false
+			if dialect != "mariadb" {
+				return false
+			}
 		}
 	}
 	return true
@@ -2798,6 +2800,7 @@ func runTxtarCmpHCL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 			err:    fmt.Errorf("cmphcl %s: %s missing", fields[1], fields[1]),
 		}, true
 	}
+	expected = txtarNormalizeAtlasHCL(fx, expected)
 	if !txtarFilesEqual(actual, expected) {
 		return txtarCommandResult{
 			failed: true,
@@ -2944,6 +2947,7 @@ func txtarCanonicalShowSQL(fx Fixture, sql string) string {
 	if err != nil {
 		return sql
 	}
+	atlasNormalizeMariaDBJSONColumns(txtarFixtureDialect(fx), statements)
 	out, ok := txtarVirtualStateShowSQL(fx, statements)
 	if !ok {
 		return sql
@@ -2954,11 +2958,84 @@ func txtarCanonicalShowSQL(fx Fixture, sql string) string {
 func txtarVirtualStateShowSQL(fx Fixture, statements []ast.Node) (string, bool) {
 	schemaName := txtarFixtureSchemaName(fx)
 	unqualified := atlasUnqualifyTableStatements(schemaName, statements)
-	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), unqualified, "")
+	out, err := renderAtlasInspectSQLWithOptions(txtarFixtureDialect(fx), unqualified, "", atlasInspectSQLOptions{
+		mariaDBJSONStorage: true,
+	})
 	if err != nil {
 		return "", false
 	}
 	return out, true
+}
+
+func atlasNormalizeMariaDBJSONColumns(dialect string, statements []ast.Node) {
+	if dialect != "mariadb" {
+		return
+	}
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			continue
+		}
+		normalizedJSONChecks := map[string]bool{}
+		for _, column := range table.Columns {
+			if !atlasMariaDBJSONStorageColumn(column) {
+				continue
+			}
+			if !atlasMariaDBJSONCheckMatches(column.Name, column.Check) &&
+				!atlasTableHasMariaDBJSONCheck(table, column.Name) {
+				continue
+			}
+			column.Type = "json"
+			column.Charset = ""
+			column.Collate = ""
+			column.Check = ""
+			normalizedJSONChecks[column.Name] = true
+		}
+		if len(normalizedJSONChecks) > 0 {
+			table.Constraints = slices.DeleteFunc(table.Constraints, func(constraint *ast.ConstraintNode) bool {
+				return constraint.Type == ast.CheckConstraint &&
+					atlasAnyMariaDBJSONCheckMatches(normalizedJSONChecks, constraint.Expression)
+			})
+		}
+	}
+}
+
+func atlasMariaDBJSONStorageColumn(column *ast.ColumnNode) bool {
+	return strings.EqualFold(column.Type, "longtext") &&
+		strings.EqualFold(column.Charset, "utf8mb4") &&
+		strings.EqualFold(column.Collate, "utf8mb4_bin")
+}
+
+func atlasTableHasMariaDBJSONCheck(table *ast.CreateTableNode, columnName string) bool {
+	for _, constraint := range table.Constraints {
+		if constraint.Type == ast.CheckConstraint && atlasMariaDBJSONCheckMatches(columnName, constraint.Expression) {
+			return true
+		}
+	}
+	return false
+}
+
+func atlasAnyMariaDBJSONCheckMatches(columns map[string]bool, expr string) bool {
+	for columnName := range columns {
+		if atlasMariaDBJSONCheckMatches(columnName, expr) {
+			return true
+		}
+	}
+	return false
+}
+
+func atlasMariaDBJSONCheckMatches(columnName, expr string) bool {
+	expr = strings.ToLower(spaceRunRE.ReplaceAllString(strings.TrimSpace(expr), ""))
+	columnName = atlasSQLIdentifier(columnName)
+	for _, candidate := range []string{
+		"json_valid(" + strings.ToLower(columnName) + ")",
+		"json_valid(`" + strings.ToLower(columnName) + "`)",
+	} {
+		if expr == candidate {
+			return true
+		}
+	}
+	return false
 }
 
 func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, bool) {
@@ -2980,7 +3057,9 @@ func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, 
 		return "", false
 	}
 	filtered = atlasUnqualifyTableStatements(schemaName, filtered)
-	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), filtered, "")
+	out, err := renderAtlasInspectSQLWithOptions(txtarFixtureDialect(fx), filtered, "", atlasInspectSQLOptions{
+		mariaDBJSONStorage: true,
+	})
 	if err != nil {
 		return "", false
 	}
@@ -4879,13 +4958,26 @@ func atlasSQLIdentifier(name string) string {
 }
 
 func renderAtlasInspectSQL(dialect string, statements []ast.Node, indent string) (string, error) {
+	return renderAtlasInspectSQLWithOptions(dialect, statements, indent, atlasInspectSQLOptions{})
+}
+
+type atlasInspectSQLOptions struct {
+	mariaDBJSONStorage bool
+}
+
+func renderAtlasInspectSQLWithOptions(
+	dialect string,
+	statements []ast.Node,
+	indent string,
+	opts atlasInspectSQLOptions,
+) (string, error) {
 	tableNames := atlasTableNames(statements)
 	indexesByTable := atlasIndexesByTable(dialect, statements)
 	var b strings.Builder
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateTableNode:
-			if err := renderAtlasCreateTableSQL(&b, dialect, node, indexesByTable[node.Name], indent); err != nil {
+			if err := renderAtlasCreateTableSQL(&b, dialect, node, indexesByTable[node.Name], indent, opts); err != nil {
 				return "", err
 			}
 		case *ast.IndexNode:
@@ -4944,6 +5036,7 @@ func renderAtlasCreateTableSQL(
 	table *ast.CreateTableNode,
 	indexes []*ast.IndexNode,
 	indent string,
+	opts atlasInspectSQLOptions,
 ) error {
 	if !atlasSupportsInspectChecks(dialect) && atlasTableHasChecks(table) {
 		return fmt.Errorf("%w: check constraints", errUnsupportedInspectSQL)
@@ -4954,7 +5047,7 @@ func renderAtlasCreateTableSQL(
 	parts := make([]string, 0, len(table.Columns)+len(table.Constraints)+len(indexes))
 	var primaryColumns []ast.ConstraintColumn
 	for _, column := range table.Columns {
-		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != "" || dialect == "sqlite"))
+		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != "" || dialect == "sqlite", opts))
 		if column.Primary && !atlasColumnPrimaryKeyInline(dialect, column) {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
 		}
@@ -5070,16 +5163,17 @@ func tableOptionEnabled(options map[string]string, key string) bool {
 	return strings.EqualFold(value, "true") || value == ""
 }
 
-func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast.ColumnNode, explicitNull bool) string {
+func renderAtlasColumnSQL(
+	dialect string,
+	quote func(string) string,
+	column *ast.ColumnNode,
+	explicitNull bool,
+	opts atlasInspectSQLOptions,
+) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s %s", quote(column.Name), atlasColumnType(dialect, column.Type))
+	fmt.Fprintf(&b, "%s %s", quote(column.Name), atlasColumnSQLType(dialect, column, opts))
 	if dialect == "mysql" || dialect == "mariadb" {
-		if column.Charset != "" {
-			fmt.Fprintf(&b, " CHARACTER SET %s", column.Charset)
-		}
-		if column.Collate != "" && !atlasColumnCollateIsImplicitDefault(dialect, column) {
-			fmt.Fprintf(&b, " COLLATE %s", column.Collate)
-		}
+		atlasWriteColumnCharsetCollate(&b, dialect, column, opts)
 	}
 	if atlasColumnPrimaryKeyInline(dialect, column) {
 		b.WriteString(" NOT NULL PRIMARY KEY")
@@ -5103,7 +5197,41 @@ func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast
 	if column.Default != nil {
 		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(column.Default))
 	}
+	if opts.mariaDBJSONStorage && atlasMariaDBJSONColumn(dialect, column) {
+		fmt.Fprintf(&b, " CHECK (json_valid(%s))", quote(column.Name))
+	}
 	return b.String()
+}
+
+func atlasColumnSQLType(dialect string, column *ast.ColumnNode, opts atlasInspectSQLOptions) string {
+	if opts.mariaDBJSONStorage && atlasMariaDBJSONColumn(dialect, column) {
+		return "longtext"
+	}
+	return atlasColumnType(dialect, column.Type)
+}
+
+func atlasWriteColumnCharsetCollate(
+	b *strings.Builder,
+	dialect string,
+	column *ast.ColumnNode,
+	opts atlasInspectSQLOptions,
+) {
+	charset := column.Charset
+	collate := column.Collate
+	if opts.mariaDBJSONStorage && atlasMariaDBJSONColumn(dialect, column) {
+		if charset == "" {
+			charset = "utf8mb4"
+		}
+		if collate == "" {
+			collate = "utf8mb4_bin"
+		}
+	}
+	if charset != "" {
+		fmt.Fprintf(b, " CHARACTER SET %s", charset)
+	}
+	if collate != "" && !atlasColumnCollateIsImplicitDefault(dialect, column) {
+		fmt.Fprintf(b, " COLLATE %s", collate)
+	}
 }
 
 func atlasColumnPrimaryKeyInline(dialect string, column *ast.ColumnNode) bool {
@@ -5364,6 +5492,10 @@ func atlasColumnType(dialect, typ string) string {
 	return normalized
 }
 
+func atlasMariaDBJSONColumn(dialect string, column *ast.ColumnNode) bool {
+	return dialect == "mariadb" && strings.EqualFold(column.Type, "json")
+}
+
 func atlasDefaultSQLUniqueIndexName(dialect, tableName, columnName string) string {
 	if dialect == "sqlite" {
 		return atlasSQLIdentifier(tableName) + "_" + atlasSQLIdentifier(columnName)
@@ -5385,6 +5517,9 @@ func atlasIdentifierQuoter(dialect string) func(string) string {
 }
 
 func txtarFixtureDialect(fx Fixture) string {
+	if dialect, ok := txtarOnlyDirectiveDialect(fx); ok {
+		return dialect
+	}
 	parts := strings.Split(filepath.ToSlash(fx.Name), "/")
 	if strings.Contains(strings.ToLower(fx.Name), "maria") {
 		return "mariadb"
@@ -5399,6 +5534,61 @@ func txtarFixtureDialect(fx Fixture) string {
 		return "sqlite"
 	}
 	return "postgresql"
+}
+
+func txtarOnlyDirectiveDialect(fx Fixture) (string, bool) {
+	if fx.Kind != FixtureKindTxtar || len(fx.Files) != 1 {
+		return "", false
+	}
+	data, err := os.ReadFile(fx.Files[0])
+	if err != nil {
+		return "", false
+	}
+	return txtarOnlyDirectiveDialectFromData(string(data))
+}
+
+func txtarOnlyDirectiveDialectFromData(data string) (string, bool) {
+	dialects := map[string]bool{}
+	for _, line := range strings.Split(txtarScriptPrefix(data), "\n") {
+		fields := txtarOnlyDirectiveFields(line)
+		for _, condition := range fields {
+			switch {
+			case strings.HasPrefix(condition, "maria"):
+				dialects["mariadb"] = true
+			case strings.HasPrefix(condition, "mysql"):
+				dialects["mysql"] = true
+			case strings.HasPrefix(condition, "postgres"):
+				dialects["postgresql"] = true
+			case strings.HasPrefix(condition, "sqlite"):
+				dialects["sqlite"] = true
+			}
+		}
+	}
+	if len(dialects) != 1 {
+		return "", false
+	}
+	for dialect := range dialects {
+		return dialect, true
+	}
+	return "", false
+}
+
+func txtarOnlyDirectiveFields(line string) []string {
+	line = strings.TrimSpace(line)
+	if strings.HasPrefix(line, "! ") {
+		line = strings.TrimSpace(strings.TrimPrefix(line, "! "))
+	}
+	if !strings.HasPrefix(line, "only ") {
+		return nil
+	}
+	fields := splitTxtarFields(line)
+	if len(fields) < 2 {
+		return nil
+	}
+	for i := 1; i < len(fields); i++ {
+		fields[i] = strings.ToLower(strings.TrimSpace(fields[i]))
+	}
+	return fields[1:]
 }
 
 func txtarFixtureSchemaName(fx Fixture) string {
