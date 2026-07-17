@@ -970,11 +970,13 @@ env "failed" {
 		Files: []string{path},
 	})
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
 	assertResultDetailContains(t, results, "unsupported: execsql")
-	assertResultDetailContains(t, results, "unsupported: atlas schema inspect db-url")
+	if strings.Contains(results[0].Detail, "atlas schema inspect db-url") {
+		t.Fatalf("DB URL inspect should be dependent after unsupported execsql: %s", results[0].Detail)
+	}
 }
 
 func TestTxtarScriptProbeExecutesMigrateHash(t *testing.T) {
@@ -1281,6 +1283,39 @@ schema "main" {}
 	}
 	assertResultDetailContains(t, results, "unsupported: apply")
 	for _, dependent := range []string{"atlas schema apply", "atlas schema clean"} {
+		if strings.Contains(results[0].Detail, dependent) {
+			t.Fatalf("dependent command %q should not be reported after unsupported DB mutation: %s",
+				dependent, results[0].Detail)
+		}
+	}
+}
+
+func TestTxtarScriptProbeSkipsRawDBCommandsAfterUnsupportedDBMutation(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+apply 2.hcl
+execsql 'INSERT INTO users (id) VALUES (1)'
+! exist users
+
+-- 1.hcl --
+schema "main" {}
+-- 2.hcl --
+schema "main" {}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+	for _, dependent := range []string{"execsql", "exist"} {
 		if strings.Contains(results[0].Detail, dependent) {
 			t.Fatalf("dependent command %q should not be reported after unsupported DB mutation: %s",
 				dependent, results[0].Detail)
