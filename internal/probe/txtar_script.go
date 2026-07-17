@@ -370,7 +370,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 				continue
 			}
 			summary.checked++
-			if mismatch := txtarCmpmigMismatch(runtime, fields[1], fields[2]); mismatch != "" {
+			if mismatch := txtarCmpmigMismatch(fx, runtime, fields[1], fields[2]); mismatch != "" {
 				summary.failures = append(summary.failures, mismatch)
 			}
 			continue
@@ -725,14 +725,15 @@ func txtarMigrateNewName(args []string) string {
 }
 
 type txtarMigrateDiffArgs struct {
-	devURL  string
-	to      []string
-	dir     string
-	dirSet  bool
-	env     string
-	name    string
-	indent  string
-	blocked bool
+	devURL    string
+	to        []string
+	dir       string
+	dirSet    bool
+	env       string
+	name      string
+	indent    string
+	qualifier string
+	blocked   bool
 }
 
 func runTxtarMigrateDiff(fx Fixture, runtime *txtarRuntime, fields []string, expectedFailure bool) (txtarCommandResult, bool) {
@@ -741,6 +742,9 @@ func runTxtarMigrateDiff(fx Fixture, runtime *txtarRuntime, fields []string, exp
 	}
 
 	args := txtarParseMigrateDiffArgs(fields[3:])
+	if args.env != "" && args.qualifier != "" {
+		args.blocked = true
+	}
 	if args.env != "" {
 		var ok bool
 		args, ok = txtarResolveMigrateDiffEnv(fx, runtime, args)
@@ -845,7 +849,14 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 				out.env = args[i+1]
 				i++
 			}
-		case "--qualifier", "--dir-format":
+		case "--qualifier":
+			if i+1 < len(args) {
+				out.qualifier = args[i+1]
+				i++
+			} else {
+				out.blocked = true
+			}
+		case "--dir-format":
 			out.blocked = true
 			if i+1 < len(args) {
 				i++
@@ -871,7 +882,9 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 				continue
 			case strings.HasPrefix(arg, "--env="):
 				out.env = strings.TrimPrefix(arg, "--env=")
-			case strings.HasPrefix(arg, "--qualifier="), strings.HasPrefix(arg, "--dir-format="):
+			case strings.HasPrefix(arg, "--qualifier="):
+				out.qualifier = strings.TrimPrefix(arg, "--qualifier=")
+			case strings.HasPrefix(arg, "--dir-format="):
 				out.blocked = true
 			case strings.HasPrefix(arg, "-"):
 				out.blocked = true
@@ -1289,7 +1302,17 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
 
-	sql, err := renderTxtarMigrateDiffSQLTargets(fx, runtime, args.to, args.indent)
+	targetStatements, err := txtarMigrateDiffTargetStatements(fx, runtime, args.to)
+	if err != nil {
+		if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
+			return txtarCommandResult{unsupported: "atlas migrate diff"}
+		}
+		return txtarCommandResult{err: err}
+	}
+	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
+		targetStatements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), targetStatements)
+	}
+	sql, err := renderTxtarMigrateDiffSQLStatements(fx, targetStatements, args.indent, args.qualifier)
 	if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
 		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
@@ -1302,7 +1325,29 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		}
 	}
 	if len(txtarMigrationSQLFilesInDir(runtime, args.dir)) > 0 {
-		return txtarCommandResult{unsupported: "atlas migrate diff"}
+		current, ok := txtarCurrentMigrationState(runtime, args.dir)
+		if !ok {
+			return txtarCommandResult{unsupported: "atlas migrate diff"}
+		}
+		if txtarMigrateDiffStatesMatch(fx, current, targetStatements, args.indent) {
+			return txtarCommandResult{
+				stdout: "The migration directory is synced with the desired state, no changes to be made\n",
+			}
+		}
+		incrementalSQL, ok := renderTxtarMigrateDiffAddColumnSQL(fx, current, targetStatements, args.indent, args.qualifier)
+		if !ok {
+			return txtarCommandResult{unsupported: "atlas migrate diff"}
+		}
+		name := txtarNextMigrationFile(runtime, args.dir)
+		if args.name != "" {
+			name = txtarNextNamedMigrationFile(runtime, args.dir, args.name)
+		}
+		runtime.files[name] = incrementalSQL
+		runtime.addParentDirs(name)
+		if err := runtime.refreshMigrationHash(args.dir); err != nil {
+			return txtarCommandResult{err: err}
+		}
+		return txtarCommandResult{}
 	}
 
 	name := txtarNextMigrationFile(runtime, args.dir)
@@ -1315,6 +1360,175 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		return txtarCommandResult{err: err}
 	}
 	return txtarCommandResult{}
+}
+
+func txtarCurrentMigrationState(runtime *txtarRuntime, dir string) ([]ast.Node, bool) {
+	var state []ast.Node
+	for _, file := range txtarMigrationSQLFilesInDir(runtime, dir) {
+		statements, failing, err := txtarParseMigrationStatements(runtime.files[file])
+		if err != nil || failing != "" {
+			return nil, false
+		}
+		state, err = txtarApplyStatementsToVirtualState(state, statements)
+		if err != nil {
+			return nil, false
+		}
+	}
+	return state, true
+}
+
+func txtarMigrateDiffStatesMatch(fx Fixture, current, target []ast.Node, indent string) bool {
+	currentSQL, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), current, indent)
+	if err != nil {
+		return false
+	}
+	targetSQL, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), target, indent)
+	if err != nil {
+		return false
+	}
+	return currentSQL == targetSQL
+}
+
+func renderTxtarMigrateDiffAddColumnSQL(
+	fx Fixture,
+	current []ast.Node,
+	target []ast.Node,
+	indent string,
+	qualifier string,
+) (string, bool) {
+	dialect := txtarFixtureDialect(fx)
+	changes, ok := txtarMigrateDiffAddColumnChanges(dialect, current, target)
+	if !ok || len(changes) == 0 {
+		return "", false
+	}
+	var out strings.Builder
+	outputDialect := txtarMigrateDiffOutputDialect(dialect)
+	quote := atlasIdentifierQuoter(outputDialect)
+	for _, change := range changes {
+		tableName := change.tableName
+		if qualifier != "" {
+			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+		}
+		fmt.Fprintf(&out, "-- Modify %q table\n", atlasSQLIdentifier(change.tableName))
+		tableOpts := atlasInspectSQLOptions{
+			schemaAttrs: atlasTableSchemaAttrs(outputDialect, change.targetTable, atlasSchemaAttrs{}),
+		}
+		parts := make([]string, 0, len(change.columns))
+		for _, column := range change.columns {
+			parts = append(parts, "ADD COLUMN "+renderAtlasColumnSQL(outputDialect, quote, column, true, tableOpts))
+		}
+		fmt.Fprintf(&out, "ALTER TABLE %s ", quote(tableName))
+		if indent == "" {
+			out.WriteString(strings.Join(parts, ", "))
+		} else {
+			out.WriteString(strings.Join(parts, ",\n"+indent))
+		}
+		out.WriteString(";\n")
+	}
+	return out.String(), true
+}
+
+func txtarMigrateDiffOutputDialect(dialect string) string {
+	if dialect == "mariadb" {
+		// Atlas migrate diff fixtures compare against the generic migration file;
+		// MariaDB-version variants are present as alternates for cmpmig.
+		return "mysql"
+	}
+	return dialect
+}
+
+type txtarMigrateDiffAddColumnChange struct {
+	tableName   string
+	targetTable *ast.CreateTableNode
+	columns     []*ast.ColumnNode
+}
+
+func txtarMigrateDiffAddColumnChanges(dialect string, current, target []ast.Node) ([]txtarMigrateDiffAddColumnChange, bool) {
+	currentTables := txtarCreateTablesByName(current)
+	targetTables := txtarCreateTablesByName(target)
+	if len(currentTables) != len(targetTables) {
+		return nil, false
+	}
+	var changes []txtarMigrateDiffAddColumnChange
+	for tableName, targetTable := range targetTables {
+		currentTable, ok := currentTables[tableName]
+		if !ok {
+			return nil, false
+		}
+		columns, ok := txtarMigrateDiffAddedColumns(dialect, currentTable, targetTable)
+		if !ok {
+			return nil, false
+		}
+		if len(columns) > 0 {
+			changes = append(changes, txtarMigrateDiffAddColumnChange{
+				tableName:   tableName,
+				targetTable: targetTable,
+				columns:     columns,
+			})
+		}
+	}
+	slices.SortStableFunc(changes, func(a, b txtarMigrateDiffAddColumnChange) int {
+		return cmp.Compare(a.tableName, b.tableName)
+	})
+	return changes, true
+}
+
+func txtarCreateTablesByName(statements []ast.Node) map[string]*ast.CreateTableNode {
+	tables := map[string]*ast.CreateTableNode{}
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok {
+			tables[atlasSQLIdentifier(table.Name)] = table
+		}
+	}
+	return tables
+}
+
+func txtarMigrateDiffAddedColumns(dialect string, current, target *ast.CreateTableNode) ([]*ast.ColumnNode, bool) {
+	currentColumns := map[string]*ast.ColumnNode{}
+	for _, column := range current.Columns {
+		currentColumns[atlasSQLIdentifier(column.Name)] = column
+	}
+	var added []*ast.ColumnNode
+	targetBase := *target
+	targetBase.Columns = nil
+	for _, column := range target.Columns {
+		name := atlasSQLIdentifier(column.Name)
+		currentColumn, ok := currentColumns[name]
+		switch {
+		case !ok:
+			added = append(added, column)
+		case !txtarColumnsEquivalent(dialect, currentColumn, column):
+			return nil, false
+		default:
+			targetBase.Columns = append(targetBase.Columns, column)
+		}
+	}
+	if len(current.Columns)+len(added) != len(target.Columns) {
+		return nil, false
+	}
+	if !txtarTablesEquivalentBySQL(dialect, current, &targetBase) {
+		return nil, false
+	}
+	return added, true
+}
+
+func txtarColumnsEquivalent(dialect string, a, b *ast.ColumnNode) bool {
+	quote := atlasIdentifierQuoter(dialect)
+	return renderAtlasColumnSQL(dialect, quote, a, true, atlasInspectSQLOptions{}) ==
+		renderAtlasColumnSQL(dialect, quote, b, true, atlasInspectSQLOptions{})
+}
+
+func txtarTablesEquivalentBySQL(dialect string, a, b *ast.CreateTableNode) bool {
+	left, err := renderAtlasInspectSQL(dialect, []ast.Node{a}, "")
+	if err != nil {
+		return false
+	}
+	right, err := renderAtlasInspectSQL(dialect, []ast.Node{b}, "")
+	if err != nil {
+		return false
+	}
+	return left == right
 }
 
 func txtarMigrateDiffSupportsInitialCreate(family string) bool {
@@ -1333,17 +1547,28 @@ func txtarMigrateDiffSupportedTargetSchemes(targets []string) bool {
 }
 
 func renderTxtarMigrateDiffSQLTargets(fx Fixture, runtime *txtarRuntime, targets []string, indent string) (string, error) {
-	files, err := txtarMigrateDiffTargetFiles(runtime, targets)
+	statements, err := txtarMigrateDiffTargetStatements(fx, runtime, targets)
 	if err != nil {
 		return "", err
 	}
+	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
+		statements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), statements)
+	}
+	return renderTxtarMigrateDiffSQLStatements(fx, statements, indent, "")
+}
+
+func txtarMigrateDiffTargetStatements(fx Fixture, runtime *txtarRuntime, targets []string) ([]ast.Node, error) {
+	files, err := txtarMigrateDiffTargetFiles(runtime, targets)
+	if err != nil {
+		return nil, err
+	}
 	if len(files) == 1 {
-		return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+files[0], indent)
+		return txtarMigrateDiffStatements(fx, runtime, "file://"+files[0])
 	}
 	synthetic := ".ptah/migrate_diff_source.hcl"
 	runtime.files[synthetic] = txtarJoinHCLSourceFiles(runtime, files, nil)
 	runtime.addParentDirs(synthetic)
-	return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+synthetic, indent)
+	return txtarMigrateDiffStatements(fx, runtime, "file://"+synthetic)
 }
 
 func txtarMigrateDiffTargetFiles(runtime *txtarRuntime, targets []string) ([]string, error) {
@@ -1368,14 +1593,25 @@ func txtarMigrateDiffTargetFiles(runtime *txtarRuntime, targets []string) ([]str
 }
 
 func renderTxtarMigrateDiffSQL(fx Fixture, runtime *txtarRuntime, target string, indent string) (string, error) {
+	statements, err := txtarMigrateDiffStatements(fx, runtime, target)
+	if err != nil {
+		return "", err
+	}
+	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
+		statements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), statements)
+	}
+	return renderTxtarMigrateDiffSQLStatements(fx, statements, indent, "")
+}
+
+func txtarMigrateDiffStatements(fx Fixture, runtime *txtarRuntime, target string) ([]ast.Node, error) {
 	const filePrefix = "file://"
 	if !strings.HasPrefix(target, filePrefix) {
-		return "", errUnsupportedInspectSQL
+		return nil, errUnsupportedInspectSQL
 	}
 	name := txtarFileURLPath(target)
 	data, ok := runtime.files[name]
 	if !ok {
-		return "", fmt.Errorf("%w: file %q not found in txtar archive", errUnsupportedInspectSQL, name)
+		return nil, fmt.Errorf("%w: file %q not found in txtar archive", errUnsupportedInspectSQL, name)
 	}
 
 	var statements []ast.Node
@@ -1391,10 +1627,19 @@ func renderTxtarMigrateDiffSQL(fx Fixture, runtime *txtarRuntime, target string,
 		}
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
-		statements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), statements)
+	return statements, nil
+}
+
+func renderTxtarMigrateDiffSQLStatements(
+	fx Fixture,
+	statements []ast.Node,
+	indent string,
+	qualifier string,
+) (string, error) {
+	if qualifier != "" {
+		statements = atlasQualifyTableStatements(qualifier, statements)
 	}
 	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), statements, indent)
 	if err != nil {
@@ -1431,12 +1676,46 @@ func atlasUnqualifyTableStatements(schemaName string, statements []ast.Node) []a
 	return out
 }
 
+func atlasQualifyTableStatements(qualifier string, statements []ast.Node) []ast.Node {
+	if qualifier == "" {
+		return statements
+	}
+	out := make([]ast.Node, 0, len(statements))
+	for _, stmt := range statements {
+		switch node := stmt.(type) {
+		case *ast.CreateTableNode:
+			tableCopy := *node
+			tableCopy.Name = atlasQualifyTableName(qualifier, node.Name)
+			out = append(out, &tableCopy)
+		case *ast.IndexNode:
+			indexCopy := *node
+			indexCopy.Table = atlasQualifyTableName(qualifier, node.Table)
+			out = append(out, &indexCopy)
+		case *ast.AlterTableNode:
+			alterCopy := *node
+			alterCopy.Name = atlasQualifyTableName(qualifier, node.Name)
+			out = append(out, &alterCopy)
+		default:
+			out = append(out, stmt)
+		}
+	}
+	return out
+}
+
 func atlasUnqualifyTableName(schemaName, name string) string {
 	unqualified, ok := strings.CutPrefix(name, schemaName+".")
 	if ok {
 		return unqualified
 	}
 	return name
+}
+
+func atlasQualifyTableName(qualifier, name string) string {
+	name = atlasSQLIdentifier(name)
+	if qualifier == "" || strings.Contains(name, ".") {
+		return name
+	}
+	return atlasSQLIdentifier(qualifier) + "." + name
 }
 
 func txtarMigrationDirHasSQL(runtime *txtarRuntime, dir, sql string) bool {
@@ -2547,6 +2826,13 @@ func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTabl
 	next := slices.Clone(current)
 	for _, op := range alter.Operations {
 		switch op := op.(type) {
+		case *ast.AddColumnOperation:
+			if op.Column == nil {
+				return nil, fmt.Errorf("unsupported virtual alter add column <nil>")
+			}
+			if !txtarApplyAddColumnToTables(next, alter.Name, op.Column) {
+				return nil, fmt.Errorf("unsupported virtual alter add column on table %s", alter.Name)
+			}
 		case *ast.AddConstraintOperation:
 			index, ok := txtarIndexFromAlterAddConstraint(alter.Name, op.Constraint)
 			if !ok {
@@ -2558,6 +2844,18 @@ func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTabl
 		}
 	}
 	return next, nil
+}
+
+func txtarApplyAddColumnToTables(statements []ast.Node, tableName string, column *ast.ColumnNode) bool {
+	tableName = atlasSQLIdentifier(tableName)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok && atlasSQLIdentifier(table.Name) == tableName {
+			table.Columns = append(table.Columns, column)
+			return true
+		}
+	}
+	return false
 }
 
 func txtarIndexFromAlterAddConstraint(tableName string, constraint *ast.ConstraintNode) (*ast.IndexNode, bool) {
@@ -2609,7 +2907,7 @@ func txtarMigrateApplySummaryLine(files []string, startVersion string) string {
 func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 	var statements []ast.Node
 	for _, raw := range strings.Split(data, ";") {
-		stmt := strings.TrimSpace(raw)
+		stmt := txtarExecutableMigrationStatement(raw)
 		if stmt == "" {
 			continue
 		}
@@ -2626,6 +2924,15 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 		statements = append(statements, list.Statements...)
 	}
 	return statements, "", nil
+}
+
+func txtarExecutableMigrationStatement(raw string) string {
+	lines := strings.Split(strings.TrimSpace(raw), "\n")
+	for len(lines) > 0 && strings.HasPrefix(strings.TrimSpace(lines[0]), "--") {
+		// Generated migration files start with Atlas operation comments.
+		lines = lines[1:]
+	}
+	return strings.TrimSpace(strings.Join(lines, "\n"))
 }
 
 func txtarFailedMigrationApplyResult(
@@ -4338,12 +4645,12 @@ func (r *txtarRuntime) touch(args []string) txtarCommandResult {
 	return txtarCommandResult{}
 }
 
-func txtarCmpmigMismatch(runtime *txtarRuntime, index, expected string) string {
+func txtarCmpmigMismatch(fx Fixture, runtime *txtarRuntime, index, expected string) string {
 	actual, ok := txtarCmpmigActualFile(runtime, index)
 	if !ok {
 		return fmt.Sprintf("cmpmig %s %s: generated migration not found", index, expected)
 	}
-	return txtarFilesMismatch(runtime.files, actual, expected)
+	return txtarFilesMismatchAny(runtime.files, actual, txtarVariantExpectedFiles(fx, runtime, expected))
 }
 
 func txtarCmpmigActualFile(runtime *txtarRuntime, index string) (string, bool) {
@@ -5715,7 +6022,7 @@ func renderAtlasCreateTableSQL(
 		return fmt.Errorf("%w: check constraints", errUnsupportedInspectSQL)
 	}
 	quote := atlasIdentifierQuoter(dialect)
-	fmt.Fprintf(b, "-- Create %q table\n", atlasSQLIdentifier(table.Name))
+	fmt.Fprintf(b, "-- Create %q table\n", atlasUnqualifiedSQLTableName(table.Name))
 	tableOpts := opts
 	tableAttrs := atlasTableSchemaAttrs(dialect, table, opts.schemaAttrs)
 	tableOpts.schemaAttrs = tableAttrs
@@ -6336,14 +6643,20 @@ func atlasDefaultSQLUniqueIndexName(dialect, tableName, columnName string) strin
 func atlasIdentifierQuoter(dialect string) func(string) string {
 	if dialect == "mysql" || dialect == "mariadb" || dialect == "sqlite" {
 		return func(name string) string {
-			normalized := atlasSQLIdentifier(name)
-			return "`" + strings.ReplaceAll(normalized, "`", "``") + "`"
+			return atlasQuoteIdentifierParts(name, "`")
 		}
 	}
 	return func(name string) string {
-		normalized := atlasSQLIdentifier(name)
-		return `"` + strings.ReplaceAll(normalized, `"`, `""`) + `"`
+		return atlasQuoteIdentifierParts(name, `"`)
 	}
+}
+
+func atlasQuoteIdentifierParts(name, quote string) string {
+	parts := strings.Split(atlasSQLIdentifier(name), ".")
+	for i, part := range parts {
+		parts[i] = quote + strings.ReplaceAll(part, quote, quote+quote) + quote
+	}
+	return strings.Join(parts, ".")
 }
 
 func txtarFixtureDialect(fx Fixture) string {
@@ -6500,18 +6813,55 @@ func txtarAssertionMatches(stream, line string) (bool, error) {
 }
 
 func txtarFilesMismatch(files map[string]string, left, right string) string {
+	return txtarFilesMismatchAny(files, left, []string{right})
+}
+
+func txtarFilesMismatchAny(files map[string]string, left string, rights []string) string {
 	l, lok := files[left]
-	r, rok := files[right]
-	switch {
-	case !lok:
-		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, right, left)
-	case !rok:
-		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, right, right)
-	case !txtarFilesEqual(l, r):
-		return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, right, oneLine(l), oneLine(r))
-	default:
-		return ""
+	if !lok {
+		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, rights[0], left)
 	}
+	var missing []string
+	for _, right := range rights {
+		r, rok := files[right]
+		if !rok {
+			missing = append(missing, right)
+			continue
+		}
+		if txtarFilesEqual(l, r) {
+			return ""
+		}
+	}
+	if len(missing) == len(rights) {
+		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, rights[0], rights[0])
+	}
+	return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, rights[0], oneLine(l), oneLine(files[rights[0]]))
+}
+
+func txtarVariantExpectedFiles(fx Fixture, runtime *txtarRuntime, expected string) []string {
+	candidates := []string{expected}
+	for _, condition := range txtarOnlyDirectiveConditions(fx) {
+		candidate := path.Join(condition, expected)
+		if _, ok := runtime.files[candidate]; ok {
+			candidates = append(candidates, candidate)
+		}
+	}
+	return candidates
+}
+
+func txtarOnlyDirectiveConditions(fx Fixture) []string {
+	if fx.Kind != FixtureKindTxtar || len(fx.Files) != 1 {
+		return nil
+	}
+	data, err := os.ReadFile(fx.Files[0])
+	if err != nil {
+		return nil
+	}
+	var conditions []string
+	for _, line := range strings.Split(txtarScriptPrefix(string(data)), "\n") {
+		conditions = append(conditions, txtarOnlyDirectiveFields(line)...)
+	}
+	return conditions
 }
 
 func txtarFilesEqual(left, right string) bool {

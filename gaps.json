@@ -2513,17 +2513,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 7 supported command(s), checked 5 assertion(s)"
   },
   {
     "probe": "txtar-script",
