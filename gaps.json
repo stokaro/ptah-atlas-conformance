@@ -3201,14 +3201,6 @@
   },
   {
     "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/index-unique-constraint.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect hcl",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/primary-key.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
