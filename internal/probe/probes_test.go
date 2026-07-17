@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -1966,6 +1967,104 @@ func TestTxtarScriptProbeExecutesMySQLProjectSchemasFixture(t *testing.T) {
 	}
 	if results[0].Outcome != OK {
 		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLMigrateApplyDatasourceFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/cli-migrate-apply-datasrc.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "cli-migrate-apply-datasrc.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLSchemaApplyDatasourceFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/cli-schema-apply-datasrc.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "cli-schema-apply-datasrc.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarResolveAtlasSQLTenantsRequiresExactPattern(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtime := newTxtarRuntime(string(data))
+	project := runtime.files["atlas.hcl"]
+	env, ok := txtarAtlasNamedBlock(project, "env", "dev")
+	if !ok {
+		t.Fatal("expected dev env block")
+	}
+	tenants, ok := txtarResolveAtlasSQLTenants(project, env, map[string]string{
+		"url":     "URL",
+		"pattern": "script_cli_schema_apply_datasrc",
+	})
+	if !ok || len(tenants) != 1 || tenants[0] != "script_cli_schema_apply_datasrc" {
+		t.Fatalf("unexpected tenants: ok=%v tenants=%#v", ok, tenants)
+	}
+	if tenants, ok := txtarResolveAtlasSQLTenants(project, env, map[string]string{
+		"url":     "URL",
+		"pattern": "script_%",
+	}); ok {
+		t.Fatalf("expected wildcard pattern to stay unsupported, got %#v", tenants)
+	}
+}
+
+func TestTxtarSchemaApplyTenantJSONLogIncludesMultipleAppliedStatements(t *testing.T) {
+	statements := []ast.Node{
+		ast.NewCreateTable("tenant.users").AddColumn(ast.NewColumn("id", "int").SetNotNull()),
+		&ast.IndexNode{Name: "idx_users_id", Table: "tenant.users", Columns: []string{"id"}},
+		ast.NewCreateTable("tenant.pets").AddColumn(ast.NewColumn("id", "int").SetNotNull()),
+	}
+	output := txtarSchemaApplyTenantJSONLog(
+		Fixture{Name: "mysql/case.txtar"},
+		txtarSchemaApplyArgs{tenant: "tenant"},
+		statements,
+	)
+	if output == "" {
+		t.Fatal("expected tenant JSON log output")
+	}
+
+	var payload struct {
+		Applied []string
+		Tenant  string
+	}
+	if err := json.Unmarshal([]byte(output), &payload); err != nil {
+		t.Fatalf("expected valid JSON output, got %q: %v", output, err)
+	}
+	if payload.Tenant != "tenant" {
+		t.Fatalf("expected tenant, got %q", payload.Tenant)
+	}
+	if len(payload.Applied) != 2 {
+		t.Fatalf("expected two applied statements, got %#v", payload.Applied)
+	}
+	if strings.Contains(strings.Join(payload.Applied, "\n"), "tenant.") {
+		t.Fatalf("expected unqualified applied SQL, got %#v", payload.Applied)
+	}
+	if !strings.Contains(payload.Applied[0], "KEY `idx_users_id` (`id`)") {
+		t.Fatalf("expected inline index in first statement, got %q", payload.Applied[0])
 	}
 }
 
