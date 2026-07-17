@@ -2260,7 +2260,7 @@ func runTxtarMigrateApply(fx Fixture, runtime *txtarRuntime, fields []string) (t
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "apply" {
 		return txtarCommandResult{}, false
 	}
-	if txtarFixtureFamily(fx) != "sqlite" {
+	if !txtarMigrateApplySupportsFamily(txtarFixtureFamily(fx)) {
 		return txtarCommandResult{unsupported: "atlas migrate apply"}, true
 	}
 
@@ -2304,6 +2304,15 @@ func runTxtarMigrateApply(fx Fixture, runtime *txtarRuntime, fields []string) (t
 		result.err = err
 	}
 	return result, true
+}
+
+func txtarMigrateApplySupportsFamily(family string) bool {
+	switch family {
+	case "mysql", "sqlite":
+		return true
+	default:
+		return false
+	}
 }
 
 func txtarParseMigrateApplyArgs(args []string) txtarMigrateApplyArgs {
@@ -2387,16 +2396,17 @@ func txtarApplyMigrationFiles(
 
 	committed := slices.Clone(runtime.dbStatements)
 	batchStatements := make([]ast.Node, 0)
+	appliedFiles := make([]string, 0, len(files))
 	appliedStatements := 0
 	for _, file := range files {
 		version := atlasMigrationVersion(file)
 		data := runtime.files[file]
-		statements, failing, err := txtarParseSQLiteMigrationStatements(data)
+		statements, failing, err := txtarParseMigrationStatements(data)
 		if err != nil {
 			return txtarCommandResult{unsupported: "atlas migrate apply"}, nil
 		}
 		if failing != "" {
-			return txtarFailedMigrationApplyResult(runtime, args, committed, batchStatements, file, failing, stdout.String())
+			return txtarFailedMigrationApplyResult(runtime, args, committed, batchStatements, appliedFiles, file, failing, stdout.String())
 		}
 
 		fmt.Fprintf(&stdout, "-- migrating version %s\n", version)
@@ -2404,23 +2414,98 @@ func txtarApplyMigrationFiles(
 		batchStatements = append(batchStatements, statements...)
 		appliedStatements += len(statements)
 		if !args.dryRun && args.txMode == "file" {
-			committed = append(committed, statements...)
-			runtime.markMigrationApplied(file)
+			committed, err = txtarApplyStatementsToVirtualState(committed, statements)
+			if err != nil {
+				return txtarCommandResult{unsupported: "atlas migrate apply"}, nil
+			}
+			appliedFiles = append(appliedFiles, file)
 		}
 	}
 	if !args.dryRun && args.txMode != "file" {
-		committed = append(committed, batchStatements...)
-		for _, file := range files {
-			runtime.markMigrationApplied(file)
+		var err error
+		committed, err = txtarApplyStatementsToVirtualState(committed, batchStatements)
+		if err != nil {
+			return txtarCommandResult{unsupported: "atlas migrate apply"}, nil
 		}
+		appliedFiles = append(appliedFiles, files...)
 	}
 	if !args.dryRun {
 		runtime.hasVirtualDBState = true
 		runtime.dbStatements = committed
+		runtime.markMigrationsApplied(appliedFiles)
 	}
 	fmt.Fprintf(&stdout, "-- %d migrations\n", len(files))
 	fmt.Fprintf(&stdout, "-- %d sql statements\n", appliedStatements)
 	return txtarCommandResult{stdout: stdout.String()}, nil
+}
+
+func txtarApplyStatementsToVirtualState(current []ast.Node, statements []ast.Node) ([]ast.Node, error) {
+	next := slices.Clone(current)
+	for _, stmt := range statements {
+		var err error
+		next, err = txtarApplyStatementToVirtualState(next, stmt)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return next, nil
+}
+
+func txtarApplyStatementToVirtualState(current []ast.Node, stmt ast.Node) ([]ast.Node, error) {
+	switch node := stmt.(type) {
+	case *ast.CreateSchemaNode, *ast.CreateTableNode, *ast.IndexNode:
+		return append(current, node), nil
+	case *ast.AlterTableNode:
+		return txtarApplyAlterTableToVirtualState(current, node)
+	default:
+		return nil, fmt.Errorf("unsupported virtual migration statement %T", stmt)
+	}
+}
+
+func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTableNode) ([]ast.Node, error) {
+	next := slices.Clone(current)
+	for _, op := range alter.Operations {
+		switch op := op.(type) {
+		case *ast.AddConstraintOperation:
+			index, ok := txtarIndexFromAlterAddConstraint(alter.Name, op.Constraint)
+			if !ok {
+				return nil, fmt.Errorf("unsupported virtual alter constraint %s", txtarConstraintType(op.Constraint))
+			}
+			next = append(next, index)
+		default:
+			return nil, fmt.Errorf("unsupported virtual alter operation %T", op)
+		}
+	}
+	return next, nil
+}
+
+func txtarIndexFromAlterAddConstraint(tableName string, constraint *ast.ConstraintNode) (*ast.IndexNode, bool) {
+	if constraint == nil || constraint.Type != ast.UniqueConstraint || constraint.Name == "" {
+		return nil, false
+	}
+	columns := atlasConstraintColumnNames(constraint)
+	if len(columns) == 0 {
+		return nil, false
+	}
+	return &ast.IndexNode{
+		Name:    constraint.Name,
+		Table:   tableName,
+		Columns: columns,
+		Unique:  true,
+	}, true
+}
+
+func txtarConstraintType(constraint *ast.ConstraintNode) string {
+	if constraint == nil {
+		return "<nil>"
+	}
+	return constraint.Type.String()
+}
+
+func (r *txtarRuntime) markMigrationsApplied(files []string) {
+	for _, file := range files {
+		r.markMigrationApplied(file)
+	}
 }
 
 func (r *txtarRuntime) markMigrationApplied(file string) {
@@ -2440,7 +2525,7 @@ func txtarMigrateApplySummaryLine(files []string, startVersion string) string {
 	return fmt.Sprintf("Migrating to version %s (%d migrations in total):", targetVersion, total)
 }
 
-func txtarParseSQLiteMigrationStatements(data string) ([]ast.Node, string, error) {
+func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 	var statements []ast.Node
 	for _, raw := range strings.Split(data, ";") {
 		stmt := strings.TrimSpace(raw)
@@ -2467,6 +2552,7 @@ func txtarFailedMigrationApplyResult(
 	args txtarMigrateApplyArgs,
 	committed []ast.Node,
 	batchStatements []ast.Node,
+	appliedFiles []string,
 	file string,
 	failing string,
 	stdout string,
@@ -2475,9 +2561,15 @@ func txtarFailedMigrationApplyResult(
 	case "none":
 		runtime.hasVirtualDBState = true
 		runtime.dbStatements = append(append(committed, batchStatements...), txtarParseablePrefixStatements(runtime.files[file])...)
+		if !args.dryRun {
+			runtime.markMigrationsApplied(appliedFiles)
+		}
 	case "file":
 		runtime.hasVirtualDBState = true
 		runtime.dbStatements = committed
+		if !args.dryRun {
+			runtime.markMigrationsApplied(appliedFiles)
+		}
 	case "all":
 		runtime.hasVirtualDBState = true
 		runtime.dbStatements = committed
@@ -2489,7 +2581,7 @@ func txtarFailedMigrationApplyResult(
 }
 
 func txtarParseablePrefixStatements(data string) []ast.Node {
-	statements, _, err := txtarParseSQLiteMigrationStatements(data)
+	statements, _, err := txtarParseMigrationStatements(data)
 	if err != nil {
 		return nil
 	}
@@ -5526,12 +5618,15 @@ func renderAtlasCreateTableSQL(
 	}
 	quote := atlasIdentifierQuoter(dialect)
 	fmt.Fprintf(b, "-- Create %q table\n", atlasSQLIdentifier(table.Name))
+	tableOpts := opts
+	tableAttrs := atlasTableSchemaAttrs(dialect, table, opts.schemaAttrs)
+	tableOpts.schemaAttrs = tableAttrs
 
 	parts := make([]string, 0, len(table.Columns)+len(table.Constraints)+len(indexes))
 	var primaryColumns []ast.ConstraintColumn
 	var columnForeignKeys []*ast.ColumnNode
 	for _, column := range table.Columns {
-		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != "" || dialect == "sqlite", opts))
+		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != "" || dialect == "sqlite", tableOpts))
 		if column.Primary && !atlasColumnPrimaryKeyInline(dialect, column) {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
 		}
@@ -5607,12 +5702,12 @@ func renderAtlasCreateTableSQL(
 			fmt.Fprintf(b, " AUTO_INCREMENT=%s", autoIncrement)
 		}
 	}
-	if attrs := atlasDefaultSchemaAttrs(dialect); attrs.charset != "" || attrs.collate != "" {
-		if attrs.charset != "" {
-			fmt.Fprintf(b, " CHARSET %s", attrs.charset)
+	if tableAttrs.charset != "" || tableAttrs.collate != "" {
+		if tableAttrs.charset != "" {
+			fmt.Fprintf(b, " CHARSET %s", tableAttrs.charset)
 		}
-		if attrs.collate != "" {
-			fmt.Fprintf(b, " COLLATE %s", attrs.collate)
+		if tableAttrs.collate != "" {
+			fmt.Fprintf(b, " COLLATE %s", tableAttrs.collate)
 		}
 	}
 	b.WriteString(";\n")
@@ -5628,6 +5723,23 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	return nil
+}
+
+func atlasTableSchemaAttrs(dialect string, table *ast.CreateTableNode, inherited atlasSchemaAttrs) atlasSchemaAttrs {
+	if dialect != "mysql" && dialect != "mariadb" {
+		return inherited
+	}
+	attrs := inherited
+	if attrs.charset == "" && attrs.collate == "" {
+		attrs = atlasDefaultSchemaAttrs(dialect)
+	}
+	if charset := table.Options["CHARSET"]; charset != "" {
+		attrs.charset = charset
+	}
+	if collate := table.Options["COLLATE"]; collate != "" {
+		attrs.collate = collate
+	}
+	return attrs
 }
 
 func renderAtlasSQLiteTableOptions(options map[string]string) (string, error) {
