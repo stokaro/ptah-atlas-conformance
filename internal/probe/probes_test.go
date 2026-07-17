@@ -510,6 +510,37 @@ CREATE TABLE `+"`users`"+` (`+"`id`"+` int NOT NULL, PRIMARY KEY (`+"`id`"+`), S
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLSchemaInspectSQLWithPrimaryKeyParts(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas schema inspect -u file://a.sql --dev-url URL --format '{{ sql . }}' > inspected.sql
+cmp inspected.sql expected.sql
+
+-- a.sql --
+CREATE TABLE `+"`t1`"+` (`+"`id`"+` tinytext NOT NULL, PRIMARY KEY (`+"`id`"+` (7) DESC));
+
+-- expected.sql --
+-- Create "t1" table
+CREATE TABLE `+"`t1`"+` (`+"`id`"+` tinytext NOT NULL, PRIMARY KEY (`+"`id`"+` (7) DESC)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeKeepsMySQLSchemaInspectSQLChecksAsGap(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -711,6 +742,53 @@ schema "script_case" {
 
 	results := TxtarScriptProbe{}.Run(Fixture{
 		Name:  "mysql/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesMySQLSchemaInspectHCLWithPrimaryKeyParts(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only mysql8
+
+atlas schema inspect -u file://a.sql --dev-url URL > inspected.hcl
+cmp inspected.hcl expected.hcl
+
+-- a.sql --
+CREATE TABLE `+"`t1`"+` (`+"`id`"+` tinytext NOT NULL, PRIMARY KEY (`+"`id`"+` (7) DESC));
+
+-- expected.hcl --
+table "t1" {
+  schema = schema.script_primary_key_parts
+  column "id" {
+    null = false
+    type = tinytext
+  }
+  primary_key {
+    on {
+      desc   = true
+      column = column.id
+      prefix = 7
+    }
+  }
+}
+schema "script_primary_key_parts" {
+  charset = "utf8mb4"
+  collate = "utf8mb4_0900_ai_ci"
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/primary-key-parts.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},

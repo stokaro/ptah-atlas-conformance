@@ -1087,38 +1087,34 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 }
 
 func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *ast.CreateTableNode) error {
-	fmt.Fprintf(b, "table %q {\n", table.Name)
+	fmt.Fprintf(b, "table %q {\n", atlasHCLIdentifier(table.Name))
 	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
-	var primaryColumns []string
+	var primaryColumns []ast.ConstraintColumn
 	for _, column := range table.Columns {
 		if column.Unique || column.ForeignKey != nil {
 			return fmt.Errorf("%w: column %q", errUnsupportedInspectHCL, column.Name)
 		}
-		fmt.Fprintf(b, "  column %q {\n", column.Name)
+		fmt.Fprintf(b, "  column %q {\n", atlasHCLIdentifier(column.Name))
 		fmt.Fprintf(b, "    null = %t\n", column.Nullable)
 		fmt.Fprintf(b, "    type = %s\n", atlasColumnType(dialect, column.Type))
 		b.WriteString("  }\n")
 		if column.Primary {
-			primaryColumns = append(primaryColumns, column.Name)
+			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
 		}
 	}
 	for _, constraint := range table.Constraints {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
-			primaryColumns = append(primaryColumns, constraint.Columns...)
+			primaryColumns = append(primaryColumns, atlasConstraintColumns(constraint)...)
 		case ast.CheckConstraint:
 		default:
 			return fmt.Errorf("%w: constraint %s", errUnsupportedInspectHCL, constraint.Type)
 		}
 	}
 	if len(primaryColumns) > 0 {
-		refs, err := atlasHCLColumnRefs(primaryColumns)
-		if err != nil {
+		if err := renderAtlasPrimaryKeyHCL(b, primaryColumns); err != nil {
 			return err
 		}
-		b.WriteString("  primary_key {\n")
-		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
-		b.WriteString("  }\n")
 	}
 	if err := renderAtlasCheckHCLBlocks(b, dialect, table); err != nil {
 		return err
@@ -1171,15 +1167,84 @@ func renderAtlasSchemaHCL(b *strings.Builder, dialect, schemaName string) {
 	b.WriteString("}\n")
 }
 
-func atlasHCLColumnRefs(columns []string) ([]string, error) {
+func renderAtlasPrimaryKeyHCL(b *strings.Builder, columns []ast.ConstraintColumn) error {
+	if atlasPrimaryKeyCanUseColumnsAttr(columns) {
+		refs, err := atlasHCLColumnRefs(columns)
+		if err != nil {
+			return err
+		}
+		b.WriteString("  primary_key {\n")
+		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+		b.WriteString("  }\n")
+		return nil
+	}
+
+	b.WriteString("  primary_key {\n")
+	for _, column := range columns {
+		name := atlasHCLIdentifier(column.Name)
+		if strings.ContainsAny(name, " ()`\"") {
+			return fmt.Errorf("%w: primary key column %q", errUnsupportedInspectHCL, column.Name)
+		}
+		b.WriteString("    on {\n")
+		if column.Desc {
+			b.WriteString("      desc   = true\n")
+		}
+		fmt.Fprintf(b, "      column = column.%s\n", name)
+		if column.Prefix != "" {
+			fmt.Fprintf(b, "      prefix = %s\n", column.Prefix)
+		}
+		b.WriteString("    }\n")
+	}
+	b.WriteString("  }\n")
+	return nil
+}
+
+func atlasPrimaryKeyCanUseColumnsAttr(columns []ast.ConstraintColumn) bool {
+	for _, column := range columns {
+		if column.Prefix != "" || column.Desc {
+			return false
+		}
+	}
+	return true
+}
+
+func atlasHCLColumnRefs(columns []ast.ConstraintColumn) ([]string, error) {
 	refs := make([]string, 0, len(columns))
 	for _, column := range columns {
-		if strings.ContainsAny(column, " ()`\"") {
-			return nil, fmt.Errorf("%w: primary key column %q", errUnsupportedInspectHCL, column)
+		name := atlasHCLIdentifier(column.Name)
+		if strings.ContainsAny(name, " ()`\"") {
+			return nil, fmt.Errorf("%w: primary key column %q", errUnsupportedInspectHCL, column.Name)
 		}
-		refs = append(refs, "column."+column)
+		refs = append(refs, "column."+name)
 	}
 	return refs, nil
+}
+
+func atlasConstraintColumns(constraint *ast.ConstraintNode) []ast.ConstraintColumn {
+	if len(constraint.ColumnParts) > 0 {
+		return constraint.ColumnParts
+	}
+	columns := make([]ast.ConstraintColumn, 0, len(constraint.Columns))
+	for _, column := range constraint.Columns {
+		columns = append(columns, ast.ConstraintColumn{Name: column})
+	}
+	return columns
+}
+
+func atlasHCLIdentifier(name string) string {
+	return atlasSQLIdentifier(name)
+}
+
+func atlasSQLIdentifier(name string) string {
+	if len(name) >= 2 {
+		switch {
+		case strings.HasPrefix(name, "`") && strings.HasSuffix(name, "`"):
+			return strings.TrimSuffix(strings.TrimPrefix(name, "`"), "`")
+		case strings.HasPrefix(name, `"`) && strings.HasSuffix(name, `"`):
+			return strings.TrimSuffix(strings.TrimPrefix(name, `"`), `"`)
+		}
+	}
+	return name
 }
 
 func renderAtlasInspectSQL(dialect string, statements []ast.Node, indent string) (string, error) {
@@ -1246,13 +1311,13 @@ func renderAtlasCreateTableSQL(
 		return fmt.Errorf("%w: check constraints", errUnsupportedInspectSQL)
 	}
 	quote := atlasIdentifierQuoter(dialect)
-	fmt.Fprintf(b, "-- Create %q table\n", table.Name)
+	fmt.Fprintf(b, "-- Create %q table\n", atlasSQLIdentifier(table.Name))
 
 	parts := make([]string, 0, len(table.Columns)+len(table.Constraints)+len(indexes))
 	for _, column := range table.Columns {
 		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != ""))
 		if column.Primary {
-			parts = append(parts, renderAtlasPrimaryKeySQL(quote, []string{column.Name}))
+			parts = append(parts, renderAtlasPrimaryKeySQL(quote, []ast.ConstraintColumn{{Name: column.Name}}))
 		}
 	}
 	columnChecks, err := atlasColumnCheckSQLParts(quote, table)
@@ -1263,7 +1328,7 @@ func renderAtlasCreateTableSQL(
 	for _, constraint := range table.Constraints {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
-			parts = append(parts, renderAtlasPrimaryKeySQL(quote, constraint.Columns))
+			parts = append(parts, renderAtlasPrimaryKeySQL(quote, atlasConstraintColumns(constraint)))
 		case ast.CheckConstraint:
 			if constraint.Name == "" {
 				return fmt.Errorf("%w: unnamed table check", errUnsupportedInspectSQL)
@@ -1366,10 +1431,17 @@ func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string
 	return b.String()
 }
 
-func renderAtlasPrimaryKeySQL(quote func(string) string, columns []string) string {
+func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.ConstraintColumn) string {
 	quoted := make([]string, 0, len(columns))
 	for _, column := range columns {
-		quoted = append(quoted, quote(column))
+		part := quote(column.Name)
+		if column.Prefix != "" {
+			part += " (" + column.Prefix + ")"
+		}
+		if column.Desc {
+			part += " DESC"
+		}
+		quoted = append(quoted, part)
 	}
 	return "PRIMARY KEY (" + strings.Join(quoted, ", ") + ")"
 }
@@ -1384,9 +1456,15 @@ func atlasColumnType(dialect, typ string) string {
 
 func atlasIdentifierQuoter(dialect string) func(string) string {
 	if dialect == "mysql" || dialect == "mariadb" {
-		return func(name string) string { return "`" + strings.ReplaceAll(name, "`", "``") + "`" }
+		return func(name string) string {
+			normalized := atlasSQLIdentifier(name)
+			return "`" + strings.ReplaceAll(normalized, "`", "``") + "`"
+		}
 	}
-	return func(name string) string { return `"` + strings.ReplaceAll(name, `"`, `""`) + `"` }
+	return func(name string) string {
+		normalized := atlasSQLIdentifier(name)
+		return `"` + strings.ReplaceAll(normalized, `"`, `""`) + `"`
+	}
 }
 
 func txtarFixtureDialect(fx Fixture) string {

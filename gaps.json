@@ -2805,14 +2805,6 @@
     "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: atlas schema inspect hcl",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate diff",
     "issue": "stokaro/ptah#285"
   },
