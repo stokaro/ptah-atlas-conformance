@@ -23,6 +23,12 @@ import (
 	"github.com/stokaro/ptah/migration/migrator"
 )
 
+var (
+	mysqlIntegerDisplayWidthRE = regexp.MustCompile(`\b(bigint|int|integer|mediumint|smallint|tinyint)\(\d+\)`)
+	mysqlDefaultCharsetRE      = regexp.MustCompile(`\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
+	spaceRunRE                 = regexp.MustCompile(`\s+`)
+)
+
 // TxtarScriptProbe parses Atlas integration txtar scripts and records the
 // command surface Ptah still needs to execute. This is intentionally not a
 // success probe yet: until commands are mapped to Ptah APIs/CLI and their
@@ -465,6 +471,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 		return result
 	}
 	if result, ok := runTxtarApply(fx, runtime, fields); ok {
+		return result
+	}
+	if result, ok := runTxtarExist(fx, runtime, fields); ok {
 		return result
 	}
 	if result, ok := runTxtarSynced(fx, runtime, fields); ok {
@@ -2480,7 +2489,15 @@ func txtarFixtureSupportsVirtualApply(fx Fixture, statements []ast.Node) bool {
 	if path.Base(fx.Name) == "cli-inspect.txtar" {
 		return true
 	}
-	return txtarFixtureFamily(fx) == "sqlite" && txtarSQLiteVirtualApplyStateSupported(statements)
+	family := txtarFixtureFamily(fx)
+	switch family {
+	case "sqlite":
+		return txtarSQLiteVirtualApplyStateSupported(statements)
+	case "mysql", "mariadb":
+		return txtarMySQLVirtualApplyStateSupported(txtarFixtureDialect(fx), statements)
+	default:
+		return false
+	}
 }
 
 func txtarSQLiteVirtualApplyStateSupported(statements []ast.Node) bool {
@@ -2538,6 +2555,84 @@ func txtarSQLiteApplyIndexSupported(index *ast.IndexNode) bool {
 		index.Comment == "" && !index.Concurrently
 }
 
+func txtarMySQLVirtualApplyStateSupported(dialect string, statements []ast.Node) bool {
+	if !txtarMySQLSchemasSupported(dialect, statements) {
+		return false
+	}
+	for _, stmt := range statements {
+		switch node := stmt.(type) {
+		case *ast.CreateSchemaNode:
+			continue
+		case *ast.CreateTableNode:
+			if !txtarMySQLApplyTableSupported(node) {
+				return false
+			}
+		case *ast.IndexNode:
+			if !txtarMySQLApplyIndexSupported(node) {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+func txtarMySQLSchemasSupported(dialect string, statements []ast.Node) bool {
+	defaults := atlasDefaultSchemaAttrs(dialect)
+	for _, stmt := range statements {
+		schema, ok := stmt.(*ast.CreateSchemaNode)
+		if !ok {
+			continue
+		}
+		if schema.Charset != "" && schema.Charset != defaults.charset {
+			return false
+		}
+		if schema.Collate != "" && schema.Collate != defaults.collate {
+			return false
+		}
+	}
+	return true
+}
+
+func txtarMySQLApplyTableSupported(table *ast.CreateTableNode) bool {
+	if table.SelectBody != "" || table.Comment != "" {
+		return false
+	}
+	for key := range table.Options {
+		switch key {
+		case "AUTO_INCREMENT":
+			continue
+		default:
+			return false
+		}
+	}
+	for _, column := range table.Columns {
+		if column.Comment != "" || column.Default != nil || column.GeneratedExpression != "" ||
+			column.Unique || column.Check != "" || column.CheckName != "" || column.ForeignKey != nil {
+			return false
+		}
+		switch strings.ToLower(column.Type) {
+		case "bool", "boolean", "json":
+			return false
+		}
+	}
+	return true
+}
+
+func txtarMySQLApplyIndexSupported(index *ast.IndexNode) bool {
+	if len(index.EffectiveParts()) == 0 || index.Concurrently || index.Type != "" ||
+		index.Operator != "" || index.Comment != "" || index.Condition != "" {
+		return false
+	}
+	for _, part := range index.EffectiveParts() {
+		if part.Expr != "" || part.Desc {
+			return false
+		}
+	}
+	return true
+}
+
 func txtarHCLStatements(fx Fixture, name, data string) ([]ast.Node, error) {
 	data = txtarNormalizeAtlasHCL(fx, data)
 	db, err := atlashcl.Parse([]byte(data), name)
@@ -2552,6 +2647,13 @@ func txtarNormalizeAtlasHCL(fx Fixture, data string) string {
 	schemaName := txtarFixtureSchemaName(fx)
 	data = strings.ReplaceAll(data, "schema.$db", "schema."+schemaName)
 	data = strings.ReplaceAll(data, `schema "$db"`, fmt.Sprintf("schema %q", schemaName))
+	attrs := atlasDefaultSchemaAttrs(txtarFixtureDialect(fx))
+	if attrs.charset != "" {
+		data = strings.ReplaceAll(data, `"$charset"`, fmt.Sprintf("%q", attrs.charset))
+	}
+	if attrs.collate != "" {
+		data = strings.ReplaceAll(data, `"$collate"`, fmt.Sprintf("%q", attrs.collate))
+	}
 	return data
 }
 
@@ -2621,6 +2723,24 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 	}
 	runtime.hasVirtualDBState = true
 	runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
+	return txtarCommandResult{}, true
+}
+
+func runTxtarExist(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 1 || fields[0] != "exist" {
+		return txtarCommandResult{}, false
+	}
+	switch txtarFixtureFamily(fx) {
+	case "sqlite", "mysql", "mariadb":
+	default:
+		return txtarCommandResult{unsupported: "exist"}, true
+	}
+	if len(fields) != 2 || !runtime.hasVirtualDBState {
+		return txtarCommandResult{unsupported: "exist"}, true
+	}
+	if _, ok := txtarFindTable(txtarFixtureSchemaName(fx), runtime.dbStatements, fields[1]); !ok {
+		return txtarCommandResult{failed: true, err: fmt.Errorf("table %s does not exist", fields[1])}, true
+	}
 	return txtarCommandResult{}, true
 }
 
@@ -2732,6 +2852,10 @@ func runTxtarCmpShow(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 }
 
 func txtarTableNeedsSQLShowCompare(fx Fixture, statements []ast.Node, name string) bool {
+	switch txtarFixtureFamily(fx) {
+	case "mysql", "mariadb":
+		return true
+	}
 	schemaName := txtarFixtureSchemaName(fx)
 	for _, stmt := range statements {
 		index, ok := stmt.(*ast.IndexNode)
@@ -2758,7 +2882,9 @@ func txtarCmpShowSQL(
 	expectedName string,
 	expectedSQL string,
 ) (txtarCommandResult, bool) {
-	if txtarFixtureFamily(fx) != "sqlite" {
+	switch txtarFixtureFamily(fx) {
+	case "sqlite", "mysql", "mariadb":
+	default:
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
 	actual, ok := txtarTableShowSQL(fx, runtime.dbStatements, tableName)
@@ -2766,7 +2892,7 @@ func txtarCmpShowSQL(
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
 	expected := txtarCanonicalShowSQL(fx, expectedSQL)
-	if txtarNormalizeShowSQL(actual) != txtarNormalizeShowSQL(expected) {
+	if txtarNormalizeFixtureShowSQL(fx, actual) != txtarNormalizeFixtureShowSQL(fx, expected) {
 		return txtarCommandResult{
 			failed: true,
 			err: fmt.Errorf("cmpshow %s %s did not match: got %q want %q",
@@ -2834,6 +2960,36 @@ func txtarNormalizeShowSQL(sql string) string {
 		lines = append(lines, txtarNormalizeShowSQLLine(line))
 	}
 	return strings.Join(lines, "\n")
+}
+
+func txtarNormalizeFixtureShowSQL(fx Fixture, sql string) string {
+	switch txtarFixtureFamily(fx) {
+	case "mysql", "mariadb":
+		return txtarNormalizeMySQLShowSQL(sql)
+	default:
+		return txtarNormalizeShowSQL(sql)
+	}
+}
+
+func txtarNormalizeMySQLShowSQL(sql string) string {
+	normalized := txtarNormalizeShowSQL(sql)
+	normalized = mysqlIntegerDisplayWidthRE.ReplaceAllString(normalized, "$1")
+	normalized = mysqlDefaultCharsetRE.ReplaceAllString(normalized, "")
+	normalized = strings.TrimSuffix(normalized, ";")
+	normalized = spaceRunRE.ReplaceAllString(normalized, " ")
+	for _, repl := range []struct {
+		old string
+		new string
+	}{
+		{" (", "("},
+		{"( ", "("},
+		{" )", ")"},
+		{" ,", ","},
+		{", ", ","},
+	} {
+		normalized = strings.ReplaceAll(normalized, repl.old, repl.new)
+	}
+	return strings.TrimSpace(normalized)
 }
 
 func txtarNormalizeShowSQLLine(line string) string {
@@ -4741,7 +4897,7 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	for _, index := range indexes {
-		parts = append(parts, renderAtlasIndexSQL(quote, index))
+		parts = append(parts, renderAtlasIndexSQL(dialect, quote, index))
 	}
 
 	fmt.Fprintf(b, "CREATE TABLE %s (", quote(table.Name))
@@ -4765,6 +4921,11 @@ func renderAtlasCreateTableSQL(
 			return err
 		}
 		b.WriteString(options)
+	}
+	if dialect == "mysql" || dialect == "mariadb" {
+		if autoIncrement := table.Options["AUTO_INCREMENT"]; autoIncrement != "" {
+			fmt.Fprintf(b, " AUTO_INCREMENT=%s", autoIncrement)
+		}
 	}
 	if attrs := atlasDefaultSchemaAttrs(dialect); attrs.charset != "" || attrs.collate != "" {
 		if attrs.charset != "" {
@@ -4831,6 +4992,9 @@ func renderAtlasColumnSQL(dialect string, quote func(string) string, column *ast
 		b.WriteString(" NOT NULL")
 	} else if explicitNull {
 		b.WriteString(" NULL")
+	}
+	if (dialect == "mysql" || dialect == "mariadb") && column.AutoInc {
+		b.WriteString(" AUTO_INCREMENT")
 	}
 	if column.GeneratedExpression != "" {
 		fmt.Fprintf(&b, " AS (%s)", column.GeneratedExpression)
@@ -4905,7 +5069,7 @@ func atlasSupportsInspectChecks(dialect string) bool {
 	return dialect == "postgresql" || dialect == "mysql" || dialect == "mariadb"
 }
 
-func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string {
+func renderAtlasIndexSQL(dialect string, quote func(string) string, index *ast.IndexNode) string {
 	var b strings.Builder
 	if index.Unique {
 		b.WriteString("UNIQUE ")
@@ -4914,7 +5078,11 @@ func renderAtlasIndexSQL(quote func(string) string, index *ast.IndexNode) string
 		b.WriteString(strings.ToUpper(index.Type))
 		b.WriteString(" ")
 	}
-	fmt.Fprintf(&b, "INDEX %s (", quote(index.Name))
+	indexKeyword := "INDEX"
+	if index.Type == "" && (dialect == "mysql" || dialect == "mariadb") {
+		indexKeyword = "KEY"
+	}
+	fmt.Fprintf(&b, "%s %s (", indexKeyword, quote(index.Name))
 
 	parts := make([]string, 0, len(index.EffectiveParts()))
 	for _, part := range index.EffectiveParts() {
@@ -5046,6 +5214,18 @@ func atlasColumnType(dialect, typ string) string {
 	}
 	if dialect == "postgresql" && (normalized == "int" || normalized == "int4") {
 		return "integer"
+	}
+	if dialect == "mysql" || dialect == "mariadb" {
+		switch normalized {
+		case "bit":
+			return "bit(1)"
+		}
+		if base, _, ok := strings.Cut(normalized, "("); ok {
+			switch base {
+			case "bigint", "int", "integer", "mediumint", "smallint", "tinyint":
+				return base
+			}
+		}
 	}
 	return normalized
 }

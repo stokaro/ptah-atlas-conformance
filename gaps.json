@@ -2603,17 +2603,15 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 9 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-bit.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2689,6 +2687,22 @@
   },
   {
     "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: apply",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
+    "stage": "script-runtime",
+    "outcome": "gap",
+    "detail": "unsupported: apply",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/foreign-key-modify-action.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
@@ -2707,9 +2721,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-add-drop.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 8 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2748,7 +2761,7 @@
     "fixture": "internal/integration/testdata/mysql/index-unique.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: apply",
+    "detail": "unsupported: execsql",
     "issue": "stokaro/ptah#285"
   },
   {
