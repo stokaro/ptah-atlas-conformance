@@ -2169,6 +2169,25 @@ func TestTxtarScriptProbeExecutesPostgresColumnIntervalFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresColumnTimePrecisionFixture(t *testing.T) {
+	fixture := "column-time-precision.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesPostgresForeignKeyFixtures(t *testing.T) {
 	for _, fixture := range []string{"foreign-key.txtar", "foreign-key-action.txtar"} {
 		t.Run(fixture, func(t *testing.T) {

@@ -31,6 +31,7 @@ var (
 	mysqlUTF8MB4IntroducerRE   = regexp.MustCompile(`(?i)\b_utf8mb4'`)
 	postgresSimpleIndexExprRE  = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*\s*\*\s*\d+$`)
 	postgresHoursIntervalRE    = regexp.MustCompile(`^(\d+)\s+hours?$`)
+	postgresCurrentTimestampRE = regexp.MustCompile(`(?i)^CURRENT_TIMESTAMP(?:\((\d+)\))?$`)
 	flywayUndoMigrationRE      = regexp.MustCompile(`^U\d+\.sql$`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
@@ -4758,7 +4759,7 @@ func txtarPostgresApplyColumnDefaultSupported(column *ast.ColumnNode) bool {
 		return true
 	}
 	if column.Default.Expression != "" {
-		return false
+		return txtarPostgresApplyExpressionDefaultSupported(column)
 	}
 	switch txtarPostgresColumnType(column) {
 	case "character varying", "bpchar", "integer", "boolean":
@@ -4768,6 +4769,12 @@ func txtarPostgresApplyColumnDefaultSupported(column *ast.ColumnNode) bool {
 	default:
 		return false
 	}
+}
+
+func txtarPostgresApplyExpressionDefaultSupported(column *ast.ColumnNode) bool {
+	expr := strings.TrimSpace(column.Default.Expression)
+	return strings.HasPrefix(txtarPostgresColumnType(column), "timestamp") &&
+		postgresCurrentTimestampRE.MatchString(expr)
 }
 
 func txtarPostgresApplyColumnTypeSupported(columnType string) bool {
@@ -5925,6 +5932,14 @@ func txtarPostgresColumnType(column *ast.ColumnNode) string {
 		return "timestamp without time zone"
 	case strings.HasPrefix(normalized, "timestamp"):
 		return normalized + " without time zone"
+	case normalized == "time":
+		return "time without time zone"
+	case strings.HasPrefix(normalized, "time("):
+		return normalized + " without time zone"
+	case normalized == "timetz" || normalized == "timetz(6)":
+		return "time with time zone"
+	case strings.HasPrefix(normalized, "timetz("):
+		return "time" + strings.TrimPrefix(normalized, "timetz") + " with time zone"
 	case normalized == "second":
 		return "interval second"
 	case strings.HasPrefix(normalized, "second("):
