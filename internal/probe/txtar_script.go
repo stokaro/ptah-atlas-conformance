@@ -719,21 +719,59 @@ func runTxtarMigrateDiff(fx Fixture, runtime *txtarRuntime, fields []string, exp
 	switch {
 	case args.blocked:
 		return txtarCommandResult{unsupported: "atlas migrate diff"}, true
-	case expectedFailure && args.devURL == "":
+	case expectedFailure:
+		if result, ok := txtarMigrateDiffExpectedFailure(args); ok {
+			return result, true
+		}
+		return runTxtarMigrateDiffCreate(fx, runtime, args), true
+	default:
+		return runTxtarMigrateDiffCreate(fx, runtime, args), true
+	}
+}
+
+func txtarMigrateDiffExpectedFailure(args txtarMigrateDiffArgs) (txtarCommandResult, bool) {
+	switch {
+	case args.devURL == "":
 		return txtarCommandResult{
 			stderr: "Error: \"dev-url\" not set\n",
 			failed: true,
 			err:    fmt.Errorf("\"dev-url\" not set"),
 		}, true
-	case expectedFailure && len(args.to) == 0:
+	case len(args.to) == 0:
 		return txtarCommandResult{
 			stderr: "Error: \"to\" not set\n",
 			failed: true,
 			err:    fmt.Errorf("\"to\" not set"),
 		}, true
-	default:
-		return runTxtarMigrateDiffCreate(fx, runtime, args), true
 	}
+	schemes := txtarURLSchemes(args.to)
+	if len(schemes) <= 1 {
+		return txtarCommandResult{}, false
+	}
+	if len(slices.Compact(slices.Clone(schemes))) > 1 {
+		return txtarCommandResult{
+			stderr: "Error: got mixed --to url schemes\n",
+			failed: true,
+			err:    fmt.Errorf("got mixed --to url schemes"),
+		}, true
+	}
+	return txtarCommandResult{
+		stderr: fmt.Sprintf("Error: got multiple --to urls of scheme %q\n", schemes[0]),
+		failed: true,
+		err:    fmt.Errorf("got multiple --to urls of scheme %q", schemes[0]),
+	}, true
+}
+
+func txtarURLSchemes(urls []string) []string {
+	schemes := make([]string, 0, len(urls))
+	for _, url := range urls {
+		scheme, _, ok := strings.Cut(url, "://")
+		if ok {
+			schemes = append(schemes, scheme)
+		}
+	}
+	slices.Sort(schemes)
+	return schemes
 }
 
 func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
@@ -1182,11 +1220,15 @@ func txtarCleanAtlasPath(value string) string {
 }
 
 func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigrateDiffArgs) txtarCommandResult {
-	if txtarFixtureFamily(fx) != "sqlite" || args.devURL == "" || len(args.to) != 1 || args.name != "" {
+	if txtarFixtureFamily(fx) != "sqlite" || args.devURL == "" || len(args.to) == 0 || args.name != "" {
 		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
 
-	sql, err := renderTxtarMigrateDiffSQL(fx, runtime, args.to[0])
+	if !txtarMigrateDiffSupportedTargetSchemes(args.to) {
+		return txtarCommandResult{unsupported: "atlas migrate diff"}
+	}
+
+	sql, err := renderTxtarMigrateDiffSQLTargets(fx, runtime, args.to)
 	if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
 		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
@@ -1206,6 +1248,47 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		return txtarCommandResult{err: err}
 	}
 	return txtarCommandResult{}
+}
+
+func txtarMigrateDiffSupportedTargetSchemes(targets []string) bool {
+	schemes := txtarURLSchemes(targets)
+	schemes = slices.Compact(schemes)
+	return len(schemes) == 1 && schemes[0] == "file"
+}
+
+func renderTxtarMigrateDiffSQLTargets(fx Fixture, runtime *txtarRuntime, targets []string) (string, error) {
+	files, err := txtarMigrateDiffTargetFiles(runtime, targets)
+	if err != nil {
+		return "", err
+	}
+	if len(files) == 1 {
+		return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+files[0])
+	}
+	synthetic := ".ptah/migrate_diff_source.hcl"
+	runtime.files[synthetic] = txtarJoinHCLSourceFiles(runtime, files, nil)
+	runtime.addParentDirs(synthetic)
+	return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+synthetic)
+}
+
+func txtarMigrateDiffTargetFiles(runtime *txtarRuntime, targets []string) ([]string, error) {
+	var files []string
+	for _, target := range targets {
+		if !strings.HasPrefix(target, "file://") {
+			return nil, errUnsupportedInspectSQL
+		}
+		name := txtarFileURLPath(target)
+		if _, ok := runtime.files[name]; ok {
+			files = append(files, name)
+			continue
+		}
+		sourceFiles, ok := txtarAtlasHCLPathFiles(runtime, name)
+		if !ok {
+			return nil, fmt.Errorf("%w: file %q not found in txtar archive", errUnsupportedInspectSQL, name)
+		}
+		files = append(files, sourceFiles...)
+	}
+	slices.Sort(files)
+	return slices.Compact(files), nil
 }
 
 func renderTxtarMigrateDiffSQL(fx Fixture, runtime *txtarRuntime, target string) (string, error) {

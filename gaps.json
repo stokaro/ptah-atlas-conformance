@@ -3317,33 +3317,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: atlas migrate diff",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 5 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
