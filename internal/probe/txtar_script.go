@@ -438,6 +438,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarMigrateDiff(fields, expectedFailure); ok {
 		return result
 	}
+	if result, ok := runTxtarMigrateSet(runtime, fields); ok {
+		return result
+	}
 	if result, ok := runTxtarMigrateStatus(runtime, fields); ok {
 		return result
 	}
@@ -727,6 +730,57 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 		}
 	}
 	return out
+}
+
+func runTxtarMigrateSet(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "set" {
+		return txtarCommandResult{}, false
+	}
+
+	args := fields[3:]
+	dir := txtarMigrateCommandDir(args)
+	if _, ok := runtime.files[path.Join(dir, migratesum.AtlasFileName)]; !ok {
+		return txtarCommandResult{
+			stdout: "You have a checksum error in your migration directory.\n",
+			stderr: "Error: checksum file not found\n",
+			failed: true,
+			err:    fmt.Errorf("checksum file not found"),
+		}, true
+	}
+
+	revisions := txtarMigrateSetRevisions(args)
+	if len(revisions) != 1 {
+		return txtarCommandResult{
+			stderr: fmt.Sprintf("Error: accepts 1 arg(s), received %d\n", len(revisions)),
+			failed: true,
+			err:    fmt.Errorf("accepts 1 arg(s), received %d", len(revisions)),
+		}, true
+	}
+
+	return txtarCommandResult{unsupported: "atlas migrate set"}, true
+}
+
+func txtarMigrateSetRevisions(args []string) []string {
+	var revisions []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch arg {
+		case "--url", "--dir":
+			if i+1 < len(args) {
+				i++
+			}
+		default:
+			switch {
+			case strings.HasPrefix(arg, "--url="), strings.HasPrefix(arg, "--dir="):
+				continue
+			case strings.HasPrefix(arg, "-"):
+				continue
+			default:
+				revisions = append(revisions, arg)
+			}
+		}
+	}
+	return revisions
 }
 
 func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {

@@ -1795,6 +1795,68 @@ CREATE TABLE users (id int);
 	}
 }
 
+func TestTxtarScriptProbeChecksMigrateSetValidationFailures(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas migrate set 0
+stderr 'checksum file not found'
+stdout 'checksum error'
+
+atlas migrate hash
+
+! atlas migrate set --url URL
+stderr 'accepts 1 arg\(s\), received 0'
+
+! atlas migrate set --url URL foo bar
+stderr 'accepts 1 arg\(s\), received 2'
+
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsMigrateSetRevisionUpdateAsGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+atlas migrate set 1 --url URL
+
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate set") {
+		t.Fatalf("detail missing migrate set gap: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeExecutesMigrateValidate(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
