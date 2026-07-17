@@ -29,6 +29,7 @@ var (
 	mysqlIntegerDisplayWidthRE = regexp.MustCompile(`\b(bigint|int|integer|mediumint|smallint|tinyint)\(\d+\)`)
 	mysqlDefaultCharsetRE      = regexp.MustCompile(`(?m)\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
 	mysqlUTF8MB4IntroducerRE   = regexp.MustCompile(`(?i)\b_utf8mb4'`)
+	postgresSimpleIndexExprRE  = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*\s*\*\s*\d+$`)
 	flywayUndoMigrationRE      = regexp.MustCompile(`^U\d+\.sql$`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
@@ -4736,7 +4737,7 @@ func txtarPostgresApplyIndexSupported(index *ast.IndexNode) bool {
 		return false
 	}
 	for _, part := range index.EffectiveParts() {
-		if part.Expr != "" {
+		if !txtarPostgresApplyIndexPartSupported(part) {
 			return false
 		}
 	}
@@ -4746,6 +4747,13 @@ func txtarPostgresApplyIndexSupported(index *ast.IndexNode) bool {
 	default:
 		return false
 	}
+}
+
+func txtarPostgresApplyIndexPartSupported(part ast.IndexPart) bool {
+	if part.Expr == "" {
+		return true
+	}
+	return postgresSimpleIndexExprRE.MatchString(strings.TrimSpace(part.Expr))
 }
 
 func txtarSQLiteVirtualApplyStateSupported(statements []ast.Node) bool {
@@ -5298,7 +5306,7 @@ func runTxtarSynced(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 		return txtarCommandResult{}, false
 	}
 	switch txtarFixtureFamily(fx) {
-	case "sqlite", "mysql", "mariadb":
+	case "sqlite", "mysql", "mariadb", "postgres":
 	default:
 		return txtarCommandResult{unsupported: "synced"}, true
 	}
