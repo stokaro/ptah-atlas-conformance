@@ -2964,14 +2964,6 @@
     "fixture": "internal/integration/testdata/postgres/cli-migrate-status.txtar",
     "stage": "script-runtime",
     "outcome": "gap",
-    "detail": "unsupported: atlas migrate status",
-    "issue": "stokaro/ptah#285"
-  },
-  {
-    "probe": "txtar-script",
-    "fixture": "internal/integration/testdata/postgres/cli-migrate-status.txtar",
-    "stage": "script-runtime",
-    "outcome": "gap",
     "detail": "unsupported: atlas migrate apply",
     "issue": "stokaro/ptah#285"
   },
