@@ -2023,6 +2023,150 @@ schema "main" {
 	}
 }
 
+func TestTxtarScriptProbeExecutesSQLiteMigrateApplyAndCmpShow(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `! atlas migrate apply
+stderr 'checksum file not found'
+stdout 'atlas migrate hash'
+atlas migrate hash
+atlas migrate apply --url URL
+stdout 'Migrating to version 2 \(2 migrations in total\):'
+stdout '-- migrating version 1'
+stdout '-- 2 sql statements'
+cmpshow users users.sql
+cmpshow pets pets.sql
+atlas schema inspect --url URL --exclude atlas_schema_revisions --exclude users --exclude pets
+cmp stdout empty.hcl
+atlas migrate apply --url URL 1
+stdout 'No migration files to execute'
+clearSchema
+atlas migrate apply --url URL 1
+stdout 'Migrating to version 1 \(1 migrations in total\):'
+cmpshow users users.sql
+atlas migrate apply --url URL 1
+stdout 'Migrating to version 2 from 1 \(1 migrations in total\):'
+cmpshow pets pets.sql
+
+-- migrations/1_first.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (
+  `+"`"+`id`+"`"+` integer NOT NULL,
+  `+"`"+`age`+"`"+` integer NOT NULL,
+  `+"`"+`name`+"`"+` TEXT NOT NULL,
+  PRIMARY KEY (`+"`"+`id`+"`"+`)
+);
+
+-- migrations/2_second.sql --
+CREATE TABLE `+"`"+`pets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, `+"`"+`name`+"`"+` TEXT NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`));
+
+-- empty.hcl --
+schema "main" {
+}
+-- users.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (
+  `+"`"+`id`+"`"+` integer NOT NULL,
+  `+"`"+`age`+"`"+` integer NOT NULL,
+  `+"`"+`name`+"`"+` TEXT NOT NULL,
+  PRIMARY KEY (`+"`"+`id`+"`"+`)
+)
+
+-- pets.sql --
+CREATE TABLE `+"`"+`pets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, `+"`"+`name`+"`"+` TEXT NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`))
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-migrate-apply.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesSQLiteMigrateApplyTxModes(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+cp broken.sql migrations/3_third.sql
+! atlas migrate apply --url URL --tx-mode invalid
+stderr 'unknown tx-mode "invalid"'
+! atlas migrate apply --url URL --tx-mode all
+stderr 'executing statement "THIS IS A FAILING STATEMENT;" from version "3"'
+atlas schema inspect --url URL --exclude atlas_schema_revisions
+cmp stdout empty.hcl
+atlas migrate apply --url URL 1
+cmpshow users users.sql
+! atlas migrate apply --url URL --tx-mode all
+stderr 'executing statement "THIS IS A FAILING STATEMENT;" from version "3"'
+atlas schema inspect --url URL --exclude atlas_schema_revisions --exclude users
+cmp stdout empty.hcl
+clearSchema
+cp broken.sql migrations/3_third.sql
+atlas migrate hash
+! atlas migrate apply --url URL --tx-mode file
+stderr 'executing statement "THIS IS A FAILING STATEMENT;" from version "3"'
+cmpshow users users.sql
+cmpshow pets pets.sql
+atlas schema inspect --url URL --exclude atlas_schema_revisions --exclude users --exclude pets
+cmp stdout empty.hcl
+clearSchema
+cp broken.sql migrations/3_third.sql
+atlas migrate hash
+! atlas migrate apply --url URL --tx-mode none
+stderr 'executing statement "THIS IS A FAILING STATEMENT;" from version "3"'
+cmpshow users users.sql
+cmpshow pets pets.sql
+atlas schema inspect --url URL --exclude atlas_schema_revisions --exclude users --exclude pets
+cmp stdout broken.hcl
+
+-- migrations/1_first.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`));
+-- migrations/2_second.sql --
+CREATE TABLE `+"`"+`pets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`));
+-- broken.sql --
+CREATE TABLE `+"`"+`broken`+"`"+` (`+"`"+`id`+"`"+` integer);
+THIS IS A FAILING STATEMENT;
+
+-- empty.hcl --
+schema "main" {
+}
+-- broken.hcl --
+table "broken" {
+  schema = schema.main
+  column "id" {
+    null = true
+    type = integer
+  }
+}
+schema "main" {
+}
+-- users.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`))
+-- pets.sql --
+CREATE TABLE `+"`"+`pets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY (`+"`"+`id`+"`"+`))
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-migrate-apply.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesApplyDBURLInspectWithExcludes(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -2688,9 +2832,12 @@ schema "main" {}
 func TestTxtarScriptProbeDoesNotSkipDBAssertionsAfterDryRun(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `atlas migrate apply --url URL --dry-run
+	writeTestFile(t, path, `atlas migrate hash
+atlas migrate apply --url URL --dry-run
 synced 1.hcl
 
+-- migrations/1_first.sql --
+CREATE TABLE users (id integer);
 -- 1.hcl --
 schema "main" {}
 `)
@@ -2702,10 +2849,9 @@ schema "main" {}
 		Files: []string{path},
 	})
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 results, got %d: %#v", len(results), results)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	assertResultDetailContains(t, results, "unsupported: atlas migrate apply")
 	assertResultDetailContains(t, results, "unsupported: synced")
 }
 
