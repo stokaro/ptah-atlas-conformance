@@ -730,6 +730,7 @@ type txtarMigrateDiffArgs struct {
 	dirSet  bool
 	env     string
 	name    string
+	indent  string
 	blocked bool
 }
 
@@ -831,6 +832,11 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 			}
 		case "--format":
 			if i+1 < len(args) {
+				var ok bool
+				out.indent, ok = txtarMigrateDiffSQLFormatIndent(args[i+1])
+				if !ok {
+					out.blocked = true
+				}
 				i++
 			}
 		case "--env":
@@ -856,6 +862,11 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 				out.dir = txtarFileURLPath(strings.TrimPrefix(arg, "--dir="))
 				out.dirSet = true
 			case strings.HasPrefix(arg, "--format="):
+				var ok bool
+				out.indent, ok = txtarMigrateDiffSQLFormatIndent(strings.TrimPrefix(arg, "--format="))
+				if !ok {
+					out.blocked = true
+				}
 				continue
 			case strings.HasPrefix(arg, "--env="):
 				out.env = strings.TrimPrefix(arg, "--env=")
@@ -872,6 +883,17 @@ func txtarParseMigrateDiffArgs(args []string) txtarMigrateDiffArgs {
 		}
 	}
 	return out
+}
+
+func txtarMigrateDiffSQLFormatIndent(format string) (string, bool) {
+	switch format {
+	case "{{ sql . }}":
+		return "", true
+	case `{{ sql . "  " }}`:
+		return "  ", true
+	default:
+		return "", false
+	}
 }
 
 func txtarResolveMigrateDiffEnv(fx Fixture, runtime *txtarRuntime, args txtarMigrateDiffArgs) (txtarMigrateDiffArgs, bool) {
@@ -1258,7 +1280,7 @@ func txtarCleanAtlasPath(value string) string {
 }
 
 func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigrateDiffArgs) txtarCommandResult {
-	if txtarFixtureFamily(fx) != "sqlite" || args.devURL == "" || len(args.to) == 0 || args.name != "" {
+	if !txtarMigrateDiffSupportsInitialCreate(txtarFixtureFamily(fx)) || args.devURL == "" || len(args.to) == 0 {
 		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
 
@@ -1266,7 +1288,7 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
 
-	sql, err := renderTxtarMigrateDiffSQLTargets(fx, runtime, args.to)
+	sql, err := renderTxtarMigrateDiffSQLTargets(fx, runtime, args.to, args.indent)
 	if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
 		return txtarCommandResult{unsupported: "atlas migrate diff"}
 	}
@@ -1278,8 +1300,14 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 			stdout: "The migration directory is synced with the desired state, no changes to be made\n",
 		}
 	}
+	if len(txtarMigrationSQLFilesInDir(runtime, args.dir)) > 0 {
+		return txtarCommandResult{unsupported: "atlas migrate diff"}
+	}
 
 	name := txtarNextMigrationFile(runtime, args.dir)
+	if args.name != "" {
+		name = txtarNextNamedMigrationFile(runtime, args.dir, args.name)
+	}
 	runtime.files[name] = sql
 	runtime.addParentDirs(name)
 	if err := runtime.refreshMigrationHash(args.dir); err != nil {
@@ -1288,24 +1316,33 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 	return txtarCommandResult{}
 }
 
+func txtarMigrateDiffSupportsInitialCreate(family string) bool {
+	switch family {
+	case "mysql", "sqlite":
+		return true
+	default:
+		return false
+	}
+}
+
 func txtarMigrateDiffSupportedTargetSchemes(targets []string) bool {
 	schemes := txtarURLSchemes(targets)
 	schemes = slices.Compact(schemes)
 	return len(schemes) == 1 && schemes[0] == "file"
 }
 
-func renderTxtarMigrateDiffSQLTargets(fx Fixture, runtime *txtarRuntime, targets []string) (string, error) {
+func renderTxtarMigrateDiffSQLTargets(fx Fixture, runtime *txtarRuntime, targets []string, indent string) (string, error) {
 	files, err := txtarMigrateDiffTargetFiles(runtime, targets)
 	if err != nil {
 		return "", err
 	}
 	if len(files) == 1 {
-		return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+files[0])
+		return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+files[0], indent)
 	}
 	synthetic := ".ptah/migrate_diff_source.hcl"
 	runtime.files[synthetic] = txtarJoinHCLSourceFiles(runtime, files, nil)
 	runtime.addParentDirs(synthetic)
-	return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+synthetic)
+	return renderTxtarMigrateDiffSQL(fx, runtime, "file://"+synthetic, indent)
 }
 
 func txtarMigrateDiffTargetFiles(runtime *txtarRuntime, targets []string) ([]string, error) {
@@ -1329,7 +1366,7 @@ func txtarMigrateDiffTargetFiles(runtime *txtarRuntime, targets []string) ([]str
 	return slices.Compact(files), nil
 }
 
-func renderTxtarMigrateDiffSQL(fx Fixture, runtime *txtarRuntime, target string) (string, error) {
+func renderTxtarMigrateDiffSQL(fx Fixture, runtime *txtarRuntime, target string, indent string) (string, error) {
 	const filePrefix = "file://"
 	if !strings.HasPrefix(target, filePrefix) {
 		return "", errUnsupportedInspectSQL
@@ -1355,14 +1392,23 @@ func renderTxtarMigrateDiffSQL(fx Fixture, runtime *txtarRuntime, target string)
 	if err != nil {
 		return "", err
 	}
-	if txtarFixtureDialect(fx) == "sqlite" {
+	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
 		statements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), statements)
 	}
-	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), statements, "")
+	out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), statements, indent)
 	if err != nil {
 		return "", fmt.Errorf("%w: render migrate diff SQL: %v", errUnsupportedInspectSQL, err)
 	}
 	return out, nil
+}
+
+func txtarMigrateDiffShouldUnqualifyTables(dialect string) bool {
+	switch dialect {
+	case "mariadb", "mysql", "sqlite":
+		return true
+	default:
+		return false
+	}
 }
 
 func atlasUnqualifyTableStatements(schemaName string, statements []ast.Node) []ast.Node {
@@ -3722,7 +3768,7 @@ func runTxtarSchemaDiff(fx Fixture, runtime *txtarRuntime, fields []string) (txt
 		return txtarCommandResult{unsupported: "atlas schema diff"}, true
 	}
 	dir := txtarFileURLPath(args.from)
-	targetSQL, err := renderTxtarMigrateDiffSQL(fx, runtime, args.to)
+	targetSQL, err := renderTxtarMigrateDiffSQL(fx, runtime, args.to, "")
 	if errors.Is(err, errUnsupportedInspectSQL) || errors.Is(err, errUnsupportedInspectHCL) {
 		return txtarCommandResult{unsupported: "atlas schema diff"}, true
 	}
