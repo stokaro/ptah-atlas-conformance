@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path"
 	"path/filepath"
@@ -229,9 +230,10 @@ type txtarCommandResult struct {
 }
 
 type txtarRuntime struct {
-	files        map[string]string
-	dirs         map[string]bool
-	dbStatements []ast.Node
+	files             map[string]string
+	dirs              map[string]bool
+	hasVirtualDBState bool
+	dbStatements      []ast.Node
 }
 
 func newTxtarRuntime(data string) *txtarRuntime {
@@ -445,6 +447,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarMigrateStatus(runtime, fields); ok {
 		return result
 	}
+	if result, ok := runTxtarApply(fx, runtime, fields); ok {
+		return result
+	}
 	if result, ok := runTxtarExecSQL(fx, runtime, fields); ok {
 		return result
 	}
@@ -460,7 +465,7 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 		}
 		return txtarCommandResult{unsupported: line}
 	}
-	return runTxtarSchemaInspect(fx, runtime.files, fields)
+	return runTxtarSchemaInspect(fx, runtime, fields)
 }
 
 func txtarCommandFields(line string) []string {
@@ -813,6 +818,53 @@ func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommand
 	return txtarCommandResult{stdout: stdout}, true
 }
 
+func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 1 || fields[0] != "apply" {
+		return txtarCommandResult{}, false
+	}
+	if !txtarFixtureSupportsVirtualApply(fx) {
+		return txtarCommandResult{unsupported: "apply"}, true
+	}
+	if len(fields) != 2 {
+		return txtarCommandResult{unsupported: "apply"}, true
+	}
+	data, ok := runtime.files[fields[1]]
+	if !ok {
+		return txtarCommandResult{
+			failed: true,
+			err:    fmt.Errorf("apply %s: %s missing", fields[1], fields[1]),
+		}, true
+	}
+	statements, err := txtarHCLStatements(fx, fields[1], data)
+	if err != nil {
+		return txtarCommandResult{unsupported: "apply"}, true
+	}
+	runtime.hasVirtualDBState = true
+	runtime.dbStatements = statements
+	return txtarCommandResult{}, true
+}
+
+func txtarFixtureSupportsVirtualApply(fx Fixture) bool {
+	return path.Base(fx.Name) == "cli-inspect.txtar"
+}
+
+func txtarHCLStatements(fx Fixture, name, data string) ([]ast.Node, error) {
+	data = txtarNormalizeAtlasHCL(fx, data)
+	db, err := atlashcl.Parse([]byte(data), name)
+	if err != nil {
+		return nil, fmt.Errorf("%w: parse HCL file: %v", errUnsupportedInspectHCL, err)
+	}
+	list := fromschema.FromDatabase(*db, txtarFixtureDialect(fx))
+	return list.Statements, nil
+}
+
+func txtarNormalizeAtlasHCL(fx Fixture, data string) string {
+	schemaName := txtarFixtureSchemaName(fx)
+	data = strings.ReplaceAll(data, "schema.$db", "schema."+schemaName)
+	data = strings.ReplaceAll(data, `schema "$db"`, fmt.Sprintf("schema %q", schemaName))
+	return data
+}
+
 func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
 	if len(fields) < 1 || fields[0] != "execsql" {
 		return txtarCommandResult{}, false
@@ -828,6 +880,7 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 	if err != nil {
 		return txtarCommandResult{unsupported: "execsql"}, true
 	}
+	runtime.hasVirtualDBState = true
 	runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
 	return txtarCommandResult{}, true
 }
@@ -839,7 +892,7 @@ func runTxtarCmpHCL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 	if len(fields) != 2 {
 		return txtarCommandResult{unsupported: "cmphcl"}, true
 	}
-	if len(runtime.dbStatements) == 0 {
+	if !runtime.hasVirtualDBState {
 		return txtarCommandResult{unsupported: "cmphcl"}, true
 	}
 
@@ -1337,9 +1390,10 @@ func nonFlagArgs(args []string) []string {
 	return out
 }
 
-func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string) txtarCommandResult {
+func runTxtarSchemaInspect(fx Fixture, runtime *txtarRuntime, fields []string) txtarCommandResult {
 	var sourceURL, devURL, format, redirect string
 	hasEnv := false
+	var excludes []string
 	for i := 3; i < len(fields); i++ {
 		switch fields[i] {
 		case "-u", "--url":
@@ -1355,6 +1409,11 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 		case "--format":
 			if i+1 < len(fields) {
 				format = fields[i+1]
+				i++
+			}
+		case "--exclude":
+			if i+1 < len(fields) {
+				excludes = append(excludes, fields[i+1])
 				i++
 			}
 		case ">":
@@ -1375,6 +1434,8 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 				sourceURL = strings.TrimPrefix(fields[i], "--url=")
 			case strings.HasPrefix(fields[i], "--env="):
 				hasEnv = true
+			case strings.HasPrefix(fields[i], "--exclude="):
+				excludes = append(excludes, strings.TrimPrefix(fields[i], "--exclude="))
 			}
 		}
 	}
@@ -1387,7 +1448,24 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 		}
 	}
 	if !strings.HasPrefix(sourceURL, filePrefix) {
-		return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
+		if !runtime.hasVirtualDBState {
+			return txtarCommandResult{unsupported: "atlas schema inspect db-url"}
+		}
+		output, err := renderTxtarDBStateInspectHCL(fx, runtime.dbStatements, excludes, format)
+		if errors.Is(err, errUnsupportedInspectHCL) {
+			return txtarCommandResult{unsupported: "atlas schema inspect hcl"}
+		}
+		if errors.Is(err, errUnsupportedInspectSQL) {
+			return txtarCommandResult{unsupported: "atlas schema inspect sql"}
+		}
+		if err != nil {
+			return txtarCommandResult{err: err}
+		}
+		if redirect != "" {
+			runtime.files[redirect] = output
+			return txtarCommandResult{}
+		}
+		return txtarCommandResult{stdout: output}
 	}
 	if devURL == "" {
 		return txtarCommandResult{
@@ -1397,7 +1475,7 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 		}
 	}
 	name := strings.TrimPrefix(sourceURL, filePrefix)
-	sql, ok := files[name]
+	sql, ok := runtime.files[name]
 	if !ok {
 		return txtarCommandResult{err: fmt.Errorf("file %q not found in txtar archive", name)}
 	}
@@ -1422,7 +1500,7 @@ func runTxtarSchemaInspect(fx Fixture, files map[string]string, fields []string)
 		return txtarCommandResult{err: err}
 	}
 	if redirect != "" {
-		files[redirect] = output
+		runtime.files[redirect] = output
 		return txtarCommandResult{}
 	}
 	return txtarCommandResult{stdout: output}
@@ -1451,16 +1529,132 @@ func renderTxtarHCLFromSQL(fx Fixture, sql string) (string, error) {
 }
 
 func renderTxtarHCLFromAtlasHCL(fx Fixture, name, data string) (string, error) {
-	db, err := atlashcl.Parse([]byte(data), name)
+	statements, err := txtarHCLStatements(fx, name, data)
 	if err != nil {
-		return "", fmt.Errorf("%w: parse inspect HCL file: %v", errUnsupportedInspectHCL, err)
+		return "", err
 	}
-	list := fromschema.FromDatabase(*db, txtarFixtureDialect(fx))
-	out, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), txtarFixtureSchemaName(fx), list.Statements)
+	out, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), txtarFixtureSchemaName(fx), statements)
 	if err != nil {
 		return "", fmt.Errorf("render inspect HCL: %w", err)
 	}
 	return out, nil
+}
+
+func renderTxtarDBStateInspectHCL(fx Fixture, statements []ast.Node, excludes []string, format string) (string, error) {
+	if format != "" {
+		return "", errUnsupportedInspectHCL
+	}
+	filtered, err := atlasInspectStatementsWithExcludes(txtarFixtureSchemaName(fx), statements, excludes)
+	if err != nil {
+		return "", err
+	}
+	out, err := renderAtlasInspectHCL(txtarFixtureDialect(fx), txtarFixtureSchemaName(fx), filtered)
+	if err != nil {
+		return "", fmt.Errorf("render inspect HCL: %w", err)
+	}
+	return out, nil
+}
+
+func atlasInspectStatementsWithExcludes(schemaName string, statements []ast.Node, excludes []string) ([]ast.Node, error) {
+	if len(excludes) == 0 {
+		return statements, nil
+	}
+	out := make([]ast.Node, 0, len(statements))
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			out = append(out, stmt)
+			continue
+		}
+		filtered, keep, err := atlasInspectTableWithExcludes(schemaName, table, excludes)
+		if err != nil {
+			return nil, err
+		}
+		if keep {
+			out = append(out, filtered)
+		}
+	}
+	return out, nil
+}
+
+func atlasInspectTableWithExcludes(
+	schemaName string,
+	table *ast.CreateTableNode,
+	excludes []string,
+) (*ast.CreateTableNode, bool, error) {
+	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
+	for _, exclude := range excludes {
+		matches, err := path.Match(exclude, tableName)
+		if err != nil {
+			return nil, false, fmt.Errorf("%w: invalid exclude %q: %v", errUnsupportedInspectHCL, exclude, err)
+		}
+		if matches {
+			return nil, false, nil
+		}
+	}
+
+	keptColumns := map[string]bool{}
+	columns := make([]*ast.ColumnNode, 0, len(table.Columns))
+	for _, column := range table.Columns {
+		excluded, err := atlasInspectColumnExcluded(tableName, column.Name, excludes)
+		if err != nil {
+			return nil, false, err
+		}
+		if excluded {
+			continue
+		}
+		keptColumns[column.Name] = true
+		columnCopy := *column
+		columns = append(columns, &columnCopy)
+	}
+
+	tableCopy := *table
+	tableCopy.Columns = columns
+	tableCopy.Constraints = atlasInspectConstraintsForColumns(table.Constraints, keptColumns)
+	tableCopy.Options = maps.Clone(table.Options)
+	return &tableCopy, true, nil
+}
+
+func atlasInspectColumnExcluded(tableName, columnName string, excludes []string) (bool, error) {
+	qualified := tableName + "." + columnName
+	for _, exclude := range excludes {
+		matches, err := path.Match(exclude, qualified)
+		if err != nil {
+			return false, fmt.Errorf("%w: invalid exclude %q: %v", errUnsupportedInspectHCL, exclude, err)
+		}
+		if matches {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func atlasInspectConstraintsForColumns(constraints []*ast.ConstraintNode, keptColumns map[string]bool) []*ast.ConstraintNode {
+	out := make([]*ast.ConstraintNode, 0, len(constraints))
+	for _, constraint := range constraints {
+		if !atlasInspectConstraintColumnsKept(constraint, keptColumns) {
+			continue
+		}
+		constraintCopy := *constraint
+		constraintCopy.Columns = slices.Clone(constraint.Columns)
+		constraintCopy.ColumnParts = slices.Clone(constraint.ColumnParts)
+		out = append(out, &constraintCopy)
+	}
+	return out
+}
+
+func atlasInspectConstraintColumnsKept(constraint *ast.ConstraintNode, keptColumns map[string]bool) bool {
+	for _, column := range constraint.Columns {
+		if !keptColumns[column] {
+			return false
+		}
+	}
+	for _, column := range constraint.ColumnParts {
+		if !keptColumns[column.Name] {
+			return false
+		}
+	}
+	return true
 }
 
 func renderTxtarSQL(fx Fixture, sql string, indent string) (string, error) {
@@ -2265,7 +2459,7 @@ func atlasColumnType(dialect, typ string) string {
 	if dialect == "sqlite" && normalized == "" {
 		return "blob"
 	}
-	if dialect == "postgresql" && normalized == "int" {
+	if dialect == "postgresql" && (normalized == "int" || normalized == "int4") {
 		return "integer"
 	}
 	return normalized
