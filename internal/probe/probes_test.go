@@ -1933,6 +1933,70 @@ func TestTxtarScriptProbeExecutesMySQLMigrateDiffModeNormalizedFixture(t *testin
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLIndexUniqueFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "mysql/index-unique.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "mysql", "index-unique.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarParseInsertRows(t *testing.T) {
+	tableName, rows, ok := txtarParseInsertRows("INSERT INTO $db.t (c, d) VALUES (1, 1), (1, 2), (1, 3)")
+	if !ok {
+		t.Fatal("expected INSERT statement to parse")
+	}
+	if tableName != "t" {
+		t.Fatalf("table name = %q, want %q", tableName, "t")
+	}
+	if len(rows) != 3 {
+		t.Fatalf("row count = %d, want 3", len(rows))
+	}
+	if rows[0]["c"] != "1" || rows[1]["d"] != "2" || rows[2]["d"] != "3" {
+		t.Fatalf("unexpected rows: %#v", rows)
+	}
+	if _, _, ok := txtarParseInsertRows(`CREATE USER IF NOT EXISTS "a8m"@"%" IDENTIFIED BY "&pass?"`); ok {
+		t.Fatal("expected unsupported DDL to stay unsupported")
+	}
+}
+
+func TestTxtarExpectedApplyFailureDetectsMySQLDuplicateUniqueIndex(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/index-unique.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fx := Fixture{Name: "mysql/index-unique.txtar"}
+	runtime := newTxtarRuntime(string(data))
+	current, err := txtarHCLStatements(fx, "1.hcl", runtime.files["1.hcl"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	next, err := txtarHCLStatements(fx, "2.fail.hcl", runtime.files["2.fail.hcl"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	tableName, rows, ok := txtarParseInsertRows("INSERT INTO $db.t (c, d) VALUES (1, 1), (1, 2), (1, 3)")
+	if !ok {
+		t.Fatal("expected INSERT statement to parse")
+	}
+	got := txtarExpectedApplyFailure(fx, current, next, map[string][]txtarVirtualRow{tableName: rows})
+	const want = "Error 1062: Duplicate entry '1' for key 'c'"
+	if got != want {
+		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
 func TestTxtarParseGeneratedDropIndexAlterStatement(t *testing.T) {
 	node, ok := txtarParseGeneratedDropIndexAlterStatement("ALTER TABLE `tbl` DROP INDEX `u_ref_id`")
 	if !ok {
@@ -3830,7 +3894,7 @@ func TestTxtarExpectedApplyFailureDetectsMySQLForeignKeySetNullOnNotNullColumn(t
 		t.Fatal(err)
 	}
 
-	got := txtarExpectedApplyFailure(nil, statements)
+	got := txtarExpectedApplyFailure(fx, nil, statements, nil)
 	const want = `foreign key constraint was "author_id" SET NULL, but column "author_id" is NOT NULL`
 	if got != want {
 		t.Fatalf("expected %q, got %q", want, got)

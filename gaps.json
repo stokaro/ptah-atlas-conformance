@@ -2555,9 +2555,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-unique.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: execsql",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
