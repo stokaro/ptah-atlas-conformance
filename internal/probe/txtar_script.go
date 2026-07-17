@@ -2697,7 +2697,7 @@ func txtarMySQLSchemasSupported(dialect string, statements []ast.Node) bool {
 		if schema.Charset != "" && !atlasMySQLSchemaCharsetSupported(schema.Charset, defaults.charset) {
 			return false
 		}
-		if schema.Collate != "" && !atlasMySQLSchemaCollateSupported(schema.Collate, defaults.collate, statements) {
+		if schema.Collate != "" && !atlasMySQLSchemaCollateSupported(schema.Collate, defaults.collate) {
 			return false
 		}
 	}
@@ -2708,26 +2708,11 @@ func atlasMySQLSchemaCharsetSupported(charset, defaultCharset string) bool {
 	return strings.EqualFold(charset, defaultCharset)
 }
 
-func atlasMySQLSchemaCollateSupported(collate, defaultCollate string, statements []ast.Node) bool {
+func atlasMySQLSchemaCollateSupported(collate, defaultCollate string) bool {
 	if strings.EqualFold(collate, defaultCollate) {
 		return true
 	}
-	return strings.EqualFold(collate, "utf8mb4_general_ci") && !atlasMySQLStatementsHaveCollatableColumns(statements)
-}
-
-func atlasMySQLStatementsHaveCollatableColumns(statements []ast.Node) bool {
-	for _, stmt := range statements {
-		table, ok := stmt.(*ast.CreateTableNode)
-		if !ok {
-			continue
-		}
-		for _, column := range table.Columns {
-			if atlasMySQLColumnTypeUsesSchemaCollation(column.Type) {
-				return true
-			}
-		}
-	}
-	return false
+	return strings.EqualFold(collate, "utf8mb4_general_ci")
 }
 
 func atlasMySQLColumnTypeUsesSchemaCollation(columnType string) bool {
@@ -3214,6 +3199,8 @@ func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, 
 
 func txtarTablesShowSQL(fx Fixture, statements []ast.Node, names []string) (string, bool) {
 	schemaName := txtarFixtureSchemaName(fx)
+	dialect := txtarFixtureDialect(fx)
+	schemaAttrs := atlasSchemaAttrsFromStatements(dialect, schemaName, statements)
 	wanted := map[string]bool{}
 	for _, name := range names {
 		wanted[name] = true
@@ -3243,9 +3230,10 @@ func txtarTablesShowSQL(fx Fixture, statements []ast.Node, names []string) (stri
 		return "", false
 	}
 	filtered = atlasUnqualifyTableStatements(schemaName, filtered)
-	out, err := renderAtlasInspectSQLWithOptions(txtarFixtureDialect(fx), filtered, "", atlasInspectSQLOptions{
+	out, err := renderAtlasInspectSQLWithOptions(dialect, filtered, "", atlasInspectSQLOptions{
 		mariaDBJSONStorage: true,
 		showDefaultNull:    true,
+		schemaAttrs:        schemaAttrs,
 	})
 	if err != nil {
 		return "", false
@@ -5356,6 +5344,7 @@ func renderAtlasInspectSQL(dialect string, statements []ast.Node, indent string)
 type atlasInspectSQLOptions struct {
 	mariaDBJSONStorage bool
 	showDefaultNull    bool
+	schemaAttrs        atlasSchemaAttrs
 }
 
 func renderAtlasInspectSQLWithOptions(
@@ -5366,11 +5355,16 @@ func renderAtlasInspectSQLWithOptions(
 ) (string, error) {
 	tableNames := atlasTableNames(statements)
 	indexesByTable := atlasIndexesByTable(dialect, statements)
+	schemaAttrsByTable := atlasSchemaAttrsByTable(dialect, statements)
 	var b strings.Builder
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateTableNode:
-			if err := renderAtlasCreateTableSQL(&b, dialect, node, indexesByTable[node.Name], indent, opts); err != nil {
+			tableOpts := opts
+			if attrs, ok := schemaAttrsByTable[node.Name]; ok {
+				tableOpts.schemaAttrs = attrs
+			}
+			if err := renderAtlasCreateTableSQL(&b, dialect, node, indexesByTable[node.Name], indent, tableOpts); err != nil {
 				return "", err
 			}
 		case *ast.IndexNode:
@@ -5387,6 +5381,56 @@ func renderAtlasInspectSQLWithOptions(
 		}
 	}
 	return b.String(), nil
+}
+
+func atlasSchemaAttrsByTable(dialect string, statements []ast.Node) map[string]atlasSchemaAttrs {
+	attrsBySchema := map[string]atlasSchemaAttrs{}
+	for _, stmt := range statements {
+		schema, ok := stmt.(*ast.CreateSchemaNode)
+		if !ok {
+			continue
+		}
+		attrs := atlasDefaultSchemaAttrs(dialect)
+		if schema.Charset != "" {
+			attrs.charset = schema.Charset
+		}
+		if schema.Collate != "" {
+			attrs.collate = schema.Collate
+		}
+		attrsBySchema[atlasSQLIdentifier(schema.Name)] = attrs
+	}
+	if len(attrsBySchema) == 0 {
+		return nil
+	}
+
+	out := map[string]atlasSchemaAttrs{}
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			continue
+		}
+		schemaName, _ := atlasSplitQualifiedTableName(table.Name)
+		switch {
+		case schemaName != "":
+			if attrs, ok := attrsBySchema[schemaName]; ok {
+				out[table.Name] = attrs
+			}
+		case len(attrsBySchema) == 1:
+			for _, attrs := range attrsBySchema {
+				out[table.Name] = attrs
+			}
+		}
+	}
+	return out
+}
+
+func atlasSplitQualifiedTableName(name string) (string, string) {
+	name = atlasSQLIdentifier(name)
+	schemaName, tableName, ok := strings.Cut(name, ".")
+	if !ok {
+		return "", name
+	}
+	return schemaName, tableName
 }
 
 func atlasTableNames(statements []ast.Node) map[string]bool {
@@ -5637,12 +5681,22 @@ func atlasWriteColumnCharsetCollate(
 			collate = "utf8mb4_bin"
 		}
 	}
+	if charset == "" && collate == "" && atlasColumnUsesInheritedSchemaCollation(dialect, column, opts.schemaAttrs) {
+		collate = opts.schemaAttrs.collate
+	}
 	if charset != "" {
 		fmt.Fprintf(b, " CHARACTER SET %s", charset)
 	}
 	if collate != "" && !atlasColumnCollateIsImplicitDefault(dialect, column) {
 		fmt.Fprintf(b, " COLLATE %s", collate)
 	}
+}
+
+func atlasColumnUsesInheritedSchemaCollation(dialect string, column *ast.ColumnNode, schemaAttrs atlasSchemaAttrs) bool {
+	if schemaAttrs.collate == "" || !atlasMySQLColumnTypeUsesSchemaCollation(column.Type) {
+		return false
+	}
+	return !strings.EqualFold(schemaAttrs.collate, atlasDefaultSchemaAttrs(dialect).collate)
 }
 
 func atlasColumnPrimaryKeyInline(dialect string, column *ast.ColumnNode) bool {
