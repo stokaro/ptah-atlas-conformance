@@ -365,7 +365,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		if commandLine == "" {
 			continue
 		}
-		if dbStateUnsupported && !expectedFailure && txtarCommandReadsUnsupportedDBState(commandLine) {
+		if dbStateUnsupported && txtarCommandReadsUnsupportedDBState(commandLine) {
 			last = txtarCommandResult{unsupported: "blocked by unsupported database state"}
 			if redirect := txtarRedirectTarget(commandLine); redirect != "" {
 				unsupportedFiles[redirect] = true
@@ -616,7 +616,7 @@ func txtarCommandReadsUnsupportedDBState(line string) bool {
 	}
 
 	switch fields[0] {
-	case "exist", "synced", "cmpshow", "cmphcl":
+	case "apply", "execsql", "exist", "synced", "cmpshow", "cmphcl":
 		return true
 	case "atlas":
 		return txtarAtlasCommandReadsUnsupportedDBState(fields)
