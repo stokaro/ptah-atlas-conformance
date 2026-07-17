@@ -3065,6 +3065,78 @@ func TestTxtarScriptProbeExecutesMySQLIndexDescFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesMySQLIndexExprFixture(t *testing.T) {
+	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/index-expr.txtar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, string(data))
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/index-expr.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsMariaDBIndexExprUnsupported(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `only maria*
+
+apply 1.hcl
+cmpshow users 1.sql
+
+-- 1.hcl --
+schema "script_case" {}
+
+table "users" {
+  schema = schema.script_case
+  column "name" {
+    null = false
+    type = varchar(128)
+  }
+  index "users_lower_name" {
+    on {
+      expr = "lower(`+"`name`"+`)"
+    }
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `+"`users`"+` (
+  `+"`name`"+` varchar(128) NOT NULL,
+  KEY `+"`users_lower_name`"+` ((lower(`+"`name`"+`)))
+)
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "mysql/mariadb-index-expr.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected Gap result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+}
+
 func TestTxtarScriptProbeExecutesMySQLIndexPrefixFixture(t *testing.T) {
 	data, err := os.ReadFile("../../third_party/atlas/upstream/internal/integration/testdata/mysql/index-prefix.txtar")
 	if err != nil {
