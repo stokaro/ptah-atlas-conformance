@@ -2167,6 +2167,222 @@ CREATE TABLE `+"`"+`pets`+"`"+` (`+"`"+`id`+"`"+` integer NOT NULL, PRIMARY KEY 
 	}
 }
 
+func TestTxtarScriptProbeExecutesGenericApplyOutsideCLIInspect(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmphcl expected.hcl
+
+-- 1.hcl --
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = integer
+  }
+}
+schema "main" {
+}
+
+-- expected.hcl --
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = integer
+  }
+}
+schema "main" {
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/autoincrement.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeKeepsUnsupportedGenericApplyBlockingDBAssertions(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmpshow users expected.sql
+
+-- 1.hcl --
+schema "main" {}
+
+table "users" {
+  schema = schema.main
+  column "a" {
+    null = false
+    type = int
+  }
+  column "b" {
+    type = int
+    as = "1"
+  }
+}
+
+-- expected.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL, `+"`"+`b`+"`"+` int NOT NULL AS (1) VIRTUAL)
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/index-partial.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	assertResultDetailContains(t, results, "unsupported: apply")
+	if strings.Contains(results[0].Detail, "cmpshow") {
+		t.Fatalf("dependent cmpshow should be blocked after unsupported apply: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeExecutesSQLiteApplyWithPartialIndexCmpShow(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmpshow users 1.sql
+
+-- 1.hcl --
+schema "main" {}
+
+table "users" {
+  schema = schema.main
+  column "name" {
+    null = false
+    type = text
+  }
+  column "active" {
+    null = true
+    type = boolean
+  }
+  index "users_name" {
+    columns = [column.name]
+    where = "active"
+  }
+}
+
+-- 1.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`name`+"`"+` text NOT NULL, `+"`"+`active`+"`"+` boolean NULL)
+CREATE INDEX `+"`"+`users_name`+"`"+` ON `+"`"+`users`+"`"+` (`+"`"+`name`+"`"+`) WHERE active
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/index-partial.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeCmpShowDoesNotIgnoreIndexes(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmpshow users missing-index.sql
+
+-- 1.hcl --
+schema "main" {}
+
+table "users" {
+  schema = schema.main
+  column "name" {
+    null = false
+    type = text
+  }
+  index "users_name" {
+    columns = [column.name]
+  }
+}
+
+-- missing-index.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`name`+"`"+` text NOT NULL)
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/index-partial.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "cmpshow users missing-index.sql did not match")
+}
+
+func TestTxtarScriptProbeCmpShowKeepsWhereExpressionQuotes(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmpshow users wrong-where.sql
+
+-- 1.hcl --
+schema "main" {}
+
+table "users" {
+  schema = schema.main
+  column "name" {
+    null = false
+    type = text
+  }
+  column "active" {
+    null = true
+    type = boolean
+  }
+  index "users_name" {
+    columns = [column.name]
+    where = "active = \"yes\""
+  }
+}
+
+-- wrong-where.sql --
+CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`name`+"`"+` text NOT NULL, `+"`"+`active`+"`"+` boolean NULL)
+CREATE INDEX `+"`"+`users_name`+"`"+` ON `+"`"+`users`+"`"+` (`+"`"+`name`+"`"+`) WHERE active = `+"`"+`yes`+"`"+`
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/index-partial.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected Fail result, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "cmpshow users wrong-where.sql did not match")
+}
+
 func TestTxtarScriptProbeExecutesApplyDBURLInspectWithExcludes(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
