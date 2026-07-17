@@ -471,7 +471,7 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 	if result, ok := runTxtarClearSchema(runtime, fields); ok {
 		return result
 	}
-	if result, ok := runTxtarApply(fx, runtime, fields); ok {
+	if result, ok := runTxtarApply(fx, runtime, fields, expectedFailure); ok {
 		return result
 	}
 	if result, ok := runTxtarExist(fx, runtime, fields); ok {
@@ -2460,11 +2460,11 @@ func txtarWriteMigrationSQL(b *strings.Builder, data string) {
 	}
 }
 
-func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedFailure bool) (txtarCommandResult, bool) {
 	if len(fields) < 1 || fields[0] != "apply" {
 		return txtarCommandResult{}, false
 	}
-	if len(fields) != 2 {
+	if len(fields) != 2 && !(expectedFailure && len(fields) == 3) {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
 	data, ok := runtime.files[fields[1]]
@@ -2481,9 +2481,87 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCom
 	if !txtarFixtureSupportsVirtualApply(fx, statements) {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
+	if expectedFailure {
+		if failure := txtarExpectedApplyFailure(runtime.dbStatements, statements); failure != "" {
+			if len(fields) == 3 && fields[2] != failure {
+				return txtarCommandResult{unsupported: "apply"}, true
+			}
+			return txtarCommandResult{stderr: "Error: " + failure + "\n", failed: true, err: errors.New(failure)}, true
+		}
+		return txtarCommandResult{unsupported: "apply"}, true
+	}
 	runtime.hasVirtualDBState = true
 	runtime.dbStatements = statements
 	return txtarCommandResult{}, true
+}
+
+func txtarExpectedApplyFailure(current, next []ast.Node) string {
+	currentTables := atlasCreateTablesByName(current)
+	nextTables := atlasCreateTablesByName(next)
+	for tableName, nextTable := range nextTables {
+		currentTable, ok := currentTables[tableName]
+		if !ok {
+			continue
+		}
+		if failure := txtarGeneratedColumnChangeFailure(currentTable, nextTable); failure != "" {
+			return failure
+		}
+	}
+	return ""
+}
+
+func atlasCreateTablesByName(statements []ast.Node) map[string]*ast.CreateTableNode {
+	tables := map[string]*ast.CreateTableNode{}
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok {
+			tables[atlasSQLIdentifier(table.Name)] = table
+		}
+	}
+	return tables
+}
+
+func txtarGeneratedColumnChangeFailure(current, next *ast.CreateTableNode) string {
+	currentColumns := atlasColumnsByName(current)
+	for _, nextColumn := range next.Columns {
+		currentColumn, ok := currentColumns[atlasSQLIdentifier(nextColumn.Name)]
+		if !ok {
+			continue
+		}
+		currentGenerated := currentColumn.GeneratedExpression != ""
+		nextGenerated := nextColumn.GeneratedExpression != ""
+		switch {
+		case currentGenerated && !nextGenerated:
+			return fmt.Sprintf(
+				"changing %s generated column %q to non-generated column is not supported (drop and add is required)",
+				atlasGeneratedHCLKind(currentColumn.GeneratedKind),
+				atlasSQLIdentifier(nextColumn.Name),
+			)
+		case !currentGenerated && nextGenerated:
+			return fmt.Sprintf(
+				"changing column %q to %s generated column is not supported (drop and add is required)",
+				atlasSQLIdentifier(nextColumn.Name),
+				atlasGeneratedHCLKind(nextColumn.GeneratedKind),
+			)
+		case currentGenerated && nextGenerated &&
+			!strings.EqualFold(atlasGeneratedHCLKind(currentColumn.GeneratedKind), atlasGeneratedHCLKind(nextColumn.GeneratedKind)):
+			return fmt.Sprintf(
+				"changing the store type of generated column %q from %q to %q is not supported",
+				atlasSQLIdentifier(nextColumn.Name),
+				atlasGeneratedHCLKind(currentColumn.GeneratedKind),
+				atlasGeneratedHCLKind(nextColumn.GeneratedKind),
+			)
+		}
+	}
+	return ""
+}
+
+func atlasColumnsByName(table *ast.CreateTableNode) map[string]*ast.ColumnNode {
+	columns := map[string]*ast.ColumnNode{}
+	for _, column := range table.Columns {
+		columns[atlasSQLIdentifier(column.Name)] = column
+	}
+	return columns
 }
 
 func txtarFixtureSupportsVirtualApply(fx Fixture, statements []ast.Node) bool {
@@ -2604,8 +2682,11 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 		return false
 	}
 	for _, column := range table.Columns {
-		if column.Comment != "" || column.GeneratedExpression != "" || column.Unique ||
+		if column.Comment != "" || column.Unique ||
 			column.Check != "" || column.CheckName != "" || column.ForeignKey != nil {
+			return false
+		}
+		if column.GeneratedExpression != "" && dialect != "mysql" {
 			return false
 		}
 		switch strings.ToLower(column.Type) {
@@ -4349,21 +4430,38 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 	var b strings.Builder
 	schemaAttrs := atlasSchemaAttrsFromStatements(dialect, schemaName, statements)
 	var tables []*ast.CreateTableNode
+	indexes := map[string][]*ast.IndexNode{}
 	for _, stmt := range statements {
-		table, ok := stmt.(*ast.CreateTableNode)
-		if !ok {
-			if _, ok := stmt.(*ast.CreateSchemaNode); ok {
-				continue
-			}
+		switch node := stmt.(type) {
+		case *ast.CreateSchemaNode:
+			continue
+		case *ast.CreateTableNode:
+			tables = append(tables, node)
+		case *ast.IndexNode:
+			tableName := atlasHCLTableIdentifier(node.Table, schemaName)
+			indexes[tableName] = append(indexes[tableName], node)
+		default:
 			return "", fmt.Errorf("%w: statement %T", errUnsupportedInspectHCL, stmt)
 		}
-		tables = append(tables, table)
 	}
 	slices.SortFunc(tables, func(a, b *ast.CreateTableNode) int {
 		return cmp.Compare(atlasHCLTableIdentifier(a.Name, schemaName), atlasHCLTableIdentifier(b.Name, schemaName))
 	})
+	tableNames := map[string]bool{}
 	for _, table := range tables {
-		if err := renderAtlasTableHCL(&b, dialect, schemaName, table); err != nil {
+		tableNames[atlasHCLTableIdentifier(table.Name, schemaName)] = true
+	}
+	for tableName := range indexes {
+		if !tableNames[tableName] {
+			return "", fmt.Errorf("%w: index table %s", errUnsupportedInspectHCL, tableName)
+		}
+		slices.SortFunc(indexes[tableName], func(a, b *ast.IndexNode) int {
+			return cmp.Compare(a.Name, b.Name)
+		})
+	}
+	for _, table := range tables {
+		tableName := atlasHCLTableIdentifier(table.Name, schemaName)
+		if err := renderAtlasTableHCL(&b, dialect, schemaName, table, indexes[tableName]); err != nil {
 			return "", err
 		}
 	}
@@ -4371,7 +4469,12 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 	return b.String(), nil
 }
 
-func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *ast.CreateTableNode) error {
+func renderAtlasTableHCL(
+	b *strings.Builder,
+	dialect, schemaName string,
+	table *ast.CreateTableNode,
+	indexes []*ast.IndexNode,
+) error {
 	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
 	fmt.Fprintf(b, "table %q {\n", tableName)
 	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
@@ -4383,11 +4486,11 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 		fmt.Fprintf(b, "  column %q {\n", atlasHCLIdentifier(column.Name))
 		if column.Default != nil {
 			fmt.Fprintf(b, "    null    = %t\n", column.Nullable)
-			fmt.Fprintf(b, "    type    = %s\n", atlasColumnType(dialect, column.Type))
+			fmt.Fprintf(b, "    type    = %s\n", atlasColumnHCLType(dialect, column.Type))
 			fmt.Fprintf(b, "    default = %s\n", atlasDefaultHCL(column.Default))
 		} else {
 			fmt.Fprintf(b, "    null = %t\n", column.Nullable)
-			fmt.Fprintf(b, "    type = %s\n", atlasColumnType(dialect, column.Type))
+			fmt.Fprintf(b, "    type = %s\n", atlasColumnHCLType(dialect, column.Type))
 		}
 		if dialect == "mysql" || dialect == "mariadb" {
 			if column.Charset != "" {
@@ -4398,6 +4501,12 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 			}
 			if column.UpdateExpression != "" {
 				fmt.Fprintf(b, "    on_update = %s\n", atlasSQLExpressionHCL(column.UpdateExpression))
+			}
+			if column.GeneratedExpression != "" {
+				fmt.Fprintf(b, "    as {\n")
+				fmt.Fprintf(b, "      expr = %q\n", atlasGeneratedHCLExpr(dialect, column.GeneratedExpression))
+				fmt.Fprintf(b, "      type = %s\n", atlasGeneratedHCLKind(column.GeneratedKind))
+				fmt.Fprintf(b, "    }\n")
 			}
 		}
 		b.WriteString("  }\n")
@@ -4447,6 +4556,11 @@ func renderAtlasTableHCL(b *strings.Builder, dialect, schemaName string, table *
 			return err
 		}
 	}
+	for _, index := range indexes {
+		if err := renderAtlasIndexHCL(b, index); err != nil {
+			return err
+		}
+	}
 	if err := renderAtlasCheckHCLBlocks(b, dialect, table); err != nil {
 		return err
 	}
@@ -4463,6 +4577,70 @@ func atlasDefaultHCL(def *ast.DefaultValue) string {
 
 func atlasSQLExpressionHCL(expr string) string {
 	return "sql(" + strconv.Quote(expr) + ")"
+}
+
+func atlasColumnHCLType(dialect, typ string) string {
+	normalized := strings.ToLower(strings.TrimSpace(atlasSQLIdentifier(typ)))
+	if dialect == "mysql" && (normalized == "bool" || normalized == "boolean" || normalized == "tinyint(1)") {
+		return "bool"
+	}
+	return atlasColumnType(dialect, typ)
+}
+
+func atlasGeneratedHCLKind(kind string) string {
+	if kind == "" {
+		return "VIRTUAL"
+	}
+	return kind
+}
+
+func atlasGeneratedHCLExpr(dialect, expr string) string {
+	if dialect != "mysql" && dialect != "mariadb" {
+		return expr
+	}
+	return atlasQuoteGeneratedHCLIdentifiers(expr)
+}
+
+func atlasGeneratedSQLExpr(dialect, expr string) string {
+	if dialect != "mysql" && dialect != "mariadb" {
+		return expr
+	}
+	return atlasQuoteGeneratedHCLIdentifiers(expr)
+}
+
+func atlasQuoteGeneratedHCLIdentifiers(expr string) string {
+	var b strings.Builder
+	for i := 0; i < len(expr); {
+		ch := expr[i]
+		switch {
+		case ch == '\'':
+			i = atlasCopySQLStringLiteral(&b, expr, i)
+		case ch == '`':
+			i = atlasCopyQuotedIdentifier(&b, expr, i)
+		case isAtlasCheckIdentStart(ch):
+			start := i
+			for i < len(expr) && isAtlasCheckIdentPart(expr[i]) {
+				i++
+			}
+			token := expr[start:i]
+			if atlasCheckKeyword(token) || atlasGeneratedExprTokenIsFunction(expr, i) {
+				b.WriteString(token)
+			} else {
+				fmt.Fprintf(&b, "`%s`", strings.ReplaceAll(atlasSQLIdentifier(token), "`", "``"))
+			}
+		default:
+			b.WriteByte(ch)
+			i++
+		}
+	}
+	return b.String()
+}
+
+func atlasGeneratedExprTokenIsFunction(expr string, pos int) bool {
+	for pos < len(expr) && strings.ContainsRune(" \t\n\r", rune(expr[pos])) {
+		pos++
+	}
+	return pos < len(expr) && expr[pos] == '('
 }
 
 func renderAtlasMySQLTableHCLAttrs(b *strings.Builder, dialect string, table *ast.CreateTableNode) {
@@ -4843,6 +5021,72 @@ func renderAtlasUniqueHCL(b *strings.Builder, unique *atlasHCLUnique) error {
 	return nil
 }
 
+func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
+	if index.Type != "" || index.Parser != "" || index.Condition != "" || index.Operator != "" ||
+		index.Comment != "" || index.Concurrently || index.Granularity != 0 {
+		return fmt.Errorf("%w: index %s", errUnsupportedInspectHCL, index.Name)
+	}
+
+	fmt.Fprintf(b, "  index %q {\n", atlasHCLIdentifier(index.Name))
+	if index.Unique {
+		b.WriteString("    unique = true\n")
+	}
+	parts := index.EffectiveParts()
+	if len(parts) == 0 {
+		return fmt.Errorf("%w: index %s empty parts", errUnsupportedInspectHCL, index.Name)
+	}
+	if atlasIndexCanUseColumnsAttr(parts) {
+		refs, err := atlasHCLIndexColumnRefs(parts)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+		b.WriteString("  }\n")
+		return nil
+	}
+
+	for _, part := range parts {
+		b.WriteString("    on {\n")
+		if part.Desc {
+			b.WriteString("      desc = true\n")
+		}
+		switch {
+		case part.Expr != "":
+			fmt.Fprintf(b, "      expr = %q\n", part.Expr)
+		case part.Name != "":
+			fmt.Fprintf(b, "      column = %s\n", atlasHCLColumnRef(part.Name))
+			if part.Prefix != "" {
+				fmt.Fprintf(b, "      prefix = %s\n", part.Prefix)
+			}
+		default:
+			return fmt.Errorf("%w: index %s empty part", errUnsupportedInspectHCL, index.Name)
+		}
+		b.WriteString("    }\n")
+	}
+	b.WriteString("  }\n")
+	return nil
+}
+
+func atlasIndexCanUseColumnsAttr(parts []ast.IndexPart) bool {
+	for _, part := range parts {
+		if part.Expr != "" || part.Prefix != "" || part.Desc {
+			return false
+		}
+	}
+	return true
+}
+
+func atlasHCLIndexColumnRefs(parts []ast.IndexPart) ([]string, error) {
+	refs := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if part.Name == "" {
+			return nil, fmt.Errorf("%w: empty index column", errUnsupportedInspectHCL)
+		}
+		refs = append(refs, atlasHCLColumnRef(part.Name))
+	}
+	return refs, nil
+}
+
 func atlasPrimaryKeyCanUseColumnsAttr(columns []ast.ConstraintColumn) bool {
 	for _, column := range columns {
 		if column.Prefix != "" || column.Desc {
@@ -4867,13 +5111,17 @@ func atlasHCLColumnRefs(columns []ast.ConstraintColumn) ([]string, error) {
 func atlasHCLColumnRefsFromNames(columns []string) ([]string, error) {
 	refs := make([]string, 0, len(columns))
 	for _, column := range columns {
-		name := atlasHCLIdentifier(column)
-		if strings.ContainsAny(name, " ()`\"") {
-			return nil, fmt.Errorf("%w: column %q", errUnsupportedInspectHCL, column)
-		}
-		refs = append(refs, "column."+name)
+		refs = append(refs, atlasHCLColumnRef(column))
 	}
 	return refs, nil
+}
+
+func atlasHCLColumnRef(column string) string {
+	name := atlasHCLIdentifier(column)
+	if strings.ContainsAny(name, " ()`\"$") {
+		return "column[" + strconv.Quote(name) + "]"
+	}
+	return "column." + name
 }
 
 func atlasHCLRefColumnRefs(table string, columns []string) ([]string, error) {
@@ -5187,12 +5435,13 @@ func renderAtlasColumnSQL(
 	if dialect == "mysql" || dialect == "mariadb" {
 		atlasWriteColumnCharsetCollate(&b, dialect, column, opts)
 	}
+	generated := column.GeneratedExpression != ""
 	if atlasColumnPrimaryKeyInline(dialect, column) {
 		b.WriteString(" NOT NULL PRIMARY KEY")
 		if column.AutoInc {
 			b.WriteString(" AUTOINCREMENT")
 		}
-	} else if !column.Nullable {
+	} else if !column.Nullable && !generated {
 		b.WriteString(" NOT NULL")
 	} else if explicitNull {
 		b.WriteString(" NULL")
@@ -5200,11 +5449,9 @@ func renderAtlasColumnSQL(
 	if (dialect == "mysql" || dialect == "mariadb") && column.AutoInc {
 		b.WriteString(" AUTO_INCREMENT")
 	}
-	if column.GeneratedExpression != "" {
-		fmt.Fprintf(&b, " AS (%s)", column.GeneratedExpression)
-		if column.GeneratedKind != "" {
-			fmt.Fprintf(&b, " %s", column.GeneratedKind)
-		}
+	if generated {
+		fmt.Fprintf(&b, " GENERATED ALWAYS AS (%s)", atlasGeneratedSQLExpr(dialect, column.GeneratedExpression))
+		fmt.Fprintf(&b, " %s", atlasGeneratedHCLKind(column.GeneratedKind))
 	}
 	if column.Default != nil {
 		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(dialect, column.Default))
