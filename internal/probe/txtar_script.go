@@ -243,9 +243,12 @@ type txtarRuntime struct {
 	dirs              map[string]bool
 	hasVirtualDBState bool
 	dbStatements      []ast.Node
+	dbRows            map[string][]txtarVirtualRow
 	appliedMigrations map[string]bool
 	appliedVersion    string
 }
+
+type txtarVirtualRow map[string]string
 
 func newTxtarRuntime(data string) *txtarRuntime {
 	files := txtarFiles(data)
@@ -4350,7 +4353,7 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
 	if expectedFailure {
-		if failure := txtarExpectedApplyFailure(runtime.dbStatements, statements); failure != "" {
+		if failure := txtarExpectedApplyFailure(fx, runtime.dbStatements, statements, runtime.dbRows); failure != "" {
 			if len(fields) == 3 && fields[2] != failure {
 				return txtarCommandResult{unsupported: "apply"}, true
 			}
@@ -4363,8 +4366,16 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 	return txtarCommandResult{}, true
 }
 
-func txtarExpectedApplyFailure(current, next []ast.Node) string {
+func txtarExpectedApplyFailure(
+	fx Fixture,
+	current []ast.Node,
+	next []ast.Node,
+	rows map[string][]txtarVirtualRow,
+) string {
 	if failure := txtarForeignKeySetNullFailure(next); failure != "" {
+		return failure
+	}
+	if failure := txtarUniqueIndexDataFailure(txtarFixtureDialect(fx), next, rows); failure != "" {
 		return failure
 	}
 	currentTables := atlasCreateTablesByName(current)
@@ -4417,6 +4428,81 @@ func atlasCreateTablesByName(statements []ast.Node) map[string]*ast.CreateTableN
 		}
 	}
 	return tables
+}
+
+func txtarUniqueIndexDataFailure(dialect string, statements []ast.Node, rows map[string][]txtarVirtualRow) string {
+	if len(rows) == 0 {
+		return ""
+	}
+	for tableName, indexes := range atlasIndexesByTable(dialect, statements) {
+		for _, index := range indexes {
+			if !index.Unique {
+				continue
+			}
+			columns, ok := txtarIndexColumnNames(index)
+			if !ok {
+				continue
+			}
+			if failure := txtarDuplicateUniqueKeyFailure(rows[atlasUnqualifiedSQLTableName(tableName)], index.Name, columns); failure != "" {
+				return failure
+			}
+		}
+	}
+	for tableName, table := range atlasCreateTablesByName(statements) {
+		for _, constraint := range table.Constraints {
+			if constraint.Type != ast.UniqueConstraint {
+				continue
+			}
+			if failure := txtarDuplicateUniqueKeyFailure(
+				rows[atlasUnqualifiedSQLTableName(tableName)],
+				constraint.Name,
+				atlasConstraintColumnNames(constraint),
+			); failure != "" {
+				return failure
+			}
+		}
+	}
+	return ""
+}
+
+func txtarIndexColumnNames(index *ast.IndexNode) ([]string, bool) {
+	parts := index.EffectiveParts()
+	columns := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if part.Expr != "" || part.Name == "" {
+			return nil, false
+		}
+		columns = append(columns, part.Name)
+	}
+	return columns, len(columns) > 0
+}
+
+func txtarDuplicateUniqueKeyFailure(rows []txtarVirtualRow, keyName string, columns []string) string {
+	if len(rows) == 0 || len(columns) == 0 {
+		return ""
+	}
+	seen := map[string]string{}
+	for _, row := range rows {
+		values := make([]string, 0, len(columns))
+		for _, column := range columns {
+			value, ok := row[atlasSQLIdentifier(column)]
+			if !ok {
+				values = nil
+				break
+			}
+			values = append(values, value)
+		}
+		if len(values) == 0 {
+			continue
+		}
+		key := strings.Join(values, "\x00")
+		entry := strings.Join(values, "-")
+		if _, ok := seen[key]; ok {
+			return fmt.Sprintf("Error 1062: Duplicate entry '%s' for key '%s'", entry, atlasSQLIdentifier(keyName))
+		}
+		seen[key] = entry
+	}
+	return ""
 }
 
 func txtarGeneratedColumnChangeFailure(current, next *ast.CreateTableNode) string {
@@ -4750,20 +4836,208 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 	if len(fields) < 1 || fields[0] != "execsql" {
 		return txtarCommandResult{}, false
 	}
-	if txtarFixtureFamily(fx) != "sqlite" {
-		return txtarCommandResult{unsupported: "execsql"}, true
-	}
 	if len(fields) != 2 {
 		return txtarCommandResult{unsupported: "execsql"}, true
 	}
-
-	list, err := parser.NewParser(fields[1]).Parse()
-	if err != nil {
+	switch txtarFixtureFamily(fx) {
+	case "sqlite":
+		list, err := parser.NewParser(fields[1]).Parse()
+		if err != nil {
+			return txtarCommandResult{unsupported: "execsql"}, true
+		}
+		runtime.hasVirtualDBState = true
+		runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
+		return txtarCommandResult{}, true
+	case "mysql", "mariadb":
+		tableName, rows, ok := txtarParseInsertRows(fields[1])
+		if !ok {
+			return txtarCommandResult{unsupported: "execsql"}, true
+		}
+		if runtime.dbRows == nil {
+			runtime.dbRows = map[string][]txtarVirtualRow{}
+		}
+		runtime.dbRows[tableName] = append(runtime.dbRows[tableName], rows...)
+		return txtarCommandResult{}, true
+	default:
 		return txtarCommandResult{unsupported: "execsql"}, true
 	}
-	runtime.hasVirtualDBState = true
-	runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
-	return txtarCommandResult{}, true
+}
+
+func txtarParseInsertRows(stmt string) (string, []txtarVirtualRow, bool) {
+	stmt = strings.TrimSuffix(strings.TrimSpace(stmt), ";")
+	rest, ok := cutPrefixFold(stmt, "INSERT INTO ")
+	if !ok {
+		return "", nil, false
+	}
+	tableName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok {
+		return "", nil, false
+	}
+	tableName = atlasUnqualifiedSQLTableName(tableName)
+	columnList, rest, ok := txtarParenthesizedSQLPrefix(rest)
+	if !ok {
+		return "", nil, false
+	}
+	columns, ok := txtarParseInsertColumns(columnList)
+	if !ok {
+		return "", nil, false
+	}
+	rest, ok = cutPrefixFold(strings.TrimSpace(rest), "VALUES")
+	if !ok {
+		return "", nil, false
+	}
+	rows, ok := txtarParseInsertValueRows(strings.TrimSpace(rest), columns)
+	if !ok {
+		return "", nil, false
+	}
+	return tableName, rows, true
+}
+
+func cutPrefixFold(value, prefix string) (string, bool) {
+	if len(value) < len(prefix) || !strings.EqualFold(value[:len(prefix)], prefix) {
+		return "", false
+	}
+	return value[len(prefix):], true
+}
+
+func txtarParseInsertColumns(data string) ([]string, bool) {
+	values := txtarSplitSQLList(data)
+	if len(values) == 0 {
+		return nil, false
+	}
+	columns := make([]string, 0, len(values))
+	for _, value := range values {
+		column, rest, ok := txtarParseLeadingSQLIdentifier(value)
+		if !ok || strings.TrimSpace(rest) != "" {
+			return nil, false
+		}
+		columns = append(columns, atlasSQLIdentifier(column))
+	}
+	return columns, true
+}
+
+func txtarParseInsertValueRows(data string, columns []string) ([]txtarVirtualRow, bool) {
+	var rows []txtarVirtualRow
+	rest := strings.TrimSpace(data)
+	for rest != "" {
+		valuesData, next, ok := txtarParenthesizedSQLPrefix(rest)
+		if !ok {
+			return nil, false
+		}
+		values := txtarSplitSQLList(valuesData)
+		if len(values) != len(columns) {
+			return nil, false
+		}
+		row := txtarVirtualRow{}
+		for i, column := range columns {
+			value, ok := txtarSQLLiteralValue(values[i])
+			if !ok {
+				return nil, false
+			}
+			row[column] = value
+		}
+		rows = append(rows, row)
+		rest = strings.TrimSpace(next)
+		if rest == "" {
+			break
+		}
+		if !strings.HasPrefix(rest, ",") {
+			return nil, false
+		}
+		rest = strings.TrimSpace(strings.TrimPrefix(rest, ","))
+	}
+	return rows, len(rows) > 0
+}
+
+func txtarParenthesizedSQLPrefix(data string) (string, string, bool) {
+	data = strings.TrimSpace(data)
+	if !strings.HasPrefix(data, "(") {
+		return "", "", false
+	}
+	quote := byte(0)
+	escaped := false
+	depth := 0
+	for i := 0; i < len(data); i++ {
+		ch := data[i]
+		switch {
+		case escaped:
+			escaped = false
+		case quote != 0 && ch == '\\':
+			escaped = true
+		case quote != 0 && ch == quote:
+			if i+1 < len(data) && data[i+1] == quote {
+				i++
+				continue
+			}
+			quote = 0
+		case quote != 0:
+			continue
+		case ch == '\'' || ch == '"':
+			quote = ch
+		case ch == '(':
+			depth++
+		case ch == ')':
+			depth--
+			if depth == 0 {
+				return data[1:i], data[i+1:], true
+			}
+		}
+	}
+	return "", "", false
+}
+
+func txtarSplitSQLList(data string) []string {
+	var out []string
+	start := 0
+	quote := byte(0)
+	escaped := false
+	depth := 0
+	for i := 0; i < len(data); i++ {
+		ch := data[i]
+		switch {
+		case escaped:
+			escaped = false
+		case quote != 0 && ch == '\\':
+			escaped = true
+		case quote != 0 && ch == quote:
+			if i+1 < len(data) && data[i+1] == quote {
+				i++
+				continue
+			}
+			quote = 0
+		case quote != 0:
+			continue
+		case ch == '\'' || ch == '"':
+			quote = ch
+		case ch == '(':
+			depth++
+		case ch == ')':
+			depth--
+		case ch == ',' && depth == 0:
+			out = append(out, strings.TrimSpace(data[start:i]))
+			start = i + 1
+		}
+	}
+	out = append(out, strings.TrimSpace(data[start:]))
+	return slices.DeleteFunc(out, func(value string) bool { return value == "" })
+}
+
+func txtarSQLLiteralValue(data string) (string, bool) {
+	data = strings.TrimSpace(data)
+	if data == "" {
+		return "", false
+	}
+	if len(data) < 2 || (data[0] != '\'' && data[0] != '"') {
+		return data, true
+	}
+	quote := data[0]
+	if data[len(data)-1] != quote {
+		return "", false
+	}
+	value := data[1 : len(data)-1]
+	value = strings.ReplaceAll(value, `\`+string(quote), string(quote))
+	value = strings.ReplaceAll(value, string([]byte{quote, quote}), string(quote))
+	return value, true
 }
 
 func runTxtarExist(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
