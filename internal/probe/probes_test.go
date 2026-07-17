@@ -1297,6 +1297,81 @@ schema "main" {}
 	}
 }
 
+func TestTxtarScriptProbeExecutesSQLiteInitialMigrateDiff(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `exec mkdir migrations
+atlas migrate diff --dev-url sqlite://devdb --to file://1.hcl --dir file://migrations
+cmpmig 0 diff.sql
+
+-- 1.hcl --
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+}
+schema "main" {
+}
+-- diff.sql --
+-- Create "users" table
+CREATE TABLE `+"`users`"+` (`+"`id`"+` int NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-migrate-diff.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeReportsSyncedSQLiteInitialMigrateDiff(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff --dev-url sqlite://devdb --to file://1.hcl --dir file://migrations
+cmpmig 0 diff.sql
+atlas migrate diff --dev-url sqlite://devdb --to file://1.hcl --dir file://migrations
+stdout 'The migration directory is synced with the desired state, no changes to be made'
+
+-- 1.hcl --
+table "users" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = int
+  }
+}
+schema "main" {
+}
+-- diff.sql --
+-- Create "users" table
+CREATE TABLE `+"`users`"+` (`+"`id`"+` int NOT NULL);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/cli-migrate-diff.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeKeepsInitialMigrateDiffAsGap(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
