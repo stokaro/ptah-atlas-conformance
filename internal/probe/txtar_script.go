@@ -469,14 +469,16 @@ func txtarCommandReadsUnsupportedFile(line string, unsupportedFiles map[string]b
 		args := nonFlagArgs(fields[1:])
 		return len(args) >= 1 && unsupportedFiles[args[0]]
 	case "atlas":
-		if len(fields) < 3 || fields[1] != "migrate" {
+		if len(fields) < 3 {
 			return false
 		}
-		switch fields[2] {
-		case "hash":
+		switch fields[1] + " " + fields[2] {
+		case "migrate hash":
 			return txtarMigrateHashReadsUnsupportedFile(fields[3:], unsupportedFiles)
-		case "apply", "new", "set", "status", "validate":
+		case "migrate apply", "migrate new", "migrate set", "migrate status", "migrate validate":
 			return txtarMigrateCommandReadsUnsupportedFile(fields[3:], unsupportedFiles)
+		case "schema diff":
+			return txtarSchemaDiffReadsUnsupportedFile(fields[3:], unsupportedFiles)
 		}
 	}
 	return false
@@ -526,6 +528,48 @@ func txtarMigrateHashReadsFile(dir, file string) bool {
 		}
 	}
 	return rel != "" && !strings.Contains(rel, "/") && strings.HasSuffix(rel, ".sql")
+}
+
+func txtarSchemaDiffReadsUnsupportedFile(args []string, unsupportedFiles map[string]bool) bool {
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--from" || arg == "--to":
+			if i+1 >= len(args) {
+				continue
+			}
+			if txtarSchemaRefReadsUnsupportedFile(args[i+1], unsupportedFiles) {
+				return true
+			}
+			i++
+		case strings.HasPrefix(arg, "--from="):
+			if txtarSchemaRefReadsUnsupportedFile(strings.TrimPrefix(arg, "--from="), unsupportedFiles) {
+				return true
+			}
+		case strings.HasPrefix(arg, "--to="):
+			if txtarSchemaRefReadsUnsupportedFile(strings.TrimPrefix(arg, "--to="), unsupportedFiles) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func txtarSchemaRefReadsUnsupportedFile(ref string, unsupportedFiles map[string]bool) bool {
+	const filePrefix = "file://"
+	if !strings.HasPrefix(ref, filePrefix) {
+		return false
+	}
+	name := path.Clean(txtarFileURLPath(ref))
+	if unsupportedFiles[name] {
+		return true
+	}
+	for file := range unsupportedFiles {
+		if txtarMigrateHashReadsFile(name, file) {
+			return true
+		}
+	}
+	return false
 }
 
 func runTxtarMigrateHash(runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {

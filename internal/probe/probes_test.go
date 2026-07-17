@@ -1640,6 +1640,62 @@ CREATE TABLE users (id int);
 	}
 }
 
+func TestTxtarScriptProbeSkipsSchemaDiffAfterUnsupportedMigrationFileProducer(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate diff --dir file://migrations
+atlas schema diff --from file://migrations --to file://schema.sql
+
+-- schema.sql --
+CREATE TABLE users (id int);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
+		t.Fatalf("detail missing original unsupported migration file producer: %s", results[0].Detail)
+	}
+	if strings.Contains(results[0].Detail, "atlas schema diff") {
+		t.Fatalf("dependent schema diff should not be reported after unsupported migration producer: %s",
+			results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeKeepsIndependentSchemaDiffGap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas schema diff --from file://from.sql --to file://to.sql
+
+-- from.sql --
+CREATE TABLE users (id int);
+
+-- to.sql --
+CREATE TABLE users (id int, name text);
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "sqlite/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if !strings.Contains(results[0].Detail, "unsupported: atlas schema diff") {
+		t.Fatalf("detail missing independent schema diff gap: %s", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeDoesNotSkipDBAssertionsAfterExpectedFailure(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
