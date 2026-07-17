@@ -30,6 +30,7 @@ var (
 	mysqlDefaultCharsetRE      = regexp.MustCompile(`(?m)\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
 	mysqlUTF8MB4IntroducerRE   = regexp.MustCompile(`(?i)\b_utf8mb4'`)
 	postgresSimpleIndexExprRE  = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*\s*\*\s*\d+$`)
+	postgresHoursIntervalRE    = regexp.MustCompile(`^(\d+)\s+hours?$`)
 	flywayUndoMigrationRE      = regexp.MustCompile(`^U\d+\.sql$`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
@@ -4703,8 +4704,9 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode) bool {
 		return false
 	}
 	for _, column := range table.Columns {
-		if column.Default != nil || column.ForeignKey != nil || column.GeneratedExpression != "" ||
-			!txtarPostgresApplyColumnTypeSupported(column.Type) {
+		if column.ForeignKey != nil || column.GeneratedExpression != "" ||
+			!txtarPostgresApplyColumnTypeSupported(column.Type) ||
+			!txtarPostgresApplyColumnDefaultSupported(column) {
 			return false
 		}
 	}
@@ -4717,6 +4719,23 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode) bool {
 		}
 	}
 	return true
+}
+
+func txtarPostgresApplyColumnDefaultSupported(column *ast.ColumnNode) bool {
+	if column.Default == nil {
+		return true
+	}
+	if column.Default.Expression != "" {
+		return false
+	}
+	switch txtarPostgresColumnType(column) {
+	case "character varying", "bpchar", "integer", "boolean":
+		return true
+	case "interval":
+		return txtarPostgresIntervalDefaultSQL(column) != ""
+	default:
+		return false
+	}
 }
 
 func txtarPostgresApplyColumnTypeSupported(columnType string) bool {
@@ -5715,6 +5734,14 @@ func txtarPostgresColumnType(column *ast.ColumnNode) string {
 		return "timestamp without time zone"
 	case strings.HasPrefix(normalized, "timestamp"):
 		return normalized + " without time zone"
+	case normalized == "second":
+		return "interval second"
+	case strings.HasPrefix(normalized, "second("):
+		return "interval second" + strings.TrimPrefix(normalized, "second")
+	case normalized == "day_to_second":
+		return "interval day to second"
+	case strings.HasPrefix(normalized, "day_to_second("):
+		return "interval day to second" + strings.TrimPrefix(normalized, "day_to_second")
 	default:
 		return typ
 	}
@@ -5741,18 +5768,36 @@ func txtarPostgresDefaultSQL(column *ast.ColumnNode) string {
 	if column.Default == nil {
 		return ""
 	}
-	value := atlasDefaultSQL("postgresql", column.Default)
-	if value == "" {
-		return value
+	if column.Default.Expression != "" {
+		return atlasDefaultSQL("postgresql", column.Default)
 	}
+	value := strings.TrimSpace(column.Default.Value)
 	switch txtarPostgresColumnType(column) {
 	case "character varying":
-		return fmt.Sprintf("%s::character varying", value)
+		return fmt.Sprintf("%s::character varying", atlasDefaultSQL("postgresql", column.Default))
 	case "bpchar":
-		return fmt.Sprintf("%s::bpchar", value)
+		return fmt.Sprintf("%s::bpchar", atlasDefaultSQL("postgresql", column.Default))
+	case "interval":
+		return txtarPostgresIntervalDefaultSQL(column)
 	default:
 		return value
 	}
+}
+
+func txtarPostgresIntervalDefaultSQL(column *ast.ColumnNode) string {
+	if column.Default == nil || column.Default.Expression != "" {
+		return ""
+	}
+	value := strings.TrimSpace(column.Default.Value)
+	matches := postgresHoursIntervalRE.FindStringSubmatch(value)
+	if len(matches) != 2 {
+		return ""
+	}
+	hours, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("'%02d:00:00'::interval", hours)
 }
 
 func txtarPostgresShowIndexPart(part ast.IndexPart) string {
@@ -7499,7 +7544,7 @@ func renderAtlasTableHCL(
 		if column.Default != nil {
 			fmt.Fprintf(b, "    null    = %t\n", column.Nullable)
 			fmt.Fprintf(b, "    type    = %s\n", atlasColumnHCLType(dialect, column.Type))
-			fmt.Fprintf(b, "    default = %s\n", atlasDefaultHCL(column.Default))
+			fmt.Fprintf(b, "    default = %s\n", atlasColumnDefaultHCL(dialect, column))
 		} else {
 			fmt.Fprintf(b, "    null = %t\n", column.Nullable)
 			fmt.Fprintf(b, "    type = %s\n", atlasColumnHCLType(dialect, column.Type))
@@ -7605,6 +7650,31 @@ func atlasForeignKeyIndexHCLs(tableName string, table *ast.CreateTableNode, inde
 		})
 	}
 	return out
+}
+
+func atlasColumnDefaultHCL(dialect string, column *ast.ColumnNode) string {
+	if column.Default == nil {
+		return ""
+	}
+	if dialect == "postgresql" && column.Default.Expression == "" &&
+		txtarPostgresDefaultHCLLiteralIsRaw(column) {
+		return strings.TrimSpace(column.Default.Value)
+	}
+	if dialect == "postgresql" {
+		if intervalDefault := txtarPostgresIntervalDefaultSQL(column); intervalDefault != "" {
+			return atlasSQLExpressionHCL(intervalDefault)
+		}
+	}
+	return atlasDefaultHCL(column.Default)
+}
+
+func txtarPostgresDefaultHCLLiteralIsRaw(column *ast.ColumnNode) bool {
+	switch txtarPostgresColumnType(column) {
+	case "integer", "boolean":
+		return true
+	default:
+		return false
+	}
 }
 
 func atlasDefaultHCL(def *ast.DefaultValue) string {
