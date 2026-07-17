@@ -3609,6 +3609,50 @@ CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`a`+"`"+` int NOT NULL, `+"`"+`b`+"`"+` 
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresIdentityColumnCmpShow(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `apply 1.hcl
+cmpshow users expected.sql
+
+-- 1.hcl --
+schema "$db" {}
+
+table "users" {
+  schema = schema.$db
+  column "name" {
+    null = false
+    type = int
+    identity {
+      generated = ALWAYS
+      start = 10
+      increment = 10
+    }
+  }
+}
+
+-- expected.sql --
+                  Table "script_column_identity.users"
+ Column |  Type   | Collation | Nullable |           Default
+--------+---------+-----------+----------+------------------------------
+ name   | integer |           | not null | generated always as identity
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/column-identity.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarNormalizeMySQLShowSQL(t *testing.T) {
 	actual := "-- Create \"users\" table\n" +
 		"CREATE TABLE `users` (`rank` bigint NOT NULL, UNIQUE KEY `rank_idx` (`rank`)) CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;\n"
