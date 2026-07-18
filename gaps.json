@@ -2748,9 +2748,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-textsearch.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: cmphcl",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 3 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2829,9 +2828,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-type-brin.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
