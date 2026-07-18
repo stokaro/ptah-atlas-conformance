@@ -1,3 +1,5 @@
 # Maximum allowed unwaived non-OK observations in gaps.json.
 # Lower this whenever Ptah support or harness fidelity improves; CI fails on regressions above it.
-0
+# 23 = the Atlas OSS features newly measured by atlas-cli-surface (16 `ptah atlas` verbs)
+# and lint-analyzer-catalog (7 uncovered analyzers). Ratchet down as Ptah implements them.
+23

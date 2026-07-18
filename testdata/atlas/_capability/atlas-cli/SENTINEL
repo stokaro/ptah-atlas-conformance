@@ -1,0 +1,2 @@
+Capability sentinel for the atlas-cli-surface probe.
+This marker owns that probe's single per-verb emission; see internal/probe/atlas_cli_probe.go.

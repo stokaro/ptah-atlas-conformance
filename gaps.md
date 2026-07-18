@@ -6,21 +6,55 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: PARITY on the current corpus
+## Status: NOT DONE — 23 non-OK observation(s)
 
-Every fixture is covered. The conformance gate is green.
+The conformance gate is **red** and stays red until these close. This is by
+design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260718050614-7ecbb3fc2137`
-- Outcomes: **524 ok**, **0 gap**, **0 fail**, **0 panic**
-- Full gate: **0 non-OK** (passes CI)
-- Regression budget input: **0 unwaived non-OK**, 0 waived
-- Corpus inventory: **158 imported fixture(s)**, **158 measured**, **0 imported-but-unmeasured**
+- Outcomes: **544 ok**, **23 gap**, **0 fail**, **0 panic**
+- Full gate: **23 non-OK** (fails CI)
+- Regression budget input: **23 unwaived non-OK**, 0 waived
+- Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **gap** | atlas-cli-surface | `atlas license` | resolve | Ptah has no `atlas license` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate apply` | resolve | Ptah has no `atlas migrate apply` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate diff` | resolve | Ptah has no `atlas migrate diff` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate hash` | resolve | Ptah has no `atlas migrate hash` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate import` | resolve | Ptah has no `atlas migrate import` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate lint` | resolve | Ptah has no `atlas migrate lint` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate new` | resolve | Ptah has no `atlas migrate new` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate set` | resolve | Ptah has no `atlas migrate set` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate status` | resolve | Ptah has no `atlas migrate status` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas migrate validate` | resolve | Ptah has no `atlas migrate validate` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas schema apply` | resolve | Ptah has no `atlas schema apply` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas schema clean` | resolve | Ptah has no `atlas schema clean` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas schema diff` | resolve | Ptah has no `atlas schema diff` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas schema fmt` | resolve | Ptah has no `atlas schema fmt` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas schema inspect` | resolve | Ptah has no `atlas schema inspect` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | atlas-cli-surface | `atlas version` | resolve | Ptah has no `atlas version` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF101 (add unique index/constraint on existing column)` | postgres | Atlas MF101 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF103 (add non-nullable column without default)` | postgres | Atlas MF103 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF104 (modify nullable column to non-nullable)` | postgres | Atlas MF104 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY102 (inline REFERENCES on added column has no effect)` | mysql | Atlas MY102 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)` | postgres | Atlas PG103 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG306 (add foreign key validates existing rows and blocks writes)` | postgres | Atlas PG306 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas TX101 (mixing transactional and non-transactional statements)` | postgres | Atlas TX101 flags this; Ptah emits no substantive finding on the change | #270 |
+| — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate down` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate edit` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate rebase` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate rm` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas schema plan` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 1 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 2 field(s) |  |
@@ -29,6 +63,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | Atlas schemahcl fixture has no schema objects; outside Ptah schema surface |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/variables.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: variable |  |
+| — | ok | corpus-inventory | `_capability/atlas-cli/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/lint-analyzers/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
@@ -187,6 +223,14 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | corpus-inventory | `sql/sqltool/testdata/liquibase` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down-boundary` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | lint-analyzer-catalog | `Atlas BC101 (rename table)` | postgres | Ptah flags this change: BC101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas BC102 (rename column)` | postgres | Ptah flags this change: BC101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas CD101 (drop foreign key)` | postgres | Ptah flags this change: DS105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas CD103 (drop primary key)` | postgres | Ptah flags this change: DS105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS102 (drop table)` | postgres | Ptah flags this change: DS101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS103 (drop column)` | postgres | Ptah flags this change: DS102 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG101 (create index without CONCURRENTLY)` | postgres | Ptah flags this change: PG101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG301 (column type change rewrites the table)` | postgres | Ptah flags this change: DS103 |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | content findings: PG101 |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `atlasexec/testdata/broken` | lint | no substantive lint findings expected |  |
@@ -545,3 +589,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | executed 6 supported command(s) |  |
+
+## Gaps by related issue
+
+- **stokaro/ptah#268** — 16 finding(s)
+- **stokaro/ptah#270** — 7 finding(s)

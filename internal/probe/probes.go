@@ -30,7 +30,16 @@ func AllProbes() []Probe {
 		AtlasTxtarDownProbe{},
 		SumProbe{},
 		LintProbe{},
+		AtlasCLISurfaceProbe{},
+		AtlasLintAnalyzerProbe{},
 	}
+}
+
+// isCapabilitySentinel reports whether a fixture is a first-party marker that a
+// capability probe owns (it emits that probe's fixed result set once). Such
+// sentinels carry no schema/migration surface themselves.
+func isCapabilitySentinel(name string) bool {
+	return strings.HasPrefix(name, "_capability/") && strings.HasSuffix(name, "/SENTINEL")
 }
 
 // CorpusProbe proves every imported Atlas test artifact is visible in the
@@ -73,6 +82,15 @@ func (CorpusProbe) Run(fx Fixture) []Result {
 			Detail:  "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse",
 		}}
 	default:
+		if isCapabilitySentinel(fx.Name) {
+			return []Result{{
+				Probe:   "corpus-inventory",
+				Fixture: fx.Name,
+				Stage:   "capability",
+				Outcome: OK,
+				Detail:  "first-party capability sentinel; its reds are owned by the matching capability probe",
+			}}
+		}
 		if atlasSDKTemplateRunnerFixture(fx.Name) {
 			return []Result{{
 				Probe:   "corpus-inventory",
