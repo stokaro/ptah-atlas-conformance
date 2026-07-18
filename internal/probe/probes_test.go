@@ -2437,6 +2437,56 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresColumnGeneratedInspectFixture(t *testing.T) {
+	fixture := "column-generated-inspect.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarPostgresGeneratedColumnHCLRendering(t *testing.T) {
+	fx := Fixture{Name: "postgres/column-generated-inspect.txtar"}
+	storedColumn := &ast.ColumnNode{Name: "b", Type: "int", Nullable: false, GeneratedExpression: "1"}
+	virtualColumn := &ast.ColumnNode{Name: "c", Type: "int", Nullable: false, GeneratedExpression: "2", GeneratedKind: "VIRTUAL"}
+	statements := []ast.Node{
+		&ast.CreateTableNode{
+			Name: "users",
+			Columns: []*ast.ColumnNode{
+				{Name: "a", Type: "int", Nullable: false},
+				storedColumn,
+			},
+		},
+	}
+
+	if !txtarPostgresApplyGeneratedColumnSupported(storedColumn) {
+		t.Fatal("expected PostgreSQL generated column shorthand to default to STORED")
+	}
+	if txtarPostgresApplyGeneratedColumnSupported(virtualColumn) {
+		t.Fatal("expected PostgreSQL VIRTUAL generated column to stay unsupported")
+	}
+
+	actualHCL, err := renderAtlasInspectHCL("postgresql", txtarFixtureSchemaName(fx), statements[:1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(actualHCL, `expr = "1"`) ||
+		!strings.Contains(actualHCL, `type = STORED`) {
+		t.Fatalf("inspect HCL should render PostgreSQL generated column block:\n%s", actualHCL)
+	}
+}
+
 func TestTxtarPostgresEnumColumnHCLShowAndSQLRendering(t *testing.T) {
 	fx := Fixture{Name: "postgres/column-enum-array.txtar"}
 	statements := []ast.Node{
