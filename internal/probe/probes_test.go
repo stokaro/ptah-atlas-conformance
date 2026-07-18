@@ -2322,6 +2322,25 @@ func TestTxtarScriptProbeExecutesPostgresIndexTypeBRINFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresIndexNullsDistinctFixture(t *testing.T) {
+	fixture := "index-nulls-distinct.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesPostgresColumnTextSearchFixture(t *testing.T) {
 	fixture := "column-textsearch.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -2454,6 +2473,72 @@ table "users" {
 	want := `"users_c" brin (c) WITH (pages_per_range='2')`
 	if !strings.Contains(actual, want) {
 		t.Fatalf("show SQL missing %q:\n%s", want, actual)
+	}
+}
+
+func TestTxtarHCLStatementsPreservePostgresNullsDistinctIndexAndUnique(t *testing.T) {
+	fx := Fixture{Name: "postgres/index-nulls-distinct.txtar"}
+	data := `
+schema "$db" {}
+
+table "users" {
+  schema = schema.$db
+  column "c" {
+    type = int
+  }
+  index "nulls_not_distinct" {
+    unique = true
+    columns = [column.c]
+    nulls_distinct = false
+  }
+  unique "nulls_not_distinct2" {
+    columns = [column.c]
+    nulls_distinct = false
+  }
+}
+`
+	statements, err := txtarHCLStatements(fx, "case.hcl", data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	actualHCL, err := renderAtlasInspectHCL("postgresql", txtarFixtureSchemaName(fx), statements)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedHCL := `table "users" {
+  schema = schema.script_index_nulls_distinct
+  column "c" {
+    null = false
+    type = integer
+  }
+  index "nulls_not_distinct" {
+    unique         = true
+    columns        = [column.c]
+    nulls_distinct = false
+  }
+  unique "nulls_not_distinct2" {
+    columns        = [column.c]
+    nulls_distinct = false
+  }
+}
+schema "script_index_nulls_distinct" {
+}
+`
+	if actualHCL != expectedHCL {
+		t.Fatalf("inspect HCL mismatch:\nactual:\n%s\nexpected:\n%s", actualHCL, expectedHCL)
+	}
+
+	actual, ok := txtarTableShowSQL(fx, statements, "users")
+	if !ok {
+		t.Fatal("expected virtual PostgreSQL table show SQL")
+	}
+	for _, want := range []string{
+		`"nulls_not_distinct" UNIQUE, btree (c) NULLS NOT DISTINCT`,
+		`"nulls_not_distinct2" UNIQUE CONSTRAINT, btree (c) NULLS NOT DISTINCT`,
+	} {
+		if !strings.Contains(actual, want) {
+			t.Fatalf("show SQL missing %q:\n%s", want, actual)
+		}
 	}
 }
 

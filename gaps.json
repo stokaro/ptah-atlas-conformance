@@ -2805,9 +2805,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-nulls-distinct.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
