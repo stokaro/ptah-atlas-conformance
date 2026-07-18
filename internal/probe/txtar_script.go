@@ -2039,7 +2039,8 @@ func txtarUniqueConstraintsByName(table *ast.CreateTableNode) map[string]*ast.Co
 }
 
 func txtarUniqueConstraintsEquivalent(left, right *ast.ConstraintNode) bool {
-	return txtarConstraintColumnsEqual(atlasConstraintColumns(left), atlasConstraintColumns(right))
+	return txtarConstraintColumnsEqual(atlasConstraintColumns(left), atlasConstraintColumns(right)) &&
+		boolPtrEqual(left.NullsDistinct, right.NullsDistinct)
 }
 
 func txtarConstraintColumnsEqual(left, right []ast.ConstraintColumn) bool {
@@ -2058,11 +2059,12 @@ func txtarConstraintColumnsEqual(left, right []ast.ConstraintColumn) bool {
 
 func txtarIndexFromUniqueConstraint(tableName string, constraint *ast.ConstraintNode) *ast.IndexNode {
 	return &ast.IndexNode{
-		Name:    atlasSQLIdentifier(constraint.Name),
-		Table:   atlasSQLIdentifier(tableName),
-		Columns: atlasConstraintColumnNames(constraint),
-		Unique:  true,
-		Parts:   txtarIndexPartsFromConstraint(constraint),
+		Name:          atlasSQLIdentifier(constraint.Name),
+		Table:         atlasSQLIdentifier(tableName),
+		Columns:       atlasConstraintColumnNames(constraint),
+		Unique:        true,
+		NullsDistinct: cloneBoolPtr(constraint.NullsDistinct),
+		Parts:         txtarIndexPartsFromConstraint(constraint),
 	}
 }
 
@@ -4716,6 +4718,10 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode) bool {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
 			continue
+		case ast.UniqueConstraint:
+			if len(atlasConstraintColumnNames(constraint)) == 0 {
+				return false
+			}
 		case ast.ForeignKeyConstraint:
 			if !txtarPostgresApplyForeignKeyConstraintSupported(constraint) {
 				return false
@@ -4792,6 +4798,9 @@ func txtarPostgresApplyColumnTypeSupported(columnType string) bool {
 
 func txtarPostgresApplyIndexSupported(index *ast.IndexNode) bool {
 	if len(index.EffectiveParts()) == 0 || index.Concurrently || index.Operator != "" || index.Comment != "" {
+		return false
+	}
+	if index.NullsDistinct != nil && !index.Unique {
 		return false
 	}
 	for _, part := range index.EffectiveParts() {
@@ -5506,14 +5515,56 @@ func txtarCmpShowSQL(
 }
 
 func txtarCanonicalShowSQL(fx Fixture, sql string) string {
+	switch txtarFixtureDialect(fx) {
+	case "mysql":
+		// MySQL fixtures already store Atlas SHOW CREATE TABLE output. Parsing it
+		// through Ptah can collapse KEY/UNIQUE KEY shape details that SHOW output
+		// preserves, so compare the raw fixture text with MySQL normalization.
+		return sql
+	}
 	statements, err := txtarParseExpectedShowSQL(sql)
 	if err != nil {
 		return sql
 	}
 	atlasNormalizeMariaDBJSONColumns(txtarFixtureDialect(fx), statements)
+	statements = atlasNormalizeMySQLParsedUniqueKeys(txtarFixtureDialect(fx), statements)
 	out, ok := txtarVirtualStateShowSQL(fx, statements)
 	if !ok {
 		return sql
+	}
+	return out
+}
+
+func atlasNormalizeMySQLParsedUniqueKeys(dialect string, statements []ast.Node) []ast.Node {
+	if dialect != "mysql" && dialect != "mariadb" {
+		return statements
+	}
+	out := slices.Clone(statements)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if !ok {
+			continue
+		}
+		kept := table.Constraints[:0]
+		for _, constraint := range table.Constraints {
+			if constraint.Type != ast.UniqueConstraint {
+				kept = append(kept, constraint)
+				continue
+			}
+			columns := atlasConstraintColumnNames(constraint)
+			if len(columns) == 0 {
+				kept = append(kept, constraint)
+				continue
+			}
+			out = append(out, &ast.IndexNode{
+				Name:    atlasDefaultUniqueName(table.Name, columns, constraint.Name),
+				Table:   table.Name,
+				Columns: columns,
+				Unique:  true,
+				Parts:   txtarIndexPartsFromConstraint(constraint),
+			})
+		}
+		table.Constraints = kept
 	}
 	return out
 }
@@ -5757,6 +5808,7 @@ func txtarPostgresShowIndexLines(tableName string, table *ast.CreateTableNode, i
 		}
 		lines = append(lines, line)
 	}
+	var indexLines []string
 	for _, index := range indexes {
 		parts := make([]string, 0, len(index.EffectiveParts()))
 		for _, part := range index.EffectiveParts() {
@@ -5773,12 +5825,60 @@ func txtarPostgresShowIndexLines(tableName string, table *ast.CreateTableNode, i
 		if len(index.StorageParams) > 0 {
 			line += " " + renderAtlasIndexStorageParamsSQL(index.StorageParams)
 		}
+		if index.NullsDistinct != nil {
+			line += " " + renderAtlasNullsDistinctSQL(index.NullsDistinct)
+		}
 		if index.Condition != "" {
 			line += " WHERE " + txtarPostgresShowIndexCondition(index.Condition)
 		}
-		lines = append(lines, line)
+		indexLines = append(indexLines, line)
 	}
+	for _, constraint := range txtarPostgresUniqueConstraints(tableName, table) {
+		indexLines = append(indexLines, txtarPostgresShowUniqueConstraintLine(constraint))
+	}
+	slices.Sort(indexLines)
+	lines = append(lines, indexLines...)
 	return lines
+}
+
+type txtarPostgresShowUniqueConstraint struct {
+	name          string
+	columns       []string
+	nullsDistinct *bool
+}
+
+func txtarPostgresUniqueConstraints(tableName string, table *ast.CreateTableNode) []txtarPostgresShowUniqueConstraint {
+	var constraints []txtarPostgresShowUniqueConstraint
+	for _, constraint := range table.Constraints {
+		if constraint.Type != ast.UniqueConstraint {
+			continue
+		}
+		columns := atlasConstraintColumnNames(constraint)
+		if len(columns) == 0 {
+			continue
+		}
+		showColumns := slices.Clone(columns)
+		for i, column := range showColumns {
+			showColumns[i] = atlasSQLIdentifier(column)
+		}
+		constraints = append(constraints, txtarPostgresShowUniqueConstraint{
+			name:          atlasDefaultUniqueName(tableName, columns, constraint.Name),
+			columns:       showColumns,
+			nullsDistinct: cloneBoolPtr(constraint.NullsDistinct),
+		})
+	}
+	slices.SortFunc(constraints, func(a, b txtarPostgresShowUniqueConstraint) int {
+		return cmp.Compare(a.name, b.name)
+	})
+	return constraints
+}
+
+func txtarPostgresShowUniqueConstraintLine(constraint txtarPostgresShowUniqueConstraint) string {
+	line := fmt.Sprintf("%q UNIQUE CONSTRAINT, btree (%s)", atlasSQLIdentifier(constraint.name), strings.Join(constraint.columns, ", "))
+	if constraint.nullsDistinct != nil {
+		line += " " + renderAtlasNullsDistinctSQL(constraint.nullsDistinct)
+	}
+	return line
 }
 
 type txtarPostgresShowForeignKey struct {
@@ -7933,14 +8033,27 @@ func renderAtlasTableHCL(
 			}
 		}
 	}
-	for _, unique := range uniques {
-		if err := renderAtlasUniqueHCL(b, unique); err != nil {
-			return err
+	if dialect == "postgresql" {
+		for _, index := range indexes {
+			if err := renderAtlasIndexHCL(b, index); err != nil {
+				return err
+			}
 		}
-	}
-	for _, index := range indexes {
-		if err := renderAtlasIndexHCL(b, index); err != nil {
-			return err
+		for _, unique := range uniques {
+			if err := renderAtlasUniqueHCL(b, unique); err != nil {
+				return err
+			}
+		}
+	} else {
+		for _, unique := range uniques {
+			if err := renderAtlasUniqueHCL(b, unique); err != nil {
+				return err
+			}
+		}
+		for _, index := range indexes {
+			if err := renderAtlasIndexHCL(b, index); err != nil {
+				return err
+			}
 		}
 	}
 	if err := renderAtlasCheckHCLBlocks(b, dialect, table); err != nil {
@@ -8096,8 +8209,9 @@ type atlasHCLForeignKey struct {
 }
 
 type atlasHCLUnique struct {
-	name    string
-	columns []string
+	name          string
+	columns       []string
+	nullsDistinct *bool
 }
 
 func atlasColumnForeignKey(tableName string, column *ast.ColumnNode) *atlasHCLForeignKey {
@@ -8144,8 +8258,9 @@ func atlasConstraintUnique(tableName string, constraint *ast.ConstraintNode) (*a
 		return nil, fmt.Errorf("%w: unique %q missing columns", errUnsupportedInspectHCL, constraint.Name)
 	}
 	return &atlasHCLUnique{
-		name:    atlasDefaultUniqueName(tableName, columns, constraint.Name),
-		columns: columns,
+		name:          atlasDefaultUniqueName(tableName, columns, constraint.Name),
+		columns:       columns,
+		nullsDistinct: cloneBoolPtr(constraint.NullsDistinct),
 	}, nil
 }
 
@@ -8489,7 +8604,14 @@ func renderAtlasUniqueHCL(b *strings.Builder, unique *atlasHCLUnique) error {
 		return err
 	}
 	fmt.Fprintf(b, "  unique %q {\n", unique.name)
-	fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(columnRefs, ", "))
+	if unique.nullsDistinct != nil {
+		fmt.Fprintf(b, "    columns        = [%s]\n", strings.Join(columnRefs, ", "))
+	} else {
+		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(columnRefs, ", "))
+	}
+	if unique.nullsDistinct != nil {
+		fmt.Fprintf(b, "    nulls_distinct = %t\n", *unique.nullsDistinct)
+	}
 	b.WriteString("  }\n")
 	return nil
 }
@@ -8502,7 +8624,11 @@ func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
 
 	fmt.Fprintf(b, "  index %q {\n", atlasHCLIdentifier(index.Name))
 	if index.Unique {
-		b.WriteString("    unique  = true\n")
+		if index.NullsDistinct != nil {
+			b.WriteString("    unique         = true\n")
+		} else {
+			b.WriteString("    unique  = true\n")
+		}
 	}
 	parts := index.EffectiveParts()
 	if len(parts) == 0 {
@@ -8513,7 +8639,11 @@ func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+		if index.NullsDistinct != nil {
+			fmt.Fprintf(b, "    columns        = [%s]\n", strings.Join(refs, ", "))
+		} else {
+			fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+		}
 		if err := renderAtlasIndexExtraHCL(b, index); err != nil {
 			return err
 		}
@@ -8562,6 +8692,9 @@ func renderAtlasIndexExtraHCL(b *strings.Builder, index *ast.IndexNode) error {
 	}
 	if err := renderAtlasIndexStorageParamsHCL(b, index.StorageParams); err != nil {
 		return err
+	}
+	if index.NullsDistinct != nil {
+		fmt.Fprintf(b, "    nulls_distinct = %t\n", *index.NullsDistinct)
 	}
 	return nil
 }
@@ -8927,6 +9060,8 @@ func renderAtlasCreateTableSQL(
 			if dialect == "sqlite" && constraint.Name == "" {
 				unnamedSQLiteForeignKeys++
 			}
+		case ast.UniqueConstraint:
+			parts = append(parts, renderAtlasUniqueSQL(quote, table.Name, constraint))
 		case ast.CheckConstraint:
 			continue
 		default:
@@ -9243,12 +9378,16 @@ func renderAtlasIndexSQL(dialect string, quote func(string) string, index *ast.I
 	for _, part := range index.EffectiveParts() {
 		parts = append(parts, renderAtlasIndexPartSQL(quote, part))
 	}
-	b.WriteString(strings.Join(parts, ", "))
+	b.WriteString(strings.Join(parts, atlasIndexPartSeparator(dialect)))
 	b.WriteString(")")
 	if dialect == "postgresql" && len(index.IncludeColumns) > 0 {
 		b.WriteString(" INCLUDE (")
 		b.WriteString(renderAtlasIndexIncludeColumnsSQL(quote, index.IncludeColumns))
 		b.WriteString(")")
+	}
+	if dialect == "postgresql" && index.NullsDistinct != nil {
+		b.WriteString(" ")
+		b.WriteString(renderAtlasNullsDistinctSQL(index.NullsDistinct))
 	}
 	if dialect == "postgresql" && len(index.StorageParams) > 0 {
 		b.WriteString(" ")
@@ -9276,6 +9415,13 @@ func renderAtlasIndexPartSQL(quote func(string) string, part ast.IndexPart) stri
 	return spec
 }
 
+func atlasIndexPartSeparator(dialect string) string {
+	if dialect == "mysql" || dialect == "mariadb" {
+		return ","
+	}
+	return ", "
+}
+
 func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *ast.IndexNode) {
 	quote := atlasIdentifierQuoter(dialect)
 	fmt.Fprintf(b, "-- Create index %q to table: %q\n", atlasSQLIdentifier(index.Name), atlasSQLIdentifier(index.Table))
@@ -9292,12 +9438,16 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 	for _, part := range index.EffectiveParts() {
 		parts = append(parts, renderAtlasIndexPartSQL(quote, part))
 	}
-	b.WriteString(strings.Join(parts, ", "))
+	b.WriteString(strings.Join(parts, atlasIndexPartSeparator(dialect)))
 	b.WriteString(")")
 	if dialect == "postgresql" && len(index.IncludeColumns) > 0 {
 		b.WriteString(" INCLUDE (")
 		b.WriteString(renderAtlasIndexIncludeColumnsSQL(quote, index.IncludeColumns))
 		b.WriteString(")")
+	}
+	if dialect == "postgresql" && index.NullsDistinct != nil {
+		b.WriteString(" ")
+		b.WriteString(renderAtlasNullsDistinctSQL(index.NullsDistinct))
 	}
 	if dialect == "postgresql" && len(index.StorageParams) > 0 {
 		b.WriteString(" ")
@@ -9334,6 +9484,43 @@ func renderAtlasIndexStorageParamsSQL(params map[string]string) string {
 		rendered = append(rendered, key+"="+value)
 	}
 	return "WITH (" + strings.Join(rendered, ", ") + ")"
+}
+
+func renderAtlasUniqueSQL(quote func(string) string, tableName string, constraint *ast.ConstraintNode) string {
+	columns := atlasConstraintColumnNames(constraint)
+	quoted := make([]string, 0, len(columns))
+	for _, column := range columns {
+		quoted = append(quoted, quote(column))
+	}
+	name := atlasDefaultUniqueName(tableName, columns, constraint.Name)
+	parts := []string{"CONSTRAINT", quote(name), "UNIQUE"}
+	if constraint.NullsDistinct != nil {
+		parts = append(parts, renderAtlasNullsDistinctSQL(constraint.NullsDistinct))
+	}
+	parts = append(parts, "("+strings.Join(quoted, ", ")+")")
+	return strings.Join(parts, " ")
+}
+
+func renderAtlasNullsDistinctSQL(nullsDistinct *bool) string {
+	if nullsDistinct != nil && *nullsDistinct {
+		return "NULLS DISTINCT"
+	}
+	return "NULLS NOT DISTINCT"
+}
+
+func boolPtrEqual(left, right *bool) bool {
+	if left == nil || right == nil {
+		return left == right
+	}
+	return *left == *right
+}
+
+func cloneBoolPtr(value *bool) *bool {
+	if value == nil {
+		return nil
+	}
+	clone := *value
+	return &clone
 }
 
 func renderAtlasColumnForeignKeySQL(
