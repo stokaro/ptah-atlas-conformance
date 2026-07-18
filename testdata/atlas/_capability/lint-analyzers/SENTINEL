@@ -1,0 +1,2 @@
+Capability sentinel for the lint-analyzer-catalog probe.
+This marker owns that probe's per-analyzer emission; see internal/probe/atlas_lint_probe.go.
