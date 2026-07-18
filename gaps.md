@@ -6,15 +6,15 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 24 unwaived non-OK observation(s)
+## Status: NOT DONE — 23 unwaived non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260717231929-2a0c02f3703c`
-- Outcomes: **507 ok**, **24 gap**, **0 fail**, **0 panic**
-- Gate: **24 unwaived non-OK** (fails CI), 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260718003011-cc89cb575068`
+- Outcomes: **508 ok**, **23 gap**, **0 fail**, **0 panic**
+- Gate: **23 unwaived non-OK** (fails CI), 0 waived
 - Corpus inventory: **158 imported fixture(s)**, **158 measured**, **0 imported-but-unmeasured**
 
 ## Findings
@@ -37,7 +37,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-partial.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | unsupported: execsql | #285 |
-| **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | unsupported: apply | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
 | **RED** | **gap** | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | unsupported: atlas migrate diff | #285 |
@@ -523,6 +522,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | executed 9 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/index-issue-557.txtar` | script-runtime | executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/index-type.txtar` | script-runtime | executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | executed 8 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/autoincrement.txtar` | script-runtime | executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | script-runtime | executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar` | script-runtime | executed 2 supported command(s) |  |
@@ -555,4 +555,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#285** — 24 finding(s)
+- **stokaro/ptah#285** — 23 finding(s)

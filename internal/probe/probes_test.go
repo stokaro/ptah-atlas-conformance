@@ -2226,6 +2226,25 @@ func TestTxtarScriptProbeExecutesPostgresColumnSerialFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresPrimaryKeyFixture(t *testing.T) {
+	fixture := "primary-key.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesPostgresForeignKeyFixtures(t *testing.T) {
 	for _, fixture := range []string{"foreign-key.txtar", "foreign-key-action.txtar"} {
 		t.Run(fixture, func(t *testing.T) {
@@ -2556,10 +2575,13 @@ func TestTxtarParseGeneratedPrimaryKeyAlterStatement(t *testing.T) {
 	}
 	add, ok := alter.Operations[2].(*ast.AddConstraintOperation)
 	if !ok || add.Constraint == nil || add.Constraint.Type != ast.PrimaryKeyConstraint ||
-		!txtarPrimaryKeyColumnsEqual(add.Constraint.ColumnParts, []ast.ConstraintColumn{
-			{Name: "id", Prefix: "7"},
-			{Name: "id2", Prefix: "1"},
-		}) {
+		!txtarPrimaryKeyColumnsEqual(
+			txtarPrimaryKey{columns: add.Constraint.ColumnParts},
+			txtarPrimaryKey{columns: []ast.ConstraintColumn{
+				{Name: "id", Prefix: "7"},
+				{Name: "id2", Prefix: "1"},
+			}},
+		) {
 		t.Fatalf("unexpected add primary-key operation: %#v", alter.Operations[2])
 	}
 }
