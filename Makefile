@@ -1,9 +1,22 @@
-.PHONY: probe budget gate verify build vet clean
+.PHONY: probe budget gate probe-live gate-live verify build vet clean
 
 # Regenerate the gap report from the vendored corpus. Always exits 0 — use this
 # to refresh gaps.md / gaps.json.
 probe:
 	go run ./cmd/gap-probe
+
+# The live behavioral tier: apply first-party schemas to a real database,
+# introspect them back, and diff. Kept separate from the offline probes so the
+# offline report stays deterministic and DB-free. Needs CONFORMANCE_DB_URL.
+# Regenerates gaps-live.md / gaps-live.json and always exits 0.
+probe-live:
+	go run ./cmd/gap-probe-live
+
+# The live conformance gate: regenerate the live report AND fail if any schema
+# does not survive Ptah's generate -> apply -> introspect loop. Red until that
+# loop is lossless. Needs CONFORMANCE_DB_URL.
+gate-live:
+	go run ./cmd/gap-probe-live -gate
 
 # CI progress gate: fail only when the current report exceeds the committed
 # unwaived non-OK observation budget or has stale waivers. Full parity is still

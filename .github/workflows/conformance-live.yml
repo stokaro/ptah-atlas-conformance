@@ -1,0 +1,49 @@
+name: conformance-live
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # The live behavioral tier. It applies first-party Ptah schemas to a real
+  # Postgres, introspects them back and diffs. The `gate` step is expected to stay
+  # red until Ptah's generate -> apply -> introspect loop is lossless — red here
+  # means "not yet", not "broken". The report-freshness check must stay green.
+  live-roundtrip:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: conf
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CONFORMANCE_DB_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Regenerate the live report
+        run: make probe-live
+
+      - name: Fail if the committed live report is stale
+        run: |
+          if ! git diff --exit-code gaps-live.md gaps-live.json; then
+            echo "gaps-live.md / gaps-live.json are out of date — run 'make probe-live' with a database and commit the result."
+            exit 1
+          fi
+
+      - name: Live conformance gate (red until the round-trip is lossless)
+        run: make gate-live

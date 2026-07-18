@@ -92,10 +92,17 @@ that when they go green Ptah genuinely covers that dimension:
   proprietary). SQL Server delimiting (GO / BEGIN TRY) is out of scope — SQL
   Server is a Pro Atlas driver.
 
-These dimensions are exhaustive today. Introspection breadth and the
-behavioral *correctness* of each declarative command (does `schema inspect`
-emit equivalent HCL, does `migrate diff` produce equivalent SQL) still need a
-live database and are the domain of the end-state conformance in ptah#285.
+A fifth, **live** tier now measures behavioral self-consistency on a real
+database (`conformance-live` workflow, separate from the offline report):
+`roundtrip-consistency` applies a first-party Ptah schema to Postgres,
+introspects it back, and diffs. A clean diff guarantees Ptah's
+generate → apply → introspect loop is lossless for that schema — behavior a
+drop-in needs. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
+which objects Atlas itself inspects, and it already surfaces real defects (an
+unnamed foreign key renders invalid DDL; a composite primary key does not
+round-trip). The deeper differential correctness of each declarative command
+(does `schema inspect` emit equivalent HCL) remains the domain of the end-state
+conformance in ptah#285.
 
 ## What a real full-parity test would require
 
