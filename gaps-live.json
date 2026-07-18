@@ -23,16 +23,15 @@
   {
     "probe": "roundtrip-consistency",
     "fixture": "04-index-fk",
-    "stage": "apply",
-    "outcome": "gap",
-    "detail": "Ptah-rendered DDL failed to apply to a real database: ERROR: syntax error at or near \"FOREIGN\" (SQLSTATE 42601)"
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 2 table(s), 0 view(s), 0 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
     "fixture": "05-composite",
     "stage": "roundtrip",
-    "outcome": "gap",
-    "detail": "desired schema does not survive apply -\u003e introspect: differs in constraints_removed, constraints_removed_with_tables, tables_modified",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
   }
 ]
