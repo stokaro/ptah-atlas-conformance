@@ -2792,9 +2792,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-include.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 8 supported command(s)"
   },
   {
     "probe": "txtar-script",
@@ -2823,9 +2822,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-partial.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",

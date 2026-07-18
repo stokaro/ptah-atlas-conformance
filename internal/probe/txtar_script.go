@@ -4460,9 +4460,6 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 			err:    fmt.Errorf("apply %s: %s missing", fields[1], fields[1]),
 		}, true
 	}
-	if txtarPostgresHCLApplyUnsupported(fx, data) {
-		return txtarCommandResult{unsupported: "apply"}, true
-	}
 	statements, err := txtarHCLStatements(fx, fields[1], data)
 	if err != nil {
 		return txtarCommandResult{unsupported: "apply"}, true
@@ -4681,15 +4678,6 @@ func txtarFixtureSupportsVirtualApply(fx Fixture, statements []ast.Node) bool {
 	default:
 		return false
 	}
-}
-
-func txtarPostgresHCLApplyUnsupported(fx Fixture, data string) bool {
-	if txtarFixtureFamily(fx) != "postgres" {
-		return false
-	}
-	// Ptah's current HCL-to-AST path does not preserve PostgreSQL partial-index
-	// predicates. Keeping them unsupported avoids a false-green cmpshow result.
-	return strings.Contains(data, "where =")
 }
 
 func txtarPostgresVirtualApplyStateSupported(statements []ast.Node) bool {
@@ -5779,6 +5767,9 @@ func txtarPostgresShowIndexLines(tableName string, table *ast.CreateTableNode, i
 			kind = "UNIQUE, "
 		}
 		line := fmt.Sprintf("%q %s%s (%s)", atlasSQLIdentifier(index.Name), kind, txtarPostgresIndexMethod(index), strings.Join(parts, ", "))
+		if len(index.IncludeColumns) > 0 {
+			line += fmt.Sprintf(" INCLUDE (%s)", strings.Join(index.IncludeColumns, ", "))
+		}
 		if index.Condition != "" {
 			line += " WHERE " + txtarPostgresShowIndexCondition(index.Condition)
 		}
@@ -8501,7 +8492,7 @@ func renderAtlasUniqueHCL(b *strings.Builder, unique *atlasHCLUnique) error {
 }
 
 func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
-	if index.Type != "" || index.Parser != "" || index.Condition != "" || index.Operator != "" ||
+	if index.Type != "" || index.Parser != "" || index.Operator != "" ||
 		index.Comment != "" || index.Concurrently || index.Granularity != 0 {
 		return fmt.Errorf("%w: index %s", errUnsupportedInspectHCL, index.Name)
 	}
@@ -8520,6 +8511,9 @@ func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
 			return err
 		}
 		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+		if err := renderAtlasIndexExtraHCL(b, index); err != nil {
+			return err
+		}
 		b.WriteString("  }\n")
 		return nil
 	}
@@ -8542,7 +8536,25 @@ func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
 		}
 		b.WriteString("    }\n")
 	}
+	if err := renderAtlasIndexExtraHCL(b, index); err != nil {
+		return err
+	}
 	b.WriteString("  }\n")
+	return nil
+}
+
+func renderAtlasIndexExtraHCL(b *strings.Builder, index *ast.IndexNode) error {
+	if index.Condition != "" {
+		fmt.Fprintf(b, "    where   = %q\n", index.Condition)
+	}
+	if len(index.IncludeColumns) == 0 {
+		return nil
+	}
+	refs, err := atlasHCLColumnRefsFromNames(index.IncludeColumns)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(b, "    include = [%s]\n", strings.Join(refs, ", "))
 	return nil
 }
 
@@ -9204,6 +9216,11 @@ func renderAtlasIndexSQL(dialect string, quote func(string) string, index *ast.I
 	}
 	b.WriteString(strings.Join(parts, ", "))
 	b.WriteString(")")
+	if dialect == "postgresql" && len(index.IncludeColumns) > 0 {
+		b.WriteString(" INCLUDE (")
+		b.WriteString(renderAtlasIndexIncludeColumnsSQL(quote, index.IncludeColumns))
+		b.WriteString(")")
+	}
 	if index.Parser != "" {
 		fmt.Fprintf(&b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
 	}
@@ -9244,6 +9261,11 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 	}
 	b.WriteString(strings.Join(parts, ", "))
 	b.WriteString(")")
+	if dialect == "postgresql" && len(index.IncludeColumns) > 0 {
+		b.WriteString(" INCLUDE (")
+		b.WriteString(renderAtlasIndexIncludeColumnsSQL(quote, index.IncludeColumns))
+		b.WriteString(")")
+	}
 	if index.Parser != "" {
 		fmt.Fprintf(b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
 	}
@@ -9252,6 +9274,14 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 		return
 	}
 	b.WriteString(";\n")
+}
+
+func renderAtlasIndexIncludeColumnsSQL(quote func(string) string, columns []string) string {
+	quoted := make([]string, 0, len(columns))
+	for _, column := range columns {
+		quoted = append(quoted, quote(column))
+	}
+	return strings.Join(quoted, ", ")
 }
 
 func renderAtlasColumnForeignKeySQL(
