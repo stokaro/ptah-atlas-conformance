@@ -10,6 +10,7 @@ import (
 	"testing/fstest"
 
 	"github.com/stokaro/ptah/core/ast"
+	"github.com/stokaro/ptah/core/atlashcl"
 	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
 )
@@ -2109,7 +2110,7 @@ func TestTxtarScriptProbeExecutesPostgresApplyFixtures(t *testing.T) {
 	}
 }
 
-func TestTxtarScriptProbeKeepsPostgresPartialIndexWhereAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesPostgresPartialIndexFixture(t *testing.T) {
 	fixture := "index-partial.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
 		Name: "postgres/" + fixture,
@@ -2123,11 +2124,8 @@ func TestTxtarScriptProbeKeepsPostgresPartialIndexWhereAsGap(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
-	}
-	if !strings.Contains(results[0].Detail, "unsupported: apply") {
-		t.Fatalf("detail missing partial-index apply gap: %s", results[0].Detail)
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 
@@ -2283,6 +2281,91 @@ func TestTxtarScriptProbeExecutesPostgresIndexDescFixture(t *testing.T) {
 	}
 	if results[0].Outcome != OK {
 		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesPostgresIndexIncludeFixture(t *testing.T) {
+	fixture := "index-include.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarHCLStatementsPreservePostgresIndexIncludeAndWhere(t *testing.T) {
+	fx := Fixture{Name: "postgres/index-include.txtar"}
+	data := `
+schema "$db" {}
+
+table "users" {
+  schema = schema.$db
+  column "name" {
+    null = false
+    type = text
+  }
+  column "active" {
+    null = true
+    type = boolean
+  }
+  index "users_name" {
+    columns = [column.name]
+    where = "active"
+    include = [column.active]
+  }
+}
+`
+	normalized := txtarNormalizeAtlasHCL(fx, data)
+	db, err := atlashcl.Parse([]byte(normalized), "case.hcl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(db.Indexes) != 1 {
+		t.Fatalf("raw indexes = %d, want 1", len(db.Indexes))
+	}
+	if strings.Join(db.Indexes[0].IncludeColumns, ",") != "active" {
+		t.Fatalf("raw include columns = %#v, want [active]", db.Indexes[0].IncludeColumns)
+	}
+
+	statements, err := txtarHCLStatements(fx, "case.hcl", data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var index *ast.IndexNode
+	for _, stmt := range statements {
+		if node, ok := stmt.(*ast.IndexNode); ok {
+			index = node
+			break
+		}
+	}
+	if index == nil {
+		t.Fatalf("index not found in %#v", statements)
+	}
+	if index.Condition != "active" {
+		t.Fatalf("condition = %q, want active", index.Condition)
+	}
+	if strings.Join(index.IncludeColumns, ",") != "active" {
+		t.Fatalf("include columns = %#v, want [active]", index.IncludeColumns)
+	}
+
+	actual, ok := txtarTableShowSQL(fx, statements, "users")
+	if !ok {
+		t.Fatal("expected virtual PostgreSQL table show SQL")
+	}
+	want := `"users_name" btree (name) INCLUDE (active) WHERE active`
+	if !strings.Contains(actual, want) {
+		t.Fatalf("show SQL missing %q:\n%s", want, actual)
 	}
 }
 
