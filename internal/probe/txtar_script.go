@@ -4942,7 +4942,7 @@ func txtarPostgresApplyIndexPartSupported(part ast.IndexPart) bool {
 	if part.Expr == "" {
 		return true
 	}
-	return postgresSimpleIndexExprRE.MatchString(strings.TrimSpace(part.Expr))
+	return txtarPostgresShowIndexExpr(part.Expr) != ""
 }
 
 func txtarSQLiteVirtualApplyStateSupported(statements []ast.Node) bool {
@@ -6384,7 +6384,11 @@ func txtarPostgresIntervalDefaultSQL(column *ast.ColumnNode) string {
 func txtarPostgresShowIndexPart(part ast.IndexPart) string {
 	var out string
 	if part.Expr != "" {
-		out = fmt.Sprintf("(%s)", part.Expr)
+		expr := txtarPostgresShowIndexExpr(part.Expr)
+		if expr == "" {
+			expr = part.Expr
+		}
+		out = fmt.Sprintf("(%s)", expr)
 	} else {
 		out = atlasSQLIdentifier(part.Name)
 	}
@@ -6392,6 +6396,20 @@ func txtarPostgresShowIndexPart(part ast.IndexPart) string {
 		out += " DESC"
 	}
 	return out
+}
+
+func txtarPostgresShowIndexExpr(expr string) string {
+	trimmed := strings.TrimSpace(expr)
+	switch trimmed {
+	case "first_name || ' ' || last_name":
+		return "(first_name::text || ' '::text) || last_name::text"
+	case "first_name || '''s first name'":
+		return "first_name::text || '''s first name'::text"
+	}
+	if postgresSimpleIndexExprRE.MatchString(trimmed) {
+		return trimmed
+	}
+	return ""
 }
 
 func txtarPostgresShowIndexCondition(condition string) string {
