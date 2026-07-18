@@ -60,6 +60,34 @@ is **"unknown — not measured"**, not "works".
   open-source core does" is false; "is a toy" is also false. The truth is in
   between and, for most of the surface, **not yet measured here**.
 
+## What the `ptah atlas` and analyzer probes now measure exhaustively
+
+Two behavioral probes make part of the drop-in surface exhaustively measured, so
+that when they go green Ptah genuinely covers that dimension:
+
+- **`atlas-cli-surface`** enumerates the complete Atlas OSS CLI verb set and
+  checks, against the real Ptah binary, whether `ptah atlas <verb>` resolves.
+  When every OSS row is green, `ptah atlas ...` is a CLI drop-in. The OSS vs
+  cloud/Pro split is taken from the Apache-2.0 `cmdapi` source at the pinned
+  commit, not guessed.
+- **`lint-analyzer-catalog`** covers the full set of Atlas analyzer concerns that
+  fire by default in an OSS build — the DS, MF (data-dependent), BC, CD, PG1, PG3,
+  PG110, MY, LT and TX families. This is the "lint matrix" listed below as a
+  requirement. Its criterion is **behavioral**: a concern reads green when Ptah's
+  linter emits any substantive finding on the change, with the actual Ptah rule
+  code shown, so it measures "does Ptah warn about this change" and flips green on
+  its own when Ptah adds an equivalent rule. Note that Ptah's rule *codes* collide
+  with Atlas's (Ptah `PG102` is an enum-in-transaction rule, not Atlas's
+  drop-index rule), which is exactly why the probe matches on behavior, not codes.
+  Deliberately excluded: NM (naming) fires only under a configured policy, and
+  SA (injection) / OW (ownership) are policy/enterprise analyzers — none run in a
+  default OSS pass, so their absence is not a default drop-in gap.
+
+These two dimensions are exhaustive today. Introspection breadth and the
+behavioral *correctness* of each declarative command (does `schema inspect`
+emit equivalent HCL, does `migrate diff` produce equivalent SQL) still need a
+live database and are the domain of the end-state conformance in ptah#285.
+
 ## What a real full-parity test would require
 
 To earn the phrase "feature-set parity test", this repo would need, at minimum:

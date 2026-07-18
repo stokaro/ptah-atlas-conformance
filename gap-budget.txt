@@ -1,4 +1,6 @@
 # Maximum allowed unwaived non-OK observations in gaps.json.
 # Lower this whenever Ptah support or harness fidelity improves; CI fails on regressions above it.
-# Baseline set when atlas-cli-surface (23-derived) + lint-analyzer-catalog were added; ratchet down as Ptah closes gaps.
-23
+# 44 = 16 unimplemented `ptah atlas` OSS verbs (atlas-cli-surface) + 28 uncovered
+# Atlas analyzer concerns (lint-analyzer-catalog, exhaustive over the default-firing
+# OSS families). Ratchet down as Ptah closes gaps.
+44

@@ -6,16 +6,16 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 23 non-OK observation(s)
+## Status: NOT DONE — 44 non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260718082254-b476a5f924f5`
-- Outcomes: **544 ok**, **23 gap**, **0 fail**, **0 panic**
-- Full gate: **23 non-OK** (fails CI)
-- Regression budget input: **23 unwaived non-OK**, 0 waived
+- Outcomes: **551 ok**, **44 gap**, **0 fail**, **0 panic**
+- Full gate: **44 non-OK** (fails CI)
+- Regression budget input: **44 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
 
 ## Findings
@@ -38,13 +38,34 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | atlas-cli-surface | `atlas schema fmt` | resolve | Ptah has no `atlas schema fmt` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
 | **RED** | **gap** | atlas-cli-surface | `atlas schema inspect` | resolve | Ptah has no `atlas schema inspect` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
 | **RED** | **gap** | atlas-cli-surface | `atlas version` | resolve | Ptah has no `atlas version` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF101 (add unique index/constraint on existing column)` | postgres | Atlas MF101 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas DS101 (drop schema)` | postgres | Atlas DS101 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas LT101 (modify nullable to non-nullable without default)` | sqlite | Atlas LT101 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF101 (add unique constraint on existing column)` | postgres | Atlas MF101 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas MF103 (add non-nullable column without default)` | postgres | Atlas MF103 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas MF104 (modify nullable column to non-nullable)` | postgres | Atlas MF104 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY101 (add non-nullable column without default)` | mysql | Atlas MY101 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas MY102 (inline REFERENCES on added column has no effect)` | mysql | Atlas MY102 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY131 (add foreign key blocks DML)` | mysql | Atlas MY131 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY132 (add primary key rebuilds the table)` | mysql | Atlas MY132 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY134 (add fulltext index blocks DML)` | mysql | Atlas MY134 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY135 (add spatial index blocks DML)` | mysql | Atlas MY135 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG102 (drop index without CONCURRENTLY)` | postgres | Atlas PG102 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)` | postgres | Atlas PG103 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)` | postgres | Atlas PG104 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)` | postgres | Atlas PG105 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG110 (create table with non-optimal column alignment)` | postgres | Atlas PG110 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG302 (add column with volatile default rewrites the table)` | postgres | Atlas PG302 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG303 (modify nullable to non-nullable requires full scan)` | postgres | Atlas PG303 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG304 (add primary key on nullable columns requires full scan)` | postgres | Atlas PG304 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG305 (add check constraint requires full scan)` | postgres | Atlas PG305 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas PG306 (add foreign key validates existing rows and blocks writes)` | postgres | Atlas PG306 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG307 (change table logging mode rewrites the table)` | postgres | Atlas PG307 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)` | postgres | Atlas PG308 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG309 (add stored generated column rewrites the table)` | postgres | Atlas PG309 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG310 (add identity column rewrites the table)` | postgres | Atlas PG310 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG311 (change table access method rewrites the table)` | postgres | Atlas PG311 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas TX101 (mixing transactional and non-transactional statements)` | postgres | Atlas TX101 flags this; Ptah emits no substantive finding on the change | #270 |
+| **RED** | **gap** | lint-analyzer-catalog | `Atlas TX201 (nested transaction block)` | postgres | Atlas TX201 flags this; Ptah emits no substantive finding on the change | #270 |
 | — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas migrate down` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas migrate edit` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
@@ -226,9 +247,16 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | lint-analyzer-catalog | `Atlas BC101 (rename table)` | postgres | Ptah flags this change: BC101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas BC102 (rename column)` | postgres | Ptah flags this change: BC101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas CD101 (drop foreign key)` | postgres | Ptah flags this change: DS105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas CD102 (drop check constraint)` | postgres | Ptah flags this change: DS105 |  |
 | — | ok | lint-analyzer-catalog | `Atlas CD103 (drop primary key)` | postgres | Ptah flags this change: DS105 |  |
 | — | ok | lint-analyzer-catalog | `Atlas DS102 (drop table)` | postgres | Ptah flags this change: DS101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas DS103 (drop column)` | postgres | Ptah flags this change: DS102 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY110 (remove enum value requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY112 (insert enum value not at the end requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY120 (remove set value requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY130 (change column type requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | Ptah flags this change: DS105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY136 (change table character set rebuilds the table)` | mysql | Ptah flags this change: MY101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas PG101 (create index without CONCURRENTLY)` | postgres | Ptah flags this change: PG101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas PG301 (column type change rewrites the table)` | postgres | Ptah flags this change: DS103 |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | content findings: PG101 |  |
@@ -593,4 +621,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#268** — 16 finding(s)
-- **stokaro/ptah#270** — 7 finding(s)
+- **stokaro/ptah#270** — 28 finding(s)
