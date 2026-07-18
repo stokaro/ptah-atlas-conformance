@@ -30,6 +30,7 @@ var (
 	mysqlDefaultCharsetRE      = regexp.MustCompile(`(?m)\s+CHARSET\s+\S+\s+COLLATE\s+\S+;?$`)
 	mysqlUTF8MB4IntroducerRE   = regexp.MustCompile(`(?i)\b_utf8mb4'`)
 	postgresSimpleIndexExprRE  = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*\s*\*\s*\d+$`)
+	postgresTSVectorOpsRE      = regexp.MustCompile(`^tsvector_ops\(siglen=([0-9]+)\)$`)
 	postgresHoursIntervalRE    = regexp.MustCompile(`^(\d+)\s+hours?$`)
 	postgresCurrentTimestampRE = regexp.MustCompile(`(?i)^CURRENT_TIMESTAMP(?:\((\d+)\))?$`)
 	flywayUndoMigrationRE      = regexp.MustCompile(`^U\d+\.sql$`)
@@ -4939,10 +4940,10 @@ func txtarPostgresApplyIndexSupported(index *ast.IndexNode) bool {
 }
 
 func txtarPostgresApplyIndexPartSupported(part ast.IndexPart) bool {
-	if part.Expr == "" {
-		return true
+	if part.Expr != "" && txtarPostgresShowIndexExpr(part.Expr) == "" {
+		return false
 	}
-	return txtarPostgresShowIndexExpr(part.Expr) != ""
+	return txtarPostgresIndexOperatorSupported(part.Operator)
 }
 
 func txtarSQLiteVirtualApplyStateSupported(statements []ast.Node) bool {
@@ -6161,6 +6162,8 @@ func txtarPostgresColumnType(column *ast.ColumnNode) string {
 		return "bit varying" + strings.TrimPrefix(normalized, "bit_varying")
 	case normalized == "character_varying":
 		return "character varying"
+	case strings.HasPrefix(normalized, "char("):
+		return "character" + strings.TrimPrefix(normalized, "char")
 	case strings.HasPrefix(normalized, "varchar("):
 		return "character varying" + strings.TrimPrefix(normalized, "varchar")
 	case normalized == "double_precision":
@@ -6392,6 +6395,9 @@ func txtarPostgresShowIndexPart(part ast.IndexPart) string {
 	} else {
 		out = atlasSQLIdentifier(part.Name)
 	}
+	if operator := txtarPostgresShowIndexOperator(part.Operator); operator != "" {
+		out += " " + operator
+	}
 	if part.Desc {
 		out += " DESC"
 	}
@@ -6410,6 +6416,22 @@ func txtarPostgresShowIndexExpr(expr string) string {
 		return trimmed
 	}
 	return ""
+}
+
+func txtarPostgresIndexOperatorSupported(operator string) bool {
+	_, ok := atlasIndexPartOperatorSQL(operator)
+	return ok
+}
+
+func txtarPostgresShowIndexOperator(operator string) string {
+	operator, ok := atlasIndexPartOperatorSQL(operator)
+	if !ok {
+		return ""
+	}
+	if match := postgresTSVectorOpsRE.FindStringSubmatch(operator); match != nil {
+		return fmt.Sprintf("tsvector_ops (siglen='%s')", match[1])
+	}
+	return operator
 }
 
 func txtarPostgresShowIndexCondition(condition string) string {
@@ -8367,6 +8389,9 @@ func atlasColumnHCLType(dialect, schemaName, typ string, domains map[string]bool
 	if dialect == "mysql" && (normalized == "bool" || normalized == "boolean" || normalized == "tinyint(1)") {
 		return "bool"
 	}
+	if dialect == "postgresql" && strings.HasPrefix(normalized, "char(") {
+		return "character" + strings.TrimPrefix(normalized, "char")
+	}
 	return atlasColumnType(dialect, typ)
 }
 
@@ -8956,6 +8981,13 @@ func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
 		default:
 			return fmt.Errorf("%w: index %s empty part", errUnsupportedInspectHCL, index.Name)
 		}
+		operator, ok := atlasIndexPartOperatorHCL(part.Operator)
+		if !ok {
+			return fmt.Errorf("%w: index %s operator class %s", errUnsupportedInspectHCL, index.Name, part.Operator)
+		}
+		if operator != "" {
+			fmt.Fprintf(b, "      ops    = %s\n", operator)
+		}
 		b.WriteString("    }\n")
 	}
 	if err := renderAtlasIndexExtraHCL(b, index); err != nil {
@@ -9011,11 +9043,23 @@ func renderAtlasIndexStorageParamsHCL(b *strings.Builder, params map[string]stri
 
 func atlasIndexCanUseColumnsAttr(parts []ast.IndexPart) bool {
 	for _, part := range parts {
-		if part.Expr != "" || part.Prefix != "" || part.Desc {
+		operator, ok := atlasIndexPartOperatorHCL(part.Operator)
+		if !ok || operator != "" || part.Expr != "" || part.Prefix != "" || part.Desc {
 			return false
 		}
 	}
 	return true
+}
+
+func atlasIndexPartOperatorHCL(operator string) (string, bool) {
+	operator, ok := atlasIndexPartOperatorSQL(operator)
+	if !ok || operator == "" {
+		return "", ok
+	}
+	if postgresTSVectorOpsRE.MatchString(operator) {
+		return atlasSQLExpressionHCL(operator), true
+	}
+	return operator, true
 }
 
 func atlasHCLIndexColumnRefs(parts []ast.IndexPart) ([]string, error) {
@@ -9747,10 +9791,28 @@ func renderAtlasIndexPartSQL(quote func(string) string, part ast.IndexPart) stri
 	if part.Prefix != "" && part.Expr == "" {
 		spec += " (" + part.Prefix + ")"
 	}
+	if operator, ok := atlasIndexPartOperatorSQL(part.Operator); ok && operator != "" {
+		spec += " " + operator
+	}
 	if part.Desc {
 		spec += " DESC"
 	}
 	return spec
+}
+
+func atlasIndexPartOperatorSQL(operator string) (string, bool) {
+	operator = strings.TrimSpace(operator)
+	if postgresTSVectorOpsRE.MatchString(operator) {
+		return operator, true
+	}
+	switch operator {
+	case "", "bpchar_ops":
+		return "", true
+	case "bpchar_pattern_ops", "jsonb_path_ops":
+		return operator, true
+	default:
+		return "", false
+	}
 }
 
 func atlasIndexPartSeparator(dialect string) string {

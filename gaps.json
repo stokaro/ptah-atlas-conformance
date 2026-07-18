@@ -2807,9 +2807,8 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-operator-class.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 11 supported command(s)"
   },
   {
     "probe": "txtar-script",
