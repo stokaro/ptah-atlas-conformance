@@ -2303,6 +2303,44 @@ func TestTxtarScriptProbeExecutesPostgresIndexIncludeFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresIndexTypeBRINFixture(t *testing.T) {
+	fixture := "index-type-brin.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesPostgresColumnTextSearchFixture(t *testing.T) {
+	fixture := "column-textsearch.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarHCLStatementsPreservePostgresIndexIncludeAndWhere(t *testing.T) {
 	fx := Fixture{Name: "postgres/index-include.txtar"}
 	data := `
@@ -2364,6 +2402,56 @@ table "users" {
 		t.Fatal("expected virtual PostgreSQL table show SQL")
 	}
 	want := `"users_name" btree (name) INCLUDE (active) WHERE active`
+	if !strings.Contains(actual, want) {
+		t.Fatalf("show SQL missing %q:\n%s", want, actual)
+	}
+}
+
+func TestTxtarHCLStatementsPreservePostgresIndexTypeAndStorageParams(t *testing.T) {
+	fx := Fixture{Name: "postgres/index-type-brin.txtar"}
+	data := `
+schema "$db" {}
+
+table "users" {
+  schema = schema.$db
+  column "c" {
+    null = false
+    type = int
+  }
+  index "users_c" {
+    type = BRIN
+    columns = [column.c]
+    page_per_range = 2
+  }
+}
+`
+	statements, err := txtarHCLStatements(fx, "case.hcl", data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var index *ast.IndexNode
+	for _, stmt := range statements {
+		if node, ok := stmt.(*ast.IndexNode); ok {
+			index = node
+			break
+		}
+	}
+	if index == nil {
+		t.Fatalf("index not found in %#v", statements)
+	}
+	if index.Type != "BRIN" {
+		t.Fatalf("type = %q, want BRIN", index.Type)
+	}
+	if got := index.StorageParams["pages_per_range"]; got != "2" {
+		t.Fatalf("pages_per_range = %q, want 2", got)
+	}
+
+	actual, ok := txtarTableShowSQL(fx, statements, "users")
+	if !ok {
+		t.Fatal("expected virtual PostgreSQL table show SQL")
+	}
+	want := `"users_c" brin (c) WITH (pages_per_range='2')`
 	if !strings.Contains(actual, want) {
 		t.Fatalf("show SQL missing %q:\n%s", want, actual)
 	}

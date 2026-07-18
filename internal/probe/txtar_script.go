@@ -5770,6 +5770,9 @@ func txtarPostgresShowIndexLines(tableName string, table *ast.CreateTableNode, i
 		if len(index.IncludeColumns) > 0 {
 			line += fmt.Sprintf(" INCLUDE (%s)", strings.Join(index.IncludeColumns, ", "))
 		}
+		if len(index.StorageParams) > 0 {
+			line += " " + renderAtlasIndexStorageParamsSQL(index.StorageParams)
+		}
 		if index.Condition != "" {
 			line += " WHERE " + txtarPostgresShowIndexCondition(index.Condition)
 		}
@@ -8492,7 +8495,7 @@ func renderAtlasUniqueHCL(b *strings.Builder, unique *atlasHCLUnique) error {
 }
 
 func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
-	if index.Type != "" || index.Parser != "" || index.Operator != "" ||
+	if !atlasIndexTypeSupportedHCL(index.Type) || index.Parser != "" || index.Operator != "" ||
 		index.Comment != "" || index.Concurrently || index.Granularity != 0 {
 		return fmt.Errorf("%w: index %s", errUnsupportedInspectHCL, index.Name)
 	}
@@ -8544,17 +8547,43 @@ func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
 }
 
 func renderAtlasIndexExtraHCL(b *strings.Builder, index *ast.IndexNode) error {
+	if index.Type != "" {
+		fmt.Fprintf(b, "    type    = %s\n", strings.ToUpper(index.Type))
+	}
 	if index.Condition != "" {
 		fmt.Fprintf(b, "    where   = %q\n", index.Condition)
 	}
-	if len(index.IncludeColumns) == 0 {
-		return nil
+	if len(index.IncludeColumns) > 0 {
+		refs, err := atlasHCLColumnRefsFromNames(index.IncludeColumns)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(b, "    include = [%s]\n", strings.Join(refs, ", "))
 	}
-	refs, err := atlasHCLColumnRefsFromNames(index.IncludeColumns)
-	if err != nil {
+	if err := renderAtlasIndexStorageParamsHCL(b, index.StorageParams); err != nil {
 		return err
 	}
-	fmt.Fprintf(b, "    include = [%s]\n", strings.Join(refs, ", "))
+	return nil
+}
+
+func atlasIndexTypeSupportedHCL(indexType string) bool {
+	switch strings.ToUpper(indexType) {
+	case "", "BTREE", "HASH", "GIN", "GIST", "BRIN", "FULLTEXT":
+		return true
+	default:
+		return false
+	}
+}
+
+func renderAtlasIndexStorageParamsHCL(b *strings.Builder, params map[string]string) error {
+	if len(params) == 0 {
+		return nil
+	}
+	value, ok := params["pages_per_range"]
+	if !ok || len(params) != 1 {
+		return fmt.Errorf("%w: unsupported index storage params", errUnsupportedInspectHCL)
+	}
+	fmt.Fprintf(b, "    page_per_range = %s\n", value)
 	return nil
 }
 
@@ -9221,6 +9250,10 @@ func renderAtlasIndexSQL(dialect string, quote func(string) string, index *ast.I
 		b.WriteString(renderAtlasIndexIncludeColumnsSQL(quote, index.IncludeColumns))
 		b.WriteString(")")
 	}
+	if dialect == "postgresql" && len(index.StorageParams) > 0 {
+		b.WriteString(" ")
+		b.WriteString(renderAtlasIndexStorageParamsSQL(index.StorageParams))
+	}
 	if index.Parser != "" {
 		fmt.Fprintf(&b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
 	}
@@ -9266,6 +9299,10 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 		b.WriteString(renderAtlasIndexIncludeColumnsSQL(quote, index.IncludeColumns))
 		b.WriteString(")")
 	}
+	if dialect == "postgresql" && len(index.StorageParams) > 0 {
+		b.WriteString(" ")
+		b.WriteString(renderAtlasIndexStorageParamsSQL(index.StorageParams))
+	}
 	if index.Parser != "" {
 		fmt.Fprintf(b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
 	}
@@ -9282,6 +9319,21 @@ func renderAtlasIndexIncludeColumnsSQL(quote func(string) string, columns []stri
 		quoted = append(quoted, quote(column))
 	}
 	return strings.Join(quoted, ", ")
+}
+
+func renderAtlasIndexStorageParamsSQL(params map[string]string) string {
+	keys := make([]string, 0, len(params))
+	for key := range params {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	rendered := make([]string, 0, len(keys))
+	for _, key := range keys {
+		value := "'" + strings.ReplaceAll(params[key], "'", "''") + "'"
+		rendered = append(rendered, key+"="+value)
+	}
+	return "WITH (" + strings.Join(rendered, ", ") + ")"
 }
 
 func renderAtlasColumnForeignKeySQL(
