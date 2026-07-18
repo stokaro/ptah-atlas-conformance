@@ -4770,7 +4770,7 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[st
 		return false
 	}
 	for _, column := range table.Columns {
-		if column.GeneratedExpression != "" ||
+		if !txtarPostgresApplyGeneratedColumnSupported(column) ||
 			!txtarPostgresApplyColumnTypeSupported(column.Type, domains, enums) ||
 			!txtarPostgresApplyColumnDefaultSupported(column, enums) ||
 			!txtarPostgresApplyColumnForeignKeySupported(column) {
@@ -4794,6 +4794,13 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[st
 		}
 	}
 	return true
+}
+
+func txtarPostgresApplyGeneratedColumnSupported(column *ast.ColumnNode) bool {
+	if column.GeneratedExpression == "" {
+		return true
+	}
+	return strings.EqualFold(atlasGeneratedHCLKindForDialect("postgresql", column.GeneratedKind), "STORED")
 }
 
 func txtarPostgresEnumsByName(statements []ast.Node) map[string]*ast.EnumNode {
@@ -8180,9 +8187,15 @@ func renderAtlasTableHCL(
 			if column.GeneratedExpression != "" {
 				fmt.Fprintf(b, "    as {\n")
 				fmt.Fprintf(b, "      expr = %q\n", atlasGeneratedHCLExpr(dialect, column.GeneratedExpression))
-				fmt.Fprintf(b, "      type = %s\n", atlasGeneratedHCLKind(column.GeneratedKind))
+				fmt.Fprintf(b, "      type = %s\n", atlasGeneratedHCLKindForDialect(dialect, column.GeneratedKind))
 				fmt.Fprintf(b, "    }\n")
 			}
+		}
+		if dialect == "postgresql" && column.GeneratedExpression != "" {
+			fmt.Fprintf(b, "    as {\n")
+			fmt.Fprintf(b, "      expr = %q\n", atlasGeneratedHCLExpr(dialect, column.GeneratedExpression))
+			fmt.Fprintf(b, "      type = %s\n", atlasGeneratedHCLKindForDialect(dialect, column.GeneratedKind))
+			fmt.Fprintf(b, "    }\n")
 		}
 		b.WriteString("  }\n")
 		if column.Primary {
@@ -8364,10 +8377,17 @@ func atlasPostgresDomainHCLType(schemaName, typ string, domains map[string]bool)
 }
 
 func atlasGeneratedHCLKind(kind string) string {
-	if kind == "" {
-		return "VIRTUAL"
+	return atlasGeneratedHCLKindForDialect("", kind)
+}
+
+func atlasGeneratedHCLKindForDialect(dialect, kind string) string {
+	if kind != "" {
+		return kind
 	}
-	return kind
+	if dialect == "postgresql" {
+		return "STORED"
+	}
+	return "VIRTUAL"
 }
 
 func atlasGeneratedHCLExpr(dialect, expr string) string {
@@ -9490,7 +9510,7 @@ func renderAtlasColumnSQL(
 	}
 	if generated {
 		fmt.Fprintf(&b, " GENERATED ALWAYS AS (%s)", atlasGeneratedSQLExpr(dialect, column.GeneratedExpression))
-		fmt.Fprintf(&b, " %s", atlasGeneratedHCLKind(column.GeneratedKind))
+		fmt.Fprintf(&b, " %s", atlasGeneratedHCLKindForDialect(dialect, column.GeneratedKind))
 	}
 	if column.Default != nil {
 		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(dialect, column.Default))
