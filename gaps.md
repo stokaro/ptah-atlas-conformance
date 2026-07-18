@@ -6,89 +6,47 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 57 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260718120507-9b1654f222c7`
-- Outcomes: **566 ok**, **57 gap**, **0 fail**, **0 panic**
-- Full gate: **57 non-OK** (fails CI)
-- Regression budget input: **57 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260718140757-3f836e5fd522`
+- Outcomes: **623 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-cli-surface | `atlas license` | resolve | Ptah has no `atlas license` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate apply` | resolve | Ptah has no `atlas migrate apply` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate diff` | resolve | Ptah has no `atlas migrate diff` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate hash` | resolve | Ptah has no `atlas migrate hash` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate import` | resolve | Ptah has no `atlas migrate import` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate lint` | resolve | Ptah has no `atlas migrate lint` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate new` | resolve | Ptah has no `atlas migrate new` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate set` | resolve | Ptah has no `atlas migrate set` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate status` | resolve | Ptah has no `atlas migrate status` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas migrate validate` | resolve | Ptah has no `atlas migrate validate` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas schema apply` | resolve | Ptah has no `atlas schema apply` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas schema clean` | resolve | Ptah has no `atlas schema clean` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas schema diff` | resolve | Ptah has no `atlas schema diff` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas schema fmt` | resolve | Ptah has no `atlas schema fmt` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas schema inspect` | resolve | Ptah has no `atlas schema inspect` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | atlas-cli-surface | `atlas version` | resolve | Ptah has no `atlas version` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | split | Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | split | Ptah splits this into 2 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/12_delimiter_mysql_command.sql` | split | Ptah splits this into 4 statement(s), Atlas into 4 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/13_delimiter_mysql_command.sql` | split | Ptah splits this into 23 statement(s), Atlas into 24 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/14_delimiter_mysql_command.sql` | split | Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/16_begin_atomic.sql` | split | Ptah splits this into 22 statement(s), Atlas into 11 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/3_delimiter.sql` | split | Ptah splits this into 1 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/4_delimiter.sql` | split | Ptah splits this into 1 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/5_delimiter.sql` | split | Ptah splits this into 3 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/9_delimiter_3n.sql` | split | Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lexgroup/1_trigger.sql` | split | Ptah splits this into 29 statement(s), Atlas into 26 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lexgroup/2_function.sql` | split | Ptah splits this into 89 statement(s), Atlas into 18 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | split | Ptah splits this into 8 statement(s), Atlas into 5 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas DS101 (drop schema)` | postgres | Atlas DS101 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas LT101 (modify nullable to non-nullable without default)` | sqlite | Atlas LT101 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF101 (add unique constraint on existing column)` | postgres | Atlas MF101 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF103 (add non-nullable column without default)` | postgres | Atlas MF103 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MF104 (modify nullable column to non-nullable)` | postgres | Atlas MF104 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY101 (add non-nullable column without default)` | mysql | Atlas MY101 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY102 (inline REFERENCES on added column has no effect)` | mysql | Atlas MY102 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY131 (add foreign key blocks DML)` | mysql | Atlas MY131 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY132 (add primary key rebuilds the table)` | mysql | Atlas MY132 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY134 (add fulltext index blocks DML)` | mysql | Atlas MY134 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas MY135 (add spatial index blocks DML)` | mysql | Atlas MY135 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG102 (drop index without CONCURRENTLY)` | postgres | Atlas PG102 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)` | postgres | Atlas PG103 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)` | postgres | Atlas PG104 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)` | postgres | Atlas PG105 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG110 (create table with non-optimal column alignment)` | postgres | Atlas PG110 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG302 (add column with volatile default rewrites the table)` | postgres | Atlas PG302 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG303 (modify nullable to non-nullable requires full scan)` | postgres | Atlas PG303 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG304 (add primary key on nullable columns requires full scan)` | postgres | Atlas PG304 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG305 (add check constraint requires full scan)` | postgres | Atlas PG305 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG306 (add foreign key validates existing rows and blocks writes)` | postgres | Atlas PG306 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG307 (change table logging mode rewrites the table)` | postgres | Atlas PG307 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)` | postgres | Atlas PG308 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG309 (add stored generated column rewrites the table)` | postgres | Atlas PG309 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG310 (add identity column rewrites the table)` | postgres | Atlas PG310 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas PG311 (change table access method rewrites the table)` | postgres | Atlas PG311 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas TX101 (mixing transactional and non-transactional statements)` | postgres | Atlas TX101 flags this; Ptah emits no substantive finding on the change | #270 |
-| **RED** | **gap** | lint-analyzer-catalog | `Atlas TX201 (nested transaction block)` | postgres | Atlas TX201 flags this; Ptah emits no substantive finding on the change | #270 |
+| — | ok | atlas-cli-surface | `atlas license` | resolve | `ptah atlas license` resolves |  |
+| — | ok | atlas-cli-surface | `atlas migrate apply` | resolve | `ptah atlas migrate apply` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate diff` | resolve | `ptah atlas migrate diff` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate down` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas migrate edit` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate hash` | resolve | `ptah atlas migrate hash` resolves |  |
+| — | ok | atlas-cli-surface | `atlas migrate import` | resolve | `ptah atlas migrate import` resolves |  |
+| — | ok | atlas-cli-surface | `atlas migrate lint` | resolve | `ptah atlas migrate lint` resolves |  |
+| — | ok | atlas-cli-surface | `atlas migrate new` | resolve | `ptah atlas migrate new` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas migrate rebase` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas migrate rm` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate set` | resolve | `ptah atlas migrate set` resolves |  |
+| — | ok | atlas-cli-surface | `atlas migrate status` | resolve | `ptah atlas migrate status` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate validate` | resolve | `ptah atlas migrate validate` resolves |  |
+| — | ok | atlas-cli-surface | `atlas schema apply` | resolve | `ptah atlas schema apply` resolves |  |
+| — | ok | atlas-cli-surface | `atlas schema clean` | resolve | `ptah atlas schema clean` resolves |  |
+| — | ok | atlas-cli-surface | `atlas schema diff` | resolve | `ptah atlas schema diff` resolves |  |
+| — | ok | atlas-cli-surface | `atlas schema fmt` | resolve | `ptah atlas schema fmt` resolves |  |
+| — | ok | atlas-cli-surface | `atlas schema inspect` | resolve | `ptah atlas schema inspect` resolves |  |
 | — | ok | atlas-cli-surface | `atlas schema plan` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas version` | resolve | `ptah atlas version` resolves |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 1 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 2 field(s) |  |
@@ -258,18 +216,31 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | corpus-inventory | `txtar-down` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down-boundary` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/1.sql` | split | Ptah splits into the same 6 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/12_delimiter_mysql_command.sql` | split | Ptah splits into the same 4 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/13_delimiter_mysql_command.sql` | split | Ptah splits into the same 24 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/14_delimiter_mysql_command.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/15_dollar_quote.sql` | split | Ptah splits into the same 17 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/16_begin_atomic.sql` | split | Ptah splits into the same 11 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/17_paren.sql` | split | Ptah splits into the same 3 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/18_pg_expr.sql` | split | Ptah splits into the same 7 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/20_ms_go-delim.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/2_mysql.sql` | split | Ptah splits into the same 16 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/3_delimiter.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/4_delimiter.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/5_delimiter.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/6_skip_comment.sql` | split | Ptah splits into the same 7 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/7_delimiter_2n.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/8_delimiter_3n.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/9_delimiter_3n.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lexbegintry/1.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lexescaped/1.my.sql` | split | Ptah splits into the same 4 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lexescaped/2.pg.sql` | split | Ptah splits into the same 4 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lexgroup/1_trigger.sql` | split | Ptah splits into the same 26 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lexgroup/2_function.sql` | split | Ptah splits into the same 18 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | split | Ptah splits into the same 5 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/sqlserver/1_return_table.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/sqlserver/2_function.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
 | — | ok | lint-analyzer-catalog | `Atlas BC101 (rename table)` | postgres | Ptah flags this change: BC101 |  |
@@ -277,31 +248,59 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | lint-analyzer-catalog | `Atlas CD101 (drop foreign key)` | postgres | Ptah flags this change: DS105 |  |
 | — | ok | lint-analyzer-catalog | `Atlas CD102 (drop check constraint)` | postgres | Ptah flags this change: DS105 |  |
 | — | ok | lint-analyzer-catalog | `Atlas CD103 (drop primary key)` | postgres | Ptah flags this change: DS105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS101 (drop schema)` | postgres | Ptah flags this change: DS107 |  |
 | — | ok | lint-analyzer-catalog | `Atlas DS102 (drop table)` | postgres | Ptah flags this change: DS101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas DS103 (drop column)` | postgres | Ptah flags this change: DS102 |  |
+| — | ok | lint-analyzer-catalog | `Atlas LT101 (modify nullable to non-nullable without default)` | sqlite | Ptah flags this change: LT101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MF101 (add unique constraint on existing column)` | postgres | Ptah flags this change: PG105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MF103 (add non-nullable column without default)` | postgres | Ptah flags this change: DD101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MF104 (modify nullable column to non-nullable)` | postgres | Ptah flags this change: PG303 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY101 (add non-nullable column without default)` | mysql | Ptah flags this change: DD101, MY101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY102 (inline REFERENCES on added column has no effect)` | mysql | Ptah flags this change: MY102 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY110 (remove enum value requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY112 (insert enum value not at the end requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY120 (remove set value requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY130 (change column type requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY131 (add foreign key blocks DML)` | mysql | Ptah flags this change: MY131 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY132 (add primary key rebuilds the table)` | mysql | Ptah flags this change: MY132 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | Ptah flags this change: DS105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY134 (add fulltext index blocks DML)` | mysql | Ptah flags this change: MY134 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY135 (add spatial index blocks DML)` | mysql | Ptah flags this change: MY135 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY136 (change table character set rebuilds the table)` | mysql | Ptah flags this change: MY101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas PG101 (create index without CONCURRENTLY)` | postgres | Ptah flags this change: PG101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG102 (drop index without CONCURRENTLY)` | postgres | Ptah flags this change: PG106 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)` | postgres | Ptah flags this change: PG103 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)` | postgres | Ptah flags this change: PG104 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)` | postgres | Ptah flags this change: PG105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG110 (create table with non-optimal column alignment)` | postgres | Ptah flags this change: PG110 |  |
 | — | ok | lint-analyzer-catalog | `Atlas PG301 (column type change rewrites the table)` | postgres | Ptah flags this change: DS103 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG302 (add column with volatile default rewrites the table)` | postgres | Ptah flags this change: PG302 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG303 (modify nullable to non-nullable requires full scan)` | postgres | Ptah flags this change: PG303 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG304 (add primary key on nullable columns requires full scan)` | postgres | Ptah flags this change: PG104 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG305 (add check constraint requires full scan)` | postgres | Ptah flags this change: PG305 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG306 (add foreign key validates existing rows and blocks writes)` | postgres | Ptah flags this change: PG306 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG307 (change table logging mode rewrites the table)` | postgres | Ptah flags this change: PG307 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)` | postgres | Ptah flags this change: PG308 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG309 (add stored generated column rewrites the table)` | postgres | Ptah flags this change: PG309 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG310 (add identity column rewrites the table)` | postgres | Ptah flags this change: PG310 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG311 (change table access method rewrites the table)` | postgres | Ptah flags this change: PG311 |  |
+| — | ok | lint-analyzer-catalog | `Atlas TX101 (mixing transactional and non-transactional statements)` | postgres | Ptah flags this change: PG103, TX101 |  |
+| — | ok | lint-analyzer-catalog | `Atlas TX201 (nested transaction block)` | postgres | Ptah flags this change: TX201 |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | content findings: PG101 |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `atlasexec/testdata/broken` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `atlasexec/testdata/migrations` | lint | content findings: DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline1` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
@@ -316,18 +315,18 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | lint-parity | `internal/integration/testdata/migrations/mysqlock` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `internal/integration/testdata/migrations/postgres` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/golang-migrate` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/migrate/testdata/lex` | lint | content findings: DS101, PG101 |  |
-| — | ok | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lex` | lint | content findings: DS101, PG101, PG308 |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | content findings: TX201 |  |
 | — | ok | lint-parity | `sql/migrate/testdata/lexescaped` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/migrate/testdata/lexgroup` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lexgroup` | lint | content findings: PG308, TX201 |  |
 | — | ok | lint-parity | `sql/migrate/testdata/migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/migrate/sub` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/partial-checkpoint` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/sqlserver` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/sqltool/testdata/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/dbmate` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
-| — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
-| — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | content findings: DD101 |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/testdata/broken` | recognize | all 1 files recognized |  |
@@ -645,9 +644,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | executed 6 supported command(s) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#268** — 16 finding(s)
-- **stokaro/ptah#270** — 28 finding(s)
-- **stokaro/ptah#273** — 13 finding(s)

@@ -1,6 +1,5 @@
 # Maximum allowed unwaived non-OK observations in gaps.json.
 # Lower this whenever Ptah support or harness fidelity improves; CI fails on regressions above it.
-# 44 = 16 unimplemented `ptah atlas` OSS verbs (atlas-cli-surface) + 28 uncovered
-# Atlas analyzer concerns (lint-analyzer-catalog, exhaustive over the default-firing
-# OSS families). Ratchet down as Ptah closes gaps.
-57
+# 0 means the full imported corpus is currently covered; any new unwaived
+# non-OK observation is a regression.
+0

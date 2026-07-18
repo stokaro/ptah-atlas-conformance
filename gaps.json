@@ -3463,21 +3463,21 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
@@ -3498,28 +3498,28 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
@@ -3624,14 +3624,14 @@
     "fixture": "sql/migrate/testdata/lex",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101, PG101"
+    "detail": "content findings: DS101, PG101, PG308"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lexbegintry",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: TX201"
   },
   {
     "probe": "lint-parity",
@@ -3645,7 +3645,7 @@
     "fixture": "sql/migrate/testdata/lexgroup",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: PG308, TX201"
   },
   {
     "probe": "lint-parity",
@@ -3680,7 +3680,7 @@
     "fixture": "sql/sqltool/testdata/dbmate",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
@@ -3694,142 +3694,126 @@
     "fixture": "sql/sqltool/testdata/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/sqltool/testdata/liquibase",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
+    "detail": "content findings: DD101"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas version",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas version` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas version` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas license",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas license` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas license` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas schema inspect",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas schema inspect` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema inspect` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas schema apply",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas schema apply` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema apply` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas schema diff",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas schema diff` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema diff` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas schema fmt",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas schema fmt` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema fmt` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas schema clean",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas schema clean` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema clean` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate apply",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate apply` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate apply` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate diff",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate diff` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate diff` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate hash",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate hash` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate hash` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate import",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate import` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate import` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate lint",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate lint` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate lint` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate new",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate new` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate new` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate set",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate set` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate set` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate status",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate status` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate status` resolves"
   },
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate validate",
     "stage": "resolve",
-    "outcome": "gap",
-    "detail": "Ptah has no `atlas migrate validate` command; the `ptah atlas ...` drop-in namespace is unimplemented",
-    "issue": "stokaro/ptah#268"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate validate` resolves"
   },
   {
     "probe": "atlas-cli-surface",
@@ -3905,9 +3889,8 @@
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS101 (drop schema)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas DS101 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS107"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -3927,25 +3910,22 @@
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF101 (add unique constraint on existing column)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas MF101 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG105"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF103 (add non-nullable column without default)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas MF103 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DD101"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF104 (modify nullable column to non-nullable)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas MF104 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG303"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -3993,33 +3973,29 @@
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG102 (drop index without CONCURRENTLY)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG102 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG106"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG103 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG103"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG104 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG104"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG105 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG105"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4032,105 +4008,92 @@
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG302 (add column with volatile default rewrites the table)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG302 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG302"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG303 (modify nullable to non-nullable requires full scan)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG303 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG303"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG304 (add primary key on nullable columns requires full scan)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG304 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG104"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG305 (add check constraint requires full scan)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG305 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG305"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG306 (add foreign key validates existing rows and blocks writes)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG306 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG306"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG307 (change table logging mode rewrites the table)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG307 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG307"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG308 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG308"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG309 (add stored generated column rewrites the table)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG309 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG309"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG310 (add identity column rewrites the table)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG310 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG310"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG311 (change table access method rewrites the table)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG311 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG311"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG110 (create table with non-optimal column alignment)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas PG110 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG110"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY101 (add non-nullable column without default)",
     "stage": "mysql",
-    "outcome": "gap",
-    "detail": "Atlas MY101 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DD101, MY101"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY102 (inline REFERENCES on added column has no effect)",
     "stage": "mysql",
-    "outcome": "gap",
-    "detail": "Atlas MY102 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: MY102"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4164,17 +4127,15 @@
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY131 (add foreign key blocks DML)",
     "stage": "mysql",
-    "outcome": "gap",
-    "detail": "Atlas MY131 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: MY131"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY132 (add primary key rebuilds the table)",
     "stage": "mysql",
-    "outcome": "gap",
-    "detail": "Atlas MY132 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: MY132"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4187,17 +4148,15 @@
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY134 (add fulltext index blocks DML)",
     "stage": "mysql",
-    "outcome": "gap",
-    "detail": "Atlas MY134 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: MY134"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY135 (add spatial index blocks DML)",
     "stage": "mysql",
-    "outcome": "gap",
-    "detail": "Atlas MY135 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: MY135"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4210,25 +4169,22 @@
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas LT101 (modify nullable to non-nullable without default)",
     "stage": "sqlite",
-    "outcome": "gap",
-    "detail": "Atlas LT101 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: LT101"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas TX101 (mixing transactional and non-transactional statements)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas TX101 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: PG103, TX101"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas TX201 (nested transaction block)",
     "stage": "postgres",
-    "outcome": "gap",
-    "detail": "Atlas TX201 flags this; Ptah emits no substantive finding on the change",
-    "issue": "stokaro/ptah#270"
+    "outcome": "ok",
+    "detail": "Ptah flags this change: TX201"
   },
   {
     "probe": "lex-split-parity",
@@ -4241,41 +4197,36 @@
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/10_delimiter_comment.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 2 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/11_delimiter_mysql_command.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 2 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 2 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/12_delimiter_mysql_command.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 4 statement(s), Atlas into 4 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 4 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/13_delimiter_mysql_command.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 23 statement(s), Atlas into 24 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 24 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/14_delimiter_mysql_command.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 2 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
@@ -4288,9 +4239,8 @@
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/16_begin_atomic.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 22 statement(s), Atlas into 11 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 11 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
@@ -4331,25 +4281,22 @@
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/3_delimiter.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 1 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 2 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/4_delimiter.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 1 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 2 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/5_delimiter.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 3 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 2 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
@@ -4376,9 +4323,8 @@
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lex/9_delimiter_3n.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 2 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
@@ -4405,25 +4351,22 @@
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lexgroup/1_trigger.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 29 statement(s), Atlas into 26 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 26 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lexgroup/2_function.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 89 statement(s), Atlas into 18 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 18 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
     "fixture": "sql/migrate/testdata/lexgroup/3_delimiter.sql",
     "stage": "split",
-    "outcome": "gap",
-    "detail": "Ptah splits this into 8 statement(s), Atlas into 5 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling)",
-    "issue": "stokaro/ptah#273"
+    "outcome": "ok",
+    "detail": "Ptah splits into the same 5 statement(s) as Atlas"
   },
   {
     "probe": "lex-split-parity",
