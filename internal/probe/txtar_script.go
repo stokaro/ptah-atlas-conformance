@@ -4507,7 +4507,7 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 	if err != nil {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
-	if !txtarFixtureSupportsVirtualApply(fx, statements) {
+	if !txtarFixtureSupportsVirtualApplyWithState(fx, runtime.dbStatements, statements) {
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
 	if expectedFailure {
@@ -4520,6 +4520,9 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
 	runtime.hasVirtualDBState = true
+	if txtarFixtureFamily(fx) == "postgres" {
+		statements = txtarPostgresRetainDomainTypes(runtime.dbStatements, statements)
+	}
 	runtime.dbStatements = statements
 	return txtarCommandResult{}, true
 }
@@ -4707,6 +4710,10 @@ func atlasColumnsByName(table *ast.CreateTableNode) map[string]*ast.ColumnNode {
 }
 
 func txtarFixtureSupportsVirtualApply(fx Fixture, statements []ast.Node) bool {
+	return txtarFixtureSupportsVirtualApplyWithState(fx, nil, statements)
+}
+
+func txtarFixtureSupportsVirtualApplyWithState(fx Fixture, current, statements []ast.Node) bool {
 	if path.Base(fx.Name) == "cli-inspect.txtar" {
 		return true
 	}
@@ -4717,19 +4724,31 @@ func txtarFixtureSupportsVirtualApply(fx Fixture, statements []ast.Node) bool {
 	case "mysql", "mariadb":
 		return txtarMySQLVirtualApplyStateSupported(txtarFixtureDialect(fx), statements)
 	case "postgres":
-		return txtarPostgresVirtualApplyStateSupported(statements)
+		return txtarPostgresVirtualApplyStateSupportedWithDomains(statements, txtarPostgresDomainNames(current))
 	default:
 		return false
 	}
 }
 
 func txtarPostgresVirtualApplyStateSupported(statements []ast.Node) bool {
+	return txtarPostgresVirtualApplyStateSupportedWithDomains(statements, nil)
+}
+
+func txtarPostgresVirtualApplyStateSupportedWithDomains(statements []ast.Node, currentDomains map[string]bool) bool {
+	domains := txtarPostgresDomainNames(statements)
+	for domain := range currentDomains {
+		domains[domain] = true
+	}
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateSchemaNode:
 			continue
+		case *ast.CreateTypeNode:
+			if _, ok := node.TypeDef.(*ast.DomainTypeDef); !ok {
+				return false
+			}
 		case *ast.CreateTableNode:
-			if !txtarPostgresApplyTableSupported(node) {
+			if !txtarPostgresApplyTableSupported(node, domains) {
 				return false
 			}
 		case *ast.IndexNode:
@@ -4743,13 +4762,13 @@ func txtarPostgresVirtualApplyStateSupported(statements []ast.Node) bool {
 	return true
 }
 
-func txtarPostgresApplyTableSupported(table *ast.CreateTableNode) bool {
+func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[string]bool) bool {
 	if table.SelectBody != "" {
 		return false
 	}
 	for _, column := range table.Columns {
 		if column.GeneratedExpression != "" ||
-			!txtarPostgresApplyColumnTypeSupported(column.Type) ||
+			!txtarPostgresApplyColumnTypeSupported(column.Type, domains) ||
 			!txtarPostgresApplyColumnDefaultSupported(column) ||
 			!txtarPostgresApplyColumnForeignKeySupported(column) {
 			return false
@@ -4772,6 +4791,37 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode) bool {
 		}
 	}
 	return true
+}
+
+func txtarPostgresDomainNames(statements []ast.Node) map[string]bool {
+	domains := map[string]bool{}
+	for _, stmt := range statements {
+		createType, ok := stmt.(*ast.CreateTypeNode)
+		if !ok {
+			continue
+		}
+		if _, ok := createType.TypeDef.(*ast.DomainTypeDef); ok {
+			domains[atlasSQLIdentifier(createType.Name)] = true
+		}
+	}
+	return domains
+}
+
+func txtarPostgresRetainDomainTypes(current, next []ast.Node) []ast.Node {
+	if len(current) == 0 {
+		return next
+	}
+	retained := make([]ast.Node, 0, len(current)+len(next))
+	for _, stmt := range current {
+		createType, ok := stmt.(*ast.CreateTypeNode)
+		if !ok {
+			continue
+		}
+		if _, ok := createType.TypeDef.(*ast.DomainTypeDef); ok {
+			retained = append(retained, createType)
+		}
+	}
+	return append(retained, next...)
 }
 
 func txtarPostgresApplyColumnForeignKeySupported(column *ast.ColumnNode) bool {
@@ -4824,10 +4874,14 @@ func txtarPostgresApplyExpressionDefaultSupported(column *ast.ColumnNode) bool {
 		postgresCurrentTimestampRE.MatchString(expr)
 }
 
-func txtarPostgresApplyColumnTypeSupported(columnType string) bool {
+func txtarPostgresApplyColumnTypeSupported(columnType string, domains map[string]bool) bool {
 	normalized := strings.ToLower(strings.TrimSpace(columnType))
 	if strings.HasPrefix(normalized, "sql(") {
-		return txtarPostgresRawArrayType(columnType) != ""
+		raw, ok := atlasSQLRawType(columnType)
+		if !ok {
+			return false
+		}
+		return txtarPostgresRawArrayType(columnType) != "" || domains[atlasSQLIdentifier(raw)]
 	}
 	switch normalized {
 	case "smallserial", "serial", "bigserial":
@@ -6066,6 +6120,9 @@ func txtarPostgresShowForeignKeyAction(action string) string {
 func txtarPostgresColumnType(column *ast.ColumnNode) string {
 	if rawArrayType := txtarPostgresRawArrayType(column.Type); rawArrayType != "" {
 		return rawArrayType
+	}
+	if raw, ok := atlasSQLRawType(column.Type); ok {
+		return raw
 	}
 	typ := atlasColumnType("postgresql", column.Type)
 	normalized := strings.ToLower(typ)
@@ -7957,10 +8014,16 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 	schemaAttrs := atlasSchemaAttrsFromStatements(dialect, schemaName, statements)
 	var tables []*ast.CreateTableNode
 	indexes := map[string][]*ast.IndexNode{}
+	domains := txtarPostgresDomainNames(statements)
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateSchemaNode:
 			continue
+		case *ast.CreateTypeNode:
+			if _, ok := node.TypeDef.(*ast.DomainTypeDef); ok && dialect == "postgresql" {
+				continue
+			}
+			return "", fmt.Errorf("%w: statement %T", errUnsupportedInspectHCL, stmt)
 		case *ast.CreateTableNode:
 			tables = append(tables, node)
 		case *ast.IndexNode:
@@ -7987,7 +8050,7 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 	}
 	for _, table := range tables {
 		tableName := atlasHCLTableIdentifier(table.Name, schemaName)
-		if err := renderAtlasTableHCL(&b, dialect, schemaName, table, indexes[tableName]); err != nil {
+		if err := renderAtlasTableHCL(&b, dialect, schemaName, table, indexes[tableName], domains); err != nil {
 			return "", err
 		}
 	}
@@ -8000,6 +8063,7 @@ func renderAtlasTableHCL(
 	dialect, schemaName string,
 	table *ast.CreateTableNode,
 	indexes []*ast.IndexNode,
+	domains map[string]bool,
 ) error {
 	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
 	fmt.Fprintf(b, "table %q {\n", tableName)
@@ -8013,11 +8077,11 @@ func renderAtlasTableHCL(
 		fmt.Fprintf(b, "  column %q {\n", atlasHCLIdentifier(column.Name))
 		if column.Default != nil {
 			fmt.Fprintf(b, "    null    = %t\n", column.Nullable)
-			fmt.Fprintf(b, "    type    = %s\n", atlasColumnHCLType(dialect, column.Type))
+			fmt.Fprintf(b, "    type    = %s\n", atlasColumnHCLType(dialect, schemaName, column.Type, domains))
 			fmt.Fprintf(b, "    default = %s\n", atlasColumnDefaultHCL(dialect, column))
 		} else {
 			fmt.Fprintf(b, "    null = %t\n", column.Nullable)
-			fmt.Fprintf(b, "    type = %s\n", atlasColumnHCLType(dialect, column.Type))
+			fmt.Fprintf(b, "    type = %s\n", atlasColumnHCLType(dialect, schemaName, column.Type, domains))
 		}
 		if dialect == "mysql" || dialect == "mariadb" {
 			if column.Charset != "" {
@@ -8175,12 +8239,29 @@ func atlasSQLExpressionHCL(expr string) string {
 	return "sql(" + strconv.Quote(expr) + ")"
 }
 
-func atlasColumnHCLType(dialect, typ string) string {
+func atlasColumnHCLType(dialect, schemaName, typ string, domains map[string]bool) string {
+	if dialect == "postgresql" {
+		if hclType, ok := atlasPostgresDomainHCLType(schemaName, typ, domains); ok {
+			return hclType
+		}
+	}
 	normalized := strings.ToLower(strings.TrimSpace(atlasSQLIdentifier(typ)))
 	if dialect == "mysql" && (normalized == "bool" || normalized == "boolean" || normalized == "tinyint(1)") {
 		return "bool"
 	}
 	return atlasColumnType(dialect, typ)
+}
+
+func atlasPostgresDomainHCLType(schemaName, typ string, domains map[string]bool) (string, bool) {
+	raw, ok := atlasSQLRawType(typ)
+	if !ok || !domains[atlasSQLIdentifier(raw)] {
+		return "", false
+	}
+	prefix := schemaName + "."
+	if unqualified, ok := strings.CutPrefix(raw, prefix); ok {
+		return atlasSQLExpressionHCL(unqualified), true
+	}
+	return atlasSQLExpressionHCL(raw), true
 }
 
 func atlasGeneratedHCLKind(kind string) string {
