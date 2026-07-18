@@ -28,8 +28,8 @@ func summarize(results []Result) Summary {
 	return s
 }
 
-// Unwaived returns the results that are gaps/fails/panics and not waived — the
-// set that keeps the conformance gate red.
+// Unwaived returns the gaps/fails/panics not covered by waivers. This is the
+// regression budget input; full conformance uses NonOK.
 func Unwaived(results []Result, w *Waivers) []Result {
 	var out []Result
 	for _, r := range results {
@@ -48,6 +48,7 @@ func Unwaived(results []Result, w *Waivers) []Result {
 // ptahVersion are recorded so the report is reproducible.
 func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) string {
 	s := summarize(results)
+	nonOK := NonOK(results)
 	unwaived := Unwaived(results, w)
 	var b strings.Builder
 
@@ -57,11 +58,11 @@ func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) 
 	b.WriteString("authored. It is a coverage probe over Atlas's own fixtures, not a quality score:\n")
 	b.WriteString("a `gap` here is a thing Atlas expresses that Ptah does not yet.\n\n")
 
-	if len(unwaived) == 0 {
+	if len(nonOK) == 0 {
 		b.WriteString("## Status: PARITY on the current corpus\n\n")
-		b.WriteString("Every fixture is covered or explicitly waived. The conformance gate is green.\n\n")
+		b.WriteString("Every fixture is covered. The conformance gate is green.\n\n")
 	} else {
-		fmt.Fprintf(&b, "## Status: NOT DONE — %d unwaived non-OK observation(s)\n\n", len(unwaived))
+		fmt.Fprintf(&b, "## Status: NOT DONE — %d non-OK observation(s)\n\n", len(nonOK))
 		b.WriteString("The conformance gate is **red** and stays red until these close. This is by\n")
 		b.WriteString("design: the report is a spec Ptah has not met yet, not a passing test log.\n\n")
 	}
@@ -69,7 +70,14 @@ func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) 
 	fmt.Fprintf(&b, "- Atlas fixtures pinned at `ariga/atlas@%s`\n", atlasSHA)
 	fmt.Fprintf(&b, "- Ptah at `%s`\n", ptahVersion)
 	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n", s.OK, s.Gap, s.Fail, s.Panic)
-	fmt.Fprintf(&b, "- Gate: **%d unwaived non-OK** (fails CI), %d waived\n", len(unwaived), s.Gap+s.Fail+s.Panic-len(unwaived))
+	fmt.Fprintf(&b, "- Full gate: **%d non-OK** (%s)\n",
+		len(nonOK),
+		conformanceGateStatus(len(nonOK)),
+	)
+	fmt.Fprintf(&b, "- Regression budget input: **%d unwaived non-OK**, %d waived\n",
+		len(unwaived),
+		s.Gap+s.Fail+s.Panic-len(unwaived),
+	)
 	writeCorpusSummary(&b, results)
 	b.WriteString("\n")
 
@@ -129,6 +137,13 @@ func RenderMarkdown(results []Result, w *Waivers, atlasSHA, ptahVersion string) 
 	}
 
 	return b.String()
+}
+
+func conformanceGateStatus(nonOK int) string {
+	if nonOK == 0 {
+		return "passes CI"
+	}
+	return "fails CI"
 }
 
 func writeCorpusSummary(b *strings.Builder, results []Result) {

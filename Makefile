@@ -11,9 +11,8 @@ probe:
 budget: probe
 	go run ./cmd/gap-budget
 
-# The conformance gate: regenerate the report AND fail if any unwaived non-OK
-# observation remains. Red until Ptah covers everything Atlas expresses in the
-# corpus.
+# The conformance gate: regenerate the report AND fail if any non-OK observation
+# remains. Red until Ptah covers everything Atlas expresses in the corpus.
 gate:
 	go run ./cmd/gap-probe -gate
 

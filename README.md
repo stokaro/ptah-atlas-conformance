@@ -71,8 +71,8 @@ separate pipelines:
 - `make probe` regenerates the report and always exits 0.
 - `make budget` fails if the generated report exceeds [`gap-budget.txt`](./gap-budget.txt)
   or if a waiver became stale.
-- `make gate` regenerates the report **and exits non-zero if any unwaived
-  non-OK observation remains**.
+- `make gate` regenerates the report **and exits non-zero if any non-OK
+  observation remains**, including waived findings.
   This is the full-parity yardstick and stays red until Ptah covers everything
   Atlas expresses in the corpus.
 
@@ -84,7 +84,7 @@ matches no finding is itself a CI failure, forcing cleanup when a gap closes.
 
 Lower `gap-budget.txt` whenever Ptah closes gaps. `git log gaps.md` shows the
 unwaived count moving toward zero as Ptah closes issues. The full gate goes green
-only when every fixture is covered or waived.
+only when every fixture is covered.
 
 ```
 make probe        # regenerate gaps.md / gaps.json (exit 0)
