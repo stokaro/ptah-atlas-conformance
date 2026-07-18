@@ -2399,6 +2399,95 @@ func TestTxtarScriptProbeExecutesPostgresColumnDomainFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresColumnEnumFixture(t *testing.T) {
+	fixture := "column-enum.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
+	fixture := "column-enum-array.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarPostgresEnumColumnHCLShowAndSQLRendering(t *testing.T) {
+	fx := Fixture{Name: "postgres/column-enum-array.txtar"}
+	statements := []ast.Node{
+		ast.NewEnum("status", "active", "inactive", "unknown"),
+		&ast.CreateTableNode{
+			Name: "enums",
+			Columns: []*ast.ColumnNode{
+				{Name: "statuses", Type: `sql("status[]")`, Nullable: false},
+				{Name: "status", Type: "status", Nullable: false, Default: &ast.DefaultValue{Value: "inactive", ValueSet: true}},
+			},
+		},
+	}
+
+	actualHCL, err := renderAtlasInspectHCL("postgresql", txtarFixtureSchemaName(fx), statements)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(actualHCL, `type = sql("status[]")`) {
+		t.Fatalf("inspect HCL should keep enum array raw SQL type:\n%s", actualHCL)
+	}
+	if !strings.Contains(actualHCL, `type    = enum.status`) {
+		t.Fatalf("inspect HCL should render scalar enum type as enum ref:\n%s", actualHCL)
+	}
+	if !strings.Contains(actualHCL, `enum "status"`) ||
+		!strings.Contains(actualHCL, `values = ["active", "inactive", "unknown"]`) {
+		t.Fatalf("inspect HCL should render enum block:\n%s", actualHCL)
+	}
+
+	actualShow, ok := txtarTableShowSQL(fx, statements, "enums")
+	if !ok {
+		t.Fatal("expected PostgreSQL show SQL")
+	}
+	if !strings.Contains(actualShow, "statuses | script_column_enum_array.status[] |  | not null |") {
+		t.Fatalf("show SQL should qualify enum array type:\n%s", actualShow)
+	}
+	if !strings.Contains(actualShow, "status | script_column_enum_array.status |  | not null | 'inactive'::script_column_enum_array.status") {
+		t.Fatalf("show SQL should qualify enum type and default cast:\n%s", actualShow)
+	}
+
+	actualSQL, err := renderAtlasInspectSQL("postgresql", statements, "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(actualSQL, `CREATE TYPE "status" AS ENUM ('active', 'inactive', 'unknown');`) {
+		t.Fatalf("inspect SQL should render enum DDL:\n%s", actualSQL)
+	}
+	if !strings.Contains(actualSQL, `"status" "status" NOT NULL DEFAULT 'inactive'`) {
+		t.Fatalf("inspect SQL should quote enum column type:\n%s", actualSQL)
+	}
+}
+
 func TestTxtarPostgresDomainColumnHCLAndShowRendering(t *testing.T) {
 	fx := Fixture{Name: "postgres/column-domain.txtar"}
 	statements := []ast.Node{

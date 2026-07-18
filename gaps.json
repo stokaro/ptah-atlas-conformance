@@ -2681,17 +2681,15 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 10 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-enum.txtar",
     "stage": "script-runtime",
-    "outcome": "gap",
-    "detail": "unsupported: apply",
-    "issue": "stokaro/ptah#285"
+    "outcome": "ok",
+    "detail": "executed 11 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
