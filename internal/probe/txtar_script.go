@@ -1727,7 +1727,7 @@ func renderTxtarMigrateDiffPrimaryKeyChangeDirectionSQL(
 			primaryKey = change.current
 			comment = "-- reverse: modify %q table\n"
 		}
-		if len(primaryKey) == 0 {
+		if len(primaryKey.columns) == 0 {
 			return "", false
 		}
 		fmt.Fprintf(&out, comment, atlasSQLIdentifier(change.tableName))
@@ -1737,7 +1737,7 @@ func renderTxtarMigrateDiffPrimaryKeyChangeDirectionSQL(
 				parts = append(parts, "ADD COLUMN "+renderAtlasColumnSQL(dialect, quote, column, true, atlasInspectSQLOptions{}))
 			}
 		}
-		parts = append(parts, "DROP PRIMARY KEY", "ADD "+renderAtlasPrimaryKeySQL(quote, primaryKey))
+		parts = append(parts, "DROP PRIMARY KEY", "ADD "+renderAtlasPrimaryKeySQL(quote, primaryKey.columns, primaryKey.include))
 		if reverse {
 			for _, column := range change.addedColumns {
 				parts = append(parts, "DROP COLUMN "+quote(column.Name))
@@ -1887,8 +1887,13 @@ type txtarMigrateDiffCheckChange struct {
 type txtarMigrateDiffPrimaryKeyChange struct {
 	tableName    string
 	addedColumns []*ast.ColumnNode
-	current      []ast.ConstraintColumn
-	target       []ast.ConstraintColumn
+	current      txtarPrimaryKey
+	target       txtarPrimaryKey
+}
+
+type txtarPrimaryKey struct {
+	columns []ast.ConstraintColumn
+	include []string
 }
 
 type txtarMigrateDiffDropIndexChange struct {
@@ -2262,8 +2267,9 @@ func txtarMigrateDiffAddedColumnsIgnoringPrimaryKey(
 	return added, true
 }
 
-func txtarTablePrimaryKey(table *ast.CreateTableNode) ([]ast.ConstraintColumn, bool) {
+func txtarTablePrimaryKey(table *ast.CreateTableNode) (txtarPrimaryKey, bool) {
 	var primaryColumns []ast.ConstraintColumn
+	var includeColumns []string
 	for _, column := range table.Columns {
 		if column.Primary {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
@@ -2272,19 +2278,25 @@ func txtarTablePrimaryKey(table *ast.CreateTableNode) ([]ast.ConstraintColumn, b
 	for _, constraint := range table.Constraints {
 		if constraint.Type == ast.PrimaryKeyConstraint {
 			primaryColumns = append(primaryColumns, atlasConstraintColumns(constraint)...)
+			includeColumns = append(includeColumns, constraint.IncludeColumns...)
 		}
 	}
-	return primaryColumns, len(primaryColumns) > 0
+	return txtarPrimaryKey{columns: primaryColumns, include: includeColumns}, len(primaryColumns) > 0
 }
 
-func txtarPrimaryKeyColumnsEqual(left, right []ast.ConstraintColumn) bool {
-	if len(left) != len(right) {
+func txtarPrimaryKeyColumnsEqual(left, right txtarPrimaryKey) bool {
+	if len(left.columns) != len(right.columns) || len(left.include) != len(right.include) {
 		return false
 	}
-	for i := range left {
-		if atlasSQLIdentifier(left[i].Name) != atlasSQLIdentifier(right[i].Name) ||
-			left[i].Prefix != right[i].Prefix ||
-			left[i].Desc != right[i].Desc {
+	for i := range left.columns {
+		if atlasSQLIdentifier(left.columns[i].Name) != atlasSQLIdentifier(right.columns[i].Name) ||
+			left.columns[i].Prefix != right.columns[i].Prefix ||
+			left.columns[i].Desc != right.columns[i].Desc {
+			return false
+		}
+	}
+	for i := range left.include {
+		if atlasSQLIdentifier(left.include[i]) != atlasSQLIdentifier(right.include[i]) {
 			return false
 		}
 	}
@@ -5750,8 +5762,12 @@ func txtarPostgresTableIndexes(schemaName string, statements []ast.Node, tableNa
 
 func txtarPostgresShowIndexLines(tableName string, table *ast.CreateTableNode, indexes []*ast.IndexNode) []string {
 	var lines []string
-	if columns := txtarPostgresPrimaryKeyColumns(table); len(columns) > 0 {
-		lines = append(lines, fmt.Sprintf("%q PRIMARY KEY, btree (%s)", tableName+"_pkey", strings.Join(columns, ", ")))
+	if primaryKey := txtarPostgresPrimaryKey(table); len(primaryKey.columns) > 0 {
+		line := fmt.Sprintf("%q PRIMARY KEY, btree (%s)", tableName+"_pkey", strings.Join(primaryKey.columns, ", "))
+		if len(primaryKey.include) > 0 {
+			line += fmt.Sprintf(" INCLUDE (%s)", strings.Join(primaryKey.include, ", "))
+		}
+		lines = append(lines, line)
 	}
 	for _, index := range indexes {
 		parts := make([]string, 0, len(index.EffectiveParts()))
@@ -6121,7 +6137,7 @@ func txtarPostgresIndexMethod(index *ast.IndexNode) string {
 	return strings.ToLower(index.Type)
 }
 
-func txtarPostgresPrimaryKeyColumns(table *ast.CreateTableNode) []string {
+func txtarPostgresPrimaryKey(table *ast.CreateTableNode) txtarPostgresPrimaryKeyInfo {
 	for _, constraint := range table.Constraints {
 		if constraint.Type != ast.PrimaryKeyConstraint {
 			continue
@@ -6131,7 +6147,11 @@ func txtarPostgresPrimaryKeyColumns(table *ast.CreateTableNode) []string {
 			for i, column := range columns {
 				columns[i] = atlasSQLIdentifier(column)
 			}
-			return columns
+			include := slices.Clone(constraint.IncludeColumns)
+			for i, column := range include {
+				include[i] = atlasSQLIdentifier(column)
+			}
+			return txtarPostgresPrimaryKeyInfo{columns: columns, include: include}
 		}
 	}
 	var columns []string
@@ -6140,7 +6160,12 @@ func txtarPostgresPrimaryKeyColumns(table *ast.CreateTableNode) []string {
 			columns = append(columns, atlasSQLIdentifier(column.Name))
 		}
 	}
-	return columns
+	return txtarPostgresPrimaryKeyInfo{columns: columns}
+}
+
+type txtarPostgresPrimaryKeyInfo struct {
+	columns []string
+	include []string
 }
 
 func txtarNormalizeShowSQL(sql string) string {
@@ -7834,6 +7859,7 @@ func renderAtlasTableHCL(
 	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
 	renderAtlasMySQLTableHCLAttrs(b, dialect, table)
 	var primaryColumns []ast.ConstraintColumn
+	var primaryInclude []string
 	var foreignKeys []*atlasHCLForeignKey
 	var uniques []*atlasHCLUnique
 	for _, column := range table.Columns {
@@ -7878,6 +7904,7 @@ func renderAtlasTableHCL(
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
 			primaryColumns = append(primaryColumns, atlasConstraintColumns(constraint)...)
+			primaryInclude = append(primaryInclude, constraint.IncludeColumns...)
 		case ast.ForeignKeyConstraint:
 			foreignKey, err := atlasConstraintForeignKey(tableName, schemaName, constraint)
 			if err != nil {
@@ -7896,7 +7923,7 @@ func renderAtlasTableHCL(
 		}
 	}
 	if len(primaryColumns) > 0 {
-		if err := renderAtlasPrimaryKeyHCL(b, primaryColumns); err != nil {
+		if err := renderAtlasPrimaryKeyHCL(b, primaryColumns, primaryInclude); err != nil {
 			return err
 		}
 	}
@@ -8394,7 +8421,7 @@ func renderAtlasSchemaHCL(b *strings.Builder, schemaName string, attrs atlasSche
 	b.WriteString("}\n")
 }
 
-func renderAtlasPrimaryKeyHCL(b *strings.Builder, columns []ast.ConstraintColumn) error {
+func renderAtlasPrimaryKeyHCL(b *strings.Builder, columns []ast.ConstraintColumn, include []string) error {
 	if atlasPrimaryKeyCanUseColumnsAttr(columns) {
 		refs, err := atlasHCLColumnRefs(columns)
 		if err != nil {
@@ -8402,6 +8429,9 @@ func renderAtlasPrimaryKeyHCL(b *strings.Builder, columns []ast.ConstraintColumn
 		}
 		b.WriteString("  primary_key {\n")
 		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+		if err := renderAtlasPrimaryKeyIncludeHCL(b, include); err != nil {
+			return err
+		}
 		b.WriteString("  }\n")
 		return nil
 	}
@@ -8422,7 +8452,22 @@ func renderAtlasPrimaryKeyHCL(b *strings.Builder, columns []ast.ConstraintColumn
 		}
 		b.WriteString("    }\n")
 	}
+	if err := renderAtlasPrimaryKeyIncludeHCL(b, include); err != nil {
+		return err
+	}
 	b.WriteString("  }\n")
+	return nil
+}
+
+func renderAtlasPrimaryKeyIncludeHCL(b *strings.Builder, include []string) error {
+	if len(include) == 0 {
+		return nil
+	}
+	refs, err := atlasHCLColumnRefsFromNames(include)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(b, "    include = [%s]\n", strings.Join(refs, ", "))
 	return nil
 }
 
@@ -8811,7 +8856,7 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	if len(primaryColumns) > 0 {
-		parts = append(parts, renderAtlasPrimaryKeySQL(quote, primaryColumns))
+		parts = append(parts, renderAtlasPrimaryKeySQL(quote, primaryColumns, nil))
 	}
 	if dialect == "mysql" || dialect == "mariadb" {
 		for _, column := range columnForeignKeys {
@@ -8835,7 +8880,7 @@ func renderAtlasCreateTableSQL(
 	for _, constraint := range table.Constraints {
 		switch constraint.Type {
 		case ast.PrimaryKeyConstraint:
-			parts = append(parts, renderAtlasPrimaryKeySQL(quote, atlasConstraintColumns(constraint)))
+			parts = append(parts, renderAtlasPrimaryKeySQL(quote, atlasConstraintColumns(constraint), constraint.IncludeColumns))
 		case ast.ForeignKeyConstraint:
 			parts = append(parts, renderAtlasConstraintForeignKeySQL(dialect, quote, table.Name, constraint, unnamedSQLiteForeignKeys))
 			if dialect == "sqlite" && constraint.Name == "" {
@@ -9354,7 +9399,7 @@ func atlasForeignKeySQLAction(dialect, action string) string {
 	return strings.ReplaceAll(action, "_", " ")
 }
 
-func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.ConstraintColumn) string {
+func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.ConstraintColumn, include []string) string {
 	quoted := make([]string, 0, len(columns))
 	for _, column := range columns {
 		part := quote(column.Name)
@@ -9366,7 +9411,15 @@ func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.Constrain
 		}
 		quoted = append(quoted, part)
 	}
-	return "PRIMARY KEY (" + strings.Join(quoted, ", ") + ")"
+	sql := "PRIMARY KEY (" + strings.Join(quoted, ", ") + ")"
+	if len(include) > 0 {
+		quotedInclude := make([]string, 0, len(include))
+		for _, column := range include {
+			quotedInclude = append(quotedInclude, quote(column))
+		}
+		sql += " INCLUDE (" + strings.Join(quotedInclude, ", ") + ")"
+	}
+	return sql
 }
 
 func atlasColumnType(dialect, typ string) string {
