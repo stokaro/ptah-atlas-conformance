@@ -33,6 +33,8 @@ var (
 	postgresTSVectorOpsRE      = regexp.MustCompile(`^tsvector_ops\(siglen=([0-9]+)\)$`)
 	postgresHoursIntervalRE    = regexp.MustCompile(`^(\d+)\s+hours?$`)
 	postgresCurrentTimestampRE = regexp.MustCompile(`(?i)^CURRENT_TIMESTAMP(?:\((\d+)\))?$`)
+	postgresPartitionOfRE      = regexp.MustCompile(`(?is)^CREATE\s+TABLE\s+\S+\s+PARTITION\s+OF\s+(.+?)(?:\s+FOR\s+VALUES\b|$)`)
+	postgresFloorExprRE        = regexp.MustCompile(`(?i)^floor\(\s*\(?\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)?\s*(?:::double\s+precision)?\s*\)$`)
 	flywayUndoMigrationRE      = regexp.MustCompile(`^U\d+\.sql$`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
@@ -249,6 +251,7 @@ type txtarRuntime struct {
 	hasVirtualDBState bool
 	dbStatements      []ast.Node
 	dbRows            map[string][]txtarVirtualRow
+	partitionChildren map[string]int
 	appliedMigrations map[string]bool
 	appliedVersion    string
 }
@@ -264,6 +267,12 @@ func newTxtarRuntime(data string) *txtarRuntime {
 		}
 	}
 	return &txtarRuntime{files: files, dirs: dirs}
+}
+
+func (r *txtarRuntime) replaceDBStatements(statements []ast.Node) {
+	r.hasVirtualDBState = true
+	r.dbStatements = statements
+	r.partitionChildren = nil
 }
 
 func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary {
@@ -2879,6 +2888,7 @@ func runTxtarClearSchema(runtime *txtarRuntime, fields []string) (txtarCommandRe
 	runtime.hasVirtualDBState = false
 	runtime.dbStatements = nil
 	runtime.dbRows = nil
+	runtime.partitionChildren = nil
 	runtime.appliedMigrations = nil
 	runtime.appliedVersion = ""
 	return txtarCommandResult{}, true
@@ -2894,6 +2904,7 @@ func runTxtarSchemaClean(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 	runtime.hasVirtualDBState = false
 	runtime.dbStatements = nil
 	runtime.dbRows = nil
+	runtime.partitionChildren = nil
 	runtime.appliedMigrations = nil
 	runtime.appliedVersion = ""
 	return txtarCommandResult{}, true
@@ -3818,8 +3829,7 @@ func txtarApplyMigrationFiles(
 		appliedFiles = append(appliedFiles, files...)
 	}
 	if !args.dryRun {
-		runtime.hasVirtualDBState = true
-		runtime.dbStatements = committed
+		runtime.replaceDBStatements(committed)
 		runtime.markMigrationsApplied(appliedFiles)
 	}
 	fmt.Fprintf(&stdout, "-- %d migrations\n", len(files))
@@ -4443,20 +4453,17 @@ func txtarFailedMigrationApplyResult(
 ) (txtarCommandResult, error) {
 	switch args.txMode {
 	case "none":
-		runtime.hasVirtualDBState = true
-		runtime.dbStatements = append(append(committed, batchStatements...), txtarParseablePrefixStatements(runtime.files[file])...)
+		runtime.replaceDBStatements(append(append(committed, batchStatements...), txtarParseablePrefixStatements(runtime.files[file])...))
 		if !args.dryRun {
 			runtime.markMigrationsApplied(appliedFiles)
 		}
 	case "file":
-		runtime.hasVirtualDBState = true
-		runtime.dbStatements = committed
+		runtime.replaceDBStatements(committed)
 		if !args.dryRun {
 			runtime.markMigrationsApplied(appliedFiles)
 		}
 	case "all":
-		runtime.hasVirtualDBState = true
-		runtime.dbStatements = committed
+		runtime.replaceDBStatements(committed)
 	}
 	return txtarCommandResult{
 		stdout: stdout,
@@ -4520,11 +4527,10 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 		}
 		return txtarCommandResult{unsupported: "apply"}, true
 	}
-	runtime.hasVirtualDBState = true
 	if txtarFixtureFamily(fx) == "postgres" {
 		statements = txtarPostgresRetainDomainTypes(runtime.dbStatements, statements)
 	}
-	runtime.dbStatements = statements
+	runtime.replaceDBStatements(statements)
 	return txtarCommandResult{}, true
 }
 
@@ -4550,8 +4556,28 @@ func txtarExpectedApplyFailure(
 		if failure := txtarGeneratedColumnChangeFailure(currentTable, nextTable); failure != "" {
 			return failure
 		}
+		if failure := txtarPostgresPartitionChangeFailure(fx, currentTable, nextTable); failure != "" {
+			return failure
+		}
 	}
 	return ""
+}
+
+func txtarPostgresPartitionChangeFailure(fx Fixture, current, next *ast.CreateTableNode) string {
+	if txtarFixtureFamily(fx) != "postgres" || current.Partition == nil || next.Partition == nil {
+		return ""
+	}
+	currentSQL, currentOK := renderAtlasPostgresPartitionSQL(current.Partition, atlasIdentifierQuoter("postgresql"))
+	nextSQL, nextOK := renderAtlasPostgresPartitionSQL(next.Partition, atlasIdentifierQuoter("postgresql"))
+	if !currentOK || !nextOK || currentSQL == nextSQL {
+		return ""
+	}
+	return fmt.Sprintf(
+		"partition key of table %q cannot be changed from %s to %s (drop and add is required)",
+		atlasUnqualifiedSQLTableName(next.Name),
+		currentSQL,
+		nextSQL,
+	)
 }
 
 func txtarForeignKeySetNullFailure(statements []ast.Node) string {
@@ -4767,7 +4793,7 @@ func txtarPostgresVirtualApplyStateSupportedWithTypes(statements, current []ast.
 }
 
 func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[string]bool, enums map[string]*ast.EnumNode) bool {
-	if table.SelectBody != "" {
+	if table.SelectBody != "" || !txtarPostgresApplyPartitionSupported(table.Partition) {
 		return false
 	}
 	for _, column := range table.Columns {
@@ -4791,6 +4817,32 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[st
 				return false
 			}
 		default:
+			return false
+		}
+	}
+	return true
+}
+
+func txtarPostgresApplyPartitionSupported(partition *ast.PartitionSpec) bool {
+	if partition == nil {
+		return true
+	}
+	switch strings.ToUpper(strings.TrimSpace(partition.Type)) {
+	case "HASH", "LIST", "RANGE":
+	default:
+		return false
+	}
+	if len(partition.Parts) == 0 {
+		return false
+	}
+	for _, part := range partition.Parts {
+		if (part.Name == "") == (part.Expr == "") {
+			return false
+		}
+		if part.Name != "" && strings.ContainsAny(atlasSQLIdentifier(part.Name), " ()`\"$") {
+			return false
+		}
+		if part.Expr != "" && txtarPostgresPartitionExprSQL(part.Expr) == "" {
 			return false
 		}
 	}
@@ -5232,6 +5284,14 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 		runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
 		return txtarCommandResult{}, true
 	case "postgres":
+		if tableName, ok := txtarPostgresExecSQLPartitionParent(fx, fields[1]); ok {
+			runtime.hasVirtualDBState = true
+			if runtime.partitionChildren == nil {
+				runtime.partitionChildren = map[string]int{}
+			}
+			runtime.partitionChildren[tableName]++
+			return txtarCommandResult{}, true
+		}
 		list, err := parser.NewParser(fields[1]).Parse()
 		if err != nil || !txtarPostgresVirtualApplyStateSupported(list.Statements) {
 			return txtarCommandResult{unsupported: "execsql"}, true
@@ -5255,6 +5315,18 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 	default:
 		return txtarCommandResult{unsupported: "execsql"}, true
 	}
+}
+
+func txtarPostgresExecSQLPartitionParent(fx Fixture, sql string) (string, bool) {
+	match := postgresPartitionOfRE.FindStringSubmatch(strings.TrimSpace(sql))
+	if match == nil {
+		return "", false
+	}
+	parent := strings.TrimSpace(match[1])
+	parent = strings.Trim(parent, `"`)
+	schemaName := txtarFixtureSchemaName(fx)
+	parent = strings.ReplaceAll(parent, "$db.", schemaName+".")
+	return atlasHCLTableIdentifier(parent, schemaName), true
 }
 
 func txtarExecSQLMySQLAuthNoop(stmt string) bool {
@@ -5614,7 +5686,7 @@ func txtarTableNeedsSQLShowCompare(fx Fixture, statements []ast.Node, name strin
 			return true
 		}
 	}
-	return false
+	return table.Partition != nil
 }
 
 func txtarCmpShowSQL(
@@ -5629,7 +5701,7 @@ func txtarCmpShowSQL(
 	default:
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
-	actual, ok := txtarTablesShowSQL(fx, runtime.dbStatements, tableNames)
+	actual, ok := txtarTablesShowSQLWithPartitionChildren(fx, runtime.dbStatements, tableNames, runtime.partitionChildren)
 	if !ok {
 		return txtarCommandResult{unsupported: "cmpshow"}, true
 	}
@@ -5789,6 +5861,15 @@ func txtarTableShowSQL(fx Fixture, statements []ast.Node, name string) (string, 
 }
 
 func txtarTablesShowSQL(fx Fixture, statements []ast.Node, names []string) (string, bool) {
+	return txtarTablesShowSQLWithPartitionChildren(fx, statements, names, nil)
+}
+
+func txtarTablesShowSQLWithPartitionChildren(
+	fx Fixture,
+	statements []ast.Node,
+	names []string,
+	partitionChildren map[string]int,
+) (string, bool) {
 	schemaName := txtarFixtureSchemaName(fx)
 	dialect := txtarFixtureDialect(fx)
 	schemaAttrs := atlasSchemaAttrsFromStatements(dialect, schemaName, statements)
@@ -5821,7 +5902,7 @@ func txtarTablesShowSQL(fx Fixture, statements []ast.Node, names []string) (stri
 		return "", false
 	}
 	if txtarFixtureFamily(fx) == "postgres" {
-		return txtarPostgresTablesShowSQL(schemaName, filtered, statements, names)
+		return txtarPostgresTablesShowSQL(schemaName, filtered, statements, names, partitionChildren)
 	}
 	filtered = atlasUnqualifyTableStatements(schemaName, filtered)
 	out, err := renderAtlasInspectSQLWithOptions(dialect, filtered, "", atlasInspectSQLOptions{
@@ -5840,6 +5921,7 @@ func txtarPostgresTablesShowSQL(
 	statements []ast.Node,
 	allStatements []ast.Node,
 	names []string,
+	partitionChildren map[string]int,
 ) (string, bool) {
 	var out strings.Builder
 	for i, name := range names {
@@ -5856,6 +5938,7 @@ func txtarPostgresTablesShowSQL(
 			table,
 			txtarPostgresTableIndexes(schemaName, statements, name),
 			allStatements,
+			partitionChildren[name],
 		)
 	}
 	return out.String(), true
@@ -5867,10 +5950,15 @@ func txtarWritePostgresTableShowSQL(
 	table *ast.CreateTableNode,
 	indexes []*ast.IndexNode,
 	statements []ast.Node,
+	partitionChildren int,
 ) {
 	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
 	enums := txtarPostgresEnumsByName(statements)
-	fmt.Fprintf(out, "Table %q\n", schemaName+"."+tableName)
+	if table.Partition == nil {
+		fmt.Fprintf(out, "Table %q\n", schemaName+"."+tableName)
+	} else {
+		fmt.Fprintf(out, "Partitioned table %q\n", schemaName+"."+tableName)
+	}
 	out.WriteString("Column | Type | Collation | Nullable | Default\n")
 	out.WriteString("--------+------+-----------+----------+--------\n")
 	for _, column := range table.Columns {
@@ -5892,6 +5980,18 @@ func txtarWritePostgresTableShowSQL(
 			nullable,
 			defaultValue,
 		)
+	}
+	if table.Partition != nil {
+		partitionKey, ok := txtarPostgresShowPartitionKey(table.Partition)
+		if !ok {
+			return
+		}
+		fmt.Fprintf(out, "Partition key: %s\n", partitionKey)
+		if partitionChildren > 0 {
+			fmt.Fprintf(out, "Number of partitions: %d (Use \\d+ to list them.)\n", partitionChildren)
+		} else {
+			fmt.Fprintf(out, "Number of partitions: %d\n", partitionChildren)
+		}
 	}
 	indexLines := txtarPostgresShowIndexLines(tableName, table, indexes)
 	if len(indexLines) == 0 {
@@ -5915,6 +6015,72 @@ func txtarWritePostgresTableShowSQL(
 			fmt.Fprintf(out, "    %s\n", line)
 		}
 	}
+}
+
+func txtarPostgresShowPartitionKey(partition *ast.PartitionSpec) (string, bool) {
+	if partition == nil || len(partition.Parts) == 0 {
+		return "", false
+	}
+	parts := make([]string, 0, len(partition.Parts))
+	for _, part := range partition.Parts {
+		switch {
+		case part.Name != "":
+			parts = append(parts, atlasSQLIdentifier(part.Name))
+		case part.Expr != "":
+			expr := txtarPostgresPartitionExprShow(part.Expr)
+			if expr == "" {
+				return "", false
+			}
+			parts = append(parts, expr)
+		default:
+			return "", false
+		}
+	}
+	return strings.ToUpper(partition.Type) + " (" + strings.Join(parts, ", ") + ")", true
+}
+
+func txtarPostgresPartitionExprShow(expr string) string {
+	expr = strings.TrimSpace(expr)
+	if normalized := txtarPostgresNormalizeFloorExpr(expr); normalized != "" {
+		return normalized
+	}
+	if expr == "" {
+		return ""
+	}
+	return "((" + expr + "))"
+}
+
+func txtarPostgresPartitionExprSQL(expr string) string {
+	expr = strings.TrimSpace(expr)
+	if normalized := txtarPostgresNormalizeFloorExpr(expr); normalized != "" {
+		return normalized
+	}
+	if expr == "" {
+		return ""
+	}
+	return "(" + expr + ")"
+}
+
+func txtarPostgresPartitionExprHCL(expr string) string {
+	expr = strings.TrimSpace(expr)
+	if normalized := txtarPostgresNormalizeFloorExpr(expr); normalized != "" {
+		return normalized
+	}
+	if expr == "" {
+		return ""
+	}
+	if strings.HasPrefix(expr, "(") && strings.HasSuffix(expr, ")") {
+		return expr
+	}
+	return "(" + expr + ")"
+}
+
+func txtarPostgresNormalizeFloorExpr(expr string) string {
+	match := postgresFloorExprRE.FindStringSubmatch(strings.TrimSpace(expr))
+	if match == nil {
+		return ""
+	}
+	return fmt.Sprintf("floor((%s)::double precision)", atlasSQLIdentifier(match[1]))
 }
 
 func txtarPostgresTableIndexes(schemaName string, statements []ast.Node, tableName string) []*ast.IndexNode {
@@ -6685,12 +6851,10 @@ func runTxtarSchemaApply(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 		return txtarCommandResult{unsupported: "atlas schema apply"}, true
 	}
 	if txtarVirtualStatesEqual(fx, runtime.dbStatements, statements) {
-		runtime.hasVirtualDBState = true
-		runtime.dbStatements = statements
+		runtime.replaceDBStatements(statements)
 		return txtarCommandResult{stdout: "Schema is synced, no changes to be made\n"}, true
 	}
-	runtime.hasVirtualDBState = true
-	runtime.dbStatements = statements
+	runtime.replaceDBStatements(statements)
 	return txtarCommandResult{stdout: txtarSchemaApplyOutput(fx, args, statements)}, true
 }
 
@@ -8316,8 +8480,57 @@ func renderAtlasTableHCL(
 	if err := renderAtlasCheckHCLBlocks(b, dialect, table); err != nil {
 		return err
 	}
+	if dialect == "postgresql" {
+		if err := renderAtlasPostgresPartitionHCL(b, table.Partition); err != nil {
+			return err
+		}
+	}
 	b.WriteString("}\n")
 	return nil
+}
+
+func renderAtlasPostgresPartitionHCL(b *strings.Builder, partition *ast.PartitionSpec) error {
+	if partition == nil {
+		return nil
+	}
+	if !txtarPostgresApplyPartitionSupported(partition) {
+		return fmt.Errorf("%w: table partition", errUnsupportedInspectHCL)
+	}
+	b.WriteString("  partition {\n")
+	if atlasPartitionCanUseColumnsAttr(partition.Parts) {
+		fmt.Fprintf(b, "    type    = %s\n", strings.ToUpper(partition.Type))
+		refs := make([]string, 0, len(partition.Parts))
+		for _, part := range partition.Parts {
+			refs = append(refs, atlasHCLColumnRef(part.Name))
+		}
+		fmt.Fprintf(b, "    columns = [%s]\n", strings.Join(refs, ", "))
+	} else {
+		fmt.Fprintf(b, "    type = %s\n", strings.ToUpper(partition.Type))
+		for _, part := range partition.Parts {
+			b.WriteString("    by {\n")
+			if part.Name != "" {
+				fmt.Fprintf(b, "      column = %s\n", atlasHCLColumnRef(part.Name))
+			} else {
+				expr := txtarPostgresPartitionExprHCL(part.Expr)
+				if expr == "" {
+					return fmt.Errorf("%w: table partition expression", errUnsupportedInspectHCL)
+				}
+				fmt.Fprintf(b, "      expr = %q\n", expr)
+			}
+			b.WriteString("    }\n")
+		}
+	}
+	b.WriteString("  }\n")
+	return nil
+}
+
+func atlasPartitionCanUseColumnsAttr(parts []ast.PartitionPart) bool {
+	for _, part := range parts {
+		if part.Name == "" || part.Expr != "" {
+			return false
+		}
+	}
+	return len(parts) > 0
 }
 
 func atlasForeignKeyIndexHCLs(tableName string, table *ast.CreateTableNode, indexes []*ast.IndexNode) []*ast.IndexNode {
@@ -9480,6 +9693,14 @@ func renderAtlasCreateTableSQL(
 			fmt.Fprintf(b, " COLLATE %s", tableAttrs.collate)
 		}
 	}
+	if dialect == "postgresql" && table.Partition != nil {
+		partitionSQL, ok := renderAtlasPostgresPartitionSQL(table.Partition, quote)
+		if !ok {
+			return fmt.Errorf("%w: table partition", errUnsupportedInspectSQL)
+		}
+		b.WriteByte(' ')
+		b.WriteString(partitionSQL)
+	}
 	b.WriteString(";\n")
 	for _, column := range table.Columns {
 		if column.Unique && !atlasSupportsInlineIndexes(dialect) {
@@ -9493,6 +9714,28 @@ func renderAtlasCreateTableSQL(
 		}
 	}
 	return nil
+}
+
+func renderAtlasPostgresPartitionSQL(partition *ast.PartitionSpec, quote func(string) string) (string, bool) {
+	if partition == nil || len(partition.Parts) == 0 {
+		return "", false
+	}
+	parts := make([]string, 0, len(partition.Parts))
+	for _, part := range partition.Parts {
+		switch {
+		case part.Name != "":
+			parts = append(parts, quote(part.Name))
+		case part.Expr != "":
+			expr := txtarPostgresPartitionExprSQL(part.Expr)
+			if expr == "" {
+				return "", false
+			}
+			parts = append(parts, expr)
+		default:
+			return "", false
+		}
+	}
+	return "PARTITION BY " + strings.ToUpper(partition.Type) + " (" + strings.Join(parts, ", ") + ")", true
 }
 
 func atlasTableSchemaAttrs(dialect string, table *ast.CreateTableNode, inherited atlasSchemaAttrs) atlasSchemaAttrs {
