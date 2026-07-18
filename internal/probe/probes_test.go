@@ -2342,6 +2342,80 @@ func TestTxtarScriptProbeExecutesPostgresIndexTypeBRINFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresTablePartitionFixture(t *testing.T) {
+	fixture := "table-partition.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
+func TestTxtarScriptProbeClearsPostgresPartitionChildrenOnSchemaApply(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "partition-reset.txtar")
+	writeTestFile(t, path, `apply partitioned.hcl
+execsql 'CREATE TABLE logs_1 PARTITION OF $db.logs FOR VALUES IN (1)'
+cmpshow logs one.sql
+atlas schema apply --url URL --to file://partitioned.hcl --auto-approve
+cmpshow logs zero.sql
+
+-- partitioned.hcl --
+schema "$db" {}
+
+table "logs" {
+  schema = schema.$db
+  column "value" {
+    null = false
+    type = integer
+  }
+  partition {
+    type = LIST
+    columns = [column.value]
+  }
+}
+-- one.sql --
+Partitioned table "script_partition_reset.logs"
+Column | Type | Collation | Nullable | Default
+--------+------+-----------+----------+--------
+value | integer |  | not null |
+Partition key: LIST (value)
+Number of partitions: 1 (Use \d+ to list them.)
+
+-- zero.sql --
+Partitioned table "script_partition_reset.logs"
+Column | Type | Collation | Nullable | Default
+--------+------+-----------+----------+--------
+value | integer |  | not null |
+Partition key: LIST (value)
+Number of partitions: 0
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/partition-reset.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesPostgresIndexNullsDistinctFixture(t *testing.T) {
 	fixture := "index-nulls-distinct.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
