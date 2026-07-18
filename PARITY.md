@@ -82,8 +82,17 @@ that when they go green Ptah genuinely covers that dimension:
   Deliberately excluded: NM (naming) fires only under a configured policy, and
   SA (injection) / OW (ownership) are policy/enterprise analyzers — none run in a
   default OSS pass, so their absence is not a default drop-in gap.
+- **`lex-split-parity`** is a differential check against Atlas's own recorded
+  output: for every Atlas lexer fixture that ships a `.golden`, it asks whether
+  Ptah's statement splitter breaks the SQL into the same statements Atlas does.
+  This is real drop-in behavior — if Ptah splits a stored function body, a
+  `BEGIN ATOMIC` block or a MySQL `DELIMITER` section differently, the migration
+  executes differently. It uses Atlas's committed goldens, so it needs no live
+  Atlas binary (which does not build cleanly on current Go and whose release is
+  proprietary). SQL Server delimiting (GO / BEGIN TRY) is out of scope — SQL
+  Server is a Pro Atlas driver.
 
-These two dimensions are exhaustive today. Introspection breadth and the
+These dimensions are exhaustive today. Introspection breadth and the
 behavioral *correctness* of each declarative command (does `schema inspect`
 emit equivalent HCL, does `migrate diff` produce equivalent SQL) still need a
 live database and are the domain of the end-state conformance in ptah#285.

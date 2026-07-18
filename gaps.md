@@ -6,16 +6,16 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 44 non-OK observation(s)
+## Status: NOT DONE — 57 non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260718090037-7ac2a09b3d20`
-- Outcomes: **551 ok**, **44 gap**, **0 fail**, **0 panic**
-- Full gate: **44 non-OK** (fails CI)
-- Regression budget input: **44 unwaived non-OK**, 0 waived
+- Outcomes: **566 ok**, **57 gap**, **0 fail**, **0 panic**
+- Full gate: **57 non-OK** (fails CI)
+- Regression budget input: **57 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
 
 ## Findings
@@ -38,6 +38,19 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **gap** | atlas-cli-surface | `atlas schema fmt` | resolve | Ptah has no `atlas schema fmt` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
 | **RED** | **gap** | atlas-cli-surface | `atlas schema inspect` | resolve | Ptah has no `atlas schema inspect` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
 | **RED** | **gap** | atlas-cli-surface | `atlas version` | resolve | Ptah has no `atlas version` command; the `ptah atlas ...` drop-in namespace is unimplemented | #268 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | split | Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | split | Ptah splits this into 2 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/12_delimiter_mysql_command.sql` | split | Ptah splits this into 4 statement(s), Atlas into 4 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/13_delimiter_mysql_command.sql` | split | Ptah splits this into 23 statement(s), Atlas into 24 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/14_delimiter_mysql_command.sql` | split | Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/16_begin_atomic.sql` | split | Ptah splits this into 22 statement(s), Atlas into 11 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/3_delimiter.sql` | split | Ptah splits this into 1 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/4_delimiter.sql` | split | Ptah splits this into 1 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/5_delimiter.sql` | split | Ptah splits this into 3 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lex/9_delimiter_3n.sql` | split | Ptah splits this into 5 statement(s), Atlas into 2 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lexgroup/1_trigger.sql` | split | Ptah splits this into 29 statement(s), Atlas into 26 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lexgroup/2_function.sql` | split | Ptah splits this into 89 statement(s), Atlas into 18 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
+| **RED** | **gap** | lex-split-parity | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | split | Ptah splits this into 8 statement(s), Atlas into 5 — statement boundaries differ (delimiter directive, function/atomic body, or embedded-semicolon handling) | #273 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas DS101 (drop schema)` | postgres | Atlas DS101 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas LT101 (modify nullable to non-nullable without default)` | sqlite | Atlas LT101 flags this; Ptah emits no substantive finding on the change | #270 |
 | **RED** | **gap** | lint-analyzer-catalog | `Atlas MF101 (add unique constraint on existing column)` | postgres | Atlas MF101 flags this; Ptah emits no substantive finding on the change | #270 |
@@ -244,6 +257,21 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | corpus-inventory | `sql/sqltool/testdata/liquibase` | import | imported SQL directory: 2 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down-boundary` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/1.sql` | split | Ptah splits into the same 6 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/15_dollar_quote.sql` | split | Ptah splits into the same 17 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/17_paren.sql` | split | Ptah splits into the same 3 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/18_pg_expr.sql` | split | Ptah splits into the same 7 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/19_ms_gocmd.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/20_ms_go-delim.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/2_mysql.sql` | split | Ptah splits into the same 16 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/6_skip_comment.sql` | split | Ptah splits into the same 7 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/7_delimiter_2n.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lex/8_delimiter_3n.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lexbegintry/1.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lexescaped/1.my.sql` | split | Ptah splits into the same 4 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/lexescaped/2.pg.sql` | split | Ptah splits into the same 4 statement(s) as Atlas |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/sqlserver/1_return_table.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
+| — | ok | lex-split-parity | `sql/migrate/testdata/sqlserver/2_function.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
 | — | ok | lint-analyzer-catalog | `Atlas BC101 (rename table)` | postgres | Ptah flags this change: BC101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas BC102 (rename column)` | postgres | Ptah flags this change: BC101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas CD101 (drop foreign key)` | postgres | Ptah flags this change: DS105 |  |
@@ -622,3 +650,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#268** — 16 finding(s)
 - **stokaro/ptah#270** — 28 finding(s)
+- **stokaro/ptah#273** — 13 finding(s)
