@@ -2749,7 +2749,7 @@ schema "script_index_nulls_distinct" {
 	}
 }
 
-func TestTxtarScriptProbeKeepsPostgresComplexExpressionIndexAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesPostgresIndexExprFixture(t *testing.T) {
 	fixture := "index-expr.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
 		Name: "postgres/" + fixture,
@@ -2763,11 +2763,8 @@ func TestTxtarScriptProbeKeepsPostgresComplexExpressionIndexAsGap(t *testing.T) 
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
-	}
-	if !strings.Contains(results[0].Detail, "unsupported: apply") {
-		t.Fatalf("detail missing expression-index apply gap: %s", results[0].Detail)
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 
