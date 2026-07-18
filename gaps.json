@@ -3903,6 +3903,14 @@
   },
   {
     "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas DS101 (drop schema)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas DS101 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS102 (drop table)",
     "stage": "postgres",
     "outcome": "ok",
@@ -3917,18 +3925,18 @@
   },
   {
     "probe": "lint-analyzer-catalog",
-    "fixture": "Atlas MF103 (add non-nullable column without default)",
+    "fixture": "Atlas MF101 (add unique constraint on existing column)",
     "stage": "postgres",
     "outcome": "gap",
-    "detail": "Atlas MF103 flags this; Ptah emits no substantive finding on the change",
+    "detail": "Atlas MF101 flags this; Ptah emits no substantive finding on the change",
     "issue": "stokaro/ptah#270"
   },
   {
     "probe": "lint-analyzer-catalog",
-    "fixture": "Atlas MF101 (add unique index/constraint on existing column)",
+    "fixture": "Atlas MF103 (add non-nullable column without default)",
     "stage": "postgres",
     "outcome": "gap",
-    "detail": "Atlas MF101 flags this; Ptah emits no substantive finding on the change",
+    "detail": "Atlas MF103 flags this; Ptah emits no substantive finding on the change",
     "issue": "stokaro/ptah#270"
   },
   {
@@ -3962,6 +3970,13 @@
   },
   {
     "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas CD102 (drop check constraint)",
+    "stage": "postgres",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS105"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
     "fixture": "Atlas CD103 (drop primary key)",
     "stage": "postgres",
     "outcome": "ok",
@@ -3976,10 +3991,73 @@
   },
   {
     "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG102 (drop index without CONCURRENTLY)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG102 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)",
     "stage": "postgres",
     "outcome": "gap",
     "detail": "Atlas PG103 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG104 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG105 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG301 (column type change rewrites the table)",
+    "stage": "postgres",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS103"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG302 (add column with volatile default rewrites the table)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG302 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG303 (modify nullable to non-nullable requires full scan)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG303 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG304 (add primary key on nullable columns requires full scan)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG304 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG305 (add check constraint requires full scan)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG305 flags this; Ptah emits no substantive finding on the change",
     "issue": "stokaro/ptah#270"
   },
   {
@@ -3992,10 +4070,59 @@
   },
   {
     "probe": "lint-analyzer-catalog",
-    "fixture": "Atlas PG301 (column type change rewrites the table)",
+    "fixture": "Atlas PG307 (change table logging mode rewrites the table)",
     "stage": "postgres",
-    "outcome": "ok",
-    "detail": "Ptah flags this change: DS103"
+    "outcome": "gap",
+    "detail": "Atlas PG307 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG308 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG309 (add stored generated column rewrites the table)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG309 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG310 (add identity column rewrites the table)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG310 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG311 (change table access method rewrites the table)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG311 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas PG110 (create table with non-optimal column alignment)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas PG110 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY101 (add non-nullable column without default)",
+    "stage": "mysql",
+    "outcome": "gap",
+    "detail": "Atlas MY101 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4007,10 +4134,100 @@
   },
   {
     "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY110 (remove enum value requires table copy)",
+    "stage": "mysql",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS103, MY101"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY112 (insert enum value not at the end requires table copy)",
+    "stage": "mysql",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS103, MY101"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY120 (remove set value requires table copy)",
+    "stage": "mysql",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS103, MY101"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY130 (change column type requires table copy)",
+    "stage": "mysql",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS103, MY101"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY131 (add foreign key blocks DML)",
+    "stage": "mysql",
+    "outcome": "gap",
+    "detail": "Atlas MY131 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY132 (add primary key rebuilds the table)",
+    "stage": "mysql",
+    "outcome": "gap",
+    "detail": "Atlas MY132 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY133 (drop primary key copies the table and blocks DML)",
+    "stage": "mysql",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: DS105"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY134 (add fulltext index blocks DML)",
+    "stage": "mysql",
+    "outcome": "gap",
+    "detail": "Atlas MY134 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY135 (add spatial index blocks DML)",
+    "stage": "mysql",
+    "outcome": "gap",
+    "detail": "Atlas MY135 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas MY136 (change table character set rebuilds the table)",
+    "stage": "mysql",
+    "outcome": "ok",
+    "detail": "Ptah flags this change: MY101"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas LT101 (modify nullable to non-nullable without default)",
+    "stage": "sqlite",
+    "outcome": "gap",
+    "detail": "Atlas LT101 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
     "fixture": "Atlas TX101 (mixing transactional and non-transactional statements)",
     "stage": "postgres",
     "outcome": "gap",
     "detail": "Atlas TX101 flags this; Ptah emits no substantive finding on the change",
+    "issue": "stokaro/ptah#270"
+  },
+  {
+    "probe": "lint-analyzer-catalog",
+    "fixture": "Atlas TX201 (nested transaction block)",
+    "stage": "postgres",
+    "outcome": "gap",
+    "detail": "Atlas TX201 flags this; Ptah emits no substantive finding on the change",
     "issue": "stokaro/ptah#270"
   }
 ]

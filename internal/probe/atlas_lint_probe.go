@@ -28,41 +28,107 @@ type analyzerCase struct {
 	ChangeSQL string
 }
 
-// atlasAnalyzerCatalog is a representative slice of the Atlas analyzer catalog
-// (https://atlasgo.io/lint/analyzers), one synthetic case per concern. Cases
-// Ptah already covers (drops, non-concurrent index) verify the probe reads
-// findings correctly; the rest map the parity gap.
+// atlasAnalyzerCatalog is the full set of Atlas analyzer concerns that fire by
+// default in an OSS build (https://atlasgo.io/lint/analyzers), one synthetic
+// migration per concern. The catalog is exhaustive over the default-firing
+// families: destructive (DS), data-dependent (MF), backward-incompatible (BC),
+// constraint-deletion (CD), PostgreSQL concurrency (PG1) and blocking rewrites
+// (PG3), PostgreSQL alignment (PG110), MySQL/MariaDB (MY), SQLite (LT) and
+// transaction safety (TX). Deliberately excluded, with reason:
+//   - NM (naming conventions): off unless a naming policy is configured, so it
+//     does not fire in a default OSS run and is not a default drop-in gap.
+//   - SA (SQL injection) / OW (ownership): policy/enterprise analyzers, not part
+//     of the default OSS lint pass.
+// The probe is behavioral: LintFS decides OK vs gap, so cases Ptah already covers
+// (drops, rename, non-concurrent index) read green and prove the probe works.
 var atlasAnalyzerCatalog = []analyzerCase{
-	// Destructive — Ptah has DS101-103, so these should read as covered.
+	// Destructive changes (DS) — Ptah's DS family covers these.
+	{"DS101", "drop schema", "postgres", `CREATE SCHEMA s;`, `DROP SCHEMA s;`},
 	{"DS102", "drop table", "postgres", `CREATE TABLE t (id INT);`, `DROP TABLE t;`},
 	{"DS103", "drop column", "postgres", `CREATE TABLE t (id INT, c TEXT);`, `ALTER TABLE t DROP COLUMN c;`},
-	// Data-dependent — Atlas MF101/MF103/MF104; Ptah has no dev-DB data-dependent family.
+
+	// Data-dependent changes (MF) — need a dev DB to know if the table has data;
+	// Ptah's text linter has no data-dependent family.
+	{"MF101", "add unique constraint on existing column", "postgres", `CREATE TABLE t (id INT, email TEXT);`, `ALTER TABLE t ADD CONSTRAINT u UNIQUE (email);`},
+	// MF102 (change a non-unique index to unique) is a diff-semantics concern:
+	// it can only be expressed by dropping and recreating the index, and any index
+	// recreation independently trips a PG concurrency finding, which would mask the
+	// real data-dependent gap. It is folded into MF101 rather than probed falsely.
 	{"MF103", "add non-nullable column without default", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t ADD COLUMN c INT NOT NULL;`},
-	{"MF101", "add unique index/constraint on existing column", "postgres", `CREATE TABLE t (id INT, email TEXT);`, `ALTER TABLE t ADD CONSTRAINT u UNIQUE (email);`},
 	{"MF104", "modify nullable column to non-nullable", "postgres", `CREATE TABLE t (id INT, c TEXT);`, `ALTER TABLE t ALTER COLUMN c SET NOT NULL;`},
-	// Backward-incompatible — Atlas BC101/BC102.
+
+	// Backward-incompatible changes (BC) — Ptah's BC family covers renames.
 	{"BC101", "rename table", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t RENAME TO t2;`},
 	{"BC102", "rename column", "postgres", `CREATE TABLE t (id INT, c TEXT);`, `ALTER TABLE t RENAME COLUMN c TO d;`},
-	// Constraint deletion — Atlas CD101-103.
+
+	// Constraint deletion (CD).
 	{"CD101", "drop foreign key", "postgres", `CREATE TABLE p (id INT PRIMARY KEY);
 CREATE TABLE t (id INT, p_id INT, CONSTRAINT fk FOREIGN KEY (p_id) REFERENCES p (id));`, `ALTER TABLE t DROP CONSTRAINT fk;`},
+	{"CD102", "drop check constraint", "postgres", `CREATE TABLE t (id INT, CONSTRAINT ck CHECK (id > 0));`, `ALTER TABLE t DROP CONSTRAINT ck;`},
 	{"CD103", "drop primary key", "postgres", `CREATE TABLE t (id INT, CONSTRAINT pk PRIMARY KEY (id));`, `ALTER TABLE t DROP CONSTRAINT pk;`},
-	// PostgreSQL concurrency — Ptah has PG101/PG102; PG103 (txmode) it does not.
+
+	// PostgreSQL concurrency (PG1) — Ptah has PG101/PG102.
 	{"PG101", "create index without CONCURRENTLY", "postgres", `CREATE TABLE t (id INT, c TEXT);`, `CREATE INDEX idx ON t (c);`},
+	{"PG102", "drop index without CONCURRENTLY", "postgres", `CREATE TABLE t (id INT, c TEXT);
+CREATE INDEX idx ON t (c);`, `DROP INDEX idx;`},
 	{"PG103", "missing atlas:txmode none for CONCURRENTLY", "postgres", `CREATE TABLE t (id INT, c TEXT);`, `CREATE INDEX CONCURRENTLY idx ON t (c);`},
-	// PostgreSQL blocking rewrites — Atlas PG301/PG306.
+	{"PG104", "add primary key takes ACCESS EXCLUSIVE lock", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t ADD PRIMARY KEY (id);`},
+	{"PG105", "add unique constraint takes ACCESS EXCLUSIVE lock", "postgres", `CREATE TABLE t (id INT, email TEXT);`, `ALTER TABLE t ADD CONSTRAINT u UNIQUE (email);`},
+
+	// PostgreSQL blocking rewrites / scans (PG3).
+	{"PG301", "column type change rewrites the table", "postgres", `CREATE TABLE t (id INT, c INT);`, `ALTER TABLE t ALTER COLUMN c TYPE BIGINT;`},
+	{"PG302", "add column with volatile default rewrites the table", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t ADD COLUMN c UUID DEFAULT gen_random_uuid();`},
+	{"PG303", "modify nullable to non-nullable requires full scan", "postgres", `CREATE TABLE t (id INT, c TEXT);`, `ALTER TABLE t ALTER COLUMN c SET NOT NULL;`},
+	{"PG304", "add primary key on nullable columns requires full scan", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t ADD PRIMARY KEY (id);`},
+	{"PG305", "add check constraint requires full scan", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t ADD CONSTRAINT ck CHECK (id > 0);`},
 	{"PG306", "add foreign key validates existing rows and blocks writes", "postgres", `CREATE TABLE p (id INT PRIMARY KEY);
 CREATE TABLE t (id INT, p_id INT);`, `ALTER TABLE t ADD CONSTRAINT fk FOREIGN KEY (p_id) REFERENCES p (id);`},
-	{"PG301", "column type change rewrites the table", "postgres", `CREATE TABLE t (id INT, c INT);`, `ALTER TABLE t ALTER COLUMN c TYPE BIGINT;`},
-	// MySQL — Ptah has MY101; others it does not.
+	{"PG307", "change table logging mode rewrites the table", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t SET UNLOGGED;`},
+	{"PG308", "add trigger takes SHARE ROW EXCLUSIVE lock", "postgres", `CREATE TABLE t (id INT);
+CREATE FUNCTION f() RETURNS trigger AS $$ BEGIN RETURN NEW; END; $$ LANGUAGE plpgsql;`, `CREATE TRIGGER tr BEFORE INSERT ON t FOR EACH ROW EXECUTE FUNCTION f();`},
+	{"PG309", "add stored generated column rewrites the table", "postgres", `CREATE TABLE t (id INT, c INT);`, `ALTER TABLE t ADD COLUMN g INT GENERATED ALWAYS AS (c * 2) STORED;`},
+	{"PG310", "add identity column rewrites the table", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t ADD COLUMN n INT GENERATED ALWAYS AS IDENTITY;`},
+	{"PG311", "change table access method rewrites the table", "postgres", `CREATE TABLE t (id INT);`, `ALTER TABLE t SET ACCESS METHOD heap2;`},
+	{"PG110", "create table with non-optimal column alignment", "postgres", `SELECT 1;`, `CREATE TABLE t (a BOOLEAN, b BIGINT, c BOOLEAN, d BIGINT);`},
+
+	// MySQL / MariaDB (MY).
+	{"MY101", "add non-nullable column without default", "mysql", "CREATE TABLE t (id INT);", "ALTER TABLE t ADD COLUMN c INT NOT NULL;"},
 	{"MY102", "inline REFERENCES on added column has no effect", "mysql", "CREATE TABLE p (id INT PRIMARY KEY);\nCREATE TABLE t (id INT);", "ALTER TABLE t ADD COLUMN p_id INT REFERENCES p (id);"},
-	// Transaction safety — Atlas TX101.
+	{"MY110", "remove enum value requires table copy", "mysql", "CREATE TABLE t (id INT, c ENUM('a','b'));", "ALTER TABLE t MODIFY COLUMN c ENUM('a');"},
+	{"MY112", "insert enum value not at the end requires table copy", "mysql", "CREATE TABLE t (id INT, c ENUM('a','b'));", "ALTER TABLE t MODIFY COLUMN c ENUM('a','x','b');"},
+	{"MY120", "remove set value requires table copy", "mysql", "CREATE TABLE t (id INT, c SET('a','b'));", "ALTER TABLE t MODIFY COLUMN c SET('a');"},
+	{"MY130", "change column type requires table copy", "mysql", "CREATE TABLE t (id INT, c INT);", "ALTER TABLE t MODIFY COLUMN c BIGINT;"},
+	{"MY131", "add foreign key blocks DML", "mysql", "CREATE TABLE p (id INT PRIMARY KEY);\nCREATE TABLE t (id INT, p_id INT);", "ALTER TABLE t ADD CONSTRAINT fk FOREIGN KEY (p_id) REFERENCES p (id);"},
+	{"MY132", "add primary key rebuilds the table", "mysql", "CREATE TABLE t (id INT);", "ALTER TABLE t ADD PRIMARY KEY (id);"},
+	{"MY133", "drop primary key copies the table and blocks DML", "mysql", "CREATE TABLE t (id INT PRIMARY KEY);", "ALTER TABLE t DROP PRIMARY KEY;"},
+	{"MY134", "add fulltext index blocks DML", "mysql", "CREATE TABLE t (id INT, c TEXT);", "ALTER TABLE t ADD FULLTEXT INDEX ft (c);"},
+	{"MY135", "add spatial index blocks DML", "mysql", "CREATE TABLE t (id INT, g GEOMETRY NOT NULL);", "ALTER TABLE t ADD SPATIAL INDEX sp (g);"},
+	{"MY136", "change table character set rebuilds the table", "mysql", "CREATE TABLE t (id INT, c VARCHAR(10));", "ALTER TABLE t CONVERT TO CHARACTER SET utf8mb4;"},
+
+	// SQLite (LT).
+	{"LT101", "modify nullable to non-nullable without default", "sqlite", `CREATE TABLE t (id INTEGER, c TEXT);`, `ALTER TABLE t ALTER COLUMN c SET NOT NULL;`},
+
+	// Transaction safety (TX).
 	{"TX101", "mixing transactional and non-transactional statements", "postgres", `CREATE TABLE t (id INT);`, `CREATE INDEX CONCURRENTLY idx ON t (id);
 ALTER TABLE t ADD COLUMN c INT;`},
+	{"TX201", "nested transaction block", "postgres", `CREATE TABLE t (id INT);`, `BEGIN;
+ALTER TABLE t ADD COLUMN c INT;
+COMMIT;`},
 }
 
 // AtlasLintAnalyzerProbe measures Ptah's lint catalog against Atlas's, one
 // synthetic migration per analyzer concern, through Ptah's real LintFS.
+//
+// Coverage criterion: a case is OK when Ptah's linter emits at least one
+// substantive (non file-convention) finding on the change file — i.e. Ptah warns
+// the user about this dangerous change at all. The actual Ptah rule code is
+// recorded in every OK detail so a reviewer can see whether it is the same
+// concern (e.g. DS102 for a table drop) or a coarser destructive warning (e.g.
+// DS103 firing on a MySQL enum modification). This deliberately measures "does
+// Ptah warn" rather than "does Ptah have byte-for-byte the same analyzer": the
+// stricter reading would couple the probe to Ptah's future rule codes and could
+// leave a case red forever even after Ptah adds an equivalent rule, defeating
+// the auto-flip contract.
 type AtlasLintAnalyzerProbe struct{}
 
 func (AtlasLintAnalyzerProbe) Name() string { return "lint-analyzer-catalog" }
