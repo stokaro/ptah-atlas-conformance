@@ -163,7 +163,7 @@ func ptahBinary() (string, error) {
 			return
 		}
 		bin := filepath.Join(dir, "ptah")
-		cmd := exec.Command("go", "build", "-o", bin, "github.com/stokaro/ptah/cmd")
+		cmd := exec.Command("go", "build", "-o", bin, "github.com/stokaro/ptah/cmd/ptah")
 		if out, err := cmd.CombinedOutput(); err != nil {
 			ptahBinErr = wrapBuildErr(err, out)
 			return
