@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.0.0-20260718050614-7ecbb3fc2137
+	github.com/stokaro/ptah v0.0.0-20260718080430-ad1dcca5e157
 )
 
 require (
