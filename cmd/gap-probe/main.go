@@ -23,7 +23,7 @@ func main() {
 	mdOut := flag.String("md", "gaps.md", "markdown report output path")
 	jsonOut := flag.String("json", "gaps.json", "json report output path")
 	waiverFile := flag.String("waivers", "waivers.txt", "path to the waivers file")
-	gate := flag.Bool("gate", false, "exit non-zero if any unwaived gap/fail/panic remains (the conformance gate)")
+	gate := flag.Bool("gate", false, "exit non-zero if any gap/fail/panic remains (the full conformance gate)")
 	flag.Parse()
 
 	var fixtures []probe.Fixture
@@ -67,9 +67,10 @@ func main() {
 		os.Exit(2)
 	}
 
+	nonOK := probe.NonOK(results)
 	unwaived := probe.Unwaived(results, waivers)
-	fmt.Printf("%d fixtures, %d observations, %d unwaived non-OK observation(s) → %s\n",
-		len(fixtures), len(results), len(unwaived), *mdOut)
+	fmt.Printf("%d fixtures, %d observations, %d non-OK observation(s), %d unwaived → %s\n",
+		len(fixtures), len(results), len(nonOK), len(unwaived), *mdOut)
 
 	// A stale waiver (matching nothing) means a gap closed; force cleanup.
 	stale := waivers.Unused(results)
@@ -78,9 +79,9 @@ func main() {
 	}
 
 	if *gate {
-		if len(unwaived) > 0 {
-			fmt.Fprintf(os.Stderr, "\nCONFORMANCE GATE: RED — %d unwaived non-OK observation(s):\n", len(unwaived))
-			for _, r := range unwaived {
+		if len(nonOK) > 0 {
+			fmt.Fprintf(os.Stderr, "\nCONFORMANCE GATE: RED — %d non-OK observation(s):\n", len(nonOK))
+			for _, r := range nonOK {
 				fmt.Fprintf(os.Stderr, "  [%s] %s / %s / %s: %s\n", r.Outcome, r.Probe, r.Fixture, r.Stage, r.Detail)
 			}
 			fmt.Fprintln(os.Stderr, "\nThis is expected until Ptah reaches Atlas coverage on the corpus.")
@@ -89,7 +90,7 @@ func main() {
 		if len(stale) > 0 {
 			os.Exit(1) // stale waivers are also a gate failure
 		}
-		fmt.Println("CONFORMANCE GATE: GREEN — every fixture covered or waived.")
+		fmt.Println("CONFORMANCE GATE: GREEN — every fixture covered.")
 	}
 }
 

@@ -35,6 +35,7 @@ var (
 	postgresCurrentTimestampRE = regexp.MustCompile(`(?i)^CURRENT_TIMESTAMP(?:\((\d+)\))?$`)
 	postgresPartitionOfRE      = regexp.MustCompile(`(?is)^CREATE\s+TABLE\s+\S+\s+PARTITION\s+OF\s+(.+?)(?:\s+FOR\s+VALUES\b|$)`)
 	postgresFloorExprRE        = regexp.MustCompile(`(?i)^floor\(\s*\(?\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)?\s*(?:::double\s+precision)?\s*\)$`)
+	postgresFunctionRE         = regexp.MustCompile(`(?is)\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\b.*?\$\$.*?\$\$\s+LANGUAGE\s+[A-Za-z_][A-Za-z0-9_]*(?:\s+[^;]*)?;`)
 	flywayUndoMigrationRE      = regexp.MustCompile(`^U\d+\.sql$`)
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
@@ -1402,22 +1403,31 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		}
 	}
 	if len(migrationFiles) > 0 {
-		current, ok := txtarCurrentMigrationState(runtime, args.dir)
+		current, currentComparable, ok := txtarCurrentMigrationState(fx, runtime, args.dir)
 		if !ok {
 			return txtarCommandResult{unsupported: "atlas migrate diff"}
 		}
-		if txtarMigrateDiffStatesMatch(fx, current, targetStatements, args.indent) {
+		if currentComparable && txtarMigrateDiffStatesMatch(fx, current, targetStatements, args.indent) {
 			return txtarCommandResult{
 				stdout: "The migration directory is synced with the desired state, no changes to be made\n",
 			}
 		}
-		incrementalSQL, incrementalDownSQL, ok := renderTxtarMigrateDiffAddColumnPairSQL(
+		incrementalSQL, incrementalDownSQL, ok := renderTxtarMigrateDiffCreateTablePairSQL(
 			fx,
 			current,
 			targetStatements,
 			args.indent,
 			args.qualifier,
 		)
+		if !ok {
+			incrementalSQL, incrementalDownSQL, ok = renderTxtarMigrateDiffAddColumnPairSQL(
+				fx,
+				current,
+				targetStatements,
+				args.indent,
+				args.qualifier,
+			)
+		}
 		if !ok {
 			incrementalSQL, incrementalDownSQL, ok = renderTxtarMigrateDiffCheckChangeSQL(
 				fx,
@@ -1466,19 +1476,94 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 	return txtarCommandResult{}
 }
 
-func txtarCurrentMigrationState(runtime *txtarRuntime, dir string) ([]ast.Node, bool) {
-	var state []ast.Node
-	for _, file := range txtarMigrationApplySQLFilesInDir(runtime, dir) {
-		statements, failing, err := txtarParseMigrationStatements(runtime.files[file])
-		if err != nil || failing != "" {
-			return nil, false
-		}
-		state, err = txtarApplyStatementsToVirtualState(state, statements)
-		if err != nil {
+func renderTxtarMigrateDiffCreateTablePairSQL(
+	fx Fixture,
+	current []ast.Node,
+	target []ast.Node,
+	indent string,
+	qualifier string,
+) (string, string, bool) {
+	statements, ok := txtarMigrateDiffCreateTableStatements(txtarFixtureDialect(fx), current, target)
+	if !ok || len(statements) == 0 {
+		return "", "", false
+	}
+	outputDialect := txtarMigrateDiffOutputDialect(txtarFixtureDialect(fx))
+	upStatements := statements
+	if qualifier != "" {
+		upStatements = atlasQualifyTableStatements(qualifier, statements)
+	}
+	upSQL, err := renderAtlasInspectSQL(outputDialect, upStatements, indent)
+	if err != nil {
+		return "", "", false
+	}
+	downSQL, ok := renderTxtarMigrateDiffCreateDownSQL(fx, statements, qualifier)
+	if !ok {
+		return "", "", false
+	}
+	return upSQL, downSQL, true
+}
+
+func txtarMigrateDiffCreateTableStatements(dialect string, current, target []ast.Node) ([]ast.Node, bool) {
+	currentTables := txtarCreateTablesByName(current)
+	targetTables := txtarCreateTablesByName(target)
+	for tableName := range currentTables {
+		if _, ok := targetTables[tableName]; !ok {
 			return nil, false
 		}
 	}
-	return state, true
+	missingTables := map[string]bool{}
+	for tableName, targetTable := range targetTables {
+		currentTable, ok := currentTables[tableName]
+		if !ok {
+			missingTables[tableName] = true
+			continue
+		}
+		if !txtarTablesEquivalentBySQL(dialect, currentTable, targetTable) {
+			return nil, false
+		}
+	}
+	if len(missingTables) == 0 {
+		return nil, false
+	}
+	statements := make([]ast.Node, 0, len(target))
+	for _, stmt := range target {
+		switch node := stmt.(type) {
+		case *ast.CreateSchemaNode:
+			continue
+		case *ast.CreateTableNode:
+			if missingTables[atlasSQLIdentifier(node.Name)] {
+				statements = append(statements, node)
+			}
+		case *ast.IndexNode:
+			if !missingTables[atlasSQLIdentifier(node.Table)] {
+				return nil, false
+			}
+			statements = append(statements, node)
+		default:
+			return nil, false
+		}
+	}
+	return statements, len(statements) > 0
+}
+
+func txtarCurrentMigrationState(fx Fixture, runtime *txtarRuntime, dir string) ([]ast.Node, bool, bool) {
+	var state []ast.Node
+	comparable := true
+	for _, file := range txtarMigrationApplySQLFilesInDir(runtime, dir) {
+		parsed := txtarParseMigrationStatementsForDialect(runtime.files[file], txtarFixtureDialect(fx))
+		if parsed.err != nil || parsed.failing != "" {
+			return nil, false, false
+		}
+		if parsed.skippedUnsupported {
+			comparable = false
+		}
+		var err error
+		state, err = txtarApplyStatementsToVirtualState(state, parsed.statements)
+		if err != nil {
+			return nil, false, false
+		}
+	}
+	return state, comparable, true
 }
 
 func txtarWriteMigrateDiff(runtime *txtarRuntime, args txtarMigrateDiffArgs, upSQL, downSQL string) error {
@@ -1579,7 +1664,7 @@ func renderTxtarMigrateDiffAddColumnSQL(
 	for _, change := range changes {
 		tableName := change.tableName
 		if qualifier != "" {
-			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+			tableName = atlasQualifyTableName(qualifier, tableName)
 		}
 		fmt.Fprintf(&out, "-- Modify %q table\n", atlasSQLIdentifier(change.tableName))
 		parts := make([]string, 0, len(change.columns))
@@ -1613,7 +1698,7 @@ func renderTxtarMigrateDiffAddColumnDownSQL(
 	for _, change := range changes {
 		tableName := change.tableName
 		if qualifier != "" {
-			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+			tableName = atlasQualifyTableName(qualifier, tableName)
 		}
 		fmt.Fprintf(&out, "-- reverse: modify %q table\n", atlasSQLIdentifier(change.tableName))
 		parts := make([]string, 0, len(change.columns))
@@ -1673,31 +1758,57 @@ func renderTxtarMigrateDiffCheckChangeDirectionSQL(
 ) (string, bool) {
 	quote := atlasIdentifierQuoter(dialect)
 	var out strings.Builder
-	for _, change := range changes {
+	for _, tableChanges := range txtarMigrateDiffCheckChangesByTable(changes) {
+		change := tableChanges[0]
 		tableName := change.tableName
 		if qualifier != "" {
-			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+			tableName = atlasQualifyTableName(qualifier, tableName)
 		}
-		from := change.current
-		to := change.target
 		comment := "-- Modify %q table\n"
 		if reverse {
-			from, to = to, from
 			comment = "-- reverse: modify %q table\n"
 		}
-		if from.name == "" || to.name == "" {
-			return "", false
-		}
 		fmt.Fprintf(&out, comment, atlasSQLIdentifier(change.tableName))
-		parts := []string{
-			"DROP CHECK " + quote(from.name),
-			"ADD " + renderAtlasCheckSQL(quote, to.name, to.expr),
+		parts := make([]string, 0, len(tableChanges)*2)
+		for _, change := range tableChanges {
+			from := change.current
+			to := change.target
+			if reverse {
+				from, to = to, from
+			}
+			if from.name == "" || to.name == "" {
+				return "", false
+			}
+			parts = append(
+				parts,
+				txtarMigrateDiffDropCheckSQL(dialect, quote, from.name),
+				"ADD "+renderAtlasCheckSQL(quote, to.name, to.expr),
+			)
 		}
 		fmt.Fprintf(&out, "ALTER TABLE %s ", quote(tableName))
 		out.WriteString(strings.Join(parts, ", "))
 		out.WriteString(";\n")
 	}
 	return out.String(), true
+}
+
+func txtarMigrateDiffCheckChangesByTable(changes []txtarMigrateDiffCheckChange) [][]txtarMigrateDiffCheckChange {
+	var groups [][]txtarMigrateDiffCheckChange
+	for _, change := range changes {
+		if len(groups) == 0 || groups[len(groups)-1][0].tableName != change.tableName {
+			groups = append(groups, []txtarMigrateDiffCheckChange{change})
+			continue
+		}
+		groups[len(groups)-1] = append(groups[len(groups)-1], change)
+	}
+	return groups
+}
+
+func txtarMigrateDiffDropCheckSQL(dialect string, quote func(string) string, name string) string {
+	if dialect == "postgresql" {
+		return "DROP CONSTRAINT " + quote(name)
+	}
+	return "DROP CHECK " + quote(name)
 }
 
 func renderTxtarMigrateDiffPrimaryKeyChangeSQL(
@@ -1733,7 +1844,7 @@ func renderTxtarMigrateDiffPrimaryKeyChangeDirectionSQL(
 	for _, change := range changes {
 		tableName := change.tableName
 		if qualifier != "" {
-			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+			tableName = atlasQualifyTableName(qualifier, tableName)
 		}
 		primaryKey := change.target
 		comment := "-- Modify %q table\n"
@@ -1795,7 +1906,7 @@ func renderTxtarMigrateDiffDropIndexDirectionSQL(
 	for _, change := range changes {
 		tableName := change.tableName
 		if qualifier != "" {
-			tableName = qualifier + "." + atlasSQLIdentifier(tableName)
+			tableName = atlasQualifyTableName(qualifier, tableName)
 		}
 		if change.index == nil || change.index.Name == "" {
 			return "", false
@@ -1828,10 +1939,7 @@ func renderTxtarMigrateDiffCreateDownSQL(fx Fixture, statements []ast.Node, qual
 	var out strings.Builder
 	for i := len(tables) - 1; i >= 0; i-- {
 		tableName := tables[i]
-		outputName := tableName
-		if qualifier != "" {
-			outputName = qualifier + "." + tableName
-		}
+		outputName := atlasQualifyTableName(qualifier, tableName)
 		fmt.Fprintf(&out, "-- reverse: create %q table\n", tableName)
 		fmt.Fprintf(&out, "DROP TABLE %s;\n", quote(outputName))
 	}
@@ -2387,11 +2495,13 @@ func txtarMigrateDiffTableCheckChanges(
 		return nil, false
 	}
 	var changes []txtarMigrateDiffCheckChange
+	matchedTargets := map[string]bool{}
 	for name, currentCheck := range currentByName {
 		targetCheck, ok := targetByName[name]
 		if !ok {
-			return nil, false
+			continue
 		}
+		matchedTargets[name] = true
 		if currentCheck.expr == targetCheck.expr {
 			continue
 		}
@@ -2400,7 +2510,42 @@ func txtarMigrateDiffTableCheckChanges(
 			target:  targetCheck,
 		})
 	}
+	for name, currentCheck := range currentByName {
+		if _, ok := targetByName[name]; ok {
+			continue
+		}
+		targetCheck, ok := txtarMigrateDiffRenamedCheckTarget(currentCheck, targetByName, matchedTargets)
+		if !ok {
+			return nil, false
+		}
+		matchedTargets[targetCheck.name] = true
+		changes = append(changes, txtarMigrateDiffCheckChange{
+			current: currentCheck,
+			target:  targetCheck,
+		})
+	}
+	if len(matchedTargets) != len(targetByName) {
+		return nil, false
+	}
 	return changes, true
+}
+
+func txtarMigrateDiffRenamedCheckTarget(
+	current atlasCheckBlock,
+	targets map[string]atlasCheckBlock,
+	matched map[string]bool,
+) (atlasCheckBlock, bool) {
+	var out atlasCheckBlock
+	for name, target := range targets {
+		if matched[name] || target.expr != current.expr {
+			continue
+		}
+		if out.name != "" {
+			return atlasCheckBlock{}, false
+		}
+		out = target
+	}
+	return out, out.name != ""
 }
 
 func atlasCheckBlocksByName(checks []atlasCheckBlock) map[string]atlasCheckBlock {
@@ -2516,7 +2661,7 @@ func txtarTablesEquivalentBySQL(dialect string, a, b *ast.CreateTableNode) bool 
 
 func txtarMigrateDiffSupportsInitialCreate(family string) bool {
 	switch family {
-	case "mysql", "sqlite":
+	case "mysql", "postgres", "sqlite":
 		return true
 	default:
 		return false
@@ -2633,7 +2778,7 @@ func renderTxtarMigrateDiffSQLStatements(
 
 func txtarMigrateDiffShouldUnqualifyTables(dialect string) bool {
 	switch dialect {
-	case "mariadb", "mysql", "sqlite":
+	case "mariadb", "mysql", "postgresql", "sqlite":
 		return true
 	default:
 		return false
@@ -3800,20 +3945,21 @@ func txtarApplyMigrationFiles(
 	for _, file := range files {
 		version := atlasMigrationVersion(file)
 		data := runtime.files[file]
-		statements, failing, err := txtarParseMigrationStatements(data)
-		if err != nil {
+		parsed := txtarParseMigrationStatementsForDialect(data, txtarFixtureDialect(fx))
+		if parsed.err != nil {
 			return txtarCommandResult{unsupported: "atlas migrate apply"}, nil
 		}
-		if failing != "" {
-			return txtarFailedMigrationApplyResult(runtime, args, committed, batchStatements, appliedFiles, file, failing, stdout.String())
+		if parsed.failing != "" {
+			return txtarFailedMigrationApplyResult(runtime, args, committed, batchStatements, appliedFiles, file, parsed.failing, stdout.String())
 		}
 
 		fmt.Fprintf(&stdout, "-- migrating version %s\n", version)
 		txtarWriteMigrationSQL(&stdout, data)
-		batchStatements = append(batchStatements, statements...)
-		appliedStatements += len(statements)
+		batchStatements = append(batchStatements, parsed.statements...)
+		appliedStatements += len(parsed.statements)
 		if !args.dryRun && args.txMode == "file" {
-			committed, err = txtarApplyStatementsToVirtualState(committed, statements)
+			var err error
+			committed, err = txtarApplyStatementsToVirtualState(committed, parsed.statements)
 			if err != nil {
 				return txtarCommandResult{unsupported: "atlas migrate apply"}, nil
 			}
@@ -3951,7 +4097,7 @@ func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTabl
 			}
 		case *ast.DropConstraintOperation:
 			switch {
-			case op.Check && txtarApplyDropCheckConstraintFromTables(next, alter.Name, op.ConstraintName):
+			case txtarApplyDropCheckConstraintFromTables(next, alter.Name, op.ConstraintName):
 				continue
 			case txtarPrimaryKeyConstraintName(op.ConstraintName) &&
 				txtarApplyDropPrimaryKeyConstraintFromTables(next, alter.Name):
@@ -4158,8 +4304,25 @@ func txtarMigrateApplySummaryLine(files []string, startVersion string) string {
 	return fmt.Sprintf("Migrating to version %s (%d migrations in total):", targetVersion, total)
 }
 
+type txtarParsedMigrationStatements struct {
+	statements         []ast.Node
+	failing            string
+	skippedUnsupported bool
+	err                error
+}
+
 func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
+	parsed := txtarParseMigrationStatementsForDialect(data, "")
+	return parsed.statements, parsed.failing, parsed.err
+}
+
+func txtarParseMigrationStatementsForDialect(data string, dialect string) txtarParsedMigrationStatements {
 	data = txtarMigrationUpSQL(data)
+	skippedUnsupported := false
+	if txtarShouldSkipPostgresFunctionDefinitions(dialect) && postgresFunctionRE.MatchString(data) {
+		data = txtarSkipPostgresFunctionDefinitions(data)
+		skippedUnsupported = true
+	}
 	var statements []ast.Node
 	for _, raw := range strings.Split(data, ";") {
 		stmt := txtarExecutableMigrationStatement(raw)
@@ -4167,7 +4330,11 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 			continue
 		}
 		if strings.Contains(stmt, "THIS IS A FAILING STATEMENT") {
-			return statements, stmt, nil
+			return txtarParsedMigrationStatements{
+				statements:         statements,
+				failing:            stmt,
+				skippedUnsupported: skippedUnsupported,
+			}
 		}
 		if fallback, ok := txtarParseGeneratedPrimaryKeyAlterStatement(stmt); ok {
 			statements = append(statements, fallback)
@@ -4177,20 +4344,35 @@ func txtarParseMigrationStatements(data string) ([]ast.Node, string, error) {
 			statements = append(statements, fallback)
 			continue
 		}
+		if fallback, ok := txtarParseGeneratedCheckAlterStatement(stmt); ok {
+			statements = append(statements, fallback)
+			continue
+		}
 		list, err := parser.NewParser(stmt + ";").Parse()
 		if err != nil {
-			if fallback, ok := txtarParseGeneratedCheckAlterStatement(stmt); ok {
-				statements = append(statements, fallback)
-				continue
-			}
 			if len(statements) == 0 {
-				return nil, "", err
+				return txtarParsedMigrationStatements{err: err}
 			}
-			return statements, stmt, nil
+			return txtarParsedMigrationStatements{
+				statements:         statements,
+				failing:            stmt,
+				skippedUnsupported: skippedUnsupported,
+			}
 		}
 		statements = append(statements, list.Statements...)
 	}
-	return statements, "", nil
+	return txtarParsedMigrationStatements{
+		statements:         statements,
+		skippedUnsupported: skippedUnsupported,
+	}
+}
+
+func txtarShouldSkipPostgresFunctionDefinitions(dialect string) bool {
+	return dialect == "postgresql" || dialect == "postgres"
+}
+
+func txtarSkipPostgresFunctionDefinitions(data string) string {
+	return postgresFunctionRE.ReplaceAllString(data, "")
 }
 
 func txtarParseGeneratedDropIndexAlterStatement(stmt string) (ast.Node, bool) {
@@ -4350,41 +4532,65 @@ func txtarParseGeneratedCheckAlterStatement(stmt string) (ast.Node, bool) {
 	if !ok {
 		return nil, false
 	}
-	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), "DROP CHECK ")
+	parts, ok := txtarSplitTopLevelComma(rest)
 	if !ok {
 		return nil, false
 	}
-	dropName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
-	if !ok {
+	if len(parts) == 0 || len(parts)%2 != 0 {
 		return nil, false
 	}
-	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), ", ADD CONSTRAINT ")
-	if !ok {
-		return nil, false
-	}
-	addName, rest, ok := txtarParseLeadingSQLIdentifier(rest)
-	if !ok || addName == "" {
-		return nil, false
-	}
-	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), "CHECK ")
-	if !ok {
-		return nil, false
-	}
-	expr, ok := txtarCheckExpression(rest)
-	if !ok {
-		return nil, false
-	}
-	return &ast.AlterTableNode{
-		Name: tableName,
-		Operations: []ast.AlterOperation{
+	operations := make([]ast.AlterOperation, 0, len(parts))
+	for i := 0; i < len(parts); i += 2 {
+		dropName, ok := txtarParseGeneratedCheckDropName(parts[i])
+		if !ok {
+			return nil, false
+		}
+		addName, expr, ok := txtarParseGeneratedCheckAdd(parts[i+1])
+		if !ok {
+			return nil, false
+		}
+		operations = append(
+			operations,
 			&ast.DropConstraintOperation{ConstraintName: dropName, Check: true},
 			&ast.AddConstraintOperation{Constraint: &ast.ConstraintNode{
 				Type:       ast.CheckConstraint,
 				Name:       addName,
 				Expression: expr,
 			}},
-		},
-	}, true
+		)
+	}
+	return &ast.AlterTableNode{Name: tableName, Operations: operations}, true
+}
+
+func txtarParseGeneratedCheckDropName(part string) (string, bool) {
+	part = strings.TrimSpace(part)
+	var ok bool
+	part, ok = strings.CutPrefix(part, "DROP CHECK ")
+	if !ok {
+		part, ok = strings.CutPrefix(strings.TrimSpace(part), "DROP CONSTRAINT ")
+	}
+	if !ok {
+		return "", false
+	}
+	name, rest, ok := txtarParseLeadingSQLIdentifier(part)
+	return name, ok && strings.TrimSpace(rest) == ""
+}
+
+func txtarParseGeneratedCheckAdd(part string) (string, string, bool) {
+	rest, ok := strings.CutPrefix(strings.TrimSpace(part), "ADD CONSTRAINT ")
+	if !ok {
+		return "", "", false
+	}
+	name, rest, ok := txtarParseLeadingSQLIdentifier(rest)
+	if !ok || name == "" {
+		return "", "", false
+	}
+	rest, ok = strings.CutPrefix(strings.TrimSpace(rest), "CHECK ")
+	if !ok {
+		return "", "", false
+	}
+	expr, ok := txtarCheckExpression(rest)
+	return name, expr, ok
 }
 
 func txtarParseLeadingSQLIdentifier(value string) (string, string, bool) {
@@ -4392,7 +4598,7 @@ func txtarParseLeadingSQLIdentifier(value string) (string, string, bool) {
 	if value == "" {
 		return "", "", false
 	}
-	if value[0] != '`' {
+	if value[0] != '`' && value[0] != '"' {
 		fields := strings.Fields(value)
 		if len(fields) == 0 {
 			return "", "", false
@@ -4400,13 +4606,14 @@ func txtarParseLeadingSQLIdentifier(value string) (string, string, bool) {
 		return fields[0], strings.TrimPrefix(value, fields[0]), true
 	}
 	var b strings.Builder
+	quote := value[0]
 	for i := 1; i < len(value); i++ {
-		if value[i] != '`' {
+		if value[i] != quote {
 			b.WriteByte(value[i])
 			continue
 		}
-		if i+1 < len(value) && value[i+1] == '`' {
-			b.WriteByte('`')
+		if i+1 < len(value) && value[i+1] == quote {
+			b.WriteByte(quote)
 			i++
 			continue
 		}

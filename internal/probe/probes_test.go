@@ -2062,6 +2062,69 @@ func TestTxtarScriptProbeExecutesPostgresMigrateApplyFixture(t *testing.T) {
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresMigrateDiffFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/cli-migrate-diff.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", "cli-migrate-diff.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "checked 4 assertion(s)") {
+		t.Fatalf("expected fixture assertions to run, got detail %q", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeExecutesPostgresMigrateDiffUnsupportedFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/cli-migrate-diff-unsupported.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", "cli-migrate-diff-unsupported.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "checked 2 assertion(s)") {
+		t.Fatalf("expected fixture assertions to run, got detail %q", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeExecutesPostgresTableChecksFixture(t *testing.T) {
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/table-checks.txtar",
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", "table-checks.txtar"),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "checked 8 assertion(s)") {
+		t.Fatalf("expected fixture assertions to run, got detail %q", results[0].Detail)
+	}
+}
+
 func TestTxtarScriptProbeExecutesPostgresMigrateStatusFixture(t *testing.T) {
 	results := TxtarScriptProbe{}.Run(Fixture{
 		Name: "postgres/cli-migrate-status.txtar",
@@ -3357,7 +3420,7 @@ env "local" {
 	}
 }
 
-func TestTxtarScriptProbeKeepsInitialMigrateDiffAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesPostgresInitialMigrateDiff(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `exec mkdir migrations
@@ -3393,11 +3456,8 @@ CREATE TABLE "users" ("id" bigint NOT NULL, PRIMARY KEY ("id"));
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
-	}
-	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
-		t.Fatalf("detail missing migrate diff gap: %s", results[0].Detail)
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 
@@ -3428,6 +3488,114 @@ schema "main" {}
 	}
 	if !strings.Contains(results[0].Detail, "unsupported: atlas migrate diff") {
 		t.Fatalf("detail missing migrate diff gap: %s", results[0].Detail)
+	}
+}
+
+func TestTxtarScriptProbeRejectsPartialCreateTableIncrementalDiff(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+atlas migrate diff --dev-url URL --to file://schema.hcl second
+
+-- migrations/1_first.sql --
+CREATE TABLE users (id bigint NOT NULL);
+-- schema.hcl --
+schema "script_case" {}
+
+table "users" {
+  schema = schema.script_case
+  column "id" {
+    null = false
+    type = bigint
+  }
+  index "users_id_idx" {
+    columns = [column.id]
+  }
+}
+
+table "teams" {
+  schema = schema.script_case
+  column "id" {
+    null = false
+    type = bigint
+  }
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected mixed partial diff to stay unsupported, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
+}
+
+func TestTxtarScriptProbeDoesNotTreatSkippedPostgresFunctionsAsSyncedState(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "case.txtar")
+	writeTestFile(t, path, `atlas migrate hash
+atlas migrate diff --dev-url URL --to file://schema.hcl
+stdout 'The migration directory is synced with the desired state, no changes to be made'
+
+-- migrations/1_baseline.sql --
+CREATE OR REPLACE FUNCTION random_id(n INTEGER) RETURNS TEXT AS $$
+BEGIN
+  RETURN '1';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TABLE users (id text NOT NULL DEFAULT random_id(10));
+-- schema.hcl --
+schema "script_case" {}
+
+table "users" {
+  schema = schema.script_case
+  column "id" {
+    null = false
+    type = text
+    default = sql("random_id(10)")
+  }
+}
+`)
+
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name:  "postgres/case.txtar",
+		Kind:  FixtureKindTxtar,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap {
+		t.Fatalf("expected skipped function state to stay non-comparable, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "unsupported: atlas migrate diff")
+}
+
+func TestRenderTxtarMigrateDiffCreateDownSQLDoesNotDoubleQualifyTables(t *testing.T) {
+	sql, ok := renderTxtarMigrateDiffCreateDownSQL(
+		Fixture{Name: "postgres/case.txtar"},
+		[]ast.Node{ast.NewCreateTable("other.users")},
+		"main",
+	)
+	if !ok {
+		t.Fatal("expected down SQL to render")
+	}
+	if strings.Contains(sql, `"main"."other"."users"`) {
+		t.Fatalf("down SQL was double-qualified:\n%s", sql)
+	}
+	if !strings.Contains(sql, `DROP TABLE "other"."users";`) {
+		t.Fatalf("down SQL did not keep existing qualifier:\n%s", sql)
 	}
 }
 
@@ -6805,12 +6973,9 @@ table "users" {}
 func TestTxtarScriptProbeSkipsAssertionsAfterUnsupportedStdoutProducer(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `atlas migrate diff --dev-url URL --to file://schema.sql
+	writeTestFile(t, path, `atlas migrate diff --dev-url URL --to ent://schema
 ! stdout 'no changes'
 cmp stdout expected.sql
-
--- schema.sql --
-CREATE TABLE users (id INT NOT NULL);
 
 -- expected.sql --
 -- Create "users" table

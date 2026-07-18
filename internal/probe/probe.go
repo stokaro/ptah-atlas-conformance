@@ -40,6 +40,17 @@ type Result struct {
 	Issue   string  `json:"issue,omitempty"`
 }
 
+// NonOK returns every observation that keeps the full conformance gate red.
+func NonOK(results []Result) []Result {
+	var out []Result
+	for _, r := range results {
+		if r.Outcome != OK {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
 // A Probe inspects one fixture and returns one or more Results.
 type Probe interface {
 	Name() string
