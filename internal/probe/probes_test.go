@@ -11,6 +11,7 @@ import (
 
 	"github.com/stokaro/ptah/core/ast"
 	"github.com/stokaro/ptah/core/atlashcl"
+	"github.com/stokaro/ptah/core/parser"
 	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
 )
@@ -2341,6 +2342,25 @@ func TestTxtarScriptProbeExecutesPostgresIndexNullsDistinctFixture(t *testing.T)
 	}
 }
 
+func TestTxtarScriptProbeExecutesPostgresIndexUniqueConstraintFixture(t *testing.T) {
+	fixture := "index-unique-constraint.txtar"
+	results := TxtarScriptProbe{}.Run(Fixture{
+		Name: "postgres/" + fixture,
+		Kind: FixtureKindTxtar,
+		Dir:  filepath.Join("third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres"),
+		Files: []string{
+			filepath.Join("..", "..", "third_party", "atlas", "upstream", "internal", "integration", "testdata", "postgres", fixture),
+		},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+}
+
 func TestTxtarScriptProbeExecutesPostgresColumnTextSearchFixture(t *testing.T) {
 	fixture := "column-textsearch.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -3393,7 +3413,7 @@ schema "main" {}
 	}
 }
 
-func TestTxtarScriptProbeKeepsFileURLInspectAfterUnsupportedDBMutation(t *testing.T) {
+func TestTxtarScriptProbeExecutesPostgresSchemaCleanBeforeFileURLInspect(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `atlas schema clean --url URL
@@ -3420,14 +3440,8 @@ CREATE TABLE "users" ("id" integer NOT NULL, PRIMARY KEY ("id"));
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected original schema clean gap, got %#v", results[0])
-	}
-	if !strings.Contains(results[0].Detail, "unsupported: atlas schema clean") {
-		t.Fatalf("detail missing original unsupported DB mutation: %s", results[0].Detail)
-	}
-	if strings.Contains(results[0].Detail, "atlas schema inspect") {
-		t.Fatalf("file URL inspect should still execute, not be reported unsupported: %s", results[0].Detail)
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 
@@ -5145,7 +5159,44 @@ schema "main" {
 	}
 }
 
-func TestTxtarScriptProbeKeepsPostgresExecSQLUniqueConstraintAsGap(t *testing.T) {
+func TestTxtarScriptProbeExecutesPostgresExecSQLUniqueConstraintInspect(t *testing.T) {
+	sql := "CREATE TABLE script_index_unique_constraint.users (name text, last text, nickname text UNIQUE, UNIQUE(name, last))"
+	expectedHCL := `table "users" {
+  schema = schema.script_index_unique_constraint
+  column "name" {
+    null = true
+    type = text
+  }
+  column "last" {
+    null = true
+    type = text
+  }
+  column "nickname" {
+    null = true
+    type = text
+  }
+  unique "users_name_last_key" {
+    columns = [column.name, column.last]
+  }
+  unique "users_nickname_key" {
+    columns = [column.nickname]
+  }
+}
+schema "script_index_unique_constraint" {
+}
+`
+	list, err := parser.NewParser(sql).Parse()
+	if err != nil {
+		t.Fatal(err)
+	}
+	actualHCL, err := renderAtlasInspectHCL("postgresql", "script_index_unique_constraint", list.Statements)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if actualHCL != expectedHCL {
+		t.Fatalf("inspect HCL mismatch:\nactual:\n%s\nexpected:\n%s", actualHCL, expectedHCL)
+	}
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
 	writeTestFile(t, path, `execsql 'CREATE TABLE script_index_unique_constraint.users (name text, last text, nickname text UNIQUE, UNIQUE(name, last))'
@@ -5187,12 +5238,8 @@ schema "script_index_unique_constraint" {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Gap {
-		t.Fatalf("expected Gap result, got %#v", results[0])
-	}
-	assertResultDetailContains(t, results, "unsupported: execsql")
-	if strings.Contains(results[0].Detail, "cmphcl") {
-		t.Fatalf("dependent cmphcl should not be reported after unsupported execsql: %s", results[0].Detail)
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
 }
 

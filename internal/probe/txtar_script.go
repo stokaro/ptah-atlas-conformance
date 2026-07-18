@@ -388,7 +388,8 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		if commandLine == "" {
 			continue
 		}
-		if dbStateUnsupported && txtarCommandReadsUnsupportedDBState(commandLine) {
+		if dbStateUnsupported && txtarCommandReadsUnsupportedDBState(commandLine) &&
+			!txtarCommandClearsDBState(fx, commandLine) {
 			last = txtarCommandResult{unsupported: "blocked by unsupported database state"}
 			if redirect := txtarRedirectTarget(commandLine); redirect != "" {
 				unsupportedFiles[redirect] = true
@@ -435,7 +436,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			delete(unsupportedFiles, redirect)
 		}
 		clearUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
-		if txtarCommandClearsDBState(commandLine) {
+		if txtarCommandClearsDBState(fx, commandLine) {
 			dbStateUnsupported = false
 		}
 		failed := result.failed || result.err != nil
@@ -482,6 +483,9 @@ func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFai
 		return result
 	}
 	if result, ok := runTxtarClearSchema(runtime, fields); ok {
+		return result
+	}
+	if result, ok := runTxtarSchemaClean(fx, runtime, fields); ok {
 		return result
 	}
 	if result, ok := runTxtarApply(fx, runtime, fields, expectedFailure); ok {
@@ -2873,9 +2877,46 @@ func runTxtarClearSchema(runtime *txtarRuntime, fields []string) (txtarCommandRe
 	}
 	runtime.hasVirtualDBState = false
 	runtime.dbStatements = nil
+	runtime.dbRows = nil
 	runtime.appliedMigrations = nil
 	runtime.appliedVersion = ""
 	return txtarCommandResult{}, true
+}
+
+func runTxtarSchemaClean(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
+	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "schema" || fields[2] != "clean" {
+		return txtarCommandResult{}, false
+	}
+	if txtarFixtureFamily(fx) != "postgres" || !txtarSchemaCleanArgsSupported(fields[3:]) {
+		return txtarCommandResult{unsupported: "atlas schema clean"}, true
+	}
+	runtime.hasVirtualDBState = false
+	runtime.dbStatements = nil
+	runtime.dbRows = nil
+	runtime.appliedMigrations = nil
+	runtime.appliedVersion = ""
+	return txtarCommandResult{}, true
+}
+
+func txtarSchemaCleanArgsSupported(args []string) bool {
+	hasURL := false
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "-u" || arg == "--url":
+			if i+1 >= len(args) {
+				return false
+			}
+			hasURL = true
+			i++
+		case strings.HasPrefix(arg, "-u=") || strings.HasPrefix(arg, "--url="):
+			hasURL = true
+		case arg == "--auto-approve":
+		default:
+			return false
+		}
+	}
+	return hasURL
 }
 
 type txtarMigrateLintArgs struct {
@@ -5108,6 +5149,14 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 		runtime.hasVirtualDBState = true
 		runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
 		return txtarCommandResult{}, true
+	case "postgres":
+		list, err := parser.NewParser(fields[1]).Parse()
+		if err != nil || !txtarPostgresVirtualApplyStateSupported(list.Statements) {
+			return txtarCommandResult{unsupported: "execsql"}, true
+		}
+		runtime.hasVirtualDBState = true
+		runtime.dbStatements = append(runtime.dbStatements, list.Statements...)
+		return txtarCommandResult{}, true
 	case "mysql", "mariadb":
 		tableName, rows, ok := txtarParseInsertRows(fields[1])
 		if ok {
@@ -7171,9 +7220,13 @@ func txtarCommandMutatesDBState(line string) bool {
 	}
 }
 
-func txtarCommandClearsDBState(line string) bool {
+func txtarCommandClearsDBState(fx Fixture, line string) bool {
 	fields := txtarCommandFields(line)
-	return len(fields) == 1 && fields[0] == "clearSchema"
+	if len(fields) == 1 && fields[0] == "clearSchema" {
+		return true
+	}
+	return txtarFixtureFamily(fx) == "postgres" &&
+		len(fields) >= 3 && fields[0] == "atlas" && fields[1] == "schema" && fields[2] == "clean"
 }
 
 func txtarAtlasCommandMutatesDBState(group, command string) bool {
@@ -8016,6 +8069,9 @@ func renderAtlasTableHCL(
 			return fmt.Errorf("%w: constraint %s", errUnsupportedInspectHCL, constraint.Type)
 		}
 	}
+	slices.SortFunc(uniques, func(a, b *atlasHCLUnique) int {
+		return cmp.Compare(a.name, b.name)
+	})
 	if len(primaryColumns) > 0 {
 		if err := renderAtlasPrimaryKeyHCL(b, primaryColumns, primaryInclude); err != nil {
 			return err
