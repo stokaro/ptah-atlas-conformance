@@ -3,4 +3,4 @@
 # 44 = 16 unimplemented `ptah atlas` OSS verbs (atlas-cli-surface) + 28 uncovered
 # Atlas analyzer concerns (lint-analyzer-catalog, exhaustive over the default-firing
 # OSS families). Ratchet down as Ptah closes gaps.
-44
+57
