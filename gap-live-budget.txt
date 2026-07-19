@@ -1,0 +1,4 @@
+# Maximum allowed unwaived non-OK observations in gaps-live.json.
+# Lower this whenever Ptah live round-trip support improves; CI fails on
+# regressions above it.
+2

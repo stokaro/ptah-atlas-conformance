@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live gate-live probe-diff gate-diff atlas verify build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff atlas verify build vet clean
 
 # Regenerate the gap report from the vendored corpus. Always exits 0 — use this
 # to refresh gaps.md / gaps.json.
@@ -12,6 +12,12 @@ probe:
 # always exits 0.
 probe-live:
 	go run ./cmd/gap-probe-live
+
+# CI progress gate for the live behavioral tier: fail only when the current
+# live report exceeds the committed budget or has stale waivers. Full live
+# parity is still `make gate-live`.
+budget-live: probe-live
+	go run ./cmd/gap-budget -report gaps-live.json -budget gap-live-budget.txt
 
 # The live conformance gate: regenerate the live report AND fail if any schema
 # does not survive Ptah's generate -> apply -> introspect loop. Red until that
@@ -39,6 +45,12 @@ atlas:
 # gaps-diff.md / gaps-diff.json and always exits 0.
 probe-diff:
 	go run ./cmd/gap-probe-diff
+
+# CI progress gate for the differential-vs-Atlas tier: fail only when the
+# current differential report exceeds the committed budget or has stale waivers.
+# Full Atlas agreement is still `make gate-diff`.
+budget-diff: probe-diff
+	go run ./cmd/gap-budget -report gaps-diff.json -budget gap-diff-budget.txt
 
 # The differential gate: regenerate the report AND fail while Ptah disagrees with
 # Atlas CE on any CE-visible construct. Red until Ptah's introspect -> render is
