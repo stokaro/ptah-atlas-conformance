@@ -12,7 +12,7 @@ The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260719113703-d8c6fe9e04c4`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260719131646-58694aba65f1`
 - Outcomes: **1 ok**, **4 gap**, **0 fail**, **0 panic**
 - Full gate: **4 non-OK** (fails CI)
 - Regression budget input: **4 unwaived non-OK**, 0 waived
