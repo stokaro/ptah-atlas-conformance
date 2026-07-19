@@ -1,0 +1,41 @@
+[
+  {
+    "probe": "atlas-differential",
+    "fixture": "01-basic-table",
+    "stage": "compare",
+    "outcome": "gap",
+    "detail": "Ptah disagrees with Atlas CE on: users.email: Atlas [varchar(255) notnull] vs Ptah [varchar notnull]",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "02-enum",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "03-view",
+    "stage": "compare",
+    "outcome": "gap",
+    "detail": "Ptah disagrees with Atlas CE on: products.name: Atlas [varchar(255) notnull] vs Ptah [varchar notnull]",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "04-index-fk",
+    "stage": "compare",
+    "outcome": "gap",
+    "detail": "Ptah disagrees with Atlas CE on: authors.name: Atlas [varchar(255) notnull] vs Ptah [varchar notnull]; books.title: Atlas [varchar(255) notnull] vs Ptah [varchar notnull]",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "05-composite",
+    "stage": "compare",
+    "outcome": "gap",
+    "detail": "Ptah disagrees with Atlas CE on: memberships.role: Atlas [varchar(50) notnull] vs Ptah [varchar notnull]; memberships.user_id: Atlas [int notnull pk] vs Ptah [int notnull]",
+    "issue": "stokaro/ptah#285"
+  }
+]

@@ -2,5 +2,24 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track Atlas CE releases through the atlas.version pin so the differential tier follows upstream automatically",
+      "fileMatch": ["^atlas\\.version$"],
+      "matchStrings": ["^(?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*$"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "ariga/atlas"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDepNames": ["ariga/atlas"],
+      "commitMessageTopic": "Atlas CE",
+      "commitMessageAction": "Bump",
+      "semanticCommitType": "chore",
+      "labels": ["conformance", "atlas-release"]
+    }
   ]
 }

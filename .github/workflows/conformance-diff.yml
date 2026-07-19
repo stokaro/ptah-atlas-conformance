@@ -1,0 +1,68 @@
+name: conformance-diff
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # The differential-vs-Atlas tier. It builds a real Atlas CE binary from the tag
+  # pinned in atlas.version (release parity, renovate-bumped), applies first-party
+  # Ptah schemas to a real Postgres, and compares what Atlas CE and Ptah each
+  # report about the schema. The `gate` step is expected to stay red until Ptah's
+  # introspect -> render is a faithful drop-in for `atlas schema inspect` — red
+  # here means "not yet", not "broken". The report-freshness check must stay green.
+  differential:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: conf
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # Cache the built Atlas CE binary keyed on the pinned tag, so it is only
+      # rebuilt when renovate bumps atlas.version.
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v4
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
+
+      - name: Report the Atlas version under test
+        run: ./bin/atlas version | head -1
+
+      - name: Regenerate the differential report
+        run: make probe-diff
+
+      - name: Fail if the committed differential report is stale
+        run: |
+          if ! git diff --exit-code gaps-diff.md gaps-diff.json; then
+            echo "gaps-diff.md / gaps-diff.json are out of date — run 'make probe-diff' with a database and an Atlas binary, then commit the result."
+            exit 1
+          fi
+
+      - name: Differential gate (red until Ptah agrees with Atlas CE)
+        run: make gate-diff
