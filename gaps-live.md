@@ -6,22 +6,32 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: PARITY on the current corpus
+## Status: NOT DONE — 3 non-OK observation(s)
 
-Every fixture is covered. The conformance gate is green.
+The conformance gate is **red** and stays red until these close. This is by
+design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260718235415-b6a237e1b024`
-- Outcomes: **5 ok**, **0 gap**, **0 fail**, **0 panic**
-- Full gate: **0 non-OK** (passes CI)
-- Regression budget input: **0 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260719090947-78fbf6cf9443`
+- Outcomes: **7 ok**, **3 gap**, **0 fail**, **0 panic**
+- Full gate: **3 non-OK** (fails CI)
+- Regression budget input: **3 unwaived non-OK**, 0 waived
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| — | ok | roundtrip-consistency | `01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
-| — | ok | roundtrip-consistency | `03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `04-index-fk` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+| **RED** | **gap** | roundtrip-consistency | `mysql/02-enum` | apply | Ptah-rendered DDL failed to apply to a real database: Error 1065 (42000): Query was empty |  |
+| **RED** | **gap** | roundtrip-consistency | `mysql/03-view` | apply | Ptah-rendered DDL failed to apply to a real database: Error 1067 (42000): Invalid default value for 'archived' |  |
+| **RED** | **gap** | roundtrip-consistency | `mysql/04-index-fk` | roundtrip | desired schema does not survive apply -> introspect: differs in constraints_added, constraints_added_with_tables | #285 |
+| — | ok | roundtrip-consistency | `mysql/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `mysql/05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `postgres/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `postgres/02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
+| — | ok | roundtrip-consistency | `postgres/03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `postgres/04-index-fk` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `postgres/05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+
+## Gaps by related issue
+
+- **stokaro/ptah#285** — 1 finding(s)
