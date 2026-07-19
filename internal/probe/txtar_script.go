@@ -2746,6 +2746,9 @@ func txtarMigrateDiffStatements(fx Fixture, runtime *txtarRuntime, target string
 	var err error
 	if strings.HasSuffix(name, ".hcl") {
 		statements, err = txtarHCLStatements(fx, name, data)
+		if err == nil {
+			statements, err = txtarMaterializeHCLApplyState(statements)
+		}
 	} else {
 		list, parseErr := parser.NewParser(data).Parse()
 		if parseErr != nil {
@@ -4089,6 +4092,9 @@ func txtarApplyAlterTableToVirtualState(current []ast.Node, alter *ast.AlterTabl
 				next = append(next, index)
 				continue
 			}
+			if txtarApplyAddForeignKeyConstraintToTables(next, alter.Name, op.Constraint) {
+				continue
+			}
 			if !txtarApplyAddCheckConstraintToTables(next, alter.Name, op.Constraint) {
 				if txtarApplyAddPrimaryKeyConstraintToTables(next, alter.Name, op.Constraint) {
 					continue
@@ -4164,6 +4170,22 @@ func txtarApplyAddColumnToTables(statements []ast.Node, tableName string, column
 
 func txtarApplyAddPrimaryKeyConstraintToTables(statements []ast.Node, tableName string, constraint *ast.ConstraintNode) bool {
 	if constraint == nil || constraint.Type != ast.PrimaryKeyConstraint || len(atlasConstraintColumns(constraint)) == 0 {
+		return false
+	}
+	tableName = atlasSQLIdentifier(tableName)
+	for _, stmt := range statements {
+		table, ok := stmt.(*ast.CreateTableNode)
+		if ok && atlasSQLIdentifier(table.Name) == tableName {
+			table.Constraints = append(table.Constraints, constraint)
+			return true
+		}
+	}
+	return false
+}
+
+func txtarApplyAddForeignKeyConstraintToTables(statements []ast.Node, tableName string, constraint *ast.ConstraintNode) bool {
+	if constraint == nil || constraint.Type != ast.ForeignKeyConstraint ||
+		len(atlasConstraintColumns(constraint)) == 0 || constraint.Reference == nil {
 		return false
 	}
 	tableName = atlasSQLIdentifier(tableName)
@@ -4737,8 +4759,33 @@ func runTxtarApply(fx Fixture, runtime *txtarRuntime, fields []string, expectedF
 	if txtarFixtureFamily(fx) == "postgres" {
 		statements = txtarPostgresRetainDomainTypes(runtime.dbStatements, statements)
 	}
-	runtime.replaceDBStatements(statements)
+	state, err := txtarMaterializeHCLApplyState(statements)
+	if err != nil {
+		return txtarCommandResult{unsupported: "apply"}, true
+	}
+	runtime.replaceDBStatements(state)
 	return txtarCommandResult{}, true
+}
+
+func txtarMaterializeHCLApplyState(statements []ast.Node) ([]ast.Node, error) {
+	state := make([]ast.Node, 0, len(statements))
+	var deferred []*ast.AlterTableNode
+	for _, stmt := range statements {
+		alter, ok := stmt.(*ast.AlterTableNode)
+		if ok {
+			deferred = append(deferred, alter)
+			continue
+		}
+		state = append(state, stmt)
+	}
+	for _, alter := range deferred {
+		var err error
+		state, err = txtarApplyAlterTableToVirtualState(state, alter)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return state, nil
 }
 
 func txtarExpectedApplyFailure(
@@ -4788,6 +4835,7 @@ func txtarPostgresPartitionChangeFailure(fx Fixture, current, next *ast.CreateTa
 }
 
 func txtarForeignKeySetNullFailure(statements []ast.Node) string {
+	tables := atlasCreateTablesByName(statements)
 	for _, stmt := range statements {
 		table, ok := stmt.(*ast.CreateTableNode)
 		if !ok {
@@ -4805,6 +4853,66 @@ func txtarForeignKeySetNullFailure(statements []ast.Node) string {
 					atlasSQLIdentifier(column.Name),
 				)
 			}
+		}
+		for _, constraint := range table.Constraints {
+			if constraint.Type != ast.ForeignKeyConstraint || constraint.Reference == nil {
+				continue
+			}
+			if !atlasForeignKeyActionIsSetNull(constraint.Reference.OnDelete) &&
+				!atlasForeignKeyActionIsSetNull(constraint.Reference.OnUpdate) {
+				continue
+			}
+			if columnName := txtarFirstNotNullConstraintColumn(table, constraint); columnName != "" {
+				return fmt.Sprintf(
+					"foreign key constraint was %q SET NULL, but column %q is NOT NULL",
+					atlasSQLIdentifier(columnName),
+					atlasSQLIdentifier(columnName),
+				)
+			}
+		}
+	}
+	for _, stmt := range statements {
+		alter, ok := stmt.(*ast.AlterTableNode)
+		if !ok {
+			continue
+		}
+		table := tables[atlasSQLIdentifier(alter.Name)]
+		if table == nil {
+			continue
+		}
+		for _, operation := range alter.Operations {
+			add, ok := operation.(*ast.AddConstraintOperation)
+			if !ok || add.Constraint == nil ||
+				add.Constraint.Type != ast.ForeignKeyConstraint ||
+				add.Constraint.Reference == nil {
+				continue
+			}
+			if !atlasForeignKeyActionIsSetNull(add.Constraint.Reference.OnDelete) &&
+				!atlasForeignKeyActionIsSetNull(add.Constraint.Reference.OnUpdate) {
+				continue
+			}
+			if columnName := txtarFirstNotNullConstraintColumn(table, add.Constraint); columnName != "" {
+				return fmt.Sprintf(
+					"foreign key constraint was %q SET NULL, but column %q is NOT NULL",
+					atlasSQLIdentifier(columnName),
+					atlasSQLIdentifier(columnName),
+				)
+			}
+		}
+	}
+	return ""
+}
+
+func txtarFirstNotNullConstraintColumn(table *ast.CreateTableNode, constraint *ast.ConstraintNode) string {
+	columns := atlasConstraintColumnNames(constraint)
+	if len(columns) == 0 {
+		return ""
+	}
+	columnsByName := atlasColumnsByName(table)
+	for _, columnName := range columns {
+		column := columnsByName[atlasSQLIdentifier(columnName)]
+		if column != nil && !column.Nullable {
+			return column.Name
 		}
 	}
 	return ""
@@ -4986,6 +5094,10 @@ func txtarPostgresVirtualApplyStateSupportedWithTypes(statements, current []ast.
 			}
 		case *ast.CreateTableNode:
 			if !txtarPostgresApplyTableSupported(node, domains, enums) {
+				return false
+			}
+		case *ast.AlterTableNode:
+			if !txtarVirtualApplyAlterTableSupported(node) {
 				return false
 			}
 		case *ast.IndexNode:
@@ -5272,6 +5384,10 @@ func txtarMySQLVirtualApplyStateSupported(dialect string, statements []ast.Node)
 			if !txtarMySQLApplyTableSupported(dialect, node) {
 				return false
 			}
+		case *ast.AlterTableNode:
+			if !txtarVirtualApplyAlterTableSupported(node) {
+				return false
+			}
 		case *ast.IndexNode:
 			if !txtarMySQLApplyIndexSupported(dialect, node) {
 				return false
@@ -5349,6 +5465,47 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 
 func txtarMySQLApplyColumnForeignKeySupported(ref *ast.ForeignKeyRef) bool {
 	return ref.Table != "" && len(ref.ReferencedColumns()) > 0
+}
+
+func txtarVirtualApplyAlterTableSupported(alter *ast.AlterTableNode) bool {
+	if strings.TrimSpace(alter.Name) == "" || len(alter.Operations) == 0 {
+		return false
+	}
+	for _, operation := range alter.Operations {
+		add, ok := operation.(*ast.AddConstraintOperation)
+		if !ok || !txtarVirtualApplyAddConstraintSupported(add.Constraint) {
+			return false
+		}
+	}
+	return true
+}
+
+func txtarVirtualApplyAddConstraintSupported(constraint *ast.ConstraintNode) bool {
+	if constraint == nil {
+		return false
+	}
+	switch constraint.Type {
+	case ast.ForeignKeyConstraint:
+		if constraint.Reference == nil {
+			return false
+		}
+		columns := atlasConstraintColumnNames(constraint)
+		refColumns := constraint.Reference.ReferencedColumns()
+		return len(columns) > 0 &&
+			len(refColumns) == len(columns) &&
+			strings.TrimSpace(constraint.Reference.Table) != "" &&
+			!slices.ContainsFunc(refColumns, func(column string) bool {
+				return strings.TrimSpace(column) == ""
+			})
+	case ast.PrimaryKeyConstraint:
+		return len(atlasConstraintColumnNames(constraint)) > 0
+	case ast.UniqueConstraint:
+		return constraint.Name != "" && len(atlasConstraintColumnNames(constraint)) > 0
+	case ast.CheckConstraint:
+		return constraint.Name != ""
+	default:
+		return false
+	}
 }
 
 func txtarMySQLApplyTableOptionsSupported(dialect string, options map[string]string) bool {
