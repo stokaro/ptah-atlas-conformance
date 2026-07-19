@@ -6,35 +6,34 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 13 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260719113703-d8c6fe9e04c4`
-- Outcomes: **623 ok**, **13 gap**, **0 fail**, **0 panic**
-- Full gate: **13 non-OK** (fails CI)
-- Regression budget input: **13 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260719120809-127df2770fda`
+- Outcomes: **636 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate apply` | flags | `ptah atlas migrate apply` does not accept --dir, --dry-run, --tx-mode, --url — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate diff` | flags | `ptah atlas migrate diff` does not accept --dev-url, --dir, --format, --to — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate hash` | flags | `ptah atlas migrate hash` does not accept --dir — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate import` | flags | `ptah atlas migrate import` does not accept --from, --to — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate lint` | flags | `ptah atlas migrate lint` does not accept --dev-url, --dir, --latest — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate new` | flags | `ptah atlas migrate new` does not accept --dir — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate set` | flags | `ptah atlas migrate set` does not accept --dir, --url — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate status` | flags | `ptah atlas migrate status` does not accept --dir, --url — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate validate` | flags | `ptah atlas migrate validate` does not accept --dev-url, --dir — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas schema apply` | flags | `ptah atlas schema apply` does not accept --auto-approve, --dev-url, --dry-run, --to, --url — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas schema clean` | flags | `ptah atlas schema clean` does not accept --auto-approve, --dry-run, --url — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas schema diff` | flags | `ptah atlas schema diff` does not accept --dev-url, --format, --from, --to — the command resolves but is not yet flag-compatible with Atlas | #268 |
-| **RED** | **gap** | atlas-cli-flags | `atlas schema inspect` | flags | `ptah atlas schema inspect` does not accept --dev-url, --exclude, --format, --schema, --url — the command resolves but is not yet flag-compatible with Atlas | #268 |
+| — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode |  |
+| — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format |  |
+| — | ok | atlas-cli-flags | `atlas migrate hash` | flags | accepts all essential Atlas flags: --dir |  |
+| — | ok | atlas-cli-flags | `atlas migrate import` | flags | accepts all essential Atlas flags: --from --to |  |
+| — | ok | atlas-cli-flags | `atlas migrate lint` | flags | accepts all essential Atlas flags: --dev-url --dir --latest |  |
+| — | ok | atlas-cli-flags | `atlas migrate new` | flags | accepts all essential Atlas flags: --dir |  |
+| — | ok | atlas-cli-flags | `atlas migrate set` | flags | accepts all essential Atlas flags: --url --dir |  |
+| — | ok | atlas-cli-flags | `atlas migrate status` | flags | accepts all essential Atlas flags: --url --dir |  |
+| — | ok | atlas-cli-flags | `atlas migrate validate` | flags | accepts all essential Atlas flags: --dev-url --dir |  |
+| — | ok | atlas-cli-flags | `atlas schema apply` | flags | accepts all essential Atlas flags: --url --to --dev-url --dry-run --auto-approve |  |
+| — | ok | atlas-cli-flags | `atlas schema clean` | flags | accepts all essential Atlas flags: --url --dry-run --auto-approve |  |
+| — | ok | atlas-cli-flags | `atlas schema diff` | flags | accepts all essential Atlas flags: --from --to --dev-url --format |  |
+| — | ok | atlas-cli-flags | `atlas schema inspect` | flags | accepts all essential Atlas flags: --url --dev-url --schema --exclude --format |  |
 | — | ok | atlas-cli-surface | `atlas license` | resolve | `ptah atlas license` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate apply` | resolve | `ptah atlas migrate apply` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
@@ -658,7 +657,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | executed 6 supported command(s) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#268** — 13 finding(s)
