@@ -42,7 +42,7 @@ jobs:
       # rebuilt when renovate bumps atlas.version.
       - name: Cache Atlas CE binary
         id: atlas-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: bin/atlas
           key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
