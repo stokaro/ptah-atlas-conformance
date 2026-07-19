@@ -1,35 +1,71 @@
 [
   {
     "probe": "roundtrip-consistency",
-    "fixture": "01-basic-table",
+    "fixture": "postgres/01-basic-table",
     "stage": "roundtrip",
     "outcome": "ok",
     "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
-    "fixture": "02-enum",
+    "fixture": "postgres/02-enum",
     "stage": "roundtrip",
     "outcome": "ok",
     "detail": "clean round-trip: 1 table(s), 0 view(s), 1 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
-    "fixture": "03-view",
+    "fixture": "postgres/03-view",
     "stage": "roundtrip",
     "outcome": "ok",
     "detail": "clean round-trip: 1 table(s), 1 view(s), 0 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
-    "fixture": "04-index-fk",
+    "fixture": "postgres/04-index-fk",
     "stage": "roundtrip",
     "outcome": "ok",
     "detail": "clean round-trip: 2 table(s), 0 view(s), 0 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
-    "fixture": "05-composite",
+    "fixture": "postgres/05-composite",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/01-basic-table",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/02-enum",
+    "stage": "apply",
+    "outcome": "gap",
+    "detail": "Ptah-rendered DDL failed to apply to a real database: Error 1065 (42000): Query was empty"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/03-view",
+    "stage": "apply",
+    "outcome": "gap",
+    "detail": "Ptah-rendered DDL failed to apply to a real database: Error 1067 (42000): Invalid default value for 'archived'"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/04-index-fk",
+    "stage": "roundtrip",
+    "outcome": "gap",
+    "detail": "desired schema does not survive apply -\u003e introspect: differs in constraints_added, constraints_added_with_tables",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/05-composite",
     "stage": "roundtrip",
     "outcome": "ok",
     "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"

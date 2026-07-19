@@ -26,15 +26,15 @@ import (
 //
 // The fixture is isolated by resetting the public schema first, so fixtures do
 // not contaminate each other.
-func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, dir, dialect string) []Result {
+func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, dir string) []Result {
+	dialect := conn.Info().Dialect
 	desired, err := goschema.ParseDir(dir)
 	if err != nil {
 		return []Result{{"roundtrip-consistency", name, "parse", Fail, oneLine(err.Error()), ""}}
 	}
-	for _, reset := range []string{"DROP SCHEMA IF EXISTS public CASCADE", "CREATE SCHEMA public"} {
-		if _, err := conn.ExecContext(ctx, reset); err != nil {
-			return []Result{{"roundtrip-consistency", name, "reset", Fail, oneLine(err.Error()), ""}}
-		}
+	schemaName, err := resetDatabase(ctx, conn, dialect)
+	if err != nil {
+		return []Result{{"roundtrip-consistency", name, "reset", Fail, oneLine(err.Error()), ""}}
 	}
 
 	var stmts []string
@@ -49,7 +49,7 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 		}
 	}
 
-	got, err := dbschema.ReadSchemaWithSchemas(conn, []string{"public"})
+	got, err := dbschema.ReadSchemaWithSchemas(conn, []string{schemaName})
 	if err != nil {
 		return []Result{{"roundtrip-consistency", name, "introspect", Fail, oneLine(err.Error()), ""}}
 	}
@@ -66,6 +66,58 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 	return []Result{{"roundtrip-consistency", name, "roundtrip", OK,
 		fmt.Sprintf("clean round-trip: %d table(s), %d view(s), %d enum(s)",
 			len(desired.Tables), len(desired.Views), len(desired.Enums)), ""}}
+}
+
+// resetDatabase drops every object from the target so fixtures do not
+// contaminate each other, and returns the schema/database name to introspect.
+// The reset is dialect-aware: PostgreSQL recreates the public schema; MySQL and
+// MariaDB drop every table and view in the current database.
+func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, dialect string) (string, error) {
+	switch dialect {
+	case "postgres":
+		for _, s := range []string{"DROP SCHEMA IF EXISTS public CASCADE", "CREATE SCHEMA public"} {
+			if _, err := conn.ExecContext(ctx, s); err != nil {
+				return "", err
+			}
+		}
+		return "public", nil
+	case "mysql", "mariadb":
+		var db string
+		if err := conn.QueryRowContext(ctx, "SELECT DATABASE()").Scan(&db); err != nil {
+			return "", err
+		}
+		rows, err := conn.Query("SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = DATABASE()")
+		if err != nil {
+			return "", err
+		}
+		type obj struct{ name, typ string }
+		var objs []obj
+		for rows.Next() {
+			var o obj
+			if err := rows.Scan(&o.name, &o.typ); err != nil {
+				rows.Close()
+				return "", err
+			}
+			objs = append(objs, o)
+		}
+		rows.Close()
+		if _, err := conn.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=0"); err != nil {
+			return "", err
+		}
+		defer conn.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=1") //nolint:errcheck
+		for _, o := range objs {
+			drop := "DROP TABLE IF EXISTS `" + o.name + "`"
+			if strings.Contains(strings.ToUpper(o.typ), "VIEW") {
+				drop = "DROP VIEW IF EXISTS `" + o.name + "`"
+			}
+			if _, err := conn.ExecContext(ctx, drop); err != nil {
+				return "", err
+			}
+		}
+		return db, nil
+	default:
+		return "", fmt.Errorf("round-trip reset does not support dialect %q", dialect)
+	}
 }
 
 // describeDiff summarizes which categories of the diff are non-empty, so a gap

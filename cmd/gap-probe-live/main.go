@@ -1,7 +1,7 @@
 // Command gap-probe-live runs the behavioral self-consistency probe against a
 // live database and writes gaps-live.md / gaps-live.json. It is the live tier of
 // the conformance suite, kept separate from the offline probes so the offline
-// report stays deterministic and DB-free. It requires CONFORMANCE_DB_URL.
+// report stays deterministic and DB-free. It requires CONFORMANCE_POSTGRES_URL.
 package main
 
 import (
@@ -24,15 +24,26 @@ func main() {
 	corpus := flag.String("corpus", "testdata/live", "root of first-party round-trip schema fixtures")
 	mdOut := flag.String("md", "gaps-live.md", "markdown report output path")
 	jsonOut := flag.String("json", "gaps-live.json", "json report output path")
-	dialect := flag.String("dialect", "postgres", "dialect of the target database")
 	gate := flag.Bool("gate", false, "exit non-zero if any non-OK observation remains")
 	flag.Parse()
 
-	url := os.Getenv("CONFORMANCE_DB_URL")
-	if url == "" {
-		fmt.Fprintln(os.Stderr, "CONFORMANCE_DB_URL is not set; the live round-trip tier needs a database.")
-		fmt.Fprintln(os.Stderr, "Run a throwaway Postgres and export it, e.g.:")
-		fmt.Fprintln(os.Stderr, "  export CONFORMANCE_DB_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=disable'")
+	// Each configured dialect runs the same fixtures; a resulting row is labelled
+	// "<dialect>/<fixture>" so multi-dialect gaps are visible side by side.
+	targets := []struct{ label, env string }{
+		{"postgres", "CONFORMANCE_POSTGRES_URL"},
+		{"mysql", "CONFORMANCE_MYSQL_URL"},
+	}
+	var configured []struct{ label, url string }
+	for _, t := range targets {
+		if u := os.Getenv(t.env); u != "" {
+			configured = append(configured, struct{ label, url string }{t.label, u})
+		}
+	}
+	if len(configured) == 0 {
+		fmt.Fprintln(os.Stderr, "no target database configured; the live round-trip tier needs one.")
+		fmt.Fprintln(os.Stderr, "Export at least one of, e.g.:")
+		fmt.Fprintln(os.Stderr, "  export CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=disable'")
+		fmt.Fprintln(os.Stderr, "  export CONFORMANCE_MYSQL_URL='mysql://root:pw@tcp(localhost:3306)/conf'")
 		os.Exit(2)
 	}
 
@@ -46,19 +57,21 @@ func main() {
 		os.Exit(2)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
-	conn, err := dbschema.ConnectToDatabase(ctx, url)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "connect:", err)
-		os.Exit(2)
-	}
-	defer conn.Close()
 
 	var results []probe.Result
-	for _, d := range dirs {
-		name := filepath.Base(d)
-		results = append(results, probe.RunRoundTrip(ctx, conn, name, d, *dialect)...)
+	for _, tgt := range configured {
+		conn, err := dbschema.ConnectToDatabase(ctx, tgt.url)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "connect", tgt.label, ":", err)
+			os.Exit(2)
+		}
+		for _, d := range dirs {
+			name := tgt.label + "/" + filepath.Base(d)
+			results = append(results, probe.RunRoundTrip(ctx, conn, name, d)...)
+		}
+		conn.Close()
 	}
 
 	md := probe.RenderMarkdown(results, &probe.Waivers{}, atlasSHA, ptahVersion())
@@ -73,7 +86,7 @@ func main() {
 	}
 
 	nonOK := probe.NonOK(results)
-	fmt.Printf("%d fixtures, %d observations, %d non-OK -> %s\n", len(dirs), len(results), len(nonOK), *mdOut)
+	fmt.Printf("%d observations across %d dialect(s), %d non-OK -> %s\n", len(results), len(configured), len(nonOK), *mdOut)
 	if *gate && len(nonOK) > 0 {
 		fmt.Fprintf(os.Stderr, "\nLIVE CONFORMANCE GATE: RED - %d non-OK observation(s):\n", len(nonOK))
 		for _, r := range nonOK {

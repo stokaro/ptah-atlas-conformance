@@ -94,10 +94,13 @@ that when they go green Ptah genuinely covers that dimension:
 
 A fifth, **live** tier now measures behavioral self-consistency on a real
 database (`conformance-live` workflow, separate from the offline report):
-`roundtrip-consistency` applies a first-party Ptah schema to Postgres,
-introspects it back, and diffs. A clean diff guarantees Ptah's
-generate → apply → introspect loop is lossless for that schema — behavior a
-drop-in needs. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
+`roundtrip-consistency` applies a first-party Ptah schema to **both Postgres and
+MySQL** (`CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL`), introspects it
+back, and diffs. A clean diff guarantees Ptah's generate → apply → introspect
+loop is lossless for that schema on that dialect — behavior a drop-in needs.
+Running the same fixtures on MySQL immediately found dialect-specific rendering
+defects Postgres alone missed (enum, boolean default and foreign key). SQLite is
+still pending a Ptah dialect. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
 which objects Atlas itself inspects, and it already surfaces real defects (an
 unnamed foreign key renders invalid DDL; a composite primary key does not
 round-trip). The deeper differential correctness of each declarative command
