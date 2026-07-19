@@ -40,7 +40,7 @@ is **"unknown — not measured"**, not "works".
 | --- | --- | --- |
 | Schema **introspection** breadth (types, defaults, generated/partial/expression indexes, sequences, domains, composite types, FK actions, exclusion constraints, partitioning, collations, comments) | **No** | a dedicated introspection probe against a live DB |
 | Schema **diff / plan** (desired A → desired B → migration) | **No** | a diff probe over paired schema fixtures |
-| **End-state equivalence** (apply with Atlas and with Ptah, compare the resulting databases) | **No** | ptah#285 — command surfaces are measured, but runtime execution/comparison is not built yet and needs live DBs |
+| **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on a live Postgres, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
 | **HCL** schema language | **Imported, red/unmeasured** | HCL files are vendored and reported by `corpus-inventory`; Ptah largely does not read HCL (only the planned limited C3 subset, ptah#276) |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
@@ -107,6 +107,26 @@ round-trip). The deeper differential correctness of each declarative command
 (does `schema inspect` emit equivalent HCL) remains the domain of the end-state
 conformance in ptah#285.
 
+A sixth, **differential** tier (`conformance-diff` workflow) closes part of that
+end-state question against a **real Atlas CE binary**. It applies a first-party
+Ptah schema to Postgres, then asks both tools what they see — Atlas via
+`schema inspect --format '{{ sql . }}'`, Ptah via its introspect → render chain —
+and compares them at the level of column facts (type, nullability, default,
+primary key), folding semantically-equivalent spellings (serial ≡ integer+nextval,
+`character varying` ≡ `varchar`, `timestamp` ≡ `timestamp without time zone`,
+inline ≡ table-level PRIMARY KEY). Atlas is built from the release tag pinned in
+`atlas.version` (renovate-bumped), so it measures Ptah against a known Atlas
+release. It is deliberately scoped to CE-visible object kinds: Atlas CE silently
+omits Pro-gated objects (views, triggers, functions, sequences) from inspection —
+no error, exit 0 — so those cannot be compared apples-to-apples and Ptah's support
+for them is a strength beyond CE rather than a differential gap (they stay covered
+by the Ptah-vs-Ptah round-trip tier). Already green on the enum fixture, the
+differential has independently surfaced two real Ptah introspect → render fidelity
+gaps that the round-trip tier's diff engine treats as equal and so misses: a
+dropped `VARCHAR(n)` length and a composite primary key membership that Ptah does
+not reproduce. The normalizer that folds the equivalent spellings is locked by
+offline unit tests so it cannot silently start passing on genuine differences.
+
 ## What a real full-parity test would require
 
 To earn the phrase "feature-set parity test", this repo would need, at minimum:
@@ -115,6 +135,8 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
    the current narrow file-inspect command runner.
 2. An **introspection** probe: apply a schema with each tool, introspect with
    one reader, diff the canonical states (this is ptah#285 and needs a live DB).
+   *Partially built:* the `conformance-diff` tier already compares Atlas CE's and
+   Ptah's introspection of the same live schema, scoped to CE-visible objects.
 3. A **diff/plan** probe over paired before/after schemas.
 4. A **lint matrix** comparing Atlas analyzer codes against Ptah rule codes,
    fixture by fixture.

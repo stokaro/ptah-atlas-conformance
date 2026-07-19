@@ -56,6 +56,35 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
 
+## Live tiers (real database)
+
+The probes above are offline and deterministic. Two further tiers run against a
+real database in their own workflows, kept separate so the offline report stays
+DB-free.
+
+| Tier | Workflow | Question | Needs |
+| --- | --- | --- | --- |
+| `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. Runs on both Postgres and MySQL. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` |
+| `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Compares `atlas schema inspect` against Ptah's introspect → render at the level of column facts (type, nullability, default, primary key), folding equivalent spellings (serial ≡ integer+nextval, `character varying` ≡ `varchar`, inline ≡ table-level PRIMARY KEY). | `CONFORMANCE_POSTGRES_URL` + a real Atlas binary (`ATLAS_BIN`) |
+
+The differential builds a **real Atlas CE binary** from the release tag pinned in
+[`atlas.version`](./atlas.version) (`make atlas`), so it measures Ptah against a
+known Atlas release rather than a moving target. It is scoped to the object kinds
+Atlas CE can actually inspect: tables, columns, constraints, indexes and enums.
+Atlas CE silently omits Pro-gated objects (views, triggers, stored procedures,
+sequences) from inspection, so Ptah's support for those is a strength beyond CE,
+not a differential gap — that fidelity is covered by the Ptah-vs-Ptah round-trip
+tier instead. Both tiers stay red until Ptah closes the gap; today the
+differential already agrees with Atlas CE on the enum fixture and has surfaced two
+real Ptah introspect → render fidelity gaps (a dropped `VARCHAR` length and a
+composite primary key that does not round-trip).
+
+```
+make atlas        # build Atlas CE from the atlas.version tag into ./bin/atlas
+make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
+make gate-diff    # differential gate: red until Ptah agrees with Atlas CE
+```
+
 ## CI regression budget and full-parity gate
 
 This is a spec Ptah has not met, not a passing test log. CI publishes two
@@ -105,6 +134,10 @@ Both sides are pinned for reproducibility:
   `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`, vendored under
   `third_party/atlas/upstream/` (never fetched at run time). The exact file list
   is `third_party/atlas/MANIFEST.txt`.
+- Atlas binary (differential tier): the release tag in [`atlas.version`](./atlas.version),
+  built from source by `make atlas`. [`renovate.json`](./renovate.json) carries a
+  custom manager that bumps this pin automatically when Atlas cuts a new release,
+  so the differential follows upstream on its own.
 - Ptah: pinned in `go.mod`. Bump it to measure a newer Ptah.
 
 ## Relationship to Ptah issues
