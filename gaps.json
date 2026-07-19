@@ -3886,6 +3886,110 @@
     "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
   },
   {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas schema inspect",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas schema inspect` does not accept --dev-url, --exclude, --format, --schema, --url — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas schema apply",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas schema apply` does not accept --auto-approve, --dev-url, --dry-run, --to, --url — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas schema diff",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas schema diff` does not accept --dev-url, --format, --from, --to — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas schema clean",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas schema clean` does not accept --auto-approve, --dry-run, --url — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate diff",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate diff` does not accept --dev-url, --dir, --format, --to — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate apply",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate apply` does not accept --dir, --dry-run, --tx-mode, --url — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate lint",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate lint` does not accept --dev-url, --dir, --latest — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate hash",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate hash` does not accept --dir — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate status",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate status` does not accept --dir, --url — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate validate",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate validate` does not accept --dev-url, --dir — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate new",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate new` does not accept --dir — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate set",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate set` does not accept --dir, --url — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate import",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate import` does not accept --from, --to — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#268"
+  },
+  {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS101 (drop schema)",
     "stage": "postgres",
