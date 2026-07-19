@@ -65,7 +65,7 @@ DB-free.
 | Tier | Workflow | Question | Needs |
 | --- | --- | --- | --- |
 | `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. Runs on both Postgres and MySQL. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` |
-| `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Compares `atlas schema inspect` against Ptah's introspect → render at the level of column facts (type, nullability, default, primary key), folding equivalent spellings (serial ≡ integer+nextval, `character varying` ≡ `varchar`, inline ≡ table-level PRIMARY KEY). | `CONFORMANCE_POSTGRES_URL` + a real Atlas binary (`ATLAS_BIN`) |
+| `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by column facts (type, nullability, default, primary key, foreign key + referential actions), folding equivalent spellings (serial ≡ integer+nextval, `character varying` ≡ `varchar`, inline ≡ table-level PRIMARY KEY, `NO_ACTION` ≡ `NO ACTION`). Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. | `CONFORMANCE_POSTGRES_URL` + a real Atlas binary (`ATLAS_BIN`) |
 
 The differential builds a **real Atlas CE binary** from the release tag pinned in
 [`atlas.version`](./atlas.version) (`make atlas`), so it measures Ptah against a
@@ -75,9 +75,12 @@ Atlas CE silently omits Pro-gated objects (views, triggers, stored procedures,
 sequences) from inspection, so Ptah's support for those is a strength beyond CE,
 not a differential gap — that fidelity is covered by the Ptah-vs-Ptah round-trip
 tier instead. Both tiers stay red until Ptah closes the gap; today the
-differential already agrees with Atlas CE on the enum fixture and has surfaced two
-real Ptah introspect → render fidelity gaps (a dropped `VARCHAR` length and a
-composite primary key that does not round-trip).
+differential already agrees with Atlas CE on the enum fixture (and on foreign keys
+with their referential actions) and has surfaced two real Ptah introspection
+fidelity gaps (a dropped `VARCHAR` length and a composite primary key that does
+not round-trip). Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises
+a real drop-in path — a parse failure there is itself reported as a gap, not
+mistaken for a schema disagreement.
 
 ```
 make atlas        # build Atlas CE from the atlas.version tag into ./bin/atlas

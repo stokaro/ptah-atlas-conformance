@@ -33,7 +33,7 @@ jobs:
       CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
       ATLAS_BIN: ${{ github.workspace }}/bin/atlas
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod

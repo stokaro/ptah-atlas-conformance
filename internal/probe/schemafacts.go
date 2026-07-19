@@ -1,157 +1,182 @@
 package probe
 
 import (
-	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/stokaro/ptah/core/goschema"
 )
 
-// This file reduces a tool's `CREATE TABLE ...` SQL to a canonical, comparable
-// set of column facts, so the differential probe compares what two tools
-// *understand* about a schema rather than how they format DDL. It folds the
-// systematic, semantically-equivalent spelling differences between Atlas and
-// Ptah (serial vs integer+nextval, `character varying` vs `varchar`, `timestamp
-// without time zone` vs `timestamp`, inline vs table-level PRIMARY KEY, schema
-// qualification and quoting) and leaves genuine differences (a dropped length, a
-// missing column, a different nullability) visible.
+// This file reduces a schema to a canonical, comparable set of column facts so
+// the differential probe compares what two tools *understand* about a schema
+// rather than how they spell DDL. Both sides arrive as a typed
+// goschema.Database — Ptah's from live introspection, Atlas's from parsing its
+// native HCL `schema inspect` output through Ptah's own core/atlashcl parser —
+// so there is no SQL text parsing here; the facts are read off typed fields. It
+// folds the systematic, semantically-equivalent representation differences
+// (serial vs integer+nextval, `character varying`/`character_varying` vs
+// `varchar`, `timestamp without time zone` vs `timestamp`, field-level vs
+// table-level primary key, foreign-key action ordering and defaults) and leaves
+// genuine differences (a dropped length, a missing column, a different
+// nullability, a lost primary-key membership) visible.
 
 // tableFacts maps table name -> sorted list of "column: signature" strings.
 type tableFacts map[string][]string
 
-var (
-	createTableRe = regexp.MustCompile(`(?is)^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([^\s(]+)\s*\(`)
-	nextvalRe     = regexp.MustCompile(`(?i)\bdefault\s+nextval\([^)]*\)(::regclass)?`)
-	wsRe          = regexp.MustCompile(`\s+`)
-)
+// factsFromDatabase reads canonical column facts off a typed schema.
+func factsFromDatabase(db *goschema.Database) tableFacts {
+	if db == nil {
+		return tableFacts{}
+	}
+	tableByStruct := map[string]goschema.Table{}
+	for _, t := range db.Tables {
+		tableByStruct[t.StructName] = t
+	}
+	fieldsByStruct := map[string][]goschema.Field{}
+	for _, f := range db.Fields {
+		fieldsByStruct[f.StructName] = append(fieldsByStruct[f.StructName], f)
+	}
 
-// extractTableFacts parses every CREATE TABLE in sql into canonical column facts.
-// It splits the SQL into statements first (both tools emit one statement per
-// object) so a greedy match cannot mash two tables' columns together.
-func extractTableFacts(sql string) tableFacts {
 	out := tableFacts{}
-	for _, stmt := range splitStatements(stripComments(sql)) {
-		m := createTableRe.FindStringSubmatch(stmt)
-		if m == nil {
-			continue
+	for structName, t := range tableByStruct {
+		fields := fieldsByStruct[structName]
+
+		// Effective primary key = table-level composite key plus any field
+		// marked primary, so inline and table-level PKs compare equal.
+		pk := map[string]bool{}
+		for _, c := range t.PrimaryKey {
+			pk[normIdent(c)] = true
 		}
-		table := normIdent(m[1])
-		body := balancedBody(stmt[len(m[0])-1:]) // from the opening paren
-		if body == "" {
-			continue
+		for _, f := range fields {
+			if f.Primary {
+				pk[normIdent(f.Name)] = true
+			}
 		}
-		var pkCols []string
-		facts := map[string]string{}
-		for _, item := range splitTopLevel(body) {
-			item = strings.TrimSpace(item)
-			low := strings.ToLower(item)
-			switch {
-			case strings.HasPrefix(low, "primary key"):
-				pkCols = append(pkCols, parseColumnList(item)...)
-				continue
-			case strings.HasPrefix(low, "constraint"), strings.HasPrefix(low, "unique"),
-				strings.HasPrefix(low, "foreign key"), strings.HasPrefix(low, "check"):
-				// Table-level constraints are compared elsewhere; skip for the
-				// column-fact set to keep this focused and low-noise.
-				continue
-			}
-			col, sig, inlinePK := parseColumnDef(item)
-			if col == "" {
-				continue
-			}
-			if inlinePK {
-				pkCols = append(pkCols, col)
-			}
-			facts[col] = sig
-		}
+
 		var list []string
-		for c, s := range facts {
-			pk := ""
-			if contains(pkCols, c) {
-				pk = " pk"
+		for _, f := range fields {
+			list = append(list, normIdent(f.Name)+": "+fieldSignature(f, pk[normIdent(f.Name)]))
+			if strings.TrimSpace(f.Foreign) != "" {
+				list = append(list, "~fk("+normIdent(f.Name)+"): "+foreignSignature(f))
 			}
-			list = append(list, c+": "+s+pk)
 		}
 		sort.Strings(list)
-		out[table] = list
+		out[t.Name] = list
 	}
 	return out
 }
 
-// parseColumnDef canonicalizes one `"name" type [NOT NULL] [DEFAULT ...] [PRIMARY KEY]`.
-func parseColumnDef(def string) (col, sig string, inlinePK bool) {
-	def = wsRe.ReplaceAllString(def, " ")
-	fields := strings.SplitN(def, " ", 2)
-	if len(fields) < 2 {
-		return "", "", false
-	}
-	col = normIdent(fields[0])
-	rest := fields[1]
-	low := strings.ToLower(rest)
-
-	nullable := !strings.Contains(low, "not null")
-	inlinePK = strings.Contains(low, "primary key")
-	// A serial/identity column is a synthetic integer with a sequence default;
-	// fold both spellings to "serial" before stripping the default.
-	isSerial := strings.Contains(low, "serial") || nextvalRe.MatchString(rest)
-
-	// Type = everything up to the first of NOT NULL / DEFAULT / PRIMARY KEY / UNIQUE.
-	typ := rest
-	for _, kw := range []string{" not null", " default ", " primary key", " unique", " references ", " check"} {
-		if i := strings.Index(strings.ToLower(typ), kw); i >= 0 {
-			typ = typ[:i]
-		}
-	}
-	typ = canonType(strings.TrimSpace(typ))
-	if isSerial {
+// fieldSignature canonicalizes one column: type, nullability, default presence,
+// primary-key membership.
+func fieldSignature(f goschema.Field, isPK bool) string {
+	typ := canonType(f.Type)
+	serial := isSerial(f)
+	if serial {
 		typ = "serial"
-		nullable = false
 	}
-	hasDefault := strings.Contains(low, "default ") && !isSerial
-	sig = typ
-	if nullable {
+	sig := typ
+	if f.Nullable {
 		sig += " null"
 	} else {
 		sig += " notnull"
 	}
-	if hasDefault {
+	// A serial's sequence default is intrinsic to the type, not a distinct default.
+	if hasDefault(f) && !serial {
 		sig += " hasdefault"
 	}
-	return col, sig, inlinePK
+	if isPK {
+		sig += " pk"
+	}
+	return sig
 }
 
-// canonType folds equivalent type spellings.
+// foreignSignature canonicalizes a field's foreign key: referenced target plus
+// referential actions, so action ordering and an omitted default do not read as
+// a difference.
+func foreignSignature(f goschema.Field) string {
+	return "-> " + normRef(f.Foreign) + " del=" + normAction(f.OnDelete) + " upd=" + normAction(f.OnUpdate)
+}
+
+// isSerial folds the two spellings of an auto-incrementing integer: Atlas's
+// `serial` type and Ptah's introspected `integer` + `nextval(...)` default.
+func isSerial(f goschema.Field) bool {
+	return f.AutoInc ||
+		strings.Contains(strings.ToLower(f.Type), "serial") ||
+		strings.Contains(strings.ToLower(f.DefaultExpr), "nextval")
+}
+
+func hasDefault(f goschema.Field) bool {
+	return f.DefaultSet || strings.TrimSpace(f.Default) != "" || strings.TrimSpace(f.DefaultExpr) != ""
+}
+
+// canonType folds equivalent type spellings, including the underscore forms Atlas
+// HCL uses (`character_varying`) and the spaced forms Ptah introspects
+// (`character varying`), while preserving a length/precision suffix so a dropped
+// length stays visible.
 func canonType(t string) string {
 	t = strings.ToLower(strings.TrimSpace(t))
-	t = strings.ReplaceAll(t, `"`, "") // Atlas quotes user types: "public"."enum_x"
-	// Strip a schema qualifier on the base type name (user-defined types such as
-	// enums): "public.enum_x" -> "enum_x", without touching a "(len)" suffix.
+	t = strings.ReplaceAll(t, `"`, "")
+
 	base, suffix := t, ""
 	if i := strings.IndexRune(t, '('); i >= 0 {
 		base, suffix = t[:i], t[i:]
 	}
-	if i := strings.LastIndex(base, "."); i >= 0 {
+	base = strings.TrimSpace(base)
+	if i := strings.LastIndex(base, "."); i >= 0 { // strip schema qualifier on user types
 		base = base[i+1:]
 	}
-	t = strings.TrimSpace(base) + suffix
-	t = strings.TrimSuffix(t, " without time zone") // timestamp/time
-	repl := map[string]string{
-		"character varying": "varchar",
-		"character":         "char",
-		"integer":           "int",
-		"int4":              "int",
-		"int8":              "bigint",
-		"boolean":           "bool",
-		"double precision":  "float8",
-		"numeric":           "decimal",
+	// Longest-first so "double precision" wins before "double". Both spaced and
+	// underscored spellings map to the same canonical name.
+	aliases := []struct{ from, to string }{
+		{"timestamp without time zone", "timestamp"},
+		{"timestamp_without_time_zone", "timestamp"},
+		{"time without time zone", "time"},
+		{"time_without_time_zone", "time"},
+		{"character varying", "varchar"},
+		{"character_varying", "varchar"},
+		{"double precision", "float8"},
+		{"double_precision", "float8"},
+		{"character", "char"},
+		{"integer", "int"},
+		{"int4", "int"},
+		{"int8", "bigint"},
+		{"boolean", "bool"},
+		{"numeric", "decimal"},
 	}
-	// longest-key-first replacement of the leading type name
-	for _, k := range []string{"character varying", "double precision", "character", "integer", "boolean", "numeric", "int4", "int8"} {
-		if strings.HasPrefix(t, k) {
-			t = repl[k] + t[len(k):]
+	for _, a := range aliases {
+		if base == a.from {
+			base = a.to
 			break
 		}
 	}
-	return strings.TrimSpace(t)
+	return strings.TrimSpace(base + suffix)
+}
+
+// normRef canonicalizes a "table(col)" reference: strip a schema qualifier and
+// quotes, lower-case.
+func normRef(ref string) string {
+	ref = strings.ToLower(strings.TrimSpace(ref))
+	ref = strings.ReplaceAll(ref, `"`, "")
+	table, cols := ref, ""
+	if i := strings.IndexRune(ref, '('); i >= 0 {
+		table, cols = ref[:i], ref[i:]
+	}
+	if i := strings.LastIndex(table, "."); i >= 0 {
+		table = table[i+1:]
+	}
+	return strings.TrimSpace(table) + cols
+}
+
+// normAction folds a referential action, unifying Atlas HCL's underscore
+// spelling (`NO_ACTION`, `SET_NULL`) with Ptah's spaced spelling (`NO ACTION`,
+// `SET NULL`) and defaulting an empty clause to the SQL default (NO ACTION).
+func normAction(a string) string {
+	a = strings.ToLower(strings.TrimSpace(a))
+	a = strings.ReplaceAll(a, "_", " ")
+	if a == "" {
+		return "no action"
+	}
+	return a
 }
 
 func normIdent(s string) string {
@@ -160,125 +185,7 @@ func normIdent(s string) string {
 	if i := strings.LastIndex(s, "."); i >= 0 { // strip schema qualifier
 		s = s[i+1:]
 	}
-	return strings.Trim(s, `"`)
-}
-
-func parseColumnList(s string) []string {
-	i := strings.Index(s, "(")
-	j := strings.LastIndex(s, ")")
-	if i < 0 || j < 0 || j < i {
-		return nil
-	}
-	var out []string
-	for _, p := range strings.Split(s[i+1:j], ",") {
-		out = append(out, normIdent(p))
-	}
-	return out
-}
-
-var (
-	lineCommentRe  = regexp.MustCompile(`--[^\n]*`)
-	blockCommentRe = regexp.MustCompile(`(?s)/\*.*?\*/`)
-)
-
-// stripComments removes SQL line and block comments so a per-statement match is
-// not blocked by a leading `-- Create "x" table` annotation that both tools emit.
-func stripComments(sql string) string {
-	sql = blockCommentRe.ReplaceAllString(sql, "")
-	sql = lineCommentRe.ReplaceAllString(sql, "")
-	return sql
-}
-
-// splitStatements splits SQL into statements on semicolons at paren depth 0,
-// ignoring semicolons inside string literals.
-func splitStatements(sql string) []string {
-	var out []string
-	depth, start := 0, 0
-	inStr := false
-	rs := []rune(sql)
-	for i, r := range rs {
-		switch r {
-		case '\'':
-			inStr = !inStr
-		case '(':
-			if !inStr {
-				depth++
-			}
-		case ')':
-			if !inStr {
-				depth--
-			}
-		case ';':
-			if !inStr && depth == 0 {
-				out = append(out, string(rs[start:i]))
-				start = i + 1
-			}
-		}
-	}
-	if start < len(rs) {
-		out = append(out, string(rs[start:]))
-	}
-	return out
-}
-
-// balancedBody returns the content between the first '(' of s and its matching
-// ')', so the column list is isolated from any trailing table options.
-func balancedBody(s string) string {
-	i := strings.IndexRune(s, '(')
-	if i < 0 {
-		return ""
-	}
-	depth := 0
-	inStr := false
-	rs := []rune(s[i:])
-	for j, r := range rs {
-		switch r {
-		case '\'':
-			inStr = !inStr
-		case '(':
-			if !inStr {
-				depth++
-			}
-		case ')':
-			if !inStr {
-				depth--
-				if depth == 0 {
-					return string(rs[1:j])
-				}
-			}
-		}
-	}
-	return ""
-}
-
-// splitTopLevel splits a CREATE TABLE body on commas that are not inside parens.
-func splitTopLevel(s string) []string {
-	var out []string
-	depth, start := 0, 0
-	for i, r := range s {
-		switch r {
-		case '(':
-			depth++
-		case ')':
-			depth--
-		case ',':
-			if depth == 0 {
-				out = append(out, s[start:i])
-				start = i + 1
-			}
-		}
-	}
-	out = append(out, s[start:])
-	return out
-}
-
-func contains(ss []string, v string) bool {
-	for _, s := range ss {
-		if s == v {
-			return true
-		}
-	}
-	return false
+	return strings.ToLower(strings.Trim(s, `"`))
 }
 
 // diffTableFacts returns human-readable differences between two fact sets, or nil
@@ -308,9 +215,7 @@ func diffTableFacts(atlas, ptah tableFacts) []string {
 			// not a gap in the Atlas-can-see sense.
 			continue
 		default:
-			for _, d := range diffLists(t, a, p) {
-				diffs = append(diffs, d)
-			}
+			diffs = append(diffs, diffLists(t, a, p)...)
 		}
 	}
 	return diffs
@@ -320,7 +225,6 @@ func diffLists(table string, atlas, ptah []string) []string {
 	am := factMap(atlas)
 	pm := factMap(ptah)
 	var diffs []string
-	var cols []string
 	seen := map[string]bool{}
 	for c := range am {
 		seen[c] = true
@@ -328,6 +232,7 @@ func diffLists(table string, atlas, ptah []string) []string {
 	for c := range pm {
 		seen[c] = true
 	}
+	var cols []string
 	for c := range seen {
 		cols = append(cols, c)
 	}

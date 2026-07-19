@@ -1,90 +1,125 @@
 package probe
 
-import "testing"
+import (
+	"testing"
 
-// These lock the differential normalizer: the point of the tier is that
-// semantically-equivalent DDL from Atlas and Ptah compares equal, while genuine
-// differences (a dropped length, a lost primary key, a missing column) stay
-// visible. The inputs are shaped like the real `schema inspect` / introspect
-// output the two tools produced on the live fixtures.
+	"github.com/stokaro/ptah/core/goschema"
+)
 
-func TestFacts_SerialAndTimestampAndPKAreEquivalent(t *testing.T) {
-	atlas := `-- Add new schema named "public"
-CREATE SCHEMA IF NOT EXISTS "public";
--- Create "users" table
-CREATE TABLE "public"."users" ("id" serial NOT NULL, "email" character varying(255) NOT NULL, "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id"));`
+// These lock the differential comparison: the point of the tier is that
+// semantically-equivalent schemas from Atlas and Ptah compare equal, while
+// genuine differences (a dropped length, a lost primary key, a different
+// referential action, a missing column) stay visible. Inputs model the two
+// representations observed on the live fixtures: Atlas (via core/atlashcl) spells
+// an auto-increment column `serial` and uses `character_varying`; Ptah (via
+// introspection) spells it `integer` + a `nextval(...)` default and
+// `character varying`.
 
-	ptah := `-- POSTGRES TABLE: users --
-CREATE TABLE "users" (
-  "id" integer PRIMARY KEY NOT NULL DEFAULT nextval('users_id_seq'::regclass),
-  "email" character varying(255) NOT NULL,
-  "created_at" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-CREATE EXTENSION IF NOT EXISTS "plpgsql" VERSION '1.0';`
+func oneTable(name string, fields ...goschema.Field) *goschema.Database {
+	for i := range fields {
+		fields[i].StructName = name
+	}
+	return &goschema.Database{
+		Tables: []goschema.Table{{StructName: name, Name: name}},
+		Fields: fields,
+	}
+}
 
-	if diffs := diffTableFacts(extractTableFacts(atlas), extractTableFacts(ptah)); diffs != nil {
-		t.Fatalf("expected equivalence (serial==int+nextval, timestamp==timestamp without time zone, inline==table-level PK), got: %v", diffs)
+func diff(atlas, ptah *goschema.Database) []string {
+	return diffTableFacts(factsFromDatabase(atlas), factsFromDatabase(ptah))
+}
+
+func TestFacts_SerialTimestampAndPKAreEquivalent(t *testing.T) {
+	atlas := oneTable("users",
+		goschema.Field{Name: "id", Type: "serial", Primary: true},
+		goschema.Field{Name: "email", Type: "character_varying(255)"},
+		goschema.Field{Name: "created_at", Type: "timestamp", DefaultExpr: "CURRENT_TIMESTAMP"},
+	)
+	ptah := oneTable("users",
+		goschema.Field{Name: "id", Type: "integer", Primary: true, AutoInc: true, DefaultExpr: "nextval('users_id_seq'::regclass)"},
+		goschema.Field{Name: "email", Type: "character varying(255)"},
+		goschema.Field{Name: "created_at", Type: "timestamp without time zone", DefaultExpr: "CURRENT_TIMESTAMP"},
+	)
+	if d := diff(atlas, ptah); d != nil {
+		t.Fatalf("expected equivalence (serial==int+nextval, character_varying==character varying, timestamp==timestamp without time zone), got: %v", d)
 	}
 }
 
 func TestFacts_DroppedLengthIsAGap(t *testing.T) {
-	atlas := `CREATE TABLE "public"."t" ("name" character varying(255) NOT NULL);`
-	ptah := `CREATE TABLE "t" ("name" character varying NOT NULL);`
-	diffs := diffTableFacts(extractTableFacts(atlas), extractTableFacts(ptah))
-	if len(diffs) != 1 {
-		t.Fatalf("expected exactly one difference for the dropped length, got: %v", diffs)
+	atlas := oneTable("t", goschema.Field{Name: "name", Type: "character_varying(255)"})
+	ptah := oneTable("t", goschema.Field{Name: "name", Type: "character varying"})
+	if d := diff(atlas, ptah); len(d) != 1 {
+		t.Fatalf("expected exactly one difference for the dropped length, got: %v", d)
 	}
 }
 
-func TestFacts_QuotedSchemaQualifiedEnumTypeFolds(t *testing.T) {
-	atlas := `CREATE TABLE "public"."accounts" ("status" "public"."enum_account_status" NOT NULL DEFAULT 'active');`
-	ptah := `CREATE TABLE "accounts" ("status" enum_account_status NOT NULL DEFAULT 'active');`
-	if diffs := diffTableFacts(extractTableFacts(atlas), extractTableFacts(ptah)); diffs != nil {
-		t.Fatalf("expected quoted schema-qualified enum type to fold to bare name, got: %v", diffs)
+func TestFacts_ForeignKeyFoldsActionOrderAndDefault(t *testing.T) {
+	// Atlas reports both actions explicitly; Ptah leaves them empty (the SQL
+	// default is NO ACTION). They must fold to equal.
+	atlas := oneTable("books", goschema.Field{Name: "author_id", Type: "integer",
+		Foreign: "authors(id)", OnUpdate: "NO_ACTION", OnDelete: "NO_ACTION"})
+	ptah := oneTable("books", goschema.Field{Name: "author_id", Type: "integer",
+		Foreign: "authors(id)"})
+	if d := diff(atlas, ptah); d != nil {
+		t.Fatalf("expected the foreign key to fold to equal, got: %v", d)
 	}
 }
 
-func TestFacts_MultipleTablesDoNotBleed(t *testing.T) {
-	// Regression: a greedy CREATE TABLE match once mashed both tables' columns
-	// into one body, mislabeling authors.name as the serial PK.
-	sql := `CREATE TABLE "public"."authors" ("id" serial NOT NULL, "name" character varying(255) NOT NULL, PRIMARY KEY ("id"));
-CREATE TABLE "public"."books" ("id" serial NOT NULL, "title" character varying(255) NOT NULL, PRIMARY KEY ("id"));`
-	facts := extractTableFacts(sql)
-	if len(facts) != 2 {
-		t.Fatalf("expected 2 tables, got %d: %v", len(facts), facts)
-	}
-	for _, want := range []string{"authors", "books"} {
-		if facts[want] == nil {
-			t.Fatalf("missing table %q in %v", want, facts)
-		}
-	}
-	// authors.name must be a plain varchar, never the serial PK.
-	for _, f := range facts["authors"] {
-		if f == "name: serial notnull pk" {
-			t.Fatalf("authors.name bled the id column's signature: %v", facts["authors"])
-		}
+func TestFacts_DifferentReferentialActionIsAGap(t *testing.T) {
+	atlas := oneTable("t", goschema.Field{Name: "a", Type: "integer",
+		Foreign: "u(id)", OnDelete: "CASCADE"})
+	ptah := oneTable("t", goschema.Field{Name: "a", Type: "integer",
+		Foreign: "u(id)", OnDelete: "NO ACTION"})
+	if d := diff(atlas, ptah); len(d) != 1 {
+		t.Fatalf("expected ON DELETE CASCADE vs NO ACTION to be exactly one gap, got: %v", d)
 	}
 }
 
-func TestFacts_CompositePrimaryKeyIsCaptured(t *testing.T) {
-	sql := `CREATE TABLE "public"."memberships" ("user_id" integer NOT NULL, "group_id" integer NOT NULL, "role" character varying(50) NOT NULL, PRIMARY KEY ("user_id", "group_id"));`
-	facts := extractTableFacts(sql)["memberships"]
-	m := factMap(facts)
-	for _, col := range []string{"user_id", "group_id"} {
-		if got := m[col]; got == "" || got[len(got)-2:] != "pk" {
-			t.Fatalf("expected %s to be part of the composite primary key, got %q", col, got)
+func TestFacts_CompositePrimaryKeyMismatchIsAGap(t *testing.T) {
+	// Atlas records the composite key at table level; Ptah round-trips only the
+	// first column as primary (the real defect the live tier found).
+	atlas := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "m", Name: "m", PrimaryKey: []string{"user_id", "group_id"}}},
+		Fields: []goschema.Field{
+			{StructName: "m", Name: "user_id", Type: "integer"},
+			{StructName: "m", Name: "group_id", Type: "integer"},
+		},
+	}
+	ptah := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "m", Name: "m"}},
+		Fields: []goschema.Field{
+			{StructName: "m", Name: "user_id", Type: "integer", Primary: true},
+			{StructName: "m", Name: "group_id", Type: "integer"},
+		},
+	}
+	d := diff(atlas, ptah)
+	if len(d) != 1 {
+		t.Fatalf("expected exactly one gap for the lost composite-PK membership, got: %v", d)
+	}
+}
+
+func TestFacts_CompositePrimaryKeyAgreesWhenBothComplete(t *testing.T) {
+	both := func() *goschema.Database {
+		return &goschema.Database{
+			Tables: []goschema.Table{{StructName: "m", Name: "m", PrimaryKey: []string{"user_id", "group_id"}}},
+			Fields: []goschema.Field{
+				{StructName: "m", Name: "user_id", Type: "integer"},
+				{StructName: "m", Name: "group_id", Type: "integer"},
+			},
 		}
 	}
-	if got := m["role"]; got == "" || got[len(got)-2:] == "pk" {
-		t.Fatalf("role should not be a primary key, got %q", got)
+	if d := diff(both(), both()); d != nil {
+		t.Fatalf("expected a complete composite key to compare equal, got: %v", d)
 	}
 }
 
 func TestFacts_MissingColumnIsAGap(t *testing.T) {
-	atlas := `CREATE TABLE "public"."t" ("a" integer NOT NULL, "b" integer NOT NULL);`
-	ptah := `CREATE TABLE "t" ("a" integer NOT NULL);`
-	diffs := diffTableFacts(extractTableFacts(atlas), extractTableFacts(ptah))
-	if len(diffs) != 1 {
-		t.Fatalf("expected exactly one difference for the missing column, got: %v", diffs)
+	atlas := oneTable("t",
+		goschema.Field{Name: "a", Type: "integer"},
+		goschema.Field{Name: "b", Type: "integer"},
+	)
+	ptah := oneTable("t", goschema.Field{Name: "a", Type: "integer"})
+	if d := diff(atlas, ptah); len(d) != 1 {
+		t.Fatalf("expected exactly one difference for the missing column, got: %v", d)
 	}
 }

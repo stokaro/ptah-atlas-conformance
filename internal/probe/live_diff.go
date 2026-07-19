@@ -1,12 +1,15 @@
 package probe
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
+	"github.com/stokaro/ptah/core/atlashcl"
 	"github.com/stokaro/ptah/core/convert/dbschematogo"
 	"github.com/stokaro/ptah/core/goschema"
 	"github.com/stokaro/ptah/core/renderer"
@@ -15,13 +18,15 @@ import (
 
 // RunSchemaDiff is the differential-vs-Atlas tier: it measures whether Ptah and
 // a real Atlas CE binary *agree* about a live schema. It applies a first-party
-// Ptah schema to a database, then asks both tools to describe what they see —
-// Atlas via `schema inspect --format '{{ sql . }}'`, Ptah via its
-// introspect -> render chain — and compares the two at the level of column
-// facts (name, canonical type, nullability, default presence, primary key)
-// rather than DDL text. Folding the systematic, semantically-equivalent spelling
-// differences (serial vs integer+nextval, `character varying` vs `varchar`,
-// inline vs table-level PRIMARY KEY) leaves only genuine disagreements visible.
+// Ptah schema to a database, then reads what both tools understand about it as a
+// typed schema and compares them by column facts (type, nullability, default,
+// primary key, foreign key) rather than DDL text:
+//
+//   - Atlas's view comes from `atlas schema inspect` in its native HCL, parsed by
+//     Ptah's own core/atlashcl into a goschema.Database. This exercises a real
+//     drop-in path — can Ptah ingest Atlas's HCL — and, because both sides end up
+//     as the same typed structure, the comparison needs no fragile SQL parsing.
+//   - Ptah's view comes from its introspect -> convert chain (the read-db path).
 //
 // A row is OK when Ptah reports the same column facts Atlas does. A Gap means the
 // two tools disagree about a construct Atlas CE can see — exactly the kind of
@@ -60,28 +65,35 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 		}
 	}
 
-	// Atlas CE's view of the live schema.
-	atlasSQL, err := atlasInspect(ctx, atlasBin, dbURL)
+	// Atlas CE's view of the live schema, in its native HCL, parsed by Ptah's own
+	// Atlas-HCL parser. A parse failure here is itself a drop-in gap (Ptah cannot
+	// ingest Atlas's inspect output), distinct from a schema disagreement.
+	atlasHCL, err := atlasInspectHCL(ctx, atlasBin, dbURL)
 	if err != nil {
 		return []Result{{"atlas-differential", name, "atlas-inspect", Fail, oneLine(err.Error()), ""}}
 	}
-	atlasFacts := extractTableFacts(atlasSQL)
+	var atlasDB *goschema.Database
+	if panicked, pmsg := guard(func() { atlasDB, err = atlashcl.Parse(atlasHCL, "atlas.hcl") }); panicked {
+		return []Result{{"atlas-differential", name, "atlas-hcl", Panic, oneLine(pmsg), "stokaro/ptah#276"}}
+	}
+	if err != nil {
+		return []Result{{"atlas-differential", name, "atlas-hcl", Gap,
+			"Ptah's core/atlashcl cannot ingest Atlas's inspect output: " + oneLine(err.Error()), "stokaro/ptah#276"}}
+	}
+	atlasFacts := factsFromDatabase(atlasDB)
 
-	// Ptah's view of the same live schema (the introspect -> render chain that
+	// Ptah's view of the same live schema (the introspect -> convert chain
 	// `ptah read-db` uses).
 	got, err := dbschema.ReadSchemaWithSchemas(conn, []string{schemaName})
 	if err != nil {
 		return []Result{{"atlas-differential", name, "introspect", Fail, oneLine(err.Error()), ""}}
 	}
-	var ptahSQL string
+	var ptahFacts tableFacts
 	if panicked, pmsg := guard(func() {
-		gs := dbschematogo.ConvertDBSchemaToGoSchema(got)
-		ptahSQL = strings.Join(
-			renderer.GetOrderedCreateStatementsWithCapabilities(gs, dialect, conn.Info().Capabilities), "\n")
+		ptahFacts = factsFromDatabase(dbschematogo.ConvertDBSchemaToGoSchema(got))
 	}); panicked {
-		return []Result{{"atlas-differential", name, "ptah-render", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
+		return []Result{{"atlas-differential", name, "ptah-convert", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
 	}
-	ptahFacts := extractTableFacts(ptahSQL)
 
 	if len(atlasFacts) == 0 {
 		return []Result{{"atlas-differential", name, "compare", Fail,
@@ -97,16 +109,23 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 		countTables(atlasFacts) + " matches Atlas CE", ""}}
 }
 
-// atlasInspect runs `atlas schema inspect` and returns its canonical SQL. CE
-// silently omits Pro objects (views/triggers/functions), which is exactly why
-// the differential compares only CE-visible object kinds.
-func atlasInspect(ctx context.Context, atlasBin, dbURL string) (string, error) {
-	cmd := exec.CommandContext(ctx, atlasBin, "schema", "inspect", "--url", dbURL, "--format", "{{ sql . }}")
-	out, err := cmd.CombinedOutput()
+// atlasInspectHCL runs `atlas schema inspect` and returns its native HCL. Only
+// stdout is captured: a freshly built Atlas prints a "new version available"
+// notice to stderr on its first run, and folding that into the HCL would make it
+// unparseable. The update notifier is disabled as well, so a warmed or cold
+// Atlas behaves identically. CE silently omits Pro objects
+// (views/triggers/functions), which is exactly why the differential compares
+// only CE-visible object kinds.
+func atlasInspectHCL(ctx context.Context, atlasBin, dbURL string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, atlasBin, "schema", "inspect", "--url", dbURL)
+	cmd.Env = append(os.Environ(), "ATLAS_NO_UPDATE_NOTIFIER=1")
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", err, oneLine(string(out)))
+		return nil, fmt.Errorf("%w: %s", err, oneLine(stderr.String()))
 	}
-	return string(out), nil
+	return out, nil
 }
 
 func countTables(f tableFacts) string {

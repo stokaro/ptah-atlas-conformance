@@ -109,23 +109,31 @@ conformance in ptah#285.
 
 A sixth, **differential** tier (`conformance-diff` workflow) closes part of that
 end-state question against a **real Atlas CE binary**. It applies a first-party
-Ptah schema to Postgres, then asks both tools what they see — Atlas via
-`schema inspect --format '{{ sql . }}'`, Ptah via its introspect → render chain —
-and compares them at the level of column facts (type, nullability, default,
-primary key), folding semantically-equivalent spellings (serial ≡ integer+nextval,
-`character varying` ≡ `varchar`, `timestamp` ≡ `timestamp without time zone`,
-inline ≡ table-level PRIMARY KEY). Atlas is built from the release tag pinned in
-`atlas.version` (renovate-bumped), so it measures Ptah against a known Atlas
-release. It is deliberately scoped to CE-visible object kinds: Atlas CE silently
-omits Pro-gated objects (views, triggers, functions, sequences) from inspection —
-no error, exit 0 — so those cannot be compared apples-to-apples and Ptah's support
-for them is a strength beyond CE rather than a differential gap (they stay covered
-by the Ptah-vs-Ptah round-trip tier). Already green on the enum fixture, the
-differential has independently surfaced two real Ptah introspect → render fidelity
-gaps that the round-trip tier's diff engine treats as equal and so misses: a
-dropped `VARCHAR(n)` length and a composite primary key membership that Ptah does
-not reproduce. The normalizer that folds the equivalent spellings is locked by
-offline unit tests so it cannot silently start passing on genuine differences.
+Ptah schema to Postgres, then reads what both tools understand as a *typed* schema
+and compares them by column facts (type, nullability, default, primary key,
+foreign key with referential actions). Atlas's view comes from `schema inspect` in
+its native HCL, parsed by Ptah's own `core/atlashcl` into a `goschema.Database`;
+Ptah's view comes from its introspect → convert chain. Because both sides are the
+same typed structure, there is no SQL-text parsing — the comparison folds
+semantically-equivalent representations on typed fields (serial ≡ integer+nextval,
+`character varying`/`character_varying` ≡ `varchar`, `timestamp` ≡ `timestamp
+without time zone`, inline ≡ table-level PRIMARY KEY, `NO_ACTION` ≡ `NO ACTION`).
+Notably Ptah's SQL parser cannot ingest Atlas's SQL inspect output (schema-
+qualified `REFERENCES`, enum `CREATE TYPE`) — the very subset limit the `sql-parse`
+probe measures — which is why the HCL path is used; a failure to parse Atlas's HCL
+is itself reported as a gap (ptah#276), distinct from a schema disagreement.
+Atlas is built from the release tag pinned in `atlas.version` (renovate-bumped),
+so it measures Ptah against a known Atlas release. It is deliberately scoped to
+CE-visible object kinds: Atlas CE silently omits Pro-gated objects (views,
+triggers, functions, sequences) from inspection — no error, exit 0 — so those
+cannot be compared apples-to-apples and Ptah's support for them is a strength
+beyond CE rather than a differential gap (they stay covered by the Ptah-vs-Ptah
+round-trip tier). Already green on the enum fixture and on foreign keys, the
+differential has independently surfaced two real Ptah introspection fidelity gaps
+that the round-trip tier's diff engine treats as equal and so misses: a dropped
+`VARCHAR(n)` length and a composite primary key membership that Ptah does not
+reproduce. The folding logic is locked by offline unit tests so it cannot silently
+start passing on genuine differences.
 
 ## What a real full-parity test would require
 
