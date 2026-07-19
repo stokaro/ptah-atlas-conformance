@@ -7,10 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  # The live behavioral tier. It applies first-party Ptah schemas to a real
-  # Postgres, introspects them back and diffs. The `gate` step is expected to stay
-  # red until Ptah's generate -> apply -> introspect loop is lossless — red here
-  # means "not yet", not "broken". The report-freshness check must stay green.
+  # The live behavioral tier. It applies first-party Ptah schemas to real
+  # databases, introspects them back and diffs. This PR workflow is a regression
+  # check: the committed report must be fresh, and the unwaived live gap count
+  # must not exceed the committed live budget. Full live parity remains
+  # `make gate-live` and is intentionally separate.
   live-roundtrip:
     runs-on: ubuntu-latest
     services:
@@ -58,5 +59,5 @@ jobs:
             exit 1
           fi
 
-      - name: Live conformance gate (red until the round-trip is lossless)
-        run: make gate-live
+      - name: Enforce live regression budget
+        run: make budget-live

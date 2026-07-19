@@ -74,8 +74,9 @@ Atlas CE can actually inspect: tables, columns, constraints, indexes and enums.
 Atlas CE silently omits Pro-gated objects (views, triggers, stored procedures,
 sequences) from inspection, so Ptah's support for those is a strength beyond CE,
 not a differential gap — that fidelity is covered by the Ptah-vs-Ptah round-trip
-tier instead. Both tiers stay red until Ptah closes the gap; today the
-differential already agrees with Atlas CE on the enum fixture (and on foreign keys
+tier instead. The full live and differential gates stay red until Ptah closes
+those gaps; today the differential already agrees with Atlas CE on the enum
+fixture (and on foreign keys
 with their referential actions) and has surfaced two real Ptah introspection
 fidelity gaps (a dropped `VARCHAR` length and a composite primary key that does
 not round-trip). Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises
@@ -83,9 +84,13 @@ a real drop-in path — a parse failure there is itself reported as a gap, not
 mistaken for a schema disagreement.
 
 ```
+make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
+make budget-live  # live progress gate: red only on regression/stale waivers
+make gate-live    # live full-parity yardstick: red until round-trip is lossless
 make atlas        # build Atlas CE from the atlas.version tag into ./bin/atlas
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
-make gate-diff    # differential gate: red until Ptah agrees with Atlas CE
+make budget-diff  # differential progress gate: red only on regression/stale waivers
+make gate-diff    # differential full-parity yardstick: red until Ptah agrees with Atlas CE
 ```
 
 ## CI regression budget and full-parity gate
@@ -94,9 +99,14 @@ This is a spec Ptah has not met, not a passing test log. CI publishes two
 separate pipelines:
 
 - [`conformance-regression`](./.github/workflows/conformance-regression.yml)
-  uses a committed gap budget so progress PRs fail only when the current report
-  gets worse or stale. The budget counts all unwaived non-OK observations:
-  `gap`, `fail`, and `panic`.
+  uses a committed offline corpus gap budget so progress PRs fail only when the
+  current report gets worse or stale. The budget counts all unwaived non-OK
+  observations: `gap`, `fail`, and `panic`.
+- [`conformance-live`](./.github/workflows/conformance-live.yml) and
+  [`conformance-diff`](./.github/workflows/conformance-diff.yml) use the same
+  regression-budget model for their real-database reports. They must stay green
+  when a PR only preserves the current known gaps, and fail when `gaps-live.*` or
+  `gaps-diff.*` is stale or worse than its committed budget.
 - [`full-conformance`](./.github/workflows/full-conformance.yml) runs
   `make gate` and stays red until Ptah covers everything Atlas expresses in the
   corpus. When probes become stricter, the generated report may expose more
@@ -106,7 +116,9 @@ separate pipelines:
 
 - `make probe` regenerates the report and always exits 0.
 - `make budget` fails if the generated report exceeds [`gap-budget.txt`](./gap-budget.txt)
-  or if a waiver became stale.
+  or if a waiver became stale. `make budget-live` and `make budget-diff` do the
+  same for [`gap-live-budget.txt`](./gap-live-budget.txt) and
+  [`gap-diff-budget.txt`](./gap-diff-budget.txt).
 - `make gate` regenerates the report **and exits non-zero if any non-OK
   observation remains**, including waived findings.
   This is the full-parity yardstick and stays red until Ptah covers everything
@@ -118,13 +130,18 @@ keyed on `probe fixture stage`, with a reason and a tracking issue. A waiver mea
 intentionally empty: nothing is skipped, so every open gap is red. A waiver that
 matches no finding is itself a CI failure, forcing cleanup when a gap closes.
 
-Lower `gap-budget.txt` whenever Ptah closes gaps. `git log gaps.md` shows the
-unwaived count moving toward zero as Ptah closes issues. The full gate goes green
-only when every fixture is covered.
+Lower `gap-budget.txt`, `gap-live-budget.txt`, and `gap-diff-budget.txt`
+whenever Ptah closes gaps in the matching report. `git log gaps.md` shows the
+unwaived count moving toward zero as Ptah closes issues. The full gates go green
+only when every fixture and live contour is covered.
 
 ```
 make probe        # regenerate gaps.md / gaps.json (exit 0)
-make budget       # CI progress gate: red only on regression/stale waivers
+make budget       # offline progress gate: red only on regression/stale waivers
+make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
+make budget-live  # live progress gate: red only on regression/stale waivers
+make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
+make budget-diff  # differential progress gate: red only on regression/stale waivers
 make gate         # full-parity yardstick: red until parity on the corpus
 make verify       # build, vet, and assert Ptah's tree would gain no Apache file
 ```

@@ -10,9 +10,10 @@ jobs:
   # The differential-vs-Atlas tier. It builds a real Atlas CE binary from the tag
   # pinned in atlas.version (release parity, renovate-bumped), applies first-party
   # Ptah schemas to a real Postgres, and compares what Atlas CE and Ptah each
-  # report about the schema. The `gate` step is expected to stay red until Ptah's
-  # introspect -> render is a faithful drop-in for `atlas schema inspect` — red
-  # here means "not yet", not "broken". The report-freshness check must stay green.
+  # report about the schema. This PR workflow is a regression check: the committed
+  # report must be fresh, and the unwaived differential gap count must not exceed
+  # the committed differential budget. Full Atlas agreement remains
+  # `make gate-diff` and is intentionally separate.
   differential:
     runs-on: ubuntu-latest
     services:
@@ -64,5 +65,5 @@ jobs:
             exit 1
           fi
 
-      - name: Differential gate (red until Ptah agrees with Atlas CE)
-        run: make gate-diff
+      - name: Enforce differential regression budget
+        run: make budget-diff

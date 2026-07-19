@@ -1,0 +1,4 @@
+# Maximum allowed unwaived non-OK observations in gaps-diff.json.
+# Lower this whenever Ptah agrees with Atlas CE on another measured contour;
+# CI fails on regressions above it.
+4
