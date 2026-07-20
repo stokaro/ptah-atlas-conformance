@@ -6,27 +6,22 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 4 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260720065352-e4075defec5d`
-- Outcomes: **1 ok**, **4 gap**, **0 fail**, **0 panic**
-- Full gate: **4 non-OK** (fails CI)
-- Regression budget input: **4 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260720080909-354133b4049a`
+- Outcomes: **5 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-differential | `01-basic-table` | compare | Ptah disagrees with Atlas CE on: users.email: Atlas [varchar(255) notnull] vs Ptah [varchar notnull] | #285 |
-| **RED** | **gap** | atlas-differential | `03-view` | compare | Ptah disagrees with Atlas CE on: products.name: Atlas [varchar(255) notnull] vs Ptah [varchar notnull] | #285 |
-| **RED** | **gap** | atlas-differential | `04-index-fk` | compare | Ptah disagrees with Atlas CE on: authors.name: Atlas [varchar(255) notnull] vs Ptah [varchar notnull]; books.title: Atlas [varchar(255) notnull] vs Ptah [varchar notnull] | #285 |
-| **RED** | **gap** | atlas-differential | `05-composite` | compare | Ptah disagrees with Atlas CE on: memberships.role: Atlas [varchar(50) notnull] vs Ptah [varchar notnull]; memberships.user_id: Atlas [int notnull pk] vs Ptah [int notnull] | #285 |
+| — | ok | atlas-differential | `01-basic-table` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `02-enum` | compare | 1 table matches Atlas CE |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#285** — 4 finding(s)
+| — | ok | atlas-differential | `03-view` | compare | 1 table matches Atlas CE |  |
+| — | ok | atlas-differential | `04-index-fk` | compare | 2 tables matches Atlas CE |  |
+| — | ok | atlas-differential | `05-composite` | compare | 1 table matches Atlas CE |  |
