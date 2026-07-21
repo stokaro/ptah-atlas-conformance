@@ -204,28 +204,15 @@ func TestAtlasCLIUtilityRuntimeProbeAcceptsExecutableUtilities(t *testing.T) {
 
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "ptah")
-	writeTestFile(t, bin, `#!/bin/sh
-case "$*" in
-  "atlas version"|"version")
-    printf 'Version: test\nCommit: deadbeef\n'
-    ;;
-  "atlas license"|"license")
-    printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
-    ;;
-  *)
-    printf 'unsupported %s\n' "$*" >&2
-    exit 1
-    ;;
-esac
-`)
+	writeTestFile(t, bin, fakeUtilityRuntimeScript())
 	if err := os.Chmod(bin, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 4 {
-		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	if len(results) != 6 {
+		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
 	}
 	for _, r := range results {
 		if r.Probe != "atlas-cli-utility-runtime" {
@@ -244,31 +231,19 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsPlaceholders(t *testing.T) {
 
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "ptah")
-	writeTestFile(t, bin, `#!/bin/sh
-case "$*" in
+	writeTestFile(t, bin, fakeUtilityRuntimeScript(`
   "atlas version")
     printf 'atlas version is not implemented yet\n'
     ;;
-  "version")
-    printf 'Version: test\nCommit: deadbeef\n'
-    ;;
-  "atlas license"|"license")
-    printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
-    ;;
-  *)
-    printf 'unsupported %s\n' "$*" >&2
-    exit 1
-    ;;
-esac
-`)
+`))
 	if err := os.Chmod(bin, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 4 {
-		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	if len(results) != 6 {
+		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
 	}
 	var foundGap bool
 	for _, r := range results {
@@ -289,32 +264,20 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution(t *testing.T) {
 
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "ptah")
-	writeTestFile(t, bin, `#!/bin/sh
-case "$*" in
-  "atlas version"|"version")
-    printf 'Version: test\nCommit: deadbeef\n'
-    ;;
-  "atlas license")
-    printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
-    ;;
+	writeTestFile(t, bin, fakeUtilityRuntimeScript(`
   "license")
     printf 'runtime failure\n' >&2
     exit 17
     ;;
-  *)
-    printf 'unsupported %s\n' "$*" >&2
-    exit 1
-    ;;
-esac
-`)
+`))
 	if err := os.Chmod(bin, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 4 {
-		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	if len(results) != 6 {
+		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
 	}
 	var foundGap bool
 	for _, r := range results {
@@ -343,6 +306,29 @@ func setFakePtahCLIBinaries(t *testing.T, bin string) {
 		ptahBinOnce = sync.Once{}
 		ptahCompatBinOnce = sync.Once{}
 	})
+}
+
+func fakeUtilityRuntimeScript(overrides ...string) string {
+	customCases := strings.Join(overrides, "")
+	return `#!/bin/sh
+case "$*" in
+` + customCases + `  "atlas version"|"version")
+    printf 'Version: test\nCommit: deadbeef\n'
+    ;;
+  "atlas license"|"license")
+    printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
+    ;;
+  "atlas schema fmt"|"schema fmt")
+    printf 'schema "main" {}\n' > a_schema.hcl
+    printf 'schema "nested" {}\n' > nested/z_schema.hcl
+    printf 'a_schema.hcl\nnested/z_schema.hcl\n'
+    ;;
+  *)
+    printf 'unsupported %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+`
 }
 
 func TestAtlasHCLProbeReportsSchemaParseSupport(t *testing.T) {
