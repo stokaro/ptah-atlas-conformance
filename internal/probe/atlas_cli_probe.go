@@ -205,8 +205,27 @@ func (AtlasCLIUtilityRuntimeProbe) Run(fx Fixture) []Result {
 		},
 	}
 
-	out := make([]Result, 0, len(checks))
+	schemaFmtChecks := []atlasSchemaFmtRuntimeCheck{
+		{
+			fixture: "ptah atlas schema fmt",
+			bin:     nativeBin,
+			path:    []string{"atlas", "schema", "fmt"},
+			display: "ptah atlas schema fmt",
+		},
+		{
+			fixture: "ptah-compat atlas schema fmt",
+			bin:     compatBin,
+			path:    []string{"schema", "fmt"},
+			display: "atlas schema fmt",
+			compat:  true,
+		},
+	}
+
+	out := make([]Result, 0, len(checks)+len(schemaFmtChecks))
 	for _, check := range checks {
+		out = append(out, check.run())
+	}
+	for _, check := range schemaFmtChecks {
 		out = append(out, check.run())
 	}
 	return out
@@ -250,6 +269,109 @@ func (c atlasUtilityRuntimeCheck) run() Result {
 	return Result{"atlas-cli-utility-runtime", c.fixture, "execute", OK, detail, ""}
 }
 
+type atlasSchemaFmtRuntimeCheck struct {
+	fixture string
+	bin     string
+	path    []string
+	display string
+	compat  bool
+}
+
+func (c atlasSchemaFmtRuntimeCheck) run() Result {
+	dir, err := os.MkdirTemp("", "atlas-schema-fmt-*")
+	if err != nil {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "setup", Fail,
+			"creating temp schema fmt directory failed: " + oneLine(err.Error()), ""}
+	}
+	defer os.RemoveAll(dir)
+
+	rootFile := filepath.Join(dir, "a_schema.hcl")
+	nestedFile := filepath.Join(dir, "nested", "z_schema.hcl")
+	ignoredFile := filepath.Join(dir, "notes.txt")
+	if err := os.MkdirAll(filepath.Dir(nestedFile), 0o755); err != nil {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "setup", Fail,
+			"creating nested schema fmt directory failed: " + oneLine(err.Error()), ""}
+	}
+	if err := os.WriteFile(rootFile, []byte(`schema "main"{}`+"\n"), 0o600); err != nil {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "setup", Fail,
+			"writing root HCL fixture failed: " + oneLine(err.Error()), ""}
+	}
+	if err := os.WriteFile(nestedFile, []byte(`schema "nested"{}`+"\n"), 0o600); err != nil {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "setup", Fail,
+			"writing nested HCL fixture failed: " + oneLine(err.Error()), ""}
+	}
+	if err := os.WriteFile(ignoredFile, []byte(`schema "ignored"{}`+"\n"), 0o600); err != nil {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "setup", Fail,
+			"writing ignored non-HCL fixture failed: " + oneLine(err.Error()), ""}
+	}
+
+	output, err := commandOutputDir(c.bin, c.path, dir)
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); ok {
+			return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
+				"`" + c.display + "` exited non-zero: " + oneLine(output), "stokaro/ptah#510"}
+		}
+		return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Fail,
+			"executing `" + c.display + "` failed: " + oneLine(err.Error()), ""}
+	}
+	lower := strings.ToLower(output)
+	if strings.Contains(lower, "not implemented") || strings.Contains(lower, "unimplemented") {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
+			"`" + c.display + "` still reports an unimplemented placeholder", "stokaro/ptah#510"}
+	}
+	if !sameOutputLines(output, []string{"a_schema.hcl", filepath.Join("nested", "z_schema.hcl")}) {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
+			"`" + c.display + "` did not report exactly the formatted HCL files: " + oneLine(output), "stokaro/ptah#510"}
+	}
+
+	if ok, detail := schemaFmtFileContentOK(rootFile, `schema "main" {}
+`); !ok {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "format", Gap, detail, "stokaro/ptah#510"}
+	}
+	if ok, detail := schemaFmtFileContentOK(nestedFile, `schema "nested" {}
+`); !ok {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "format", Gap, detail, "stokaro/ptah#510"}
+	}
+	if ok, detail := schemaFmtFileContentOK(ignoredFile, `schema "ignored"{}`+"\n"); !ok {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "format", Gap, detail, "stokaro/ptah#510"}
+	}
+
+	detail := "`" + c.display + "` formats .hcl files recursively from the current directory and ignores non-HCL files"
+	if c.compat {
+		detail = "`" + c.display + "` formats .hcl files recursively through a ptah-compat binary named `atlas`"
+	}
+	return Result{"atlas-cli-utility-runtime", c.fixture, "execute", OK, detail, ""}
+}
+
+func sameOutputLines(output string, want []string) bool {
+	got := strings.Fields(strings.TrimSpace(output))
+	if len(got) != len(want) {
+		return false
+	}
+	remaining := make(map[string]int, len(want))
+	for _, line := range want {
+		remaining[line]++
+	}
+	for _, line := range got {
+		if remaining[line] == 0 {
+			return false
+		}
+		remaining[line]--
+	}
+	return true
+}
+
+func schemaFmtFileContentOK(path, want string) (bool, string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return false, "reading schema fmt fixture failed: " + oneLine(err.Error())
+	}
+	if string(data) != want {
+		return false, filepath.Base(path) + " content mismatch after schema fmt"
+	}
+	return true, ""
+}
+
 // commandResolves reports whether `<bin> <path...> --help` resolves to the
 // requested command rather than falling back to the root help. cobra prints the
 // command's own "Usage:" line when the command exists, and the root usage
@@ -282,9 +404,14 @@ func commandResolves(bin string, path []string, wantUsage string) (bool, error) 
 }
 
 func commandOutput(bin string, path []string) (string, error) {
+	return commandOutputDir(bin, path, "")
+}
+
+func commandOutputDir(bin string, path []string, dir string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, path...)
+	cmd.Dir = dir
 	outBytes, err := cmd.CombinedOutput()
 	return string(outBytes), err
 }

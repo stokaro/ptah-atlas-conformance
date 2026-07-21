@@ -4096,6 +4096,20 @@
     "detail": "`atlas license` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output"
   },
   {
+    "probe": "atlas-cli-utility-runtime",
+    "fixture": "ptah atlas schema fmt",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema fmt` formats .hcl files recursively from the current directory and ignores non-HCL files"
+  },
+  {
+    "probe": "atlas-cli-utility-runtime",
+    "fixture": "ptah-compat atlas schema fmt",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`atlas schema fmt` formats .hcl files recursively through a ptah-compat binary named `atlas`"
+  },
+  {
     "probe": "atlas-cli-flags",
     "fixture": "atlas schema inspect",
     "stage": "flags",
