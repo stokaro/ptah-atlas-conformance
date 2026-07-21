@@ -197,6 +197,154 @@ echo "Usage: ptah-compat $* [flags]"
 	}
 }
 
+func TestAtlasCLIUtilityRuntimeProbeAcceptsExecutableUtilities(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, `#!/bin/sh
+case "$*" in
+  "atlas version"|"version")
+    printf 'Version: test\nCommit: deadbeef\n'
+    ;;
+  "atlas license"|"license")
+    printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
+    ;;
+  *)
+    printf 'unsupported %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+`)
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 4 {
+		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	}
+	for _, r := range results {
+		if r.Probe != "atlas-cli-utility-runtime" {
+			t.Fatalf("unexpected probe name: %#v", r)
+		}
+		if r.Outcome != OK {
+			t.Fatalf("expected utility runtime OK, got %#v", r)
+		}
+	}
+}
+
+func TestAtlasCLIUtilityRuntimeProbeRejectsPlaceholders(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, `#!/bin/sh
+case "$*" in
+  "atlas version")
+    printf 'atlas version is not implemented yet\n'
+    ;;
+  "version")
+    printf 'Version: test\nCommit: deadbeef\n'
+    ;;
+  "atlas license"|"license")
+    printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
+    ;;
+  *)
+    printf 'unsupported %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+`)
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 4 {
+		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	}
+	var foundGap bool
+	for _, r := range results {
+		if r.Fixture == "ptah atlas version" && r.Stage == "execute" && r.Outcome == Gap &&
+			strings.Contains(r.Detail, "unimplemented placeholder") {
+			foundGap = true
+		}
+	}
+	if !foundGap {
+		t.Fatalf("expected placeholder output to report a gap, got %#v", results)
+	}
+}
+
+func TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, `#!/bin/sh
+case "$*" in
+  "atlas version"|"version")
+    printf 'Version: test\nCommit: deadbeef\n'
+    ;;
+  "atlas license")
+    printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
+    ;;
+  "license")
+    printf 'runtime failure\n' >&2
+    exit 17
+    ;;
+  *)
+    printf 'unsupported %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+`)
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 4 {
+		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	}
+	var foundGap bool
+	for _, r := range results {
+		if r.Fixture == "ptah-compat atlas license" && r.Stage == "execute" && r.Outcome == Gap &&
+			strings.Contains(r.Detail, "exited non-zero") {
+			foundGap = true
+		}
+	}
+	if !foundGap {
+		t.Fatalf("expected non-zero execution to report a gap, got %#v", results)
+	}
+}
+
+func setFakePtahCLIBinaries(t *testing.T, bin string) {
+	t.Helper()
+
+	oldPtahPath, oldPtahErr := ptahBinPath, ptahBinErr
+	oldCompatPath, oldCompatErr := ptahCompatBinPath, ptahCompatBinErr
+	t.Setenv("PTAH_BIN", bin)
+	t.Setenv("PTAH_COMPAT_BIN", bin)
+	ptahBinPath, ptahBinErr, ptahBinOnce = "", nil, sync.Once{}
+	ptahCompatBinPath, ptahCompatBinErr, ptahCompatBinOnce = "", nil, sync.Once{}
+	t.Cleanup(func() {
+		ptahBinPath, ptahBinErr = oldPtahPath, oldPtahErr
+		ptahCompatBinPath, ptahCompatBinErr = oldCompatPath, oldCompatErr
+		ptahBinOnce = sync.Once{}
+		ptahCompatBinOnce = sync.Once{}
+	})
+}
+
 func TestAtlasHCLProbeReportsSchemaParseSupport(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "schema.hcl")

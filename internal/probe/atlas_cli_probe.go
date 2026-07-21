@@ -149,6 +149,107 @@ func (AtlasCompatBinarySurfaceProbe) Run(fx Fixture) []Result {
 	return out
 }
 
+// AtlasCLIUtilityRuntimeProbe proves Atlas utility commands execute, not merely
+// resolve to help. These commands have no database side effects and are useful
+// smoke tests for Atlas-compatible runtime wiring.
+type AtlasCLIUtilityRuntimeProbe struct{}
+
+func (AtlasCLIUtilityRuntimeProbe) Name() string { return "atlas-cli-utility-runtime" }
+
+func (AtlasCLIUtilityRuntimeProbe) Run(fx Fixture) []Result {
+	if fx.Name != atlasCLISentinel {
+		return nil
+	}
+
+	nativeBin, err := ptahBinary()
+	if err != nil {
+		return []Result{{"atlas-cli-utility-runtime", atlasCLISentinel, "build", Fail,
+			"could not build the Ptah CLI to probe Atlas utility runtime: " + oneLine(err.Error()), ""}}
+	}
+	compatBin, err := ptahCompatAtlasBinary()
+	if err != nil {
+		return []Result{{"atlas-cli-utility-runtime", atlasCLISentinel, "build", Fail,
+			"could not build the Ptah compatibility CLI to probe Atlas utility runtime: " + oneLine(err.Error()), ""}}
+	}
+
+	checks := []atlasUtilityRuntimeCheck{
+		{
+			fixture:  "ptah atlas version",
+			bin:      nativeBin,
+			path:     []string{"atlas", "version"},
+			display:  "ptah atlas version",
+			contains: []string{"Version:", "Commit:"},
+		},
+		{
+			fixture:  "ptah atlas license",
+			bin:      nativeBin,
+			path:     []string{"atlas", "license"},
+			display:  "ptah atlas license",
+			contains: []string{"License: MIT", "does not use Atlas source code"},
+		},
+		{
+			fixture:  "ptah-compat atlas version",
+			bin:      compatBin,
+			path:     []string{"version"},
+			display:  "atlas version",
+			contains: []string{"Version:", "Commit:"},
+			compat:   true,
+		},
+		{
+			fixture:  "ptah-compat atlas license",
+			bin:      compatBin,
+			path:     []string{"license"},
+			display:  "atlas license",
+			contains: []string{"License: MIT", "does not use Atlas source code"},
+			compat:   true,
+		},
+	}
+
+	out := make([]Result, 0, len(checks))
+	for _, check := range checks {
+		out = append(out, check.run())
+	}
+	return out
+}
+
+type atlasUtilityRuntimeCheck struct {
+	fixture  string
+	bin      string
+	path     []string
+	display  string
+	contains []string
+	compat   bool
+}
+
+func (c atlasUtilityRuntimeCheck) run() Result {
+	output, err := commandOutput(c.bin, c.path)
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); ok {
+			return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
+				"`" + c.display + "` exited non-zero: " + oneLine(output), "stokaro/ptah#510"}
+		}
+		return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Fail,
+			"executing `" + c.display + "` failed: " + oneLine(err.Error()), ""}
+	}
+
+	lower := strings.ToLower(output)
+	if strings.Contains(lower, "not implemented") || strings.Contains(lower, "unimplemented") {
+		return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
+			"`" + c.display + "` still reports an unimplemented placeholder", "stokaro/ptah#510"}
+	}
+	for _, want := range c.contains {
+		if !strings.Contains(output, want) {
+			return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
+				"`" + c.display + "` output does not contain " + want + ": " + oneLine(output), "stokaro/ptah#510"}
+		}
+	}
+	detail := "`" + c.display + "` executes and prints Ptah-owned utility output"
+	if c.compat {
+		detail = "`" + c.display + "` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output"
+	}
+	return Result{"atlas-cli-utility-runtime", c.fixture, "execute", OK, detail, ""}
+}
+
 // commandResolves reports whether `<bin> <path...> --help` resolves to the
 // requested command rather than falling back to the root help. cobra prints the
 // command's own "Usage:" line when the command exists, and the root usage
@@ -178,6 +279,14 @@ func commandResolves(bin string, path []string, wantUsage string) (bool, error) 
 		}
 	}
 	return false, nil
+}
+
+func commandOutput(bin string, path []string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, bin, path...)
+	outBytes, err := cmd.CombinedOutput()
+	return string(outBytes), err
 }
 
 func usageCommand(line string) string {
@@ -234,6 +343,7 @@ func buildPtahCommand(binaryName, packagePath string) (string, error) {
 	}
 	bin := filepath.Join(dir, binaryName)
 	cmd := exec.Command("go", "build", "-o", bin, packagePath)
+	cmd.Env = append(os.Environ(), "GOWORK=off")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return "", wrapBuildErr(err, out)
 	}
