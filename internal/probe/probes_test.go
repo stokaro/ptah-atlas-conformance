@@ -9,10 +9,8 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/stokaro/ptah/atlascompat"
 	"github.com/stokaro/ptah/core/ast"
-	"github.com/stokaro/ptah/core/atlashcl"
-	"github.com/stokaro/ptah/core/parser"
-	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
 )
 
@@ -2746,7 +2744,7 @@ table "users" {
 }
 `
 	normalized := txtarNormalizeAtlasHCL(fx, data)
-	db, err := atlashcl.Parse([]byte(normalized), "case.hcl")
+	db, err := atlascompat.ParseAtlasHCL([]byte(normalized), "case.hcl")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -5630,7 +5628,7 @@ func TestTxtarScriptProbeExecutesPostgresExecSQLUniqueConstraintInspect(t *testi
 schema "script_index_unique_constraint" {
 }
 `
-	list, err := parser.NewParser(sql).Parse()
+	list, err := atlascompat.ParseSQL(sql, atlascompat.ParseSQLOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -7174,7 +7172,7 @@ func atlasSumBytes(t *testing.T, files map[string]string) []byte {
 	for name, data := range files {
 		fsys[name] = &fstest.MapFile{Data: []byte(data)}
 	}
-	sum, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
+	sum, err := atlascompat.ComputeSum(fsys, migrator.MigrationDirFormatAtlas)
 	if err != nil {
 		t.Fatal(err)
 	}

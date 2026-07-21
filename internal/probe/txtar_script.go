@@ -17,11 +17,8 @@ import (
 	"testing/fstest"
 	"time"
 
+	"github.com/stokaro/ptah/atlascompat"
 	"github.com/stokaro/ptah/core/ast"
-	"github.com/stokaro/ptah/core/atlashcl"
-	"github.com/stokaro/ptah/core/convert/fromschema"
-	"github.com/stokaro/ptah/core/parser"
-	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
 )
 
@@ -686,7 +683,7 @@ func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarComma
 	if !ok {
 		return txtarCommandResult{failed: true, err: fmt.Errorf("migration directory %q missing", dir)}, true
 	}
-	sumPath := path.Join(dir, migratesum.AtlasFileName)
+	sumPath := path.Join(dir, atlascompat.AtlasSumFileName)
 	expected, ok := runtime.files[sumPath]
 	if !ok {
 		return txtarCommandResult{
@@ -696,7 +693,7 @@ func runTxtarMigrateValidate(runtime *txtarRuntime, fields []string) (txtarComma
 			err:    fmt.Errorf("checksum file not found"),
 		}, true
 	}
-	actual, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
+	actual, err := atlascompat.ComputeSum(fsys, migrator.MigrationDirFormatAtlas)
 	if err != nil {
 		return txtarCommandResult{err: err}, true
 	}
@@ -2750,7 +2747,7 @@ func txtarMigrateDiffStatements(fx Fixture, runtime *txtarRuntime, target string
 			statements, err = txtarMaterializeHCLApplyState(statements)
 		}
 	} else {
-		list, parseErr := parser.NewParser(data).Parse()
+		list, parseErr := atlascompat.ParseSQL(data, atlascompat.ParseSQLOptions{})
 		if parseErr != nil {
 			err = fmt.Errorf("%w: parse migrate diff target: %v", errUnsupportedInspectSQL, parseErr)
 		} else {
@@ -2887,11 +2884,11 @@ func (r *txtarRuntime) refreshMigrationHash(dir string) error {
 	if !ok {
 		return fmt.Errorf("migration directory %q missing", dir)
 	}
-	sum, err := migratesum.ComputeWithFormat(fsys, migrator.MigrationDirFormatAtlas)
+	sum, err := atlascompat.ComputeSum(fsys, migrator.MigrationDirFormatAtlas)
 	if err != nil {
 		return err
 	}
-	sumPath := path.Join(dir, migratesum.AtlasFileName)
+	sumPath := path.Join(dir, atlascompat.AtlasSumFileName)
 	r.files[sumPath] = string(sum.Bytes())
 	r.addParentDirs(sumPath)
 	return nil
@@ -2904,7 +2901,7 @@ func runTxtarMigrateSet(runtime *txtarRuntime, fields []string) (txtarCommandRes
 
 	args := fields[3:]
 	dir := txtarMigrateCommandDir(args)
-	if _, ok := runtime.files[path.Join(dir, migratesum.AtlasFileName)]; !ok {
+	if _, ok := runtime.files[path.Join(dir, atlascompat.AtlasSumFileName)]; !ok {
 		return txtarCommandResult{
 			stdout: "You have a checksum error in your migration directory.\n",
 			stderr: "Error: checksum file not found\n",
@@ -2983,7 +2980,7 @@ func runTxtarMigrateStatus(runtime *txtarRuntime, fields []string) (txtarCommand
 	}
 
 	dir := txtarMigrateCommandRuntimeDir(runtime, fields[3:])
-	if _, ok := runtime.files[path.Join(dir, migratesum.AtlasFileName)]; !ok {
+	if _, ok := runtime.files[path.Join(dir, atlascompat.AtlasSumFileName)]; !ok {
 		return txtarCommandResult{unsupported: "atlas migrate status"}, true
 	}
 	files := txtarMigrationSQLFilesInDir(runtime, dir)
@@ -3755,7 +3752,7 @@ func runTxtarMigrateApply(fx Fixture, runtime *txtarRuntime, fields []string) (t
 	if args.blocked {
 		return txtarCommandResult{unsupported: "atlas migrate apply"}, true
 	}
-	if _, ok := runtime.files[path.Join(args.dir, migratesum.AtlasFileName)]; !ok {
+	if _, ok := runtime.files[path.Join(args.dir, atlascompat.AtlasSumFileName)]; !ok {
 		return txtarCommandResult{
 			stdout: "You have a checksum error in your migration directory.\nRun 'atlas migrate hash' to create or update the checksum file.\n",
 			stderr: "Error: checksum file not found\n",
@@ -4370,7 +4367,7 @@ func txtarParseMigrationStatementsForDialect(data string, dialect string) txtarP
 			statements = append(statements, fallback)
 			continue
 		}
-		list, err := parser.NewParser(stmt + ";").Parse()
+		list, err := atlascompat.ParseSQL(stmt+";", atlascompat.ParseSQLOptions{})
 		if err != nil {
 			if len(statements) == 0 {
 				return txtarParsedMigrationStatements{err: err}
@@ -4466,7 +4463,7 @@ func txtarParseGeneratedPrimaryKeyAlterStatement(stmt string) (ast.Node, bool) {
 
 func txtarParseGeneratedAlterOperation(tableName, operation string) (ast.AlterOperation, bool) {
 	sql := fmt.Sprintf("ALTER TABLE %s %s;", atlasIdentifierQuoter("mysql")(tableName), operation)
-	list, err := parser.NewParser(sql).Parse()
+	list, err := atlascompat.ParseSQL(sql, atlascompat.ParseSQLOptions{})
 	if err != nil || len(list.Statements) != 1 {
 		return nil, false
 	}
@@ -5560,11 +5557,11 @@ func txtarMySQLApplyIndexTypeSupported(indexType string) bool {
 
 func txtarHCLStatements(fx Fixture, name, data string) ([]ast.Node, error) {
 	data = txtarNormalizeAtlasHCL(fx, data)
-	db, err := atlashcl.Parse([]byte(data), name)
+	db, err := atlascompat.ParseAtlasHCL([]byte(data), name)
 	if err != nil {
 		return nil, fmt.Errorf("%w: parse HCL file: %v", errUnsupportedInspectHCL, err)
 	}
-	list := fromschema.FromDatabase(*db, txtarFixtureDialect(fx))
+	list := atlascompat.SchemaToAST(*db, txtarFixtureDialect(fx))
 	return txtarOrderHCLStatementsByTableBlocks(fx, data, list.Statements), nil
 }
 
@@ -5640,7 +5637,7 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 	}
 	switch txtarFixtureFamily(fx) {
 	case "sqlite":
-		list, err := parser.NewParser(fields[1]).Parse()
+		list, err := atlascompat.ParseSQL(fields[1], atlascompat.ParseSQLOptions{})
 		if err != nil {
 			return txtarCommandResult{unsupported: "execsql"}, true
 		}
@@ -5656,7 +5653,7 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 			runtime.partitionChildren[tableName]++
 			return txtarCommandResult{}, true
 		}
-		list, err := parser.NewParser(fields[1]).Parse()
+		list, err := atlascompat.ParseSQL(fields[1], atlascompat.ParseSQLOptions{})
 		if err != nil || !txtarPostgresVirtualApplyStateSupported(list.Statements) {
 			return txtarCommandResult{unsupported: "execsql"}, true
 		}
@@ -7113,7 +7110,7 @@ func txtarParseExpectedShowSQL(data string) ([]ast.Node, error) {
 	if !strings.HasSuffix(data, ";") {
 		data += ";"
 	}
-	list, err := parser.NewParser(data).Parse()
+	list, err := atlascompat.ParseSQL(data, atlascompat.ParseSQLOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -7954,7 +7951,7 @@ func markUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsup
 		case "diff":
 			unsupportedFiles[txtarMigrateCommandRuntimeDir(runtime, fields[3:])] = true
 		case "hash":
-			unsupportedFiles[path.Join(txtarMigrateHashDir(runtime, fields[3:]), migratesum.AtlasFileName)] = true
+			unsupportedFiles[path.Join(txtarMigrateHashDir(runtime, fields[3:]), atlascompat.AtlasSumFileName)] = true
 		}
 	}
 }
@@ -7987,7 +7984,7 @@ func clearUnsupportedFileCommandOutputs(line string, runtime *txtarRuntime, unsu
 		}
 	case "atlas":
 		if len(fields) >= 3 && fields[1] == "migrate" && fields[2] == "hash" {
-			delete(unsupportedFiles, path.Join(txtarMigrateHashDir(runtime, fields[3:]), migratesum.AtlasFileName))
+			delete(unsupportedFiles, path.Join(txtarMigrateHashDir(runtime, fields[3:]), atlascompat.AtlasSumFileName))
 		}
 	}
 }
@@ -8479,7 +8476,7 @@ func renderTxtarHCL(fx Fixture, name, data string) (string, error) {
 }
 
 func renderTxtarHCLFromSQL(fx Fixture, sql string) (string, error) {
-	list, err := parser.NewParser(sql).Parse()
+	list, err := atlascompat.ParseSQL(sql, atlascompat.ParseSQLOptions{})
 	if err != nil {
 		return "", fmt.Errorf("%w: parse inspect file: %v", errUnsupportedInspectHCL, err)
 	}
@@ -8636,7 +8633,7 @@ func atlasInspectConstraintColumnsKept(constraint *ast.ConstraintNode, keptColum
 }
 
 func renderTxtarSQL(fx Fixture, sql string, indent string) (string, error) {
-	list, err := parser.NewParser(sql).Parse()
+	list, err := atlascompat.ParseSQL(sql, atlascompat.ParseSQLOptions{})
 	if err != nil {
 		return "", fmt.Errorf("parse inspect file: %w", err)
 	}

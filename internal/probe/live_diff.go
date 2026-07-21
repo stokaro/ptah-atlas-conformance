@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stokaro/ptah/core/atlashcl"
-	"github.com/stokaro/ptah/core/convert/dbschematogo"
+	"github.com/stokaro/ptah/atlascompat"
 	"github.com/stokaro/ptah/core/goschema"
 	"github.com/stokaro/ptah/core/renderer"
 	"github.com/stokaro/ptah/dbschema"
@@ -55,8 +54,12 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 	}
 
 	var stmts []string
-	if panicked, pmsg := guard(func() { stmts = renderer.GetOrderedCreateStatements(desired, dialect) }); panicked {
+	var renderErr error
+	if panicked, pmsg := guard(func() { stmts, renderErr = renderer.GetOrderedCreateStatements(desired, dialect) }); panicked {
 		return []Result{{"atlas-differential", name, "render", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
+	}
+	if renderErr != nil {
+		return []Result{{"atlas-differential", name, "render", Gap, oneLine(renderErr.Error()), "stokaro/ptah#128"}}
 	}
 	for _, s := range stmts {
 		if _, err := conn.ExecContext(ctx, s); err != nil {
@@ -73,7 +76,7 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 		return []Result{{"atlas-differential", name, "atlas-inspect", Fail, oneLine(err.Error()), ""}}
 	}
 	var atlasDB *goschema.Database
-	if panicked, pmsg := guard(func() { atlasDB, err = atlashcl.Parse(atlasHCL, "atlas.hcl") }); panicked {
+	if panicked, pmsg := guard(func() { atlasDB, err = atlascompat.ParseAtlasHCL(atlasHCL, "atlas.hcl") }); panicked {
 		return []Result{{"atlas-differential", name, "atlas-hcl", Panic, oneLine(pmsg), "stokaro/ptah#276"}}
 	}
 	if err != nil {
@@ -90,7 +93,7 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 	}
 	var ptahFacts tableFacts
 	if panicked, pmsg := guard(func() {
-		ptahFacts = factsFromDatabase(dbschematogo.ConvertDBSchemaToGoSchema(got))
+		ptahFacts = factsFromDatabase(atlascompat.DBSchemaToGoSchema(got))
 	}); panicked {
 		return []Result{{"atlas-differential", name, "ptah-convert", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
 	}
