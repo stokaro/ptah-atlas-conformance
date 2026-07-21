@@ -11,11 +11,9 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/stokaro/ptah/core/atlashcl"
-	"github.com/stokaro/ptah/core/parser"
+	"github.com/stokaro/ptah/atlascompat"
 	"github.com/stokaro/ptah/dbschema"
 	"github.com/stokaro/ptah/migration/lint"
-	"github.com/stokaro/ptah/migration/migratesum"
 	"github.com/stokaro/ptah/migration/migrator"
 )
 
@@ -145,7 +143,7 @@ func (AtlasHCLProbe) Run(fx Fixture) []Result {
 	var fieldCount int
 	var parseErr error
 	panicked, pmsg := guard(func() {
-		db, err := atlashcl.Parse(data, fx.Files[0])
+		db, err := atlascompat.ParseAtlasHCL(data, fx.Files[0])
 		parseErr = err
 		if db != nil {
 			tableCount = len(db.Tables)
@@ -247,7 +245,7 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		var stmts int
 		var perr error
 		panicked, pmsg := guard(func() {
-			list, e := parser.NewParser(sql).Parse()
+			list, e := atlascompat.ParseSQL(sql, atlascompat.ParseSQLOptions{})
 			perr = e
 			if list != nil {
 				stmts = len(list.Statements)
@@ -484,9 +482,9 @@ func (SumProbe) Run(fx Fixture) []Result {
 	var out []Result
 
 	// (a) Can Ptah's parser read Atlas's atlas.sum byte stream?
-	var atlasSum *migratesum.SumFile
+	var atlasSum *atlascompat.SumFile
 	panicked, pmsg := guard(func() {
-		atlasSum, err = migratesum.Parse(data)
+		atlasSum, err = atlascompat.ParseSum(data)
 	})
 	switch {
 	case panicked:
@@ -501,9 +499,9 @@ func (SumProbe) Run(fx Fixture) []Result {
 	}
 
 	// (b) Does Ptah's own hash of the directory reproduce Atlas's hashes?
-	var ptahSum *migratesum.SumFile
+	var ptahSum *atlascompat.SumFile
 	panicked, pmsg = guard(func() {
-		ptahSum, err = migratesum.Compute(os.DirFS(fx.Dir))
+		ptahSum, err = atlascompat.ComputeSum(os.DirFS(fx.Dir), migrator.MigrationDirFormatAuto)
 	})
 	switch {
 	case panicked:

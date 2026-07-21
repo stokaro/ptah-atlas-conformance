@@ -38,9 +38,13 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 	}
 
 	var stmts []string
-	panicked, pmsg := guard(func() { stmts = renderer.GetOrderedCreateStatements(desired, dialect) })
+	var renderErr error
+	panicked, pmsg := guard(func() { stmts, renderErr = renderer.GetOrderedCreateStatements(desired, dialect) })
 	if panicked {
 		return []Result{{"roundtrip-consistency", name, "render", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
+	}
+	if renderErr != nil {
+		return []Result{{"roundtrip-consistency", name, "render", Gap, oneLine(renderErr.Error()), "stokaro/ptah#128"}}
 	}
 	for _, s := range stmts {
 		if _, err := conn.ExecContext(ctx, s); err != nil {
