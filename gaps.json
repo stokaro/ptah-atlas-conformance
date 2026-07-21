@@ -3886,6 +3886,188 @@
     "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
   },
   {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas version",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas version` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas license",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas license` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema inspect",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas schema inspect` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema apply",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas schema apply` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema diff",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas schema diff` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema fmt",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas schema fmt` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema clean",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas schema clean` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate apply",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate apply` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate diff",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate diff` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate down",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate down` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate hash",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate hash` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate import",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate import` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate lint",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate lint` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate new",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate new` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate set",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate set` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate status",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate status` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate validate",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`atlas migrate validate` resolves through a ptah-compat binary named `atlas`"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema test",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema plan",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas schema push",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate checkpoint",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate rebase",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate rm",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate edit",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate push",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
+    "probe": "atlas-compat-binary-surface",
+    "fixture": "atlas migrate test",
+    "stage": "out-of-scope",
+    "outcome": "ok",
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
+  },
+  {
     "probe": "atlas-cli-flags",
     "fixture": "atlas schema inspect",
     "stage": "flags",
