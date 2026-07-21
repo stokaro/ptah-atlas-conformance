@@ -51,9 +51,9 @@
   {
     "probe": "roundtrip-consistency",
     "fixture": "mysql/03-view",
-    "stage": "apply",
-    "outcome": "gap",
-    "detail": "Ptah-rendered DDL failed to apply to a real database: Error 1067 (42000): Invalid default value for 'archived'"
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 1 view(s), 0 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
