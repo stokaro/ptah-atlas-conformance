@@ -3768,6 +3768,13 @@
   },
   {
     "probe": "atlas-cli-surface",
+    "fixture": "atlas migrate down",
+    "stage": "resolve",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate down` resolves"
+  },
+  {
+    "probe": "atlas-cli-surface",
     "fixture": "atlas migrate hash",
     "stage": "resolve",
     "outcome": "ok",
@@ -3839,13 +3846,6 @@
   {
     "probe": "atlas-cli-surface",
     "fixture": "atlas migrate checkpoint",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate down",
     "stage": "out-of-scope",
     "outcome": "ok",
     "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
@@ -3926,6 +3926,14 @@
     "stage": "flags",
     "outcome": "ok",
     "detail": "accepts all essential Atlas flags: --url --dir --dry-run --tx-mode"
+  },
+  {
+    "probe": "atlas-cli-flags",
+    "fixture": "atlas migrate down",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate down` does not accept --dev-url, --dir, --dry-run, --format, --lock-timeout, --plan, --revisions-schema, --skip-checks, --to-tag, --to-version, --url — the command resolves but is not yet flag-compatible with Atlas",
+    "issue": "stokaro/ptah#510"
   },
   {
     "probe": "atlas-cli-flags",

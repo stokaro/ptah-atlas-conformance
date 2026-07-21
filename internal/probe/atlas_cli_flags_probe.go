@@ -27,6 +27,7 @@ var atlasVerbFlags = []struct {
 	{"atlas schema clean", []string{"atlas", "schema", "clean"}, []string{"--url", "--dry-run", "--auto-approve"}},
 	{"atlas migrate diff", []string{"atlas", "migrate", "diff"}, []string{"--to", "--dev-url", "--dir", "--format"}},
 	{"atlas migrate apply", []string{"atlas", "migrate", "apply"}, []string{"--url", "--dir", "--dry-run", "--tx-mode"}},
+	{"atlas migrate down", []string{"atlas", "migrate", "down"}, []string{"--url", "--dir", "--dev-url", "--to-version", "--to-tag", "--dry-run", "--format", "--revisions-schema", "--lock-timeout", "--skip-checks", "--plan"}},
 	{"atlas migrate lint", []string{"atlas", "migrate", "lint"}, []string{"--dev-url", "--dir", "--latest"}},
 	{"atlas migrate hash", []string{"atlas", "migrate", "hash"}, []string{"--dir"}},
 	{"atlas migrate status", []string{"atlas", "migrate", "status"}, []string{"--url", "--dir"}},
@@ -76,7 +77,7 @@ func (AtlasCLIFlagsProbe) Run(fx Fixture) []Result {
 			sort.Strings(missing)
 			out = append(out, Result{"atlas-cli-flags", v.AtlasCmd, "flags", Gap,
 				"`ptah " + strings.Join(v.Path, " ") + "` does not accept " + strings.Join(missing, ", ") +
-					" — the command resolves but is not yet flag-compatible with Atlas", "stokaro/ptah#268"})
+					" — the command resolves but is not yet flag-compatible with Atlas", "stokaro/ptah#510"})
 		}
 	}
 	return out

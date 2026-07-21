@@ -6,21 +6,23 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: PARITY on the current corpus
+## Status: NOT DONE — 1 non-OK observation(s)
 
-Every fixture is covered. The conformance gate is green.
+The conformance gate is **red** and stays red until these close. This is by
+design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260721173411-5bb6bd6da81e`
-- Outcomes: **636 ok**, **0 gap**, **0 fail**, **0 panic**
-- Full gate: **0 non-OK** (passes CI)
-- Regression budget input: **0 unwaived non-OK**, 0 waived
+- Outcomes: **636 ok**, **1 gap**, **0 fail**, **0 panic**
+- Full gate: **1 non-OK** (fails CI)
+- Regression budget input: **1 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **gap** | atlas-cli-flags | `atlas migrate down` | flags | `ptah atlas migrate down` does not accept --dev-url, --dir, --dry-run, --format, --lock-timeout, --plan, --revisions-schema, --skip-checks, --to-tag, --to-version, --url — the command resolves but is not yet flag-compatible with Atlas | #510 |
 | — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode |  |
 | — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format |  |
 | — | ok | atlas-cli-flags | `atlas migrate hash` | flags | accepts all essential Atlas flags: --dir |  |
@@ -38,7 +40,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-surface | `atlas migrate apply` | resolve | `ptah atlas migrate apply` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas migrate diff` | resolve | `ptah atlas migrate diff` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate down` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-cli-surface | `atlas migrate down` | resolve | `ptah atlas migrate down` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate edit` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas migrate hash` | resolve | `ptah atlas migrate hash` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate import` | resolve | `ptah atlas migrate import` resolves |  |
@@ -657,3 +659,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | executed 6 supported command(s) |  |
+
+## Gaps by related issue
+
+- **stokaro/ptah#510** — 1 finding(s)
