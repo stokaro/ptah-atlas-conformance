@@ -44,9 +44,9 @@
   {
     "probe": "roundtrip-consistency",
     "fixture": "mysql/02-enum",
-    "stage": "apply",
-    "outcome": "gap",
-    "detail": "Ptah-rendered DDL failed to apply to a real database: Error 1065 (42000): Query was empty"
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 1 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
