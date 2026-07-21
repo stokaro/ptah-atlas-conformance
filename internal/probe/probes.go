@@ -30,6 +30,7 @@ func AllProbes() []Probe {
 		LintProbe{},
 		AtlasCLISurfaceProbe{},
 		AtlasCompatBinarySurfaceProbe{},
+		AtlasCLIUtilityRuntimeProbe{},
 		AtlasCLIFlagsProbe{},
 		AtlasLintAnalyzerProbe{},
 		LexSplitParityProbe{},

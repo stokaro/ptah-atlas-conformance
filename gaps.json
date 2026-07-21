@@ -4068,6 +4068,34 @@
     "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
   },
   {
+    "probe": "atlas-cli-utility-runtime",
+    "fixture": "ptah atlas version",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas version` executes and prints Ptah-owned utility output"
+  },
+  {
+    "probe": "atlas-cli-utility-runtime",
+    "fixture": "ptah atlas license",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas license` executes and prints Ptah-owned utility output"
+  },
+  {
+    "probe": "atlas-cli-utility-runtime",
+    "fixture": "ptah-compat atlas version",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`atlas version` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output"
+  },
+  {
+    "probe": "atlas-cli-utility-runtime",
+    "fixture": "ptah-compat atlas license",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`atlas license` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output"
+  },
+  {
     "probe": "atlas-cli-flags",
     "fixture": "atlas schema inspect",
     "stage": "flags",

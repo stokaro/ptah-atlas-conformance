@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260721203106-1b371337ace1`
-- Outcomes: **663 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260721212313-52887ff8db4c`
+- Outcomes: **667 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -61,6 +61,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas version` | resolve | `ptah atlas version` resolves |  |
+| — | ok | atlas-cli-utility-runtime | `ptah atlas license` | execute | `ptah atlas license` executes and prints Ptah-owned utility output |  |
+| — | ok | atlas-cli-utility-runtime | `ptah atlas version` | execute | `ptah atlas version` executes and prints Ptah-owned utility output |  |
+| — | ok | atlas-cli-utility-runtime | `ptah-compat atlas license` | execute | `atlas license` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
+| — | ok | atlas-cli-utility-runtime | `ptah-compat atlas version` | execute | `atlas version` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
 | — | ok | atlas-compat-binary-surface | `atlas license` | resolve | `atlas license` resolves through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-compat-binary-surface | `atlas migrate apply` | resolve | `atlas migrate apply` resolves through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-compat-binary-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
