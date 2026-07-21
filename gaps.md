@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260721194318-1371c89cac95`
-- Outcomes: **637 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260721203106-1b371337ace1`
+- Outcomes: **663 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -61,6 +61,32 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-cli-surface | `atlas version` | resolve | `ptah atlas version` resolves |  |
+| — | ok | atlas-compat-binary-surface | `atlas license` | resolve | `atlas license` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate apply` | resolve | `atlas migrate apply` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate diff` | resolve | `atlas migrate diff` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate down` | resolve | `atlas migrate down` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate edit` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate hash` | resolve | `atlas migrate hash` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate import` | resolve | `atlas migrate import` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate lint` | resolve | `atlas migrate lint` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate new` | resolve | `atlas migrate new` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate rebase` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate rm` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate set` | resolve | `atlas migrate set` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate status` | resolve | `atlas migrate status` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate validate` | resolve | `atlas migrate validate` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema apply` | resolve | `atlas schema apply` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema clean` | resolve | `atlas schema clean` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema diff` | resolve | `atlas schema diff` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema fmt` | resolve | `atlas schema fmt` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema inspect` | resolve | `atlas schema inspect` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema plan` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
+| — | ok | atlas-compat-binary-surface | `atlas version` | resolve | `atlas version` resolves through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 1 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 2 field(s) |  |

@@ -89,7 +89,8 @@ func (AtlasCLISurfaceProbe) Run(fx Fixture) []Result {
 				"cloud/registry or Pro-only Atlas command; not an OSS drop-in target", ""})
 			continue
 		}
-		exists, cerr := commandResolves(bin, v.Path)
+		wantUsage := "ptah " + strings.Join(v.Path, " ")
+		exists, cerr := commandResolves(bin, v.Path, wantUsage)
 		switch {
 		case cerr != nil:
 			out = append(out, Result{"atlas-cli-surface", v.AtlasCmd, "resolve", Fail,
@@ -106,12 +107,55 @@ func (AtlasCLISurfaceProbe) Run(fx Fixture) []Result {
 	return out
 }
 
+// AtlasCompatBinarySurfaceProbe measures the binary-level drop-in surface. It
+// builds Ptah's compatibility binary under the executable name `atlas`, then
+// verifies the same OSS command paths without the native `ptah atlas` prefix.
+type AtlasCompatBinarySurfaceProbe struct{}
+
+func (AtlasCompatBinarySurfaceProbe) Name() string { return "atlas-compat-binary-surface" }
+
+func (AtlasCompatBinarySurfaceProbe) Run(fx Fixture) []Result {
+	if fx.Name != atlasCLISentinel {
+		return nil
+	}
+	bin, err := ptahCompatAtlasBinary()
+	if err != nil {
+		return []Result{{"atlas-compat-binary-surface", atlasCLISentinel, "build", Fail,
+			"could not build the Ptah compatibility CLI to probe its command surface: " + oneLine(err.Error()), ""}}
+	}
+
+	var out []Result
+	for _, v := range atlasCLIVerbs {
+		if !v.OSS {
+			out = append(out, Result{"atlas-compat-binary-surface", v.AtlasCmd, "out-of-scope", OK,
+				"cloud/registry or Pro-only Atlas command; not an OSS drop-in target", ""})
+			continue
+		}
+		path := v.Path[1:]
+		exists, cerr := commandResolves(bin, path, v.AtlasCmd)
+		switch {
+		case cerr != nil:
+			out = append(out, Result{"atlas-compat-binary-surface", v.AtlasCmd, "resolve", Fail,
+				"probing `" + v.AtlasCmd + "` via ptah-compat failed: " + oneLine(cerr.Error()), ""})
+		case exists:
+			out = append(out, Result{"atlas-compat-binary-surface", v.AtlasCmd, "resolve", OK,
+				"`" + v.AtlasCmd + "` resolves through a ptah-compat binary named `atlas`", ""})
+		default:
+			out = append(out, Result{"atlas-compat-binary-surface", v.AtlasCmd, "resolve", Gap,
+				"Ptah compatibility binary named `atlas` has no `" + strings.Join(path, " ") + "` command",
+				"stokaro/ptah#514"})
+		}
+	}
+	return out
+}
+
 // commandResolves reports whether `<bin> <path...> --help` resolves to the
 // requested command rather than falling back to the root help. cobra prints the
-// command's own "Usage:" line (containing the full token path) when the command
-// exists, and the root usage otherwise. `--help` never executes the command, so
-// this is side-effect free even for verbs like `schema apply`.
-func commandResolves(bin string, path []string) (bool, error) {
+// command's own "Usage:" line when the command exists, and the root usage
+// otherwise. `wantUsage` must include the intended binary name, so the
+// compatibility probe proves `atlas migrate apply` instead of only proving a
+// suffix such as `migrate apply`.
+func commandResolves(bin string, path []string, wantUsage string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	args := append(append([]string{}, path...), "--help")
@@ -127,22 +171,31 @@ func commandResolves(bin string, path []string) (bool, error) {
 			return false, err
 		}
 	}
-	joined := strings.Join(path, " ")
 	for _, line := range strings.Split(string(outBytes), "\n") {
-		line = strings.TrimSpace(line)
-		// A resolved command's usage line ends with "<binary> <path> [flags]" or
-		// "<binary> <path> [command]"; the root fallback never contains the path.
-		if strings.Contains(line, " "+joined+" ") || strings.HasSuffix(line, " "+joined) {
+		line = usageCommand(line)
+		if line == wantUsage || strings.HasPrefix(line, wantUsage+" ") {
 			return true, nil
 		}
 	}
 	return false, nil
 }
 
+func usageCommand(line string) string {
+	line = strings.TrimSpace(line)
+	if rest, ok := strings.CutPrefix(line, "Usage:"); ok {
+		return strings.TrimSpace(rest)
+	}
+	return line
+}
+
 var (
 	ptahBinOnce sync.Once
 	ptahBinPath string
 	ptahBinErr  error
+
+	ptahCompatBinOnce sync.Once
+	ptahCompatBinPath string
+	ptahCompatBinErr  error
 )
 
 // ptahBinary builds the pinned Ptah CLI once per process and returns its path.
@@ -155,20 +208,36 @@ func ptahBinary() (string, error) {
 			ptahBinPath = env
 			return
 		}
-		dir, err := os.MkdirTemp("", "ptah-cli-*")
-		if err != nil {
-			ptahBinErr = err
-			return
-		}
-		bin := filepath.Join(dir, "ptah")
-		cmd := exec.Command("go", "build", "-o", bin, "github.com/stokaro/ptah/cmd/ptah")
-		if out, err := cmd.CombinedOutput(); err != nil {
-			ptahBinErr = wrapBuildErr(err, out)
-			return
-		}
-		ptahBinPath = bin
+		ptahBinPath, ptahBinErr = buildPtahCommand("ptah", "github.com/stokaro/ptah/cmd/ptah")
 	})
 	return ptahBinPath, ptahBinErr
+}
+
+// ptahCompatAtlasBinary builds the pinned Ptah compatibility CLI under the
+// executable name `atlas`, so help and usage strings are measured in the exact
+// drop-in shape existing Atlas scripts use.
+func ptahCompatAtlasBinary() (string, error) {
+	ptahCompatBinOnce.Do(func() {
+		if env := strings.TrimSpace(os.Getenv("PTAH_COMPAT_BIN")); env != "" {
+			ptahCompatBinPath = env
+			return
+		}
+		ptahCompatBinPath, ptahCompatBinErr = buildPtahCommand("atlas", "github.com/stokaro/ptah/cmd/ptah-compat")
+	})
+	return ptahCompatBinPath, ptahCompatBinErr
+}
+
+func buildPtahCommand(binaryName, packagePath string) (string, error) {
+	dir, err := os.MkdirTemp("", "ptah-cli-*")
+	if err != nil {
+		return "", err
+	}
+	bin := filepath.Join(dir, binaryName)
+	cmd := exec.Command("go", "build", "-o", bin, packagePath)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", wrapBuildErr(err, out)
+	}
+	return bin, nil
 }
 
 func wrapBuildErr(err error, out []byte) error {

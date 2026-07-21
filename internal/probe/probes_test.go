@@ -5,7 +5,9 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"testing/fstest"
 
@@ -109,6 +111,89 @@ func TestCorpusProbeClassifiesAtlasSDKTemplateRunnerFixturesAsOutOfScope(t *test
 			t.Fatalf("expected out-of-scope stage, got %#v", result[0])
 		}
 		assertResultDetailContains(t, result, "no database schema or migration surface")
+	}
+}
+
+func TestAtlasCompatBinarySurfaceProbeUsesAtlasShapedPaths(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "atlas")
+	writeTestFile(t, bin, `#!/bin/sh
+if [ "$1" = "atlas" ]; then
+  echo "Usage: atlas [command]"
+  exit 0
+fi
+echo "Usage: atlas $* [flags]"
+`)
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	oldPath, oldErr := ptahCompatBinPath, ptahCompatBinErr
+	t.Setenv("PTAH_COMPAT_BIN", bin)
+	ptahCompatBinPath, ptahCompatBinErr, ptahCompatBinOnce = "", nil, sync.Once{}
+	t.Cleanup(func() {
+		ptahCompatBinPath, ptahCompatBinErr = oldPath, oldErr
+		ptahCompatBinOnce = sync.Once{}
+	})
+
+	results := AtlasCompatBinarySurfaceProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != len(atlasCLIVerbs) {
+		t.Fatalf("expected %d results, got %d: %#v", len(atlasCLIVerbs), len(results), results)
+	}
+	for _, r := range results {
+		if r.Probe != "atlas-compat-binary-surface" {
+			t.Fatalf("unexpected probe name: %#v", r)
+		}
+		if r.Outcome != OK {
+			t.Fatalf("expected all compatibility surface results to be OK with fake binary, got %#v", r)
+		}
+		if r.Stage == "resolve" && strings.Contains(r.Detail, "ptah atlas") {
+			t.Fatalf("compat probe leaked native ptah atlas path: %#v", r)
+		}
+	}
+}
+
+func TestAtlasCompatBinarySurfaceProbeRejectsPtahCompatUsage(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "atlas")
+	writeTestFile(t, bin, `#!/bin/sh
+echo "Usage: ptah-compat $* [flags]"
+`)
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	oldPath, oldErr := ptahCompatBinPath, ptahCompatBinErr
+	t.Setenv("PTAH_COMPAT_BIN", bin)
+	ptahCompatBinPath, ptahCompatBinErr, ptahCompatBinOnce = "", nil, sync.Once{}
+	t.Cleanup(func() {
+		ptahCompatBinPath, ptahCompatBinErr = oldPath, oldErr
+		ptahCompatBinOnce = sync.Once{}
+	})
+
+	results := AtlasCompatBinarySurfaceProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != len(atlasCLIVerbs) {
+		t.Fatalf("expected %d results, got %d: %#v", len(atlasCLIVerbs), len(results), results)
+	}
+	var gaps int
+	for _, r := range results {
+		if r.Stage == "resolve" {
+			if r.Outcome != Gap {
+				t.Fatalf("expected Atlas-shaped usage mismatch to report a gap, got %#v", r)
+			}
+			gaps++
+		}
+	}
+	if gaps == 0 {
+		t.Fatalf("expected at least one resolve gap, got %#v", results)
 	}
 }
 
