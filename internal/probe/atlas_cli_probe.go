@@ -29,12 +29,10 @@ type CLIVerb struct {
 
 // atlasCLIVerbs is the full Atlas CLI surface. OSS verbs must eventually resolve
 // under `ptah atlas ...`; cloud/registry/Pro verbs are out of OSS scope and only
-// recorded. The OSS split is grounded in the Apache-2.0 source at the pinned
-// commit (ariga/atlas@a5e0aecc): cmd/atlas/internal/cmdapi/migrate.go defines
-// exactly apply/diff/hash/import/lint/new/set/status/validate, and schema.go
-// defines inspect/apply/diff/fmt/clean. Commands absent from that source at the
-// pin (schema test/plan/push, migrate down/rebase/rm/edit/checkpoint/push/test)
-// are cloud/registry/Pro and are not OSS drop-in targets.
+// recorded. The split is grounded in Atlas's documented open CLI feature
+// surface and current CLI reference. In particular, `atlas migrate down` is an
+// OSS versioned-migration command even though Ptah still has behavior and flag
+// gaps behind its resolving command path.
 var atlasCLIVerbs = []CLIVerb{
 	{"atlas version", []string{"atlas", "version"}, true},
 	{"atlas license", []string{"atlas", "license"}, true},
@@ -45,6 +43,7 @@ var atlasCLIVerbs = []CLIVerb{
 	{"atlas schema clean", []string{"atlas", "schema", "clean"}, true},
 	{"atlas migrate apply", []string{"atlas", "migrate", "apply"}, true},
 	{"atlas migrate diff", []string{"atlas", "migrate", "diff"}, true},
+	{"atlas migrate down", []string{"atlas", "migrate", "down"}, true},
 	{"atlas migrate hash", []string{"atlas", "migrate", "hash"}, true},
 	{"atlas migrate import", []string{"atlas", "migrate", "import"}, true},
 	{"atlas migrate lint", []string{"atlas", "migrate", "lint"}, true},
@@ -57,7 +56,6 @@ var atlasCLIVerbs = []CLIVerb{
 	{"atlas schema plan", []string{"atlas", "schema", "plan"}, false},
 	{"atlas schema push", []string{"atlas", "schema", "push"}, false},
 	{"atlas migrate checkpoint", []string{"atlas", "migrate", "checkpoint"}, false},
-	{"atlas migrate down", []string{"atlas", "migrate", "down"}, false},
 	{"atlas migrate rebase", []string{"atlas", "migrate", "rebase"}, false},
 	{"atlas migrate rm", []string{"atlas", "migrate", "rm"}, false},
 	{"atlas migrate edit", []string{"atlas", "migrate", "edit"}, false},
@@ -102,7 +100,7 @@ func (AtlasCLISurfaceProbe) Run(fx Fixture) []Result {
 		default:
 			out = append(out, Result{"atlas-cli-surface", v.AtlasCmd, "resolve", Gap,
 				"Ptah has no `" + strings.Join(v.Path, " ") + "` command; the `ptah atlas ...` " +
-					"drop-in namespace is unimplemented", "stokaro/ptah#268"})
+					"drop-in namespace is unimplemented", "stokaro/ptah#510"})
 		}
 	}
 	return out

@@ -68,8 +68,8 @@ that when they go green Ptah genuinely covers that dimension:
 - **`atlas-cli-surface`** enumerates the complete Atlas OSS CLI verb set and
   checks, against the real Ptah binary, whether `ptah atlas <verb>` resolves.
   When every OSS row is green, `ptah atlas ...` is a CLI drop-in. The OSS vs
-  cloud/Pro split is taken from the Apache-2.0 `cmdapi` source at the pinned
-  commit, not guessed.
+  cloud/Pro split is taken from Atlas's documented open CLI feature surface, the
+  current CLI reference, and the pinned Apache-2.0 source where it is available.
 - **`lint-analyzer-catalog`** covers the full set of Atlas analyzer concerns that
   fire by default in an OSS build — the DS, MF (data-dependent), BC, CD, PG1, PG3,
   PG110, MY, LT and TX families. This is the "lint matrix" listed below as a
