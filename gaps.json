@@ -3931,9 +3931,8 @@
     "probe": "atlas-cli-flags",
     "fixture": "atlas migrate down",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "`ptah atlas migrate down` does not accept --dev-url, --dir, --dry-run, --format, --lock-timeout, --plan, --revisions-schema, --skip-checks, --to-tag, --to-version, --url — the command resolves but is not yet flag-compatible with Atlas",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "accepts all essential Atlas flags: --url --dir --dev-url --to-version --to-tag --dry-run --format --revisions-schema --lock-timeout --skip-checks --plan"
   },
   {
     "probe": "atlas-cli-flags",

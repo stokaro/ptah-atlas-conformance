@@ -6,25 +6,24 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260721173411-5bb6bd6da81e`
-- Outcomes: **636 ok**, **1 gap**, **0 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **1 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260721194318-1371c89cac95`
+- Outcomes: **637 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-cli-flags | `atlas migrate down` | flags | `ptah atlas migrate down` does not accept --dev-url, --dir, --dry-run, --format, --lock-timeout, --plan, --revisions-schema, --skip-checks, --to-tag, --to-version, --url — the command resolves but is not yet flag-compatible with Atlas | #510 |
 | — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode |  |
 | — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format |  |
+| — | ok | atlas-cli-flags | `atlas migrate down` | flags | accepts all essential Atlas flags: --url --dir --dev-url --to-version --to-tag --dry-run --format --revisions-schema --lock-timeout --skip-checks --plan |  |
 | — | ok | atlas-cli-flags | `atlas migrate hash` | flags | accepts all essential Atlas flags: --dir |  |
 | — | ok | atlas-cli-flags | `atlas migrate import` | flags | accepts all essential Atlas flags: --from --to |  |
 | — | ok | atlas-cli-flags | `atlas migrate lint` | flags | accepts all essential Atlas flags: --dev-url --dir --latest |  |
@@ -659,7 +658,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | executed 6 supported command(s) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#510** — 1 finding(s)
