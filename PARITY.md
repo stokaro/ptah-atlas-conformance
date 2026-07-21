@@ -99,13 +99,13 @@ MySQL** (`CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL`), introspects it
 back, and diffs. A clean diff guarantees Ptah's generate → apply → introspect
 loop is lossless for that schema on that dialect — behavior a drop-in needs.
 Running the same fixtures on MySQL immediately found dialect-specific rendering
-defects Postgres alone missed (enum, boolean default and foreign key). SQLite is
-still pending a Ptah dialect. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
-which objects Atlas itself inspects, and it already surfaces real defects (an
-unnamed foreign key renders invalid DDL; a composite primary key does not
-round-trip). The deeper differential correctness of each declarative command
-(does `schema inspect` emit equivalent HCL) remains the domain of the end-state
-conformance in ptah#285.
+defects Postgres alone missed, including an enum DDL ordering bug that is now
+closed and a remaining MySQL default rendering gap tracked in `gaps-live.md`.
+SQLite is supported by Ptah, but this live tier currently runs only Postgres and
+MySQL containers. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
+which objects Atlas itself inspects. The deeper differential correctness of
+each declarative command (does `schema inspect` emit equivalent HCL) remains the
+domain of the end-state conformance in ptah#285.
 
 A sixth, **differential** tier (`conformance-diff` workflow) closes part of that
 end-state question against a **real Atlas CE binary**. It applies a first-party
