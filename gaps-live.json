@@ -123,8 +123,7 @@
     "probe": "roundtrip-consistency",
     "fixture": "mysql/09-defaults-types",
     "stage": "roundtrip",
-    "outcome": "gap",
-    "detail": "desired schema does not survive apply -\u003e introspect: differs in tables_modified",
-    "issue": "stokaro/ptah#612"
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
   }
 ]
