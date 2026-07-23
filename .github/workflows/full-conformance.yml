@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  # The full-parity signal. This is expected to stay red until Ptah covers
-  # everything Atlas expresses in the corpus.
-  gate:
+  # The offline full-parity signal. This is green only when Ptah covers every
+  # imported Atlas fixture that the deterministic offline probes can measure.
+  offline-gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -17,5 +17,89 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Full Atlas conformance gate
+      - name: Offline Atlas conformance gate
         run: make gate
+
+  # The live full-parity signal. This is separate from conformance-live, which
+  # enforces only the committed regression budget. It must stay red while Ptah's
+  # generate -> apply -> introspect loop loses schema facts on any live fixture.
+  live-gate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: conf
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: pw
+          MYSQL_DATABASE: conf
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -uroot -ppw"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
+      CONFORMANCE_MYSQL_URL: mysql://root:pw@tcp(localhost:3306)/conf
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Live Atlas conformance gate
+        run: make gate-live
+
+  # The differential full-parity signal. This is separate from conformance-diff,
+  # which enforces only the committed regression budget.
+  differential-gate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: conf
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v6
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
+
+      - name: Differential Atlas conformance gate
+        run: make gate-diff

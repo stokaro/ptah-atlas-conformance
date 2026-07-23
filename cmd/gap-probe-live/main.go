@@ -14,8 +14,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/stokaro/ptah/dbschema"
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
+	"github.com/stokaro/ptah/dbschema"
 )
 
 const atlasSHA = "a5e0aecc2bb64143bf522734f8ad88e04885fca6"
@@ -74,7 +74,7 @@ func main() {
 		conn.Close()
 	}
 
-	md := probe.RenderMarkdown(results, &probe.Waivers{}, atlasSHA, ptahVersion())
+	md := probe.RenderMarkdownWithCommand(results, &probe.Waivers{}, atlasSHA, ptahVersion(), "make probe-live")
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
 		os.Exit(2)

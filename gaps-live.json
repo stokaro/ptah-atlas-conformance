@@ -36,6 +36,35 @@
   },
   {
     "probe": "roundtrip-consistency",
+    "fixture": "postgres/06-constraints-actions",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 2 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "postgres/07-generated-column",
+    "stage": "roundtrip",
+    "outcome": "gap",
+    "detail": "desired schema does not survive apply -\u003e introspect: differs in tables_modified",
+    "issue": "stokaro/ptah#610"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "postgres/08-self-reference",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "postgres/09-defaults-types",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
     "fixture": "mysql/01-basic-table",
     "stage": "roundtrip",
     "outcome": "ok",
@@ -68,5 +97,36 @@
     "stage": "roundtrip",
     "outcome": "ok",
     "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/06-constraints-actions",
+    "stage": "roundtrip",
+    "outcome": "gap",
+    "detail": "desired schema does not survive apply -\u003e introspect: differs in constraints_added, constraints_added_with_tables, constraints_removed, constraints_removed_with_tables",
+    "issue": "stokaro/ptah#611"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/07-generated-column",
+    "stage": "roundtrip",
+    "outcome": "gap",
+    "detail": "desired schema does not survive apply -\u003e introspect: differs in tables_modified",
+    "issue": "stokaro/ptah#610"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/08-self-reference",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mysql/09-defaults-types",
+    "stage": "roundtrip",
+    "outcome": "gap",
+    "detail": "desired schema does not survive apply -\u003e introspect: differs in tables_modified",
+    "issue": "stokaro/ptah#612"
   }
 ]

@@ -15,12 +15,14 @@ quality score: a `gap` is a thing Atlas expresses that Ptah does not model yet,
 and each row links the Ptah issue that tracks closing it.
 
 **This is not a full feature-set parity test.** The repository now vendors every
-file under Atlas's open-source `*/testdata/*` tree at the pinned commit (286 files, grouped into report fixtures), plus a
-small first-party Atlas-compatible regression fixture for gaps not present in the
-upstream snapshot. The report distinguishes fixtures that are actually measured
-from fixtures that are merely imported and still lack a probe. [`PARITY.md`](./PARITY.md)
-states exactly what is and is not tested — read it before quoting any number from
-here.
+file under Atlas's open-source `*/testdata/*` tree at the pinned commit (286
+files, grouped into report fixtures), plus first-party Atlas-compatible
+regression fixtures for gaps not present in the upstream snapshot. The offline
+report distinguishes fixtures that are actually measured from fixtures that are
+merely imported and still lack a probe; the live reports separately show whether
+Ptah survives real database round trips and agrees with Atlas CE inspection.
+[`PARITY.md`](./PARITY.md) states exactly what is and is not tested — read it
+before quoting any number from here.
 
 ## Why this is a separate repository
 
@@ -64,8 +66,8 @@ DB-free.
 
 | Tier | Workflow | Question | Needs |
 | --- | --- | --- | --- |
-| `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. Runs on both Postgres and MySQL. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` |
-| `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by column facts (type, nullability, default, primary key, foreign key + referential actions), folding equivalent spellings (serial ≡ integer+nextval, `character varying` ≡ `varchar`, inline ≡ table-level PRIMARY KEY, `NO_ACTION` ≡ `NO ACTION`). Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. | `CONFORMANCE_POSTGRES_URL` + a real Atlas binary (`ATLAS_BIN`) |
+| `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. Runs on both Postgres and MySQL over basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer default/type cases. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` |
+| `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by schema facts: columns, type/null/default/primary-key state, generated columns, foreign keys and actions, unique/check constraints, and indexes. Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. | `CONFORMANCE_POSTGRES_URL` + a real Atlas binary (`ATLAS_BIN`) |
 
 The differential builds a **real Atlas CE binary** from the release tag pinned in
 [`atlas.version`](./atlas.version) (`make atlas`), so it measures Ptah against a
@@ -74,14 +76,14 @@ Atlas CE can actually inspect: tables, columns, constraints, indexes and enums.
 Atlas CE silently omits Pro-gated objects (views, triggers, stored procedures,
 sequences) from inspection, so Ptah's support for those is a strength beyond CE,
 not a differential gap — that fidelity is covered by the Ptah-vs-Ptah round-trip
-tier instead. The full live and differential gates stay red until Ptah closes
-those gaps; today the differential already agrees with Atlas CE on the enum
-fixture (and on foreign keys
-with their referential actions) and has surfaced two real Ptah introspection
-fidelity gaps (a dropped `VARCHAR` length and a composite primary key that does
-not round-trip). Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises
-a real drop-in path — a parse failure there is itself reported as a gap, not
-mistaken for a schema disagreement.
+tier instead. Today the differential tier agrees with Atlas CE on all committed
+first-party live fixtures, including enum/default spellings, generated columns,
+self-references, indexes, checks, unique constraints, and foreign-key actions.
+The live round-trip tier is still red on generated-column/default/constraint
+fidelity, which is exactly why full conformance remains separate from regression
+budgets. Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
+drop-in path — a parse failure there is itself reported as a gap, not mistaken
+for a schema disagreement.
 
 ```
 make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
@@ -108,21 +110,24 @@ separate pipelines:
   when a PR only preserves the current known gaps, and fail when `gaps-live.*` or
   `gaps-diff.*` is stale or worse than its committed budget.
 - [`full-conformance`](./.github/workflows/full-conformance.yml) runs
-  `make gate` and stays red until Ptah covers everything Atlas expresses in the
-  corpus. When probes become stricter, the generated report may expose more
-  non-OK observations even without a Ptah code change; that is a measurement
-  hardening and must be committed explicitly with the new report/budget
-  baseline.
+  `make gate`, `make gate-live`, and `make gate-diff` as separate jobs. It stays
+  red until Ptah covers the offline corpus, the live round-trip corpus, and the
+  Atlas CE differential corpus. When probes become stricter, a generated report
+  may expose more non-OK observations even without a Ptah code change; that is a
+  measurement hardening and must be committed explicitly with the new
+  report/budget baseline. This workflow is a visible yardstick, not the
+  regression/merge gate; branch protection should require the regression-budget
+  workflows above, not expected-red full conformance.
 
 - `make probe` regenerates the report and always exits 0.
 - `make budget` fails if the generated report exceeds [`gap-budget.txt`](./gap-budget.txt)
   or if a waiver became stale. `make budget-live` and `make budget-diff` do the
   same for [`gap-live-budget.txt`](./gap-live-budget.txt) and
   [`gap-diff-budget.txt`](./gap-diff-budget.txt).
-- `make gate` regenerates the report **and exits non-zero if any non-OK
-  observation remains**, including waived findings.
-  This is the full-parity yardstick and stays red until Ptah covers everything
-  Atlas expresses in the corpus.
+- `make gate`, `make gate-live`, and `make gate-diff` regenerate their reports
+  **and exit non-zero if any non-OK observation remains**, including waived
+  findings. These are the full-parity yardsticks and stay red until Ptah covers
+  their matching corpus.
 
 A gap can be excused only by an explicit line in [`waivers.txt`](./waivers.txt),
 keyed on `probe fixture stage`, with a reason and a tracking issue. A waiver means
@@ -140,9 +145,11 @@ make probe        # regenerate gaps.md / gaps.json (exit 0)
 make budget       # offline progress gate: red only on regression/stale waivers
 make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
 make budget-live  # live progress gate: red only on regression/stale waivers
+make gate-live    # live full-parity yardstick: red until round-trip is lossless
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
 make budget-diff  # differential progress gate: red only on regression/stale waivers
-make gate         # full-parity yardstick: red until parity on the corpus
+make gate-diff    # differential full-parity yardstick: red until Ptah agrees with Atlas CE
+make gate         # offline full-parity yardstick: red until parity on the corpus
 make verify       # build, vet, and assert Ptah's tree would gain no Apache file
 ```
 
