@@ -9,11 +9,13 @@ run through narrow entry points of Ptah's public API. It exists to turn "are we
 there yet" from an opinion into a number that moves over time. Treat the results
 as a floor on the distance to Atlas, never a ceiling.
 
-Generated snapshot: 286 vendored upstream testdata files grouped into 158
-fixtures, 1119 observations, **745 unwaived non-OK observations**. The corpus inventory imports
-158 fixtures: 148 are measured by at least one current probe, and 10 remain
-explicitly red as imported-but-unmeasured (`.hcl` and other Atlas test artifacts
-that still need dedicated probes).
+Generated snapshot: 286 vendored upstream testdata files grouped into 160
+fixtures, 669 offline observations, **0 unwaived non-OK offline observations**.
+The corpus inventory imports 160 fixtures: every imported fixture is measured by
+at least one current offline probe. This means the deterministic imported-corpus
+report is green; it does **not** mean full Atlas OSS runtime parity, because the
+live round-trip report still has open gaps and several runtime dimensions remain
+unmeasured.
 
 ## What the probe found broken
 
@@ -21,12 +23,12 @@ All probes are offline and static — nothing is applied to a real database.
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | 148 fixtures are measured by concrete probes; 10 imported `.hcl` and other fixtures are deliberately red until probes consume them. |
-| `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all 125 vendored `.sql` files. Plain `CREATE TABLE` passes; many Atlas SQL dialect/lexer fixtures fail or gap because Ptah's parser only accepts a limited DDL subset. |
-| `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Most Atlas migration directories are now recognized; remaining advanced directory-artifact gaps are tracked separately. |
-| `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Every imported `.txtar` script is parsed and reported. The runner executes the first narrow command subset (`atlas schema inspect -u file://*.sql --format '{{ sql . }}'` plus `stdout`/`stderr`/`cmp` assertions) and keeps unsupported commands such as `apply`, `cmpshow`, live DB inspect, and `atlas migrate diff` red. (ptah#285) |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 160 imported fixtures are measured by at least one current offline probe. |
+| `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all vendored `.sql` files covered by the offline probe set and is currently green on the imported corpus. |
+| `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Current measured Atlas migration directories are recognized. |
+| `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus. |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Current measured fixtures pass the parsed/recomputed sum compatibility probe. |
-| `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Most measured directories have content-level or intentionally structural results; advanced Atlas directory artifacts still expose remaining lint-ingest gaps. |
+| `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Current analyzer catalog and fixture-level lint parity probes are green on the committed corpus. |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -38,13 +40,13 @@ is **"unknown — not measured"**, not "works".
 
 | Atlas open-source capability | Tested here? | Where it would be measured |
 | --- | --- | --- |
-| Schema **introspection** breadth (types, defaults, generated/partial/expression indexes, sequences, domains, composite types, FK actions, exclusion constraints, partitioning, collations, comments) | **No** | a dedicated introspection probe against a live DB |
+| Schema **introspection** breadth (types, defaults, generated/partial/expression indexes, sequences, domains, composite types, FK actions, exclusion constraints, partitioning, collations, comments) | **Partially** — live/diff fixtures now cover basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer defaults/types | broader dedicated introspection probes against live DBs |
 | Schema **diff / plan** (desired A → desired B → migration) | **No** | a diff probe over paired schema fixtures |
 | **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on a live Postgres, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
-| **HCL** schema language | **Imported, red/unmeasured** | HCL files are vendored and reported by `corpus-inventory`; Ptah largely does not read HCL (only the planned limited C3 subset, ptah#276) |
+| **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
-| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Imported, partially measured** | SQL files from MySQL/SQLite-oriented Atlas fixtures are parsed/linted structurally; dialect runtime semantics need dedicated probes |
+| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres and MySQL; SQLite/MariaDB runtime tiers are still missing | dialect runtime probes for SQLite and MariaDB once the harness provisions them |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
 | The migration **apply** path | **No** | Ptah applies migration SQL via raw `ExecContext`, bypassing its parser — a parse gap here is *not* an apply gap |
 
@@ -100,7 +102,9 @@ back, and diffs. A clean diff guarantees Ptah's generate → apply → introspec
 loop is lossless for that schema on that dialect — behavior a drop-in needs.
 Running the same fixtures on MySQL immediately found dialect-specific rendering
 defects Postgres alone missed, including an enum DDL ordering bug that is now
-closed and a remaining MySQL default rendering gap tracked in `gaps-live.md`.
+closed. The expanded live corpus now exposes remaining generated-column,
+default/type, and MySQL constraint/action round-trip gaps tracked in
+`gaps-live.md`.
 SQLite is supported by Ptah, but this live tier currently runs only Postgres and
 MySQL containers. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
 which objects Atlas itself inspects. The deeper differential correctness of
@@ -110,14 +114,16 @@ domain of the end-state conformance in ptah#285.
 A sixth, **differential** tier (`conformance-diff` workflow) closes part of that
 end-state question against a **real Atlas CE binary**. It applies a first-party
 Ptah schema to Postgres, then reads what both tools understand as a *typed* schema
-and compares them by column facts (type, nullability, default, primary key,
-foreign key with referential actions). Atlas's view comes from `schema inspect` in
+and compares them by typed schema facts: columns, type/nullability/default/
+primary-key state, generated columns, foreign keys with referential actions,
+unique/check constraints, and indexes. Atlas's view comes from `schema inspect` in
 its native HCL, parsed by Ptah's own `core/atlashcl` into a `goschema.Database`;
 Ptah's view comes from its introspect → convert chain. Because both sides are the
 same typed structure, there is no SQL-text parsing — the comparison folds
 semantically-equivalent representations on typed fields (serial ≡ integer+nextval,
 `character varying`/`character_varying` ≡ `varchar`, `timestamp` ≡ `timestamp
-without time zone`, inline ≡ table-level PRIMARY KEY, `NO_ACTION` ≡ `NO ACTION`).
+without time zone`, inline ≡ table-level PRIMARY KEY, simple default constants,
+and `NO_ACTION` ≡ `NO ACTION`).
 Notably Ptah's SQL parser cannot ingest Atlas's SQL inspect output (schema-
 qualified `REFERENCES`, enum `CREATE TYPE`) — the very subset limit the `sql-parse`
 probe measures — which is why the HCL path is used; a failure to parse Atlas's HCL
@@ -128,12 +134,10 @@ CE-visible object kinds: Atlas CE silently omits Pro-gated objects (views,
 triggers, functions, sequences) from inspection — no error, exit 0 — so those
 cannot be compared apples-to-apples and Ptah's support for them is a strength
 beyond CE rather than a differential gap (they stay covered by the Ptah-vs-Ptah
-round-trip tier). Already green on the enum fixture and on foreign keys, the
-differential has independently surfaced two real Ptah introspection fidelity gaps
-that the round-trip tier's diff engine treats as equal and so misses: a dropped
-`VARCHAR(n)` length and a composite primary key membership that Ptah does not
-reproduce. The folding logic is locked by offline unit tests so it cannot silently
-start passing on genuine differences.
+round-trip tier). The committed differential corpus is currently green across 9
+fixtures, including constraints/actions, generated columns, self-references, and
+default/type cases. The folding logic is locked by offline unit tests so it
+cannot silently start passing on genuine differences.
 
 ## What a real full-parity test would require
 
@@ -148,7 +152,8 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
 3. A **diff/plan** probe over paired before/after schemas.
 4. A **lint matrix** comparing Atlas analyzer codes against Ptah rule codes,
    fixture by fixture.
-5. **Multi-dialect** coverage (MySQL, SQLite, MariaDB), not PostgreSQL only.
+5. Broader **multi-dialect** runtime coverage: MySQL is now in the live tier, but
+   SQLite and MariaDB need live/runtime probes too.
 6. A declared, justified scope for what is deliberately **out** of parity (HCL
    schema, Cloud, Pro drivers), so "parity" has an explicit boundary.
 

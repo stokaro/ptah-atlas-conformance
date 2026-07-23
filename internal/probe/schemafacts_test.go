@@ -3,6 +3,7 @@ package probe
 import (
 	"testing"
 
+	qt "github.com/frankban/quicktest"
 	"github.com/stokaro/ptah/core/goschema"
 )
 
@@ -29,7 +30,14 @@ func diff(atlas, ptah *goschema.Database) []string {
 	return diffTableFacts(factsFromDatabase(atlas), factsFromDatabase(ptah))
 }
 
+func assertOneDiffContains(c *qt.C, d []string, want string) {
+	c.Assert(d, qt.HasLen, 1)
+	c.Assert(d[0], qt.Contains, want)
+}
+
 func TestFacts_SerialTimestampAndPKAreEquivalent(t *testing.T) {
+	c := qt.New(t)
+
 	atlas := oneTable("users",
 		goschema.Field{Name: "id", Type: "serial", Primary: true},
 		goschema.Field{Name: "email", Type: "character_varying(255)"},
@@ -40,42 +48,46 @@ func TestFacts_SerialTimestampAndPKAreEquivalent(t *testing.T) {
 		goschema.Field{Name: "email", Type: "character varying(255)"},
 		goschema.Field{Name: "created_at", Type: "timestamp without time zone", DefaultExpr: "CURRENT_TIMESTAMP"},
 	)
-	if d := diff(atlas, ptah); d != nil {
-		t.Fatalf("expected equivalence (serial==int+nextval, character_varying==character varying, timestamp==timestamp without time zone), got: %v", d)
-	}
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
 }
 
 func TestFacts_DroppedLengthIsAGap(t *testing.T) {
+	c := qt.New(t)
+
 	atlas := oneTable("t", goschema.Field{Name: "name", Type: "character_varying(255)"})
 	ptah := oneTable("t", goschema.Field{Name: "name", Type: "character varying"})
-	if d := diff(atlas, ptah); len(d) != 1 {
-		t.Fatalf("expected exactly one difference for the dropped length, got: %v", d)
-	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "varchar(255)")
 }
 
 func TestFacts_ForeignKeyFoldsActionOrderAndDefault(t *testing.T) {
+	c := qt.New(t)
+
 	// Atlas reports both actions explicitly; Ptah leaves them empty (the SQL
 	// default is NO ACTION). They must fold to equal.
 	atlas := oneTable("books", goschema.Field{Name: "author_id", Type: "integer",
 		Foreign: "authors(id)", OnUpdate: "NO_ACTION", OnDelete: "NO_ACTION"})
 	ptah := oneTable("books", goschema.Field{Name: "author_id", Type: "integer",
 		Foreign: "authors(id)"})
-	if d := diff(atlas, ptah); d != nil {
-		t.Fatalf("expected the foreign key to fold to equal, got: %v", d)
-	}
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
 }
 
 func TestFacts_DifferentReferentialActionIsAGap(t *testing.T) {
+	c := qt.New(t)
+
 	atlas := oneTable("t", goschema.Field{Name: "a", Type: "integer",
 		Foreign: "u(id)", OnDelete: "CASCADE"})
 	ptah := oneTable("t", goschema.Field{Name: "a", Type: "integer",
 		Foreign: "u(id)", OnDelete: "NO ACTION"})
-	if d := diff(atlas, ptah); len(d) != 1 {
-		t.Fatalf("expected ON DELETE CASCADE vs NO ACTION to be exactly one gap, got: %v", d)
-	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "del=cascade")
 }
 
 func TestFacts_CompositePrimaryKeyMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
 	// Atlas records the composite key at table level; Ptah round-trips only the
 	// first column as primary (the real defect the live tier found).
 	atlas := &goschema.Database{
@@ -92,13 +104,13 @@ func TestFacts_CompositePrimaryKeyMismatchIsAGap(t *testing.T) {
 			{StructName: "m", Name: "group_id", Type: "integer"},
 		},
 	}
-	d := diff(atlas, ptah)
-	if len(d) != 1 {
-		t.Fatalf("expected exactly one gap for the lost composite-PK membership, got: %v", d)
-	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "group_id")
 }
 
 func TestFacts_CompositePrimaryKeyAgreesWhenBothComplete(t *testing.T) {
+	c := qt.New(t)
+
 	both := func() *goschema.Database {
 		return &goschema.Database{
 			Tables: []goschema.Table{{StructName: "m", Name: "m", PrimaryKey: []string{"user_id", "group_id"}}},
@@ -108,18 +120,199 @@ func TestFacts_CompositePrimaryKeyAgreesWhenBothComplete(t *testing.T) {
 			},
 		}
 	}
-	if d := diff(both(), both()); d != nil {
-		t.Fatalf("expected a complete composite key to compare equal, got: %v", d)
-	}
+
+	c.Assert(diff(both(), both()), qt.IsNil)
 }
 
 func TestFacts_MissingColumnIsAGap(t *testing.T) {
+	c := qt.New(t)
+
 	atlas := oneTable("t",
 		goschema.Field{Name: "a", Type: "integer"},
 		goschema.Field{Name: "b", Type: "integer"},
 	)
 	ptah := oneTable("t", goschema.Field{Name: "a", Type: "integer"})
-	if d := diff(atlas, ptah); len(d) != 1 {
-		t.Fatalf("expected exactly one difference for the missing column, got: %v", d)
+
+	assertOneDiffContains(c, diff(atlas, ptah), "b")
+}
+
+func TestFacts_DefaultValueMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{Name: "status", Type: "text", Default: "active", DefaultSet: true})
+	ptah := oneTable("t", goschema.Field{Name: "status", Type: "text", Default: "archived", DefaultSet: true})
+
+	assertOneDiffContains(c, diff(atlas, ptah), "value(active)")
+}
+
+func TestFacts_StringDefaultCaseMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{Name: "status", Type: "text", Default: "Active", DefaultSet: true})
+	ptah := oneTable("t", goschema.Field{Name: "status", Type: "text", DefaultExpr: "'active'::text"})
+
+	assertOneDiffContains(c, diff(atlas, ptah), "value(Active)")
+}
+
+func TestFacts_DefaultCastInsideStringLiteralIsNotStripped(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{Name: "code", Type: "text", Default: "a::b", DefaultSet: true})
+	ptah := oneTable("t", goschema.Field{Name: "code", Type: "text", DefaultExpr: "'a::b'::text"})
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_DefaultConstantSpellingsAreEquivalent(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t",
+		goschema.Field{Name: "status", Type: "text", Default: "active", DefaultSet: true},
+		goschema.Field{Name: "paid", Type: "boolean", Default: "false", DefaultSet: true},
+		goschema.Field{Name: "subtotal", Type: "decimal(12,2)", Default: "0", DefaultSet: true},
+	)
+	ptah := oneTable("t",
+		goschema.Field{Name: "status", Type: "text", DefaultExpr: "'active'::character varying"},
+		goschema.Field{Name: "paid", Type: "boolean", DefaultExpr: "false"},
+		goschema.Field{Name: "subtotal", Type: "decimal(12,2)", DefaultExpr: "0.00"},
+	)
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_DefaultBareExpressionMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{Name: "created_at", Type: "timestamp", DefaultExpr: "CURRENT_TIMESTAMP"})
+	ptah := oneTable("t", goschema.Field{Name: "created_at", Type: "timestamp", DefaultExpr: "NOW()"})
+
+	assertOneDiffContains(c, diff(atlas, ptah), "current_timestamp")
+}
+
+func TestFacts_GeneratedColumnAgreesWhenExpressionAndKindMatch(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{Name: "email_normalized", Type: "text", GeneratedExpression: "lower(email)", GeneratedKind: "STORED"})
+	ptah := oneTable("t", goschema.Field{Name: "email_normalized", Type: "text", GeneratedExpression: "( lower(email) )", GeneratedKind: "stored"})
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_GeneratedColumnKindMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{Name: "email_normalized", Type: "text", GeneratedExpression: "lower(email)", GeneratedKind: "STORED"})
+	ptah := oneTable("t", goschema.Field{Name: "email_normalized", Type: "text", GeneratedExpression: "lower(email)", GeneratedKind: "VIRTUAL"})
+
+	assertOneDiffContains(c, diff(atlas, ptah), "kind=stored")
+}
+
+func TestFacts_UniqueConstraintAndUniqueIndexFoldTogether(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields:      []goschema.Field{{StructName: "Account", Name: "tenant_id", Type: "integer"}, {StructName: "Account", Name: "email", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Account", Name: "accounts_identity_unique", Type: "UNIQUE", Columns: []string{"tenant_id", "email"}}},
 	}
+	ptah := &goschema.Database{
+		Tables:  []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields:  []goschema.Field{{StructName: "Account", Name: "tenant_id", Type: "integer"}, {StructName: "Account", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{StructName: "Account", Name: "accounts_identity_unique", Unique: true, Fields: []string{"tenant_id", "email"}}},
+	}
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_CheckExpressionMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "budget_cents", Type: "integer"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_budget_check", Type: "CHECK", CheckExpression: "budget_cents >= 0"}},
+	}
+	ptah := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "budget_cents", Type: "integer"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_budget_check", Type: "CHECK", CheckExpression: "budget_cents > 0"}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "budget_cents >= 0")
+}
+
+func TestFacts_CheckStringLiteralCaseMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "status", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_status_check", Type: "CHECK", CheckExpression: "status IN ('ACTIVE')"}},
+	}
+	ptah := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "status", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_status_check", Type: "CHECK", CheckExpression: "status IN ('active')"}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "'ACTIVE'")
+}
+
+func TestFacts_CheckStringLiteralDoubleQuotesArePreserved(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "label", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_label_check", Type: "CHECK", CheckExpression: `"label" = 'A "quoted" value'`}},
+	}
+	ptah := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "label", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_label_check", Type: "CHECK", CheckExpression: `label = 'A quoted value'`}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), `'A "quoted" value'`)
+}
+
+func TestFacts_IndexMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables:  []goschema.Table{{StructName: "Contact", Name: "contacts"}},
+		Fields:  []goschema.Field{{StructName: "Contact", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{StructName: "Contact", Name: "idx_contacts_email", Fields: []string{"email"}}},
+	}
+	ptah := &goschema.Database{
+		Tables:  []goschema.Table{{StructName: "Contact", Name: "contacts"}},
+		Fields:  []goschema.Field{{StructName: "Contact", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{StructName: "Contact", Name: "idx_contacts_email", Fields: []string{"email_normalized"}}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "email_normalized")
+}
+
+func TestFacts_ExpressionIndexKeepsQualifiedExpression(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{
+			StructName: "Account",
+			Name:       "idx_accounts_email_expr",
+			Parts:      []goschema.IndexPart{{Expr: "lower(account.email)"}},
+		}},
+	}
+	ptah := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{
+			StructName: "Account",
+			Name:       "idx_accounts_email_expr",
+			Parts:      []goschema.IndexPart{{Expr: "upper(account.email)"}},
+		}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "expr(lower(account.email))")
 }

@@ -65,11 +65,24 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 	}
 	if diff != nil && diff.HasChanges() {
 		return []Result{{"roundtrip-consistency", name, "roundtrip", Gap,
-			"desired schema does not survive apply -> introspect: " + describeDiff(diff), "stokaro/ptah#285"}}
+			"desired schema does not survive apply -> introspect: " + describeDiff(diff), liveRoundTripIssue(name)}}
 	}
 	return []Result{{"roundtrip-consistency", name, "roundtrip", OK,
 		fmt.Sprintf("clean round-trip: %d table(s), %d view(s), %d enum(s)",
 			len(desired.Tables), len(desired.Views), len(desired.Enums)), ""}}
+}
+
+func liveRoundTripIssue(name string) string {
+	switch {
+	case strings.Contains(name, "07-generated-column"):
+		return "stokaro/ptah#610"
+	case strings.Contains(name, "06-constraints-actions"):
+		return "stokaro/ptah#611"
+	case strings.Contains(name, "09-defaults-types"):
+		return "stokaro/ptah#612"
+	default:
+		return "stokaro/ptah#285"
+	}
 }
 
 // resetDatabase drops every object from the target so fixtures do not
