@@ -379,6 +379,50 @@ func TestAtlasCLIHiddenRuntimeProbeRejectsDryRunSumRewrite(t *testing.T) {
 	}
 }
 
+func TestAtlasCLIShorthandProbeAcceptsAtlasAliases(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeShorthandRuntimeScript(false))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIShorthandProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 6 {
+		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
+	}
+	for _, r := range results {
+		if r.Probe != "atlas-cli-shorthands" {
+			t.Fatalf("unexpected probe name: %#v", r)
+		}
+		if r.Outcome != OK {
+			t.Fatalf("expected shorthand probe OK, got %#v", r)
+		}
+	}
+}
+
+func TestAtlasCLIShorthandProbeRejectsVisibleSchemaApplyFileHelp(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeShorthandRuntimeScript(true))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIShorthandProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	assertResultDetailContains(t, results, "`ptah atlas schema apply --file` is visible in help")
+}
+
 func setFakePtahCLIBinaries(t *testing.T, bin string) {
 	t.Helper()
 
@@ -394,6 +438,46 @@ func setFakePtahCLIBinaries(t *testing.T, bin string) {
 		ptahBinOnce = sync.Once{}
 		ptahCompatBinOnce = sync.Once{}
 	})
+}
+
+func fakeShorthandRuntimeScript(visibleFileHelp bool) string {
+	applyHelpFlags := "--url\n      --to\n      --schema\n"
+	if visibleFileHelp {
+		applyHelpFlags += "      --file\n"
+	}
+	return `#!/bin/sh
+case "$*" in
+  "atlas schema apply --help")
+    printf 'Flags:\n      ` + applyHelpFlags + `'
+    ;;
+  "atlas schema inspect -s public")
+    printf 'error: --url is required\n' >&2
+    exit 1
+    ;;
+  "atlas schema apply --url sqlite://schema.db --to file://schema.sql -s public --dry-run")
+    printf 'error: atlas schema apply accepts --schema, but Ptah only supports local schema files for this command yet\n' >&2
+    exit 1
+    ;;
+  "atlas schema apply --url sqlite://"*)
+    printf 'Planned schema changes:\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n'
+    ;;
+  "atlas schema diff -f file://from.sql --to file://schema.sql --dev-url sqlite://dev.db -s public")
+    printf 'error: atlas schema diff accepts --schema, but Ptah only supports local schema files for this command yet\n' >&2
+    exit 1
+    ;;
+  "atlas schema diff -f file://"*)
+    printf 'ALTER TABLE users ADD COLUMN email TEXT;\n'
+    ;;
+  "atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev")
+    printf 'error: atlas migrate diff accepts docker --dev-url values, but Ptah requires a directly connectable dev database URL\n' >&2
+    exit 1
+    ;;
+  *)
+    printf 'unsupported %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+`
 }
 
 func fakeUtilityRuntimeScript(overrides ...string) string {

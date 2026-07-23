@@ -4121,14 +4121,14 @@
     "fixture": "atlas schema apply",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --url --to --dev-url --dry-run --auto-approve"
+    "detail": "accepts all essential Atlas flags: --url --to --dev-url --dry-run --auto-approve --schema"
   },
   {
     "probe": "atlas-cli-flags",
     "fixture": "atlas schema diff",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --from --to --dev-url --format"
+    "detail": "accepts all essential Atlas flags: --from --to --dev-url --format --schema"
   },
   {
     "probe": "atlas-cli-flags",
@@ -4142,7 +4142,7 @@
     "fixture": "atlas migrate diff",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --to --dev-url --dir --format"
+    "detail": "accepts all essential Atlas flags: --to --dev-url --dir --format --schema"
   },
   {
     "probe": "atlas-cli-flags",
@@ -4206,6 +4206,48 @@
     "stage": "flags",
     "outcome": "ok",
     "detail": "accepts all essential Atlas flags: --from --to"
+  },
+  {
+    "probe": "atlas-cli-shorthands",
+    "fixture": "ptah atlas schema inspect -s",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema inspect -s public` reached the expected command validation path"
+  },
+  {
+    "probe": "atlas-cli-shorthands",
+    "fixture": "ptah atlas schema apply -s",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema apply -s` reaches the same --schema validation path as the long flag"
+  },
+  {
+    "probe": "atlas-cli-shorthands",
+    "fixture": "ptah atlas schema apply --file/-f",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path"
+  },
+  {
+    "probe": "atlas-cli-shorthands",
+    "fixture": "ptah atlas schema diff -f",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema diff -f` behaves like `--from` for local schema-file diffs"
+  },
+  {
+    "probe": "atlas-cli-shorthands",
+    "fixture": "ptah atlas schema diff -s",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema diff -s` reaches the same --schema validation path as the long flag"
+  },
+  {
+    "probe": "atlas-cli-shorthands",
+    "fixture": "ptah atlas migrate diff -s",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path"
   },
   {
     "probe": "atlas-cli-hidden-runtime",

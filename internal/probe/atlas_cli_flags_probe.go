@@ -22,10 +22,10 @@ var atlasVerbFlags = []struct {
 	Flags    []string
 }{
 	{"atlas schema inspect", []string{"atlas", "schema", "inspect"}, []string{"--url", "--dev-url", "--schema", "--exclude", "--format"}},
-	{"atlas schema apply", []string{"atlas", "schema", "apply"}, []string{"--url", "--to", "--dev-url", "--dry-run", "--auto-approve"}},
-	{"atlas schema diff", []string{"atlas", "schema", "diff"}, []string{"--from", "--to", "--dev-url", "--format"}},
+	{"atlas schema apply", []string{"atlas", "schema", "apply"}, []string{"--url", "--to", "--dev-url", "--dry-run", "--auto-approve", "--schema"}},
+	{"atlas schema diff", []string{"atlas", "schema", "diff"}, []string{"--from", "--to", "--dev-url", "--format", "--schema"}},
 	{"atlas schema clean", []string{"atlas", "schema", "clean"}, []string{"--url", "--dry-run", "--auto-approve"}},
-	{"atlas migrate diff", []string{"atlas", "migrate", "diff"}, []string{"--to", "--dev-url", "--dir", "--format"}},
+	{"atlas migrate diff", []string{"atlas", "migrate", "diff"}, []string{"--to", "--dev-url", "--dir", "--format", "--schema"}},
 	{"atlas migrate apply", []string{"atlas", "migrate", "apply"}, []string{"--url", "--dir", "--dry-run", "--tx-mode"}},
 	{"atlas migrate down", []string{"atlas", "migrate", "down"}, []string{"--url", "--dir", "--dev-url", "--to-version", "--to-tag", "--dry-run", "--format", "--revisions-schema", "--lock-timeout", "--skip-checks", "--plan"}},
 	{"atlas migrate lint", []string{"atlas", "migrate", "lint"}, []string{"--dev-url", "--dir", "--latest"}},
