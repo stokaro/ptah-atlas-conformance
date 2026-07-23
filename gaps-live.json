@@ -45,9 +45,8 @@
     "probe": "roundtrip-consistency",
     "fixture": "postgres/07-generated-column",
     "stage": "roundtrip",
-    "outcome": "gap",
-    "detail": "desired schema does not survive apply -\u003e introspect: differs in tables_modified",
-    "issue": "stokaro/ptah#610"
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
@@ -110,9 +109,8 @@
     "probe": "roundtrip-consistency",
     "fixture": "mysql/07-generated-column",
     "stage": "roundtrip",
-    "outcome": "gap",
-    "detail": "desired schema does not survive apply -\u003e introspect: differs in tables_modified",
-    "issue": "stokaro/ptah#610"
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
   },
   {
     "probe": "roundtrip-consistency",
