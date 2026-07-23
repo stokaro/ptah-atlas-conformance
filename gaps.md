@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260723212850-53cd0cafd958`
-- Outcomes: **689 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260723231415-96bca3a1e302`
+- Outcomes: **693 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -32,7 +32,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-flags | `atlas migrate status` | flags | accepts all essential Atlas flags: --url --dir --dir-format --revisions-schema; advertises Atlas defaults: --dir-format=atlas |  |
 | — | ok | atlas-cli-flags | `atlas migrate validate` | flags | accepts all essential Atlas flags: --dev-url --dir --dir-format; advertises Atlas defaults: --dir-format=atlas |  |
 | — | ok | atlas-cli-flags | `atlas schema apply` | flags | accepts all essential Atlas flags: --url --to --dev-url --dry-run --auto-approve --schema |  |
-| — | ok | atlas-cli-flags | `atlas schema clean` | flags | accepts all essential Atlas flags: --url --dry-run --auto-approve |  |
+| — | ok | atlas-cli-flags | `atlas schema clean` | flags | accepts all essential Atlas flags: --url --dry-run --auto-approve --format |  |
 | — | ok | atlas-cli-flags | `atlas schema diff` | flags | accepts all essential Atlas flags: --from --to --dev-url --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas schema inspect` | flags | accepts all essential Atlas flags: --url --dev-url --schema --exclude --format |  |
 | — | ok | atlas-cli-hidden-runtime | `ptah atlas migrate diff --dry-run` | execute | `ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum |  |
@@ -49,6 +49,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --dir-format goose` | execute | `ptah atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --revisions-schema` | execute | `ptah atlas migrate status --revisions-schema` is accepted and reaches the revision-schema execution path |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate validate --dir-format goose` | execute | `ptah atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean --dry-run --format` | execute | `ptah atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite |  |
+| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean --format --auto-approve` | execute | `ptah atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table |  |
+| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean actual invalid --format` | execute | `ptah atlas schema clean` rejects applied-state invalid format templates before mutating SQLite |  |
+| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean invalid --format` | execute | `ptah atlas schema clean` rejects invalid format templates before opening the database |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas migrate diff -s` | parse | `ptah atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas schema apply --file/-f` | execute | `ptah atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas schema apply -s` | parse | `ptah atlas schema apply -s` reaches the same --schema validation path as the long flag |  |

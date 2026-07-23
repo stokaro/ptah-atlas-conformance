@@ -4135,7 +4135,7 @@
     "fixture": "atlas schema clean",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --url --dry-run --auto-approve"
+    "detail": "accepts all essential Atlas flags: --url --dry-run --auto-approve --format"
   },
   {
     "probe": "atlas-cli-flags",
@@ -4206,6 +4206,34 @@
     "stage": "flags",
     "outcome": "ok",
     "detail": "accepts all essential Atlas flags: --from --to"
+  },
+  {
+    "probe": "atlas-cli-schema-clean-runtime",
+    "fixture": "ptah atlas schema clean --dry-run --format",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite"
+  },
+  {
+    "probe": "atlas-cli-schema-clean-runtime",
+    "fixture": "ptah atlas schema clean --format --auto-approve",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table"
+  },
+  {
+    "probe": "atlas-cli-schema-clean-runtime",
+    "fixture": "ptah atlas schema clean invalid --format",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema clean` rejects invalid format templates before opening the database"
+  },
+  {
+    "probe": "atlas-cli-schema-clean-runtime",
+    "fixture": "ptah atlas schema clean actual invalid --format",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema clean` rejects applied-state invalid format templates before mutating SQLite"
   },
   {
     "probe": "atlas-cli-metadata-runtime",

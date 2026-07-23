@@ -32,7 +32,7 @@ var atlasVerbFlags = []atlasVerbFlagSpec{
 	{AtlasCmd: "atlas schema inspect", Path: []string{"atlas", "schema", "inspect"}, Flags: []string{"--url", "--dev-url", "--schema", "--exclude", "--format"}},
 	{AtlasCmd: "atlas schema apply", Path: []string{"atlas", "schema", "apply"}, Flags: []string{"--url", "--to", "--dev-url", "--dry-run", "--auto-approve", "--schema"}},
 	{AtlasCmd: "atlas schema diff", Path: []string{"atlas", "schema", "diff"}, Flags: []string{"--from", "--to", "--dev-url", "--format", "--schema"}},
-	{AtlasCmd: "atlas schema clean", Path: []string{"atlas", "schema", "clean"}, Flags: []string{"--url", "--dry-run", "--auto-approve"}},
+	{AtlasCmd: "atlas schema clean", Path: []string{"atlas", "schema", "clean"}, Flags: []string{"--url", "--dry-run", "--auto-approve", "--format"}},
 	{AtlasCmd: "atlas migrate diff", Path: []string{"atlas", "migrate", "diff"}, Flags: []string{"--to", "--dev-url", "--dir", "--format", "--schema"}},
 	{AtlasCmd: "atlas migrate apply", Path: []string{"atlas", "migrate", "apply"}, Flags: []string{"--url", "--dir", "--dry-run", "--tx-mode", "--revisions-schema"}},
 	{AtlasCmd: "atlas migrate down", Path: []string{"atlas", "migrate", "down"}, Flags: []string{"--url", "--dir", "--dev-url", "--to-version", "--to-tag", "--dry-run", "--format", "--revisions-schema", "--lock-timeout", "--skip-checks", "--plan"}},

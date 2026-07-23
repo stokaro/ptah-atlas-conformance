@@ -406,6 +406,83 @@ func TestAtlasCLIHiddenRuntimeProbeRejectsDryRunSumRewrite(t *testing.T) {
 	}
 }
 
+func TestAtlasCLISchemaCleanRuntimeProbeAcceptsFormatDryRun(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeSchemaCleanRuntimeScript(false, false))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLISchemaCleanRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 4 {
+		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	}
+	for _, r := range results {
+		if r.Probe != "atlas-cli-schema-clean-runtime" {
+			t.Fatalf("unexpected probe name: %#v", r)
+		}
+		if r.Outcome != OK {
+			t.Fatalf("expected schema clean runtime OK, got %#v", r)
+		}
+	}
+}
+
+func TestAtlasCLISchemaCleanRuntimeProbeRejectsMissingStructuredDryRunOutput(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeSchemaCleanRuntimeScript(true, false))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLISchemaCleanRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 4 {
+		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap || results[0].Stage != "format" {
+		t.Fatalf("expected missing structured output gap, got %#v", results[0])
+	}
+	if results[1].Outcome != OK || results[2].Outcome != OK || results[3].Outcome != OK {
+		t.Fatalf("expected other schema clean runtime checks to remain OK, got %#v", results)
+	}
+}
+
+func TestAtlasCLISchemaCleanRuntimeProbeRejectsInvalidFormatAfterConnect(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeSchemaCleanRuntimeScript(false, true))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLISchemaCleanRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 4 {
+		t.Fatalf("expected 4 results, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK || results[1].Outcome != OK || results[2].Outcome != OK {
+		t.Fatalf("expected preceding schema clean runtime checks to remain OK, got %#v", results)
+	}
+	if results[3].Outcome != Gap || results[3].Stage != "apply" {
+		t.Fatalf("expected actual invalid-format apply gap, got %#v", results[3])
+	}
+}
+
 func TestAtlasCLIShorthandProbeAcceptsAtlasAliases(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("fake executable uses a POSIX shell script")
@@ -605,6 +682,84 @@ case "$*" in
     exit 1
     ;;
 esac
+`
+}
+
+func fakeSchemaCleanRuntimeScript(missingStructuredOutput, mutatesActualInvalid bool) string {
+	fullDryRunOutput := `cat <<'JSON'
+{"Env":{"Driver":"sqlite","URL":"sqlite://tmp/clean.db?password=xxxxx"},"DryRun":true,"Applied":false,"Objects":[{"Type":"table","Name":"users"}],"Changes":[{"Type":"table","Name":"users","Cmd":"DROP TABLE IF EXISTS \"users\""}]}
+JSON`
+	fullApplyOutput := `cat <<'JSON'
+{"Env":{"Driver":"sqlite","URL":"sqlite://tmp/clean.db?password=xxxxx"},"DryRun":false,"Applied":true,"Objects":[{"Type":"table","Name":"users"}],"Changes":[{"Type":"table","Name":"users","Cmd":"DROP TABLE IF EXISTS \"users\""}]}
+JSON`
+	missingDryRunOutput := fullDryRunOutput
+	if missingStructuredOutput {
+		missingDryRunOutput = `cat <<'JSON'
+{"Env":{"Driver":"sqlite"},"DryRun":true}
+JSON`
+	}
+	actualInvalidMutation := ""
+	if mutatesActualInvalid {
+		actualInvalidMutation = "rm -f .users-exists\n"
+	}
+	return `#!/bin/sh
+if [ "$1 $2 $3" = "atlas schema apply" ]; then
+  touch .users-exists
+  printf 'Schema applied successfully.\n'
+  exit 0
+fi
+
+if [ "$1 $2 $3" = "atlas schema inspect" ]; then
+  if [ -f .users-exists ]; then
+    printf '{"schemas":[{"tables":[{"name":"users"}]}]}\n'
+  else
+    printf '{"schemas":[{"tables":[]}]}\n'
+  fi
+  exit 0
+fi
+
+if [ "$1 $2 $3" = "atlas schema clean" ]; then
+  all="$*"
+  url=""
+  dry_run=0
+  auto_approve=0
+  while [ "$#" -gt 0 ]; do
+    if [ "$1" = "--url" ]; then
+      url="$2"
+    fi
+    if [ "$1" = "--dry-run" ]; then
+      dry_run=1
+    fi
+    if [ "$1" = "--auto-approve" ]; then
+      auto_approve=1
+    fi
+    shift
+  done
+  case "$all" in
+    *"if .Applied"*)
+      ` + actualInvalidMutation + `printf 'execute --format template: field DoesNotExist not found\n' >&2
+      exit 2
+      ;;
+    *DoesNotExist*)
+      printf 'execute --format template: field DoesNotExist not found\n' >&2
+      exit 2
+      ;;
+  esac
+  if [ "$auto_approve" -eq 1 ] && [ "$dry_run" -eq 0 ]; then
+    rm -f .users-exists
+  fi
+  if [ "$auto_approve" -eq 1 ] && [ "$dry_run" -eq 0 ]; then
+    ` + fullApplyOutput + `
+  elif [ "$dry_run" -eq 1 ]; then
+    ` + missingDryRunOutput + `
+  else
+    ` + fullDryRunOutput + `
+  fi
+  exit 0
+fi
+
+printf 'unsupported %s\n' "$*" >&2
+exit 1
 `
 }
 
