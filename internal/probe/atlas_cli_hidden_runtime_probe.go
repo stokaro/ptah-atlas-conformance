@@ -30,7 +30,7 @@ func (AtlasCLIHiddenRuntimeProbe) Run(fx Fixture) []Result {
 func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 	const fixture = "ptah atlas migrate diff --dry-run"
 
-	present, err := commandFlags(bin, []string{"atlas", "migrate", "diff"})
+	present, _, err := commandFlags(bin, []string{"atlas", "migrate", "diff"})
 	if err != nil {
 		return Result{"atlas-cli-hidden-runtime", fixture, "help", Fail,
 			"reading `ptah atlas migrate diff --help` failed: " + oneLine(err.Error()), ""}

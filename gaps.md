@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260723181502-bdf7a2118413`
-- Outcomes: **676 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260723192537-d1a8d7b966b4`
+- Outcomes: **689 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -21,21 +21,34 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode |  |
+| — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode --revisions-schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate down` | flags | accepts all essential Atlas flags: --url --dir --dev-url --to-version --to-tag --dry-run --format --revisions-schema --lock-timeout --skip-checks --plan |  |
-| — | ok | atlas-cli-flags | `atlas migrate hash` | flags | accepts all essential Atlas flags: --dir |  |
+| — | ok | atlas-cli-flags | `atlas migrate hash` | flags | accepts all essential Atlas flags: --dir --dir-format; advertises Atlas defaults: --dir-format=atlas |  |
 | — | ok | atlas-cli-flags | `atlas migrate import` | flags | accepts all essential Atlas flags: --from --to |  |
-| — | ok | atlas-cli-flags | `atlas migrate lint` | flags | accepts all essential Atlas flags: --dev-url --dir --latest |  |
-| — | ok | atlas-cli-flags | `atlas migrate new` | flags | accepts all essential Atlas flags: --dir |  |
-| — | ok | atlas-cli-flags | `atlas migrate set` | flags | accepts all essential Atlas flags: --url --dir |  |
-| — | ok | atlas-cli-flags | `atlas migrate status` | flags | accepts all essential Atlas flags: --url --dir |  |
-| — | ok | atlas-cli-flags | `atlas migrate validate` | flags | accepts all essential Atlas flags: --dev-url --dir |  |
+| — | ok | atlas-cli-flags | `atlas migrate lint` | flags | accepts all essential Atlas flags: --dev-url --dir --dir-format --latest; advertises Atlas defaults: --dir-format=atlas |  |
+| — | ok | atlas-cli-flags | `atlas migrate new` | flags | accepts all essential Atlas flags: --dir --dir-format; advertises Atlas defaults: --dir-format=atlas |  |
+| — | ok | atlas-cli-flags | `atlas migrate set` | flags | accepts all essential Atlas flags: --url --dir --dir-format --revisions-schema; advertises Atlas defaults: --dir-format=atlas |  |
+| — | ok | atlas-cli-flags | `atlas migrate status` | flags | accepts all essential Atlas flags: --url --dir --dir-format --revisions-schema; advertises Atlas defaults: --dir-format=atlas |  |
+| — | ok | atlas-cli-flags | `atlas migrate validate` | flags | accepts all essential Atlas flags: --dev-url --dir --dir-format; advertises Atlas defaults: --dir-format=atlas |  |
 | — | ok | atlas-cli-flags | `atlas schema apply` | flags | accepts all essential Atlas flags: --url --to --dev-url --dry-run --auto-approve --schema |  |
 | — | ok | atlas-cli-flags | `atlas schema clean` | flags | accepts all essential Atlas flags: --url --dry-run --auto-approve |  |
 | — | ok | atlas-cli-flags | `atlas schema diff` | flags | accepts all essential Atlas flags: --from --to --dev-url --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas schema inspect` | flags | accepts all essential Atlas flags: --url --dev-url --schema --exclude --format |  |
 | — | ok | atlas-cli-hidden-runtime | `ptah atlas migrate diff --dry-run` | execute | `ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate apply --dir-format` | flags | `ptah atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate apply --revisions-schema` | execute | `ptah atlas migrate apply --revisions-schema` is accepted and reaches the revision-schema execution path |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate hash` | execute | `ptah atlas migrate hash` defaults to Atlas directory format and writes atlas.sum |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate hash --dir-format goose` | execute | `ptah atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate lint --dir-format goose` | execute | `ptah atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate new` | execute | `ptah atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate new --dir-format goose` | execute | `ptah atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate set --dir-format goose` | execute | `ptah atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate set --revisions-schema` | execute | `ptah atlas migrate set --revisions-schema` is accepted and reaches the revision-schema execution path |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status` | execute | `ptah atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --dir-format goose` | execute | `ptah atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --revisions-schema` | execute | `ptah atlas migrate status --revisions-schema` is accepted and reaches the revision-schema execution path |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate validate --dir-format goose` | execute | `ptah atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas migrate diff -s` | parse | `ptah atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas schema apply --file/-f` | execute | `ptah atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas schema apply -s` | parse | `ptah atlas schema apply -s` reaches the same --schema validation path as the long flag |  |
