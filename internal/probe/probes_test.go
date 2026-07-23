@@ -291,6 +291,33 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution(t *testing.T) {
 	}
 }
 
+func TestAtlasCLIMetadataRuntimeProbeAcceptsAtlasDefaults(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeMetadataRuntimeScript())
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIMetadataRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 13 {
+		t.Fatalf("expected 13 results, got %d: %#v", len(results), results)
+	}
+	for _, r := range results {
+		if r.Probe != "atlas-cli-metadata-runtime" {
+			t.Fatalf("unexpected probe name: %#v", r)
+		}
+		if r.Outcome != OK {
+			t.Fatalf("expected metadata runtime OK, got %#v", r)
+		}
+	}
+}
+
 func TestAtlasCLIHiddenRuntimeProbeAcceptsHiddenDryRun(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("fake executable uses a POSIX shell script")
@@ -494,6 +521,48 @@ case "$*" in
     printf 'schema "main" {}\n' > a_schema.hcl
     printf 'schema "nested" {}\n' > nested/z_schema.hcl
     printf 'a_schema.hcl\nnested/z_schema.hcl\n'
+    ;;
+  *)
+    printf 'unsupported %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+`
+}
+
+func fakeMetadataRuntimeScript() string {
+	return `#!/bin/sh
+case "$*" in
+  "atlas migrate hash --dir file://"*" --dir-format goose"|"atlas migrate lint --latest 1 --dir file://"*" --dir-format goose"|"atlas migrate new init --dir file://"*" --dir-format goose"|"atlas migrate set --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"atlas migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"atlas migrate validate --dir file://"*" --dir-format goose")
+    printf 'error: Atlas accepts --dir-format=goose, but Ptah does not implement that directory format yet\n' >&2
+    exit 2
+    ;;
+  "atlas migrate new init --dir file://"*)
+    dir=${6#file://}
+    mkdir -p "$dir"
+    printf 'CREATE TABLE users (id INTEGER PRIMARY KEY);\n' > "$dir/20240101000000_init.sql"
+    printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
+    printf 'Generated empty migration file:\nSQL:  %s/20240101000000_init.sql\n' "$dir"
+    ;;
+  "atlas migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta"|"atlas migrate set --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta --version 20240101000000")
+    printf 'error: failed to create migrations schema: near "SCHEMA": syntax error\n' >&2
+    exit 2
+    ;;
+  "atlas migrate status --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta")
+    printf 'error: failed to create migrations schema: near "SCHEMA": syntax error\n' >&2
+    exit 2
+    ;;
+  "atlas migrate hash --dir file://"*)
+    dir=${5#file://}
+    printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
+    printf 'Wrote %s/atlas.sum\n1 migration file(s) hashed\n' "$dir"
+    ;;
+  "atlas migrate status --url sqlite://"*" --dir file://"*)
+    printf 'Total Migrations: 1\nPending Migrations: 1\n'
+    ;;
+  "atlas migrate apply --dir-format atlas --help")
+    printf 'Error: unknown flag: --dir-format\n' >&2
+    exit 1
     ;;
   *)
     printf 'unsupported %s\n' "$*" >&2

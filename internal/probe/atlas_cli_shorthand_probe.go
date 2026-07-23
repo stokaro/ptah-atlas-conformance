@@ -70,7 +70,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 func runAtlasSchemaApplyHiddenFileShorthand(bin string) Result {
 	const fixture = "ptah atlas schema apply --file/-f"
 
-	present, err := commandFlags(bin, []string{"atlas", "schema", "apply"})
+	present, _, err := commandFlags(bin, []string{"atlas", "schema", "apply"})
 	if err != nil {
 		return Result{"atlas-cli-shorthands", fixture, "help", Fail,
 			"reading `ptah atlas schema apply --help` failed: " + oneLine(err.Error()), ""}

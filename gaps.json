@@ -4149,7 +4149,7 @@
     "fixture": "atlas migrate apply",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --url --dir --dry-run --tx-mode"
+    "detail": "accepts all essential Atlas flags: --url --dir --dry-run --tx-mode --revisions-schema"
   },
   {
     "probe": "atlas-cli-flags",
@@ -4163,42 +4163,42 @@
     "fixture": "atlas migrate lint",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --dev-url --dir --latest"
+    "detail": "accepts all essential Atlas flags: --dev-url --dir --dir-format --latest; advertises Atlas defaults: --dir-format=atlas"
   },
   {
     "probe": "atlas-cli-flags",
     "fixture": "atlas migrate hash",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --dir"
+    "detail": "accepts all essential Atlas flags: --dir --dir-format; advertises Atlas defaults: --dir-format=atlas"
   },
   {
     "probe": "atlas-cli-flags",
     "fixture": "atlas migrate status",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --url --dir"
+    "detail": "accepts all essential Atlas flags: --url --dir --dir-format --revisions-schema; advertises Atlas defaults: --dir-format=atlas"
   },
   {
     "probe": "atlas-cli-flags",
     "fixture": "atlas migrate validate",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --dev-url --dir"
+    "detail": "accepts all essential Atlas flags: --dev-url --dir --dir-format; advertises Atlas defaults: --dir-format=atlas"
   },
   {
     "probe": "atlas-cli-flags",
     "fixture": "atlas migrate new",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --dir"
+    "detail": "accepts all essential Atlas flags: --dir --dir-format; advertises Atlas defaults: --dir-format=atlas"
   },
   {
     "probe": "atlas-cli-flags",
     "fixture": "atlas migrate set",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "accepts all essential Atlas flags: --url --dir"
+    "detail": "accepts all essential Atlas flags: --url --dir --dir-format --revisions-schema; advertises Atlas defaults: --dir-format=atlas"
   },
   {
     "probe": "atlas-cli-flags",
@@ -4206,6 +4206,97 @@
     "stage": "flags",
     "outcome": "ok",
     "detail": "accepts all essential Atlas flags: --from --to"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate new",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate hash",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate hash` defaults to Atlas directory format and writes atlas.sum"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate status",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate apply --revisions-schema",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate apply --revisions-schema` is accepted and reaches the revision-schema execution path"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate status --revisions-schema",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate status --revisions-schema` is accepted and reaches the revision-schema execution path"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate set --revisions-schema",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate set --revisions-schema` is accepted and reaches the revision-schema execution path"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate apply --dir-format",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate hash --dir-format goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate lint --dir-format goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate new --dir-format goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate set --dir-format goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate status --dir-format goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "ptah atlas migrate validate --dir-format goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-shorthands",
