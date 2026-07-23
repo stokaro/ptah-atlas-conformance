@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260723125936-6c4c3c3631f3`
-- Outcomes: **669 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260723154541-52172e7cd465`
+- Outcomes: **670 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -35,6 +35,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-flags | `atlas schema clean` | flags | accepts all essential Atlas flags: --url --dry-run --auto-approve |  |
 | — | ok | atlas-cli-flags | `atlas schema diff` | flags | accepts all essential Atlas flags: --from --to --dev-url --format |  |
 | — | ok | atlas-cli-flags | `atlas schema inspect` | flags | accepts all essential Atlas flags: --url --dev-url --schema --exclude --format |  |
+| — | ok | atlas-cli-hidden-runtime | `ptah atlas migrate diff --dry-run` | execute | `ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum |  |
 | — | ok | atlas-cli-surface | `atlas license` | resolve | `ptah atlas license` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate apply` | resolve | `ptah atlas migrate apply` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |

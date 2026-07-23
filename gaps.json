@@ -4208,6 +4208,13 @@
     "detail": "accepts all essential Atlas flags: --from --to"
   },
   {
+    "probe": "atlas-cli-hidden-runtime",
+    "fixture": "ptah atlas migrate diff --dry-run",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum"
+  },
+  {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS101 (drop schema)",
     "stage": "postgres",
