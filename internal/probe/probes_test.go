@@ -291,6 +291,94 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution(t *testing.T) {
 	}
 }
 
+func TestAtlasCLIHiddenRuntimeProbeAcceptsHiddenDryRun(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeHiddenDryRunRuntimeScript(false, false, false))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIHiddenRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected hidden dry-run OK, got %#v", results[0])
+	}
+}
+
+func TestAtlasCLIHiddenRuntimeProbeRejectsVisibleDryRunHelp(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeHiddenDryRunRuntimeScript(true, false, false))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIHiddenRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap || results[0].Stage != "help" {
+		t.Fatalf("expected visible dry-run help gap, got %#v", results[0])
+	}
+}
+
+func TestAtlasCLIHiddenRuntimeProbeRejectsDryRunFileWrite(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeHiddenDryRunRuntimeScript(false, true, false))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIHiddenRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap || results[0].Stage != "files" {
+		t.Fatalf("expected dry-run file-write gap, got %#v", results[0])
+	}
+}
+
+func TestAtlasCLIHiddenRuntimeProbeRejectsDryRunSumRewrite(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executable uses a POSIX shell script")
+	}
+
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "ptah")
+	writeTestFile(t, bin, fakeHiddenDryRunRuntimeScript(false, false, true))
+	if err := os.Chmod(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	setFakePtahCLIBinaries(t, bin)
+
+	results := AtlasCLIHiddenRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != Gap || results[0].Stage != "files" {
+		t.Fatalf("expected dry-run sum-rewrite gap, got %#v", results[0])
+	}
+}
+
 func setFakePtahCLIBinaries(t *testing.T, bin string) {
 	t.Helper()
 
@@ -322,6 +410,42 @@ case "$*" in
     printf 'schema "main" {}\n' > a_schema.hcl
     printf 'schema "nested" {}\n' > nested/z_schema.hcl
     printf 'a_schema.hcl\nnested/z_schema.hcl\n'
+    ;;
+  *)
+    printf 'unsupported %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+`
+}
+
+func fakeHiddenDryRunRuntimeScript(visibleHelp, writesMigration, rewritesSum bool) string {
+	helpFlags := "--dev-url\n      --dir\n      --to\n"
+	if visibleHelp {
+		helpFlags += "      --dry-run\n"
+	}
+	writeMigration := ""
+	if writesMigration {
+		writeMigration = "printf 'ALTER TABLE users ADD COLUMN email TEXT;\\n' > \"$dir/2_add_email.sql\"\n"
+	}
+	rewriteSum := ""
+	if rewritesSum {
+		rewriteSum = "printf 'mutated-sum\\n' > \"$dir/atlas.sum\"\n"
+	}
+	return `#!/bin/sh
+case "$*" in
+  "atlas migrate diff --help")
+    printf 'Flags:\n      ` + helpFlags + `'
+    ;;
+  "atlas migrate diff --dev-url "*)
+    dir=""
+    while [ "$#" -gt 0 ]; do
+      if [ "$1" = "--dir" ]; then
+        dir="${2#file://}"
+      fi
+      shift
+    done
+    ` + writeMigration + rewriteSum + `printf 'ALTER TABLE users ADD COLUMN email TEXT;\n'
     ;;
   *)
     printf 'unsupported %s\n' "$*" >&2
