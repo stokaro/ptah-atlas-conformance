@@ -6,27 +6,26 @@ It records where Ptah, driven through its public API, cannot ingest what Atlas
 authored. It is a coverage probe over Atlas's own fixtures, not a quality score:
 a `gap` here is a thing Atlas expresses that Ptah does not yet.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260723121302-da73a4f47593`
-- Outcomes: **17 ok**, **1 gap**, **0 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **1 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260723125936-6c4c3c3631f3`
+- Outcomes: **18 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | roundtrip-consistency | `mysql/06-constraints-actions` | roundtrip | desired schema does not survive apply -> introspect: differs in constraints_added, constraints_added_with_tables, constraints_removed, constraints_removed_with_tables | #611 |
 | — | ok | roundtrip-consistency | `mysql/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `mysql/02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
 | — | ok | roundtrip-consistency | `mysql/03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `mysql/04-index-fk` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `mysql/05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `mysql/06-constraints-actions` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `mysql/07-generated-column` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `mysql/08-self-reference` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `mysql/09-defaults-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
@@ -39,7 +38,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | roundtrip-consistency | `postgres/07-generated-column` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `postgres/08-self-reference` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `postgres/09-defaults-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#611** — 1 finding(s)
