@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260723172539-f51a113bcbf6`
-- Outcomes: **670 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260723181502-bdf7a2118413`
+- Outcomes: **676 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -22,7 +22,7 @@ Every fixture is covered. The conformance gate is green.
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
 | — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode |  |
-| — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format |  |
+| — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate down` | flags | accepts all essential Atlas flags: --url --dir --dev-url --to-version --to-tag --dry-run --format --revisions-schema --lock-timeout --skip-checks --plan |  |
 | — | ok | atlas-cli-flags | `atlas migrate hash` | flags | accepts all essential Atlas flags: --dir |  |
 | — | ok | atlas-cli-flags | `atlas migrate import` | flags | accepts all essential Atlas flags: --from --to |  |
@@ -31,11 +31,17 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-flags | `atlas migrate set` | flags | accepts all essential Atlas flags: --url --dir |  |
 | — | ok | atlas-cli-flags | `atlas migrate status` | flags | accepts all essential Atlas flags: --url --dir |  |
 | — | ok | atlas-cli-flags | `atlas migrate validate` | flags | accepts all essential Atlas flags: --dev-url --dir |  |
-| — | ok | atlas-cli-flags | `atlas schema apply` | flags | accepts all essential Atlas flags: --url --to --dev-url --dry-run --auto-approve |  |
+| — | ok | atlas-cli-flags | `atlas schema apply` | flags | accepts all essential Atlas flags: --url --to --dev-url --dry-run --auto-approve --schema |  |
 | — | ok | atlas-cli-flags | `atlas schema clean` | flags | accepts all essential Atlas flags: --url --dry-run --auto-approve |  |
-| — | ok | atlas-cli-flags | `atlas schema diff` | flags | accepts all essential Atlas flags: --from --to --dev-url --format |  |
+| — | ok | atlas-cli-flags | `atlas schema diff` | flags | accepts all essential Atlas flags: --from --to --dev-url --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas schema inspect` | flags | accepts all essential Atlas flags: --url --dev-url --schema --exclude --format |  |
 | — | ok | atlas-cli-hidden-runtime | `ptah atlas migrate diff --dry-run` | execute | `ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas migrate diff -s` | parse | `ptah atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas schema apply --file/-f` | execute | `ptah atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas schema apply -s` | parse | `ptah atlas schema apply -s` reaches the same --schema validation path as the long flag |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas schema diff -f` | execute | `ptah atlas schema diff -f` behaves like `--from` for local schema-file diffs |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas schema diff -s` | parse | `ptah atlas schema diff -s` reaches the same --schema validation path as the long flag |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas schema inspect -s` | parse | `ptah atlas schema inspect -s public` reached the expected command validation path |  |
 | — | ok | atlas-cli-surface | `atlas license` | resolve | `ptah atlas license` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate apply` | resolve | `ptah atlas migrate apply` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
