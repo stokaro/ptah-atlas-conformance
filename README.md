@@ -67,7 +67,7 @@ DB-free.
 
 | Tier | Workflow | Question | Needs |
 | --- | --- | --- | --- |
-| `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. Runs on both Postgres and MySQL over basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer default/type cases. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` |
+| `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. CI runs Postgres, MySQL, MariaDB, and SQLite over basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer default/type cases. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` / `CONFORMANCE_MARIADB_URL`; optional `CONFORMANCE_SQLITE_URL` |
 | `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by schema facts: columns, type/null/default/primary-key state, generated columns, foreign keys and actions, unique/check constraints, and indexes. Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. | `CONFORMANCE_POSTGRES_URL` + a real Atlas binary (`ATLAS_BIN`) |
 
 The differential builds a **real Atlas CE binary** from the release tag pinned in
@@ -80,19 +80,30 @@ not a differential gap — that fidelity is covered by the Ptah-vs-Ptah round-tr
 tier instead. Today the differential tier agrees with Atlas CE on all committed
 first-party live fixtures, including enum/default spellings, generated columns,
 self-references, indexes, checks, unique constraints, and foreign-key actions.
-The live round-trip tier also agrees on the committed Postgres/MySQL fixture
-corpus. Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
+The live round-trip tier also agrees on the committed Postgres/MySQL/MariaDB/SQLite
+fixture corpus. Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
 drop-in path — a parse failure there is itself reported as a gap, not mistaken
 for a schema disagreement.
 
 ```
-make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
+make probe-live   # regenerate gaps-live.md / gaps-live.json; SQLite runs without external DB
 make budget-live  # live progress gate: red only on regression/stale waivers
 make gate-live    # live corpus-parity yardstick: fails if any live non-OK remains
 make atlas        # build Atlas CE from the atlas.version tag into ./bin/atlas
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
 make budget-diff  # differential progress gate: red only on regression/stale waivers
 make gate-diff    # differential corpus-parity yardstick: fails if any diff non-OK remains
+```
+
+Local live runs are explicit per networked dialect. Set whichever service URLs
+you want to exercise; unset networked dialects are skipped. SQLite always runs,
+using `CONFORMANCE_SQLITE_URL` when set or a fresh temporary database otherwise:
+
+```
+CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=disable' \
+CONFORMANCE_MYSQL_URL='mysql://root:pw@tcp(localhost:3306)/conf' \
+CONFORMANCE_MARIADB_URL='mariadb://root:pw@tcp(localhost:3307)/conf' \
+make probe-live
 ```
 
 ## CLI surface tier
@@ -183,7 +194,7 @@ only when every fixture and live contour is covered.
 ```
 make probe        # regenerate gaps.md / gaps.json (exit 0)
 make budget       # offline progress gate: red only on regression/stale waivers
-make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
+make probe-live   # regenerate gaps-live.md / gaps-live.json; SQLite runs without external DB
 make budget-live  # live progress gate: red only on regression/stale waivers
 make gate-live    # live corpus-parity yardstick: fails if any live non-OK remains
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
