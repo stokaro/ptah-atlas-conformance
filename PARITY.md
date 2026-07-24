@@ -61,6 +61,14 @@ is **"unknown — not measured"**, not "works".
   planner, linter, safety gate, seeder, online DDL). "Does everything Atlas's
   open-source core does" is false; "is a toy" is also false. The truth is in
   between and, for most of the surface, **not yet measured here**.
+- Some Ptah capabilities are the **local, open half of an Atlas *Pro* feature**
+  and have **no CE oracle to differential against**, so they are covered by
+  Ptah's own behavioral tests rather than a conformance probe here. Pre-migration
+  assertion checks (`-- +ptah check`, ptah#661) are one: Atlas keeps pre-migration
+  checks in its proprietary build, and Atlas CE offers neither the check
+  execution nor the Cloud approval half, so there is nothing to compare against.
+  This is scope, not a gap — the check parser and apply-abort behavior are
+  verified in Ptah's `migration/migrator` package.
 
 ## What the `ptah atlas` and analyzer probes now measure exhaustively
 
