@@ -248,9 +248,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate apply",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: extra --lock-name, --to-version",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -270,9 +269,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate diff",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: missing --edit, --qualifier",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -334,9 +332,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate new",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: missing --edit",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --edit --env --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -433,9 +430,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas schema apply",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: missing --edit, --lock-timeout, --plan",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --auto-approve --config --dev-url --dry-run --edit --env --exclude --format --include --lock-timeout --plan --schema --to --tx-mode --url --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -462,9 +458,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas schema diff",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: extra --web",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --from --include --schema --to --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -491,9 +486,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas schema inspect",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: extra --include",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -583,9 +577,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate apply",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: extra --lock-name, --to-version",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -605,9 +598,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate diff",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: missing --edit, --qualifier",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -669,9 +661,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate new",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: missing --edit",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --edit --env --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -768,9 +759,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema apply",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: missing --edit, --lock-timeout, --plan",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --auto-approve --config --dev-url --dry-run --edit --env --exclude --format --include --lock-timeout --plan --schema --to --tx-mode --url --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -797,9 +787,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema diff",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: extra --web",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --from --include --schema --to --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -826,9 +815,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema inspect",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: extra --include",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
