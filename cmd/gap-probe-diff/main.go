@@ -82,7 +82,7 @@ func main() {
 		}
 	}
 
-	md := probe.RenderDifferentialMarkdownWithCommand(results, atlasSHA, ptahVersion(), "make probe-diff")
+	md := probe.RenderDifferentialMarkdownWithCommand(results, atlasSHA, probe.PtahVersion(), "make probe-diff")
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
 		os.Exit(2)
@@ -195,18 +195,4 @@ func pinnedVersion() string {
 		return "unpinned"
 	}
 	return strings.TrimSpace(string(b))
-}
-
-func ptahVersion() string {
-	data, err := os.ReadFile("go.mod")
-	if err != nil {
-		return "github.com/stokaro/ptah (version unknown)"
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		const mod = "github.com/stokaro/ptah "
-		if i := strings.Index(line, mod); i >= 0 {
-			return "github.com/stokaro/ptah " + strings.Fields(line[i+len(mod):])[0]
-		}
-	}
-	return "github.com/stokaro/ptah (version unknown)"
 }

@@ -131,6 +131,50 @@ jobs:
       - name: Differential Atlas conformance gate
         run: make gate-diff
 
+  # The migrate-runtime full-parity signal. This is separate from
+  # conformance-migrate-runtime, which enforces only the committed regression
+  # budget. It must stay red while any supported `ptah atlas migrate ...`
+  # workflow has a state-level divergence from Atlas-compatible behavior.
+  migrate-runtime-gate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: conf
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: pw
+          MYSQL_DATABASE: conf
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -uroot -ppw"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
+      CONFORMANCE_MYSQL_URL: mysql://root:pw@tcp(localhost:3306)/conf
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Atlas migrate runtime conformance gate
+        run: make gate-migrate-runtime
+
   # The CLI-surface full-parity signal. This is separate from
   # conformance-regression, which enforces only the committed CLI-surface
   # regression budget.

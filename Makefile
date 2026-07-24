@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-cli-surface budget-cli-surface gate-cli-surface atlas verify build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-cli-surface budget-cli-surface gate-cli-surface atlas verify build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -66,6 +66,25 @@ budget-diff: probe-diff
 # Atlas CE on any committed CE-visible construct.
 gate-diff:
 	$(GO_OFF) run ./cmd/gap-probe-diff -gate
+
+# The Atlas migrate runtime tier: run selected `ptah atlas migrate ...`
+# workflows against real local databases and inspect the resulting schema and
+# Atlas revision rows. Kept separate from offline txtar simulation so runtime
+# parity cannot be hidden by fixture parsing success. Regenerates
+# gaps-migrate-runtime.md / gaps-migrate-runtime.json and always exits 0.
+probe-migrate-runtime:
+	$(GO_OFF) run ./cmd/gap-probe-migrate-runtime
+
+# CI progress gate for migrate runtime behavior: fail only when the current
+# runtime report exceeds the committed budget. Full migrate runtime parity is
+# still `make gate-migrate-runtime`.
+budget-migrate-runtime: probe-migrate-runtime
+	$(GO_OFF) run ./cmd/gap-budget -report gaps-migrate-runtime.json -budget gap-migrate-runtime-budget.txt
+
+# The migrate runtime conformance gate: regenerate the report AND fail if any
+# supported runtime check disagrees with Atlas-compatible semantics.
+gate-migrate-runtime:
+	$(GO_OFF) run ./cmd/gap-probe-migrate-runtime -gate
 
 # The CLI surface tier: build/read the pinned Atlas CE binary and compare its
 # command help/usage/flag inventory to both `ptah atlas ...` and a ptah-compat

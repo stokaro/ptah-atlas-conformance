@@ -1,0 +1,65 @@
+name: conformance-migrate-runtime
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # The migrate runtime tier runs real `ptah atlas migrate ...` workflows
+  # against real databases and inspects both end schema state and Atlas revision
+  # rows. PostgreSQL and MySQL use service containers; SQLite uses fresh local
+  # databases created by the probe. This PR workflow is a regression check: the
+  # committed report must be fresh, and the unwaived migrate-runtime gap count
+  # must not exceed the committed budget. Full migrate runtime parity remains
+  # `make gate-migrate-runtime` and is intentionally separate.
+  migrate-runtime:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: conf
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: pw
+          MYSQL_DATABASE: conf
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -uroot -ppw"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
+      CONFORMANCE_MYSQL_URL: mysql://root:pw@tcp(localhost:3306)/conf
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Regenerate the migrate runtime report
+        run: make probe-migrate-runtime
+
+      - name: Fail if the committed migrate runtime report is stale
+        run: |
+          if ! git diff --exit-code gaps-migrate-runtime.md gaps-migrate-runtime.json; then
+            echo "gaps-migrate-runtime.md / gaps-migrate-runtime.json are out of date -- run 'make probe-migrate-runtime' and commit the result."
+            exit 1
+          fi
+
+      - name: Enforce migrate runtime regression budget
+        run: make budget-migrate-runtime

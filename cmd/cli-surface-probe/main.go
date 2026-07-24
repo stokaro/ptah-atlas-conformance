@@ -7,8 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 )
@@ -33,7 +31,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	md := probe.RenderCLISurfaceMarkdown(results, waivers, inventory, ptahVersion(), "make probe-cli-surface")
+	md := probe.RenderCLISurfaceMarkdown(results, waivers, inventory, probe.PtahVersion(), "make probe-cli-surface")
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
 		os.Exit(2)
@@ -68,30 +66,4 @@ func main() {
 		}
 		fmt.Println("CLI SURFACE GATE: GREEN — every OSS Atlas command surface matches.")
 	}
-}
-
-func ptahVersion() string {
-	if v := readModVersion(); v != "" {
-		return "github.com/stokaro/ptah " + v
-	}
-	return "github.com/stokaro/ptah (version unknown)"
-}
-
-func readModVersion() string {
-	data, err := os.ReadFile("go.mod")
-	if err != nil {
-		if wd, e := os.Getwd(); e == nil {
-			data, _ = os.ReadFile(filepath.Join(wd, "go.mod"))
-		}
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		const mod = "github.com/stokaro/ptah "
-		if _, rest, ok := strings.Cut(line, mod); ok {
-			fields := strings.Fields(rest)
-			if len(fields) != 0 {
-				return fields[0]
-			}
-		}
-	}
-	return ""
 }

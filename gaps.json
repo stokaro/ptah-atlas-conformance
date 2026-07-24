@@ -4289,21 +4289,21 @@
     "fixture": "ptah atlas migrate apply --revisions-schema",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate apply --revisions-schema` is accepted and reaches the revision-schema execution path"
+    "detail": "`ptah atlas migrate apply --revisions-schema main` executed successfully"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "ptah atlas migrate status --revisions-schema",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate status --revisions-schema` is accepted and reaches the revision-schema execution path"
+    "detail": "`ptah atlas migrate status --revisions-schema main` executed successfully"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "ptah atlas migrate set --revisions-schema",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate set --revisions-schema` is accepted and reaches the revision-schema execution path"
+    "detail": "`ptah atlas migrate set --revisions-schema main` executed successfully"
   },
   {
     "probe": "atlas-cli-metadata-runtime",

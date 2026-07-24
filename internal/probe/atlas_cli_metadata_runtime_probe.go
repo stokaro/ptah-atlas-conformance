@@ -128,17 +128,13 @@ func atlasMigrateApplyAcceptsRevisionsSchema(bin string) Result {
 		"atlas", "migrate", "apply",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
-		"--revisions-schema", "custom_meta",
+		"--revisions-schema", "main",
 	})
-	if err == nil {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate apply --revisions-schema", "execute", OK,
-			"`ptah atlas migrate apply --revisions-schema` executed successfully", ""}
+	if err != nil {
+		return atlasMetadataRuntimeExit("ptah atlas migrate apply --revisions-schema", "execute", output, err)
 	}
-	if outputReachedRevisionSchemaPath(output) {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate apply --revisions-schema", "execute", OK,
-			"`ptah atlas migrate apply --revisions-schema` is accepted and reaches the revision-schema execution path", ""}
-	}
-	return atlasMetadataRuntimeExit("ptah atlas migrate apply --revisions-schema", "execute", output, err)
+	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate apply --revisions-schema", "execute", OK,
+		"`ptah atlas migrate apply --revisions-schema main` executed successfully", ""}
 }
 
 func atlasMigrateStatusAcceptsRevisionsSchema(bin string) Result {
@@ -156,17 +152,13 @@ func atlasMigrateStatusAcceptsRevisionsSchema(bin string) Result {
 		"atlas", "migrate", "status",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
-		"--revisions-schema", "custom_meta",
+		"--revisions-schema", "main",
 	})
-	if err == nil {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate status --revisions-schema", "execute", OK,
-			"`ptah atlas migrate status --revisions-schema` executed successfully", ""}
+	if err != nil {
+		return atlasMetadataRuntimeExit("ptah atlas migrate status --revisions-schema", "execute", output, err)
 	}
-	if outputReachedRevisionSchemaPath(output) {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate status --revisions-schema", "execute", OK,
-			"`ptah atlas migrate status --revisions-schema` is accepted and reaches the revision-schema execution path", ""}
-	}
-	return atlasMetadataRuntimeExit("ptah atlas migrate status --revisions-schema", "execute", output, err)
+	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate status --revisions-schema", "execute", OK,
+		"`ptah atlas migrate status --revisions-schema main` executed successfully", ""}
 }
 
 func atlasMigrateSetAcceptsRevisionsSchema(bin string) Result {
@@ -184,18 +176,14 @@ func atlasMigrateSetAcceptsRevisionsSchema(bin string) Result {
 		"atlas", "migrate", "set",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
-		"--revisions-schema", "custom_meta",
+		"--revisions-schema", "main",
 		"20240101000000",
 	})
-	if err == nil {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate set --revisions-schema", "execute", OK,
-			"`ptah atlas migrate set --revisions-schema` executed successfully", ""}
+	if err != nil {
+		return atlasMetadataRuntimeExit("ptah atlas migrate set --revisions-schema", "execute", output, err)
 	}
-	if outputReachedRevisionSchemaPath(output) {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate set --revisions-schema", "execute", OK,
-			"`ptah atlas migrate set --revisions-schema` is accepted and reaches the revision-schema execution path", ""}
-	}
-	return atlasMetadataRuntimeExit("ptah atlas migrate set --revisions-schema", "execute", output, err)
+	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate set --revisions-schema", "execute", OK,
+		"`ptah atlas migrate set --revisions-schema main` executed successfully", ""}
 }
 
 func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
@@ -300,13 +288,6 @@ func prepareAtlasMetadataMigration(bin, migrations, fixture string) *Result {
 		return &result
 	}
 	return nil
-}
-
-func outputReachedRevisionSchemaPath(output string) bool {
-	if strings.Contains(output, "unknown flag") || strings.Contains(output, "unknown shorthand") {
-		return false
-	}
-	return strings.Contains(output, "failed to create migrations schema") || strings.Contains(output, `near "SCHEMA"`)
 }
 
 func writeAtlasMigration(migrations string) error {

@@ -6,7 +6,8 @@ require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.0.0-20260724111001-7e9ca5dc7ec3
+	github.com/stokaro/ptah v0.0.0-20260724120205-9cf8d937f741
+	modernc.org/sqlite v1.54.0
 )
 
 require (
@@ -73,5 +74,4 @@ require (
 	modernc.org/libc v1.74.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.54.0 // indirect
 )
