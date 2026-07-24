@@ -259,9 +259,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate checkpoint",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas migrate checkpoint` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"checkpoint\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -283,9 +282,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate edit",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas migrate edit` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"edit\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -349,25 +347,22 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate push",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas migrate push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate push` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate rebase",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas migrate rebase` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rebase\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate rebase` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate rm",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas migrate rm` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rm\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate rm` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -402,9 +397,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate test",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas migrate test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate test` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -512,25 +506,22 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas schema plan",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas schema plan` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"plan\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema plan` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas schema push",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas schema push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema push` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas schema test",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`ptah atlas schema test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "`ptah atlas schema test` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -610,9 +601,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate checkpoint",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas migrate checkpoint` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"checkpoint\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -634,9 +624,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate edit",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas migrate edit` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"edit\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -700,25 +689,22 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate push",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas migrate push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas migrate push` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate rebase",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas migrate rebase` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rebase\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas migrate rebase` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate rm",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas migrate rm` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rm\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas migrate rm` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -753,9 +739,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate test",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas migrate test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas migrate test` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -863,25 +848,22 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas schema plan` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"plan\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas schema plan` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema push",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas schema push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas schema push` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema test",
     "stage": "out-of-scope-runtime",
-    "outcome": "gap",
-    "detail": "`atlas schema test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "`atlas schema test` reports the same community-version unsupported boundary as Atlas CE"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
