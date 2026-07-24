@@ -12,7 +12,7 @@ database state directly.
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724192153-b37799d35a0c`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260724222152-cda365dbaec4`
 - Outcomes: **9 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
