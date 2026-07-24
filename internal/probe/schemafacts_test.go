@@ -31,6 +31,10 @@ func diff(atlas, ptah *goschema.Database) []string {
 	return diffTableFacts(factsFromDatabase(atlas), factsFromDatabase(ptah))
 }
 
+func boolPtr(value bool) *bool {
+	return &value
+}
+
 func assertOneDiffContains(c *qt.C, d []string, want string) {
 	c.Assert(d, qt.HasLen, 1)
 	c.Assert(d[0], qt.Contains, want)
@@ -68,6 +72,53 @@ func TestFacts_DialectTypeSpellingsAreEquivalent(t *testing.T) {
 	)
 
 	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_DefaultSchemaQualificationFolds(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "User", Schema: "public", Name: "users"}},
+		Fields: []goschema.Field{{StructName: "User", Name: "id", Type: "integer"}},
+	}
+	ptah := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "User", Name: "users"}},
+		Fields: []goschema.Field{{StructName: "User", Name: "id", Type: "integer"}},
+	}
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_SchemaQualifiedTablesDoNotCollide(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Schemas: []goschema.Schema{{Name: "auth"}, {Name: "billing"}},
+		Tables: []goschema.Table{
+			{StructName: "AuthUser", Schema: "auth", Name: "users"},
+			{StructName: "BillingUser", Schema: "billing", Name: "users"},
+		},
+		Fields: []goschema.Field{
+			{StructName: "AuthUser", Name: "id", Type: "integer"},
+			{StructName: "BillingUser", Name: "id", Type: "integer"},
+		},
+	}
+	ptah := &goschema.Database{
+		Schemas: []goschema.Schema{{Name: "auth"}},
+		Tables:  []goschema.Table{{StructName: "AuthUser", Schema: "auth", Name: "users"}},
+		Fields:  []goschema.Field{{StructName: "AuthUser", Name: "id", Type: "integer"}},
+	}
+
+	c.Assert(strings.Join(diff(atlas, ptah), "; "), qt.Contains, "billing.users")
+}
+
+func TestFacts_ForeignKeyTargetSchemaMismatchIsGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("orders", goschema.Field{Name: "user_id", Type: "integer", Foreign: "auth.users(id)"})
+	ptah := oneTable("orders", goschema.Field{Name: "user_id", Type: "integer", Foreign: "users(id)"})
+
+	c.Assert(strings.Join(diff(atlas, ptah), "; "), qt.Contains, "auth.users(id)")
 }
 
 func TestFacts_DroppedLengthIsAGap(t *testing.T) {
@@ -123,7 +174,9 @@ func TestFacts_CompositePrimaryKeyMismatchIsAGap(t *testing.T) {
 		},
 	}
 
-	assertOneDiffContains(c, diff(atlas, ptah), "group_id")
+	got := strings.Join(diff(atlas, ptah), "; ")
+	c.Assert(got, qt.Contains, "group_id")
+	c.Assert(got, qt.Contains, "~primary_key")
 }
 
 func TestFacts_CompositePrimaryKeyAgreesWhenBothComplete(t *testing.T) {
@@ -234,6 +287,19 @@ func TestFacts_GeneratedColumnKindMismatchIsAGap(t *testing.T) {
 	assertOneDiffContains(c, diff(atlas, ptah), "kind=stored")
 }
 
+func TestFacts_IdentityMetadataMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{
+		Name: "id", Type: "bigint", IdentityGeneration: "ALWAYS", IdentityStart: "10", IdentityIncrement: "5",
+	})
+	ptah := oneTable("t", goschema.Field{
+		Name: "id", Type: "bigint", IdentityGeneration: "BY_DEFAULT", IdentityStart: "10", IdentityIncrement: "5",
+	})
+
+	assertOneDiffContains(c, diff(atlas, ptah), "identity=always start=10 increment=5")
+}
+
 func TestFacts_UniqueConstraintAndUniqueIndexFoldTogether(t *testing.T) {
 	c := qt.New(t)
 
@@ -249,6 +315,29 @@ func TestFacts_UniqueConstraintAndUniqueIndexFoldTogether(t *testing.T) {
 	}
 
 	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_UniqueNullsDistinctMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{
+			StructName: "Account", Name: "accounts_email_key", Unique: true,
+			Fields: []string{"email"}, NullsDistinct: boolPtr(false),
+		}},
+	}
+	ptah := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{
+			StructName: "Account", Name: "accounts_email_key", Unique: true,
+			Fields: []string{"email"}, NullsDistinct: boolPtr(true),
+		}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "nulls=not_distinct")
 }
 
 func TestFacts_CheckExpressionMismatchIsAGap(t *testing.T) {
@@ -376,4 +465,58 @@ func TestFacts_ExpressionIndexKeepsQualifiedExpression(t *testing.T) {
 	}
 
 	assertOneDiffContains(c, diff(atlas, ptah), "expr(lower(account.email))")
+}
+
+func TestFacts_IndexPartMetadataMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{
+			StructName: "Account",
+			Name:       "idx_accounts_email",
+			Parts:      []goschema.IndexPart{{Name: "email", Operator: "text_pattern_ops", Prefix: "16", Desc: true}},
+		}},
+	}
+	ptah := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text"}},
+		Indexes: []goschema.Index{{
+			StructName: "Account",
+			Name:       "idx_accounts_email",
+			Parts:      []goschema.IndexPart{{Name: "email"}},
+		}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "email op=text_pattern_ops prefix=16 desc")
+}
+
+func TestFacts_EnumDefinitionsMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Enums: []goschema.Enum{{Name: "enum_account_status", Values: []string{"active", "suspended"}}},
+	}
+	ptah := &goschema.Database{
+		Enums: []goschema.Enum{{Name: "enum_account_status", Values: []string{"active"}}},
+	}
+
+	assertOneDiffContains(c, diff(atlas, ptah), "values=active,suspended")
+}
+
+func TestFacts_CommentsMismatchIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts", Comment: "Customer accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text", Comment: "Login email"}},
+	}
+	ptah := &goschema.Database{
+		Tables: []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields: []goschema.Field{{StructName: "Account", Name: "email", Type: "text"}},
+	}
+
+	c.Assert(strings.Join(diff(atlas, ptah), "; "), qt.Contains, "comment=Customer accounts")
+	c.Assert(strings.Join(diff(atlas, ptah), "; "), qt.Contains, "comment=Login email")
 }

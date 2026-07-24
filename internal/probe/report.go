@@ -90,15 +90,25 @@ func RenderDifferentialMarkdownWithCommand(results []Result, atlasSHA, ptahVersi
 			"fixture coverage score.\n\n",
 		SourceLine:  fmt.Sprintf("Live fixtures: `testdata/live` first-party Ptah schema fixtures; Atlas CE binary pinned at `ariga/atlas@%s`", atlasSHA),
 		PtahVersion: ptahVersion,
+		FactCategories: []string{
+			"Global schemas and enum definitions.",
+			"Schema-qualified table identity and table metadata.",
+			"Columns: type, nullability, defaults, primary-key membership, identity, generated expressions, enum values, comments, charset, collation, and ON UPDATE expressions.",
+			"Primary keys: ordered columns, prefix and descending parts, and include columns.",
+			"Foreign keys: schema-qualified targets, column order, referenced columns, and referential actions.",
+			"Unique and check constraints: columns, include columns, NULLS DISTINCT state, comments, and CHECK expressions.",
+			"Indexes: ordered columns and expressions, uniqueness, type, parser, operator classes, prefix length, descending parts, partial predicates, include columns, storage params, granularity, and comments.",
+		},
 	})
 }
 
 type markdownReportOptions struct {
-	Title       string
-	Command     string
-	Intro       string
-	SourceLine  string
-	PtahVersion string
+	Title          string
+	Command        string
+	Intro          string
+	SourceLine     string
+	PtahVersion    string
+	FactCategories []string
 }
 
 func renderMarkdownWithOptions(results []Result, w *Waivers, opts markdownReportOptions) string {
@@ -133,6 +143,7 @@ func renderMarkdownWithOptions(results []Result, w *Waivers, opts markdownReport
 	)
 	writeCorpusSummary(&b, results)
 	b.WriteString("\n")
+	writeFactCategories(&b, opts.FactCategories)
 
 	// Gaps/fails/panics first — the actionable part — most severe first.
 	order := map[Outcome]int{Panic: 0, Fail: 1, Gap: 2, OK: 3}
@@ -190,6 +201,17 @@ func renderMarkdownWithOptions(results []Result, w *Waivers, opts markdownReport
 	}
 
 	return b.String()
+}
+
+func writeFactCategories(b *strings.Builder, categories []string) {
+	if len(categories) == 0 {
+		return
+	}
+	b.WriteString("## Compared Schema Fact Categories\n\n")
+	for _, category := range categories {
+		fmt.Fprintf(b, "- %s\n", category)
+	}
+	b.WriteString("\n")
 }
 
 func conformanceGateStatus(nonOK int) string {

@@ -12,10 +12,20 @@ fixture coverage score.
 Every fixture is covered. The conformance gate is green.
 
 - Live fixtures: `testdata/live` first-party Ptah schema fixtures; Atlas CE binary pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724092029-a183ab15f75d`
-- Outcomes: **27 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260724111001-7e9ca5dc7ec3`
+- Outcomes: **28 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
+
+## Compared Schema Fact Categories
+
+- Global schemas and enum definitions.
+- Schema-qualified table identity and table metadata.
+- Columns: type, nullability, defaults, primary-key membership, identity, generated expressions, enum values, comments, charset, collation, and ON UPDATE expressions.
+- Primary keys: ordered columns, prefix and descending parts, and include columns.
+- Foreign keys: schema-qualified targets, column order, referenced columns, and referential actions.
+- Unique and check constraints: columns, include columns, NULLS DISTINCT state, comments, and CHECK expressions.
+- Indexes: ordered columns and expressions, uniqueness, type, parser, operator classes, prefix length, descending parts, partial predicates, include columns, storage params, granularity, and comments.
 
 ## Findings
 
@@ -39,6 +49,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-differential | `postgres/07-generated-column` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `postgres/08-self-reference` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `postgres/09-defaults-types` | compare | 1 table matches Atlas CE |  |
+| — | ok | atlas-differential | `postgres/10-schema-qualified` | compare | 3 tables matches Atlas CE |  |
 | — | ok | atlas-differential | `sqlite/01-basic-table` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `sqlite/02-enum` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `sqlite/03-view` | compare | 1 table matches Atlas CE |  |

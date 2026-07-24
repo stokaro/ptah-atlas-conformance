@@ -11,8 +11,8 @@ behavioral self-consistency probe, not an Atlas-authored fixture coverage score.
 Every fixture is covered. The conformance gate is green.
 
 - Live fixtures: `testdata/live` first-party Ptah schema fixtures
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724092029-a183ab15f75d`
-- Outcomes: **36 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260724111001-7e9ca5dc7ec3`
+- Outcomes: **37 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -47,6 +47,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | roundtrip-consistency | `postgres/07-generated-column` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `postgres/08-self-reference` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `postgres/09-defaults-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `postgres/10-schema-qualified` | roundtrip | clean round-trip: 3 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `sqlite/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
 | — | ok | roundtrip-consistency | `sqlite/02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
 | — | ok | roundtrip-consistency | `sqlite/03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
