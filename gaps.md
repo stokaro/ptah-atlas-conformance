@@ -11,7 +11,7 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724111001-7e9ca5dc7ec3`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260724120205-9cf8d937f741`
 - Outcomes: **697 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -37,17 +37,17 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-flags | `atlas schema inspect` | flags | accepts all essential Atlas flags: --url --dev-url --schema --exclude --format |  |
 | — | ok | atlas-cli-hidden-runtime | `ptah atlas migrate diff --dry-run` | execute | `ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate apply --dir-format` | flags | `ptah atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate apply --revisions-schema` | execute | `ptah atlas migrate apply --revisions-schema` is accepted and reaches the revision-schema execution path |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate apply --revisions-schema` | execute | `ptah atlas migrate apply --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate hash` | execute | `ptah atlas migrate hash` defaults to Atlas directory format and writes atlas.sum |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate hash --dir-format goose` | execute | `ptah atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate lint --dir-format goose` | execute | `ptah atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate new` | execute | `ptah atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate new --dir-format goose` | execute | `ptah atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate set --dir-format goose` | execute | `ptah atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate set --revisions-schema` | execute | `ptah atlas migrate set --revisions-schema` is accepted and reaches the revision-schema execution path |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate set --revisions-schema` | execute | `ptah atlas migrate set --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status` | execute | `ptah atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --dir-format goose` | execute | `ptah atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --revisions-schema` | execute | `ptah atlas migrate status --revisions-schema` is accepted and reaches the revision-schema execution path |  |
+| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --revisions-schema` | execute | `ptah atlas migrate status --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate validate --dir-format goose` | execute | `ptah atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-report-format | `ptah atlas migrate apply --dry-run --format json` | format | `ptah atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
 | — | ok | atlas-cli-report-format | `ptah atlas migrate apply --format json` | format | `ptah atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |

@@ -1,0 +1,58 @@
+[
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/apply-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply created expected SQLite tables, Atlas revision rows, and applied status"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/set-repair-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "set recorded repair state and apply executed only the remaining migration"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/tx-mode-all",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "`--tx-mode all` leaves the expected SQLite state after a failed migration"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/tx-mode-file",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "`--tx-mode file` leaves the expected SQLite state after a failed migration"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/tx-mode-none",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "`--tx-mode none` leaves the expected SQLite state after a failed migration"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/custom-revisions-schema",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/no-transaction-concurrent-index",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "`-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/apply-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply created expected MySQL tables and Atlas revision rows"
+  }
+]

@@ -621,13 +621,14 @@ case "$*" in
     printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
     printf 'Generated empty migration file:\nSQL:  %s/20240101000000_init.sql\n' "$dir"
     ;;
-  "atlas migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta"|"atlas migrate set --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta 20240101000000")
-    printf 'error: failed to create migrations schema: near "SCHEMA": syntax error\n' >&2
-    exit 2
+  "atlas migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema main")
+    printf 'Migrating to version 20240101000000 from 1 pending migrations.\nMigration complete. Current version: 20240101000000\n'
     ;;
-  "atlas migrate status --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta")
-    printf 'error: failed to create migrations schema: near "SCHEMA": syntax error\n' >&2
-    exit 2
+  "atlas migrate set --url sqlite://"*" --dir file://"*" --revisions-schema main 20240101000000")
+    printf 'Repaired migration 20240101000000\n'
+    ;;
+  "atlas migrate status --url sqlite://"*" --dir file://"*" --revisions-schema main")
+    printf 'Total Migrations: 1\nPending Migrations: 1\n'
     ;;
   "atlas migrate hash --dir file://"*)
     dir=${5#file://}

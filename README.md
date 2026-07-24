@@ -20,7 +20,8 @@ files, grouped into report fixtures), plus first-party Atlas-compatible
 regression fixtures for gaps not present in the upstream snapshot. The offline
 report distinguishes fixtures that are actually measured from fixtures that are
 merely imported and still lack a probe; the live reports separately show whether
-Ptah survives real database round trips and agrees with Atlas CE inspection.
+Ptah survives real database round trips, agrees with Atlas CE inspection, and
+preserves Atlas migrate runtime state.
 [`PARITY.md`](./PARITY.md) states exactly what is and is not tested — read it
 before quoting any number from here.
 
@@ -53,6 +54,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `atlas-cli-surface` | Does `ptah atlas <verb>` resolve for every OSS Atlas CLI verb? This is the `ptah atlas ...` drop-in surface; it builds the real Ptah CLI and checks each command, so it flips to green on its own when Ptah registers the command. | the built `ptah` binary |
 | `atlas-cli-flags` | Beyond resolving, does each `ptah atlas <verb>` accept the Atlas flags a drop-in caller passes (`--url`, `--dev-url`, `--to`, `--dir`, `--format`, …)? A resolving stub is not a drop-in. | the built `ptah` binary |
 | `atlas-cli-surface-inventory` / `atlas-cli-surface-ptah-*` | Dedicated CLI surface report over the current pinned Atlas CE binary: command paths, help usage, and long flags, compared separately against `ptah atlas ...` and binary-level `ptah-compat` drop-in behavior. | `bin/atlas`, the built `ptah` binary, the built `ptah-compat` binary |
+| `migrate-runtime` | Does `ptah atlas migrate ...` preserve Atlas-compatible runtime state against real databases: applied schema objects, Atlas revision rows, `set` repair behavior, and transaction-mode rollback/partial-apply semantics? | the built `ptah` binary, live SQLite databases |
 | `lint-analyzer-catalog` | For each Atlas sqlcheck analyzer concern, does Ptah's linter flag the same dangerous change? Behavioral, one synthetic migration per analyzer, so it flips green when Ptah gains the rule. | `migration/lint` |
 | `lex-split-parity` | Does Ptah split a migration into the same statements Atlas does? A differential check against Atlas's own `.golden` lexer outputs (no live Atlas needed), normalized so it measures statement boundaries, not comment preservation. Surfaces real drop-in blockers: function bodies, `BEGIN ATOMIC`, MySQL `DELIMITER`. | `migration/migrator` |
 
@@ -61,7 +63,7 @@ own (strongest) outcome rather than aborting the run.
 
 ## Live tiers (real database)
 
-The probes above are offline and deterministic. Two further tiers run against a
+The probes above are offline and deterministic. Three further tiers run against a
 real database in their own workflows, kept separate so the offline report stays
 DB-free.
 
@@ -69,6 +71,7 @@ DB-free.
 | --- | --- | --- | --- |
 | `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. CI runs Postgres, MySQL, MariaDB, and SQLite over basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer default/type cases. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` / `CONFORMANCE_MARIADB_URL`; optional `CONFORMANCE_SQLITE_URL` |
 | `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by schema facts: columns, type/null/default/primary-key state, generated columns, foreign keys and actions, unique/check constraints, and indexes. Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. CI runs Postgres, MySQL, and SQLite. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL`; optional `CONFORMANCE_SQLITE_URL`; a real Atlas binary (`ATLAS_BIN`) |
+| `migrate-runtime` | [`conformance-migrate-runtime`](./.github/workflows/conformance-migrate-runtime.yml) | Do real `ptah atlas migrate apply/status/set` executions leave the same supported migration state Atlas callers rely on? This tier inspects schema objects and `atlas_schema_revisions` rows directly. CI covers SQLite `--revisions-schema main` and `--tx-mode all/file/none`, PostgreSQL custom revision schemas and `CREATE INDEX CONCURRENTLY` with `atlas:txmode none`, and MySQL apply/status revision state. | built `ptah` binary; local SQLite databases; `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` |
 
 The differential builds a **real Atlas CE binary** from the release tag pinned in
 [`atlas.version`](./atlas.version) (`make atlas`), so it measures Ptah against a
@@ -105,6 +108,9 @@ make atlas        # build Atlas CE from the atlas.version tag into ./bin/atlas
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
 make budget-diff  # differential progress gate: red only on regression/stale waivers
 make gate-diff    # differential corpus-parity yardstick: fails if any diff non-OK remains
+make probe-migrate-runtime   # regenerate gaps-migrate-runtime.md / gaps-migrate-runtime.json
+make budget-migrate-runtime  # migrate-runtime progress gate
+make gate-migrate-runtime    # migrate-runtime full-parity yardstick
 ```
 
 Local live runs are explicit per networked dialect. Set whichever service URLs
@@ -116,6 +122,15 @@ CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=dis
 CONFORMANCE_MYSQL_URL='mysql://root:pw@tcp(localhost:3306)/conf' \
 CONFORMANCE_MARIADB_URL='mariadb://root:pw@tcp(localhost:3307)/conf' \
 make probe-live
+```
+
+The migrate-runtime tier always runs SQLite checks. Set Postgres/MySQL URLs to
+include the networked runtime contours:
+
+```
+CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=disable' \
+CONFORMANCE_MYSQL_URL='mysql://root:pw@tcp(localhost:3306)/conf' \
+make probe-migrate-runtime
 ```
 
 The differential tier uses the same first-party fixtures but compares Ptah
@@ -175,34 +190,40 @@ publishes two separate pipelines:
   uses a committed offline corpus gap budget so progress PRs fail only when the
   current report gets worse or stale. The budget counts all unwaived non-OK
   observations: `gap`, `fail`, and `panic`.
-- [`conformance-live`](./.github/workflows/conformance-live.yml) and
-  [`conformance-diff`](./.github/workflows/conformance-diff.yml) use the same
-  regression-budget model for their real-database reports. They must stay green
-  when a PR preserves the current reports, and fail when `gaps-live.*` or
-  `gaps-diff.*` is stale or worse than its committed budget.
+- [`conformance-live`](./.github/workflows/conformance-live.yml),
+  [`conformance-diff`](./.github/workflows/conformance-diff.yml), and
+  [`conformance-migrate-runtime`](./.github/workflows/conformance-migrate-runtime.yml)
+  use the same regression-budget model for their real-database reports. They
+  must stay green when a PR preserves the current reports, and fail when
+  `gaps-live.*`, `gaps-diff.*`, or `gaps-migrate-runtime.*` is stale or worse
+  than its committed budget.
 - The CLI surface job in
   [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses [`cli-surface-budget.txt`](./cli-surface-budget.txt) the same way for
   `cli-surface.*`.
 - [`full-conformance`](./.github/workflows/full-conformance.yml) runs
   `make gate`, `make gate-live`, `make gate-diff`, and
-  `make gate-cli-surface` as separate jobs. It is green only when Ptah covers the
-  committed offline corpus, live round-trip corpus, Atlas CE differential
-  corpus, and Atlas CE CLI help/flag surface. When probes become stricter, a
-  generated report may expose more non-OK observations even without a Ptah code
-  change; that is a measurement hardening and must be committed explicitly with
-  the new report/budget baseline. This workflow is a visible yardstick, not the
+  `make gate-migrate-runtime`, and `make gate-cli-surface` as separate jobs. It
+  is green only when Ptah covers the committed offline corpus, live round-trip
+  corpus, Atlas CE differential corpus, Atlas migrate runtime contours, and
+  Atlas CE CLI help/flag surface. When probes become stricter, a generated
+  report may expose more non-OK observations even without a Ptah code change;
+  that is a measurement hardening and must be committed explicitly with the new
+  report/budget baseline. This workflow is a visible yardstick, not the
   regression/merge gate; branch protection should require the regression-budget
   workflows above, and may keep full conformance as a separate status signal.
 
 - `make probe` regenerates the report and always exits 0.
 - `make budget` fails if the generated report exceeds [`gap-budget.txt`](./gap-budget.txt)
-  or if a waiver became stale. `make budget-live` and `make budget-diff` do the
-  same for [`gap-live-budget.txt`](./gap-live-budget.txt) and
-  [`gap-diff-budget.txt`](./gap-diff-budget.txt).
-- `make gate`, `make gate-live`, and `make gate-diff` regenerate their reports
-  **and exit non-zero if any non-OK observation remains**, including waived
-  findings. These are the corpus-parity yardsticks for their matching reports.
+  or if a waiver became stale. `make budget-live`, `make budget-diff`, and
+  `make budget-migrate-runtime` do the same for
+  [`gap-live-budget.txt`](./gap-live-budget.txt),
+  [`gap-diff-budget.txt`](./gap-diff-budget.txt), and
+  [`gap-migrate-runtime-budget.txt`](./gap-migrate-runtime-budget.txt).
+- `make gate`, `make gate-live`, `make gate-diff`, and
+  `make gate-migrate-runtime` regenerate their reports **and exit non-zero if
+  any non-OK observation remains**, including waived findings. These are the
+  corpus-parity yardsticks for their matching reports.
 
 A gap can be excused only by an explicit line in [`waivers.txt`](./waivers.txt),
 keyed on `probe fixture stage`, with a reason and a tracking issue. A waiver means
@@ -210,10 +231,11 @@ keyed on `probe fixture stage`, with a reason and a tracking issue. A waiver mea
 intentionally empty: nothing is skipped, so every open gap is red. A waiver that
 matches no finding is itself a CI failure, forcing cleanup when a gap closes.
 
-Lower `gap-budget.txt`, `gap-live-budget.txt`, and `gap-diff-budget.txt`
-whenever Ptah closes gaps in the matching report. `git log gaps.md` shows the
-unwaived count moving toward zero as Ptah closes issues. The full gates go green
-only when every fixture and live contour is covered.
+Lower `gap-budget.txt`, `gap-live-budget.txt`, `gap-diff-budget.txt`, and
+`gap-migrate-runtime-budget.txt` whenever Ptah closes gaps in the matching
+report. `git log gaps.md` shows the unwaived count moving toward zero as Ptah
+closes issues. The full gates go green only when every fixture and live contour
+is covered.
 
 ```
 make probe        # regenerate gaps.md / gaps.json (exit 0)
@@ -224,6 +246,9 @@ make gate-live    # live corpus-parity yardstick: fails if any live non-OK remai
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
 make budget-diff  # differential progress gate: red only on regression/stale waivers
 make gate-diff    # differential corpus-parity yardstick: fails if any diff non-OK remains
+make probe-migrate-runtime   # regenerate gaps-migrate-runtime.md / gaps-migrate-runtime.json
+make budget-migrate-runtime  # migrate-runtime progress gate
+make gate-migrate-runtime    # migrate-runtime corpus-parity yardstick
 make probe-cli-surface   # regenerate cli-surface.md / cli-surface.json (exit 0)
 make budget-cli-surface  # CLI progress gate: red only on regression/stale waivers
 make gate-cli-surface    # CLI corpus-parity yardstick: fails if any CLI non-OK remains

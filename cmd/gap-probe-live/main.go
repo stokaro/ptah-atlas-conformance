@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
@@ -67,7 +66,7 @@ func main() {
 		conn.Close()
 	}
 
-	md := probe.RenderLiveMarkdownWithCommand(results, ptahVersion(), "make probe-live")
+	md := probe.RenderLiveMarkdownWithCommand(results, probe.PtahVersion(), "make probe-live")
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
 		os.Exit(2)
@@ -116,21 +115,4 @@ func configuredLiveTargets(sqliteDir string, getenv func(string) string) []liveT
 		sqliteURL = "sqlite://" + filepath.Join(sqliteDir, "conformance.sqlite")
 	}
 	return append(configured, liveTarget{label: "sqlite", url: sqliteURL})
-}
-
-func ptahVersion() string {
-	data, err := os.ReadFile("go.mod")
-	if err != nil {
-		return "github.com/stokaro/ptah (version unknown)"
-	}
-	for line := range strings.SplitSeq(string(data), "\n") {
-		const mod = "github.com/stokaro/ptah "
-		if after, ok := strings.CutPrefix(strings.TrimSpace(line), mod); ok {
-			fields := strings.Fields(after)
-			if len(fields) > 0 {
-				return "github.com/stokaro/ptah " + fields[0]
-			}
-		}
-	}
-	return "github.com/stokaro/ptah (version unknown)"
 }
