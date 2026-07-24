@@ -1,7 +1,9 @@
 // Command gap-probe-live runs the behavioral self-consistency probe against a
 // live database and writes gaps-live.md / gaps-live.json. It is the live tier of
 // the conformance suite, kept separate from the offline probes so the offline
-// report stays deterministic and DB-free. It requires CONFORMANCE_POSTGRES_URL.
+// report stays deterministic and DB-free. SQLite runs against a fresh local
+// database when CONFORMANCE_SQLITE_URL is not set; networked dialects run when
+// their CONFORMANCE_*_URL variables are configured.
 package main
 
 import (
@@ -12,13 +14,12 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 	"github.com/stokaro/ptah/dbschema"
 )
-
-const atlasSHA = "a5e0aecc2bb64143bf522734f8ad88e04885fca6"
 
 func main() {
 	corpus := flag.String("corpus", "testdata/live", "root of first-party round-trip schema fixtures")
@@ -27,25 +28,13 @@ func main() {
 	gate := flag.Bool("gate", false, "exit non-zero if any non-OK observation remains")
 	flag.Parse()
 
-	// Each configured dialect runs the same fixtures; a resulting row is labelled
-	// "<dialect>/<fixture>" so multi-dialect gaps are visible side by side.
-	targets := []struct{ label, env string }{
-		{"postgres", "CONFORMANCE_POSTGRES_URL"},
-		{"mysql", "CONFORMANCE_MYSQL_URL"},
-	}
-	var configured []struct{ label, url string }
-	for _, t := range targets {
-		if u := os.Getenv(t.env); u != "" {
-			configured = append(configured, struct{ label, url string }{t.label, u})
-		}
-	}
-	if len(configured) == 0 {
-		fmt.Fprintln(os.Stderr, "no target database configured; the live round-trip tier needs one.")
-		fmt.Fprintln(os.Stderr, "Export at least one of, e.g.:")
-		fmt.Fprintln(os.Stderr, "  export CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=disable'")
-		fmt.Fprintln(os.Stderr, "  export CONFORMANCE_MYSQL_URL='mysql://root:pw@tcp(localhost:3306)/conf'")
+	sqliteDir, err := os.MkdirTemp("", "ptah-conformance-live-*")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "create sqlite temp dir:", err)
 		os.Exit(2)
 	}
+	defer os.RemoveAll(sqliteDir) //nolint:errcheck
+	configured := configuredLiveTargets(sqliteDir, os.Getenv)
 
 	dirs, err := fixtureDirs(*corpus)
 	if err != nil {
@@ -74,7 +63,7 @@ func main() {
 		conn.Close()
 	}
 
-	md := probe.RenderMarkdownWithCommand(results, &probe.Waivers{}, atlasSHA, ptahVersion(), "make probe-live")
+	md := probe.RenderLiveMarkdownWithCommand(results, ptahVersion(), "make probe-live")
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
 		os.Exit(2)
@@ -100,6 +89,31 @@ func main() {
 	}
 }
 
+type liveTarget struct {
+	label string
+	url   string
+}
+
+func configuredLiveTargets(sqliteDir string, getenv func(string) string) []liveTarget {
+	targets := []struct{ label, env string }{
+		{"postgres", "CONFORMANCE_POSTGRES_URL"},
+		{"mysql", "CONFORMANCE_MYSQL_URL"},
+		{"mariadb", "CONFORMANCE_MARIADB_URL"},
+	}
+	configured := make([]liveTarget, 0, len(targets)+1)
+	for _, t := range targets {
+		if u := getenv(t.env); u != "" {
+			configured = append(configured, liveTarget{label: t.label, url: u})
+		}
+	}
+
+	sqliteURL := getenv("CONFORMANCE_SQLITE_URL")
+	if sqliteURL == "" {
+		sqliteURL = "sqlite://" + filepath.Join(sqliteDir, "conformance.sqlite")
+	}
+	return append(configured, liveTarget{label: "sqlite", url: sqliteURL})
+}
+
 func fixtureDirs(root string) ([]string, error) {
 	entries, err := os.ReadDir(root)
 	if err != nil {
@@ -120,43 +134,14 @@ func ptahVersion() string {
 	if err != nil {
 		return "github.com/stokaro/ptah (version unknown)"
 	}
-	for _, line := range splitLines(string(data)) {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		const mod = "github.com/stokaro/ptah "
-		if i := indexOf(line, mod); i >= 0 {
-			return "github.com/stokaro/ptah " + firstField(line[i+len(mod):])
+		if after, ok := strings.CutPrefix(strings.TrimSpace(line), mod); ok {
+			fields := strings.Fields(after)
+			if len(fields) > 0 {
+				return "github.com/stokaro/ptah " + fields[0]
+			}
 		}
 	}
 	return "github.com/stokaro/ptah (version unknown)"
-}
-
-func splitLines(s string) []string {
-	var out []string
-	cur := ""
-	for _, r := range s {
-		if r == '\n' {
-			out = append(out, cur)
-			cur = ""
-			continue
-		}
-		cur += string(r)
-	}
-	return append(out, cur)
-}
-
-func indexOf(s, sub string) int {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return i
-		}
-	}
-	return -1
-}
-
-func firstField(s string) string {
-	for i := 0; i < len(s); i++ {
-		if s[i] == ' ' || s[i] == '\t' {
-			return s[:i]
-		}
-	}
-	return s
 }

@@ -88,7 +88,8 @@ func liveRoundTripIssue(name string) string {
 // resetDatabase drops every object from the target so fixtures do not
 // contaminate each other, and returns the schema/database name to introspect.
 // The reset is dialect-aware: PostgreSQL recreates the public schema; MySQL and
-// MariaDB drop every table and view in the current database.
+// MariaDB drop every table and view in the current database; SQLite drops user
+// tables and views from the main database.
 func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, dialect string) (string, error) {
 	switch dialect {
 	case "postgres":
@@ -118,6 +119,9 @@ func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, diale
 			objs = append(objs, o)
 		}
 		rows.Close()
+		if err := rows.Err(); err != nil {
+			return "", err
+		}
 		if _, err := conn.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=0"); err != nil {
 			return "", err
 		}
@@ -132,9 +136,47 @@ func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, diale
 			}
 		}
 		return db, nil
+	case "sqlite":
+		rows, err := conn.QueryContext(ctx, "SELECT name, type FROM sqlite_schema WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'")
+		if err != nil {
+			return "", err
+		}
+		type obj struct{ name, typ string }
+		var objs []obj
+		for rows.Next() {
+			var o obj
+			if err := rows.Scan(&o.name, &o.typ); err != nil {
+				rows.Close()
+				return "", err
+			}
+			objs = append(objs, o)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return "", err
+		}
+		if _, err := conn.ExecContext(ctx, "PRAGMA foreign_keys = OFF"); err != nil {
+			return "", err
+		}
+		defer conn.ExecContext(ctx, "PRAGMA foreign_keys = ON") //nolint:errcheck
+		for _, typ := range []string{"view", "table"} {
+			for _, o := range objs {
+				if o.typ != typ {
+					continue
+				}
+				if _, err := conn.ExecContext(ctx, "DROP "+strings.ToUpper(o.typ)+" IF EXISTS "+quoteSQLiteIdent(o.name)); err != nil {
+					return "", err
+				}
+			}
+		}
+		return "main", nil
 	default:
 		return "", fmt.Errorf("round-trip reset does not support dialect %q", dialect)
 	}
+}
+
+func quoteSQLiteIdent(name string) string {
+	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }
 
 // describeDiff summarizes which categories of the diff are non-empty, so a gap

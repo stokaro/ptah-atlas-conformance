@@ -124,5 +124,131 @@
     "stage": "roundtrip",
     "outcome": "ok",
     "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/01-basic-table",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/02-enum",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 1 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/03-view",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 1 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/04-index-fk",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 2 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/05-composite",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/06-constraints-actions",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 2 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/07-generated-column",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/08-self-reference",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "mariadb/09-defaults-types",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/01-basic-table",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/02-enum",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 1 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/03-view",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 1 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/04-index-fk",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 2 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/05-composite",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/06-constraints-actions",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 2 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/07-generated-column",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/08-self-reference",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
+    "fixture": "sqlite/09-defaults-types",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
   }
 ]

@@ -8,10 +8,12 @@ on:
 
 jobs:
   # The live behavioral tier. It applies first-party Ptah schemas to real
-  # databases, introspects them back and diffs. This PR workflow is a regression
-  # check: the committed report must be fresh, and the unwaived live gap count
-  # must not exceed the committed live budget. Full live parity remains
-  # `make gate-live` and is intentionally separate.
+  # databases, introspects them back and diffs. PostgreSQL, MySQL, and MariaDB
+  # use service containers; SQLite uses a fresh local database created by the
+  # probe. This PR workflow is a regression check: the committed report must be
+  # fresh, and the unwaived live gap count must not exceed the committed live
+  # budget. Full live parity remains `make gate-live` and is intentionally
+  # separate.
   live-roundtrip:
     runs-on: ubuntu-latest
     services:
@@ -40,9 +42,22 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 15
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: pw
+          MARIADB_DATABASE: conf
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "mariadb-admin ping -h 127.0.0.1 -uroot -ppw"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
     env:
       CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
       CONFORMANCE_MYSQL_URL: mysql://root:pw@tcp(localhost:3306)/conf
+      CONFORMANCE_MARIADB_URL: mariadb://root:pw@tcp(localhost:3307)/conf
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7

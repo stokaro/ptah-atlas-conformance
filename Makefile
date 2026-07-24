@@ -10,9 +10,11 @@ probe:
 
 # The live behavioral tier: apply first-party schemas to a real database,
 # introspect them back, and diff. Kept separate from the offline probes so the
-# offline report stays deterministic and DB-free. Needs CONFORMANCE_POSTGRES_URL
-# and/or CONFORMANCE_MYSQL_URL. Regenerates gaps-live.md / gaps-live.json and
-# always exits 0.
+# offline report stays deterministic and DB-free. Networked dialects run when
+# CONFORMANCE_POSTGRES_URL, CONFORMANCE_MYSQL_URL, and/or
+# CONFORMANCE_MARIADB_URL are configured. SQLite always runs against
+# CONFORMANCE_SQLITE_URL or a fresh local temp database. Regenerates
+# gaps-live.md / gaps-live.json and always exits 0.
 probe-live:
 	$(GO_OFF) run ./cmd/gap-probe-live
 
@@ -24,7 +26,9 @@ budget-live: probe-live
 
 # The live conformance gate: regenerate the live report AND fail if any schema
 # does not survive Ptah's generate -> apply -> introspect loop. Needs
-# CONFORMANCE_POSTGRES_URL and/or CONFORMANCE_MYSQL_URL.
+# any configured CONFORMANCE_POSTGRES_URL, CONFORMANCE_MYSQL_URL, and
+# CONFORMANCE_MARIADB_URL targets, plus SQLite against CONFORMANCE_SQLITE_URL or
+# a fresh local temp database.
 gate-live:
 	$(GO_OFF) run ./cmd/gap-probe-live -gate
 

@@ -46,7 +46,7 @@ is **"unknown — not measured"**, not "works".
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
 | Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
-| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres and MySQL; SQLite/MariaDB runtime tiers are still missing | dialect runtime probes for SQLite and MariaDB once the harness provisions them |
+| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI | deeper dialect runtime probes |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
 | The migration **apply** path | **No** | Ptah applies migration SQL via raw `ExecContext`, bypassing its parser — a parse gap here is *not* an apply gap |
 
@@ -104,19 +104,19 @@ that when they go green Ptah genuinely covers that dimension:
 
 A fifth, **live** tier now measures behavioral self-consistency on a real
 database (`conformance-live` workflow, separate from the offline report):
-`roundtrip-consistency` applies a first-party Ptah schema to **both Postgres and
-MySQL** (`CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL`), introspects it
-back, and diffs. A clean diff guarantees Ptah's generate → apply → introspect
-loop is lossless for that schema on that dialect — behavior a drop-in needs.
-Running the same fixtures on MySQL immediately found dialect-specific rendering
-defects Postgres alone missed, including enum-ordering, generated-column,
-default/type, and constraint/action bugs that are now closed. The current
-committed live corpus is green on Postgres and MySQL.
-SQLite is supported by Ptah, but this live tier currently runs only Postgres and
-MySQL containers. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
-which objects Atlas itself inspects. The deeper differential correctness of
-each declarative command (does `schema inspect` emit equivalent HCL) remains the
-domain of the end-state conformance in ptah#285.
+`roundtrip-consistency` applies a first-party Ptah schema to **Postgres, MySQL,
+MariaDB, and SQLite** (`CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` /
+`CONFORMANCE_MARIADB_URL` plus a fresh local SQLite database by default),
+introspects it back, and diffs. A clean diff guarantees Ptah's generate → apply
+→ introspect loop is lossless for that schema on that dialect — behavior a
+drop-in needs. Running the same fixtures on MySQL immediately found
+dialect-specific rendering defects Postgres alone missed, including
+enum-ordering, generated-column, default/type, and constraint/action bugs that
+are now closed. The current committed live corpus is green on Postgres, MySQL,
+MariaDB, and SQLite. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity
+about which objects Atlas itself inspects. The deeper differential correctness
+of each declarative command (does `schema inspect` emit equivalent HCL) remains
+the domain of the end-state conformance in ptah#285.
 
 A sixth, **differential** tier (`conformance-diff` workflow) closes part of that
 end-state question against a **real Atlas CE binary**. It applies a first-party
@@ -160,8 +160,9 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
 3. A **diff/plan** probe over paired before/after schemas.
 4. A **lint matrix** comparing Atlas analyzer codes against Ptah rule codes,
    fixture by fixture.
-5. Broader **multi-dialect** runtime coverage: MySQL is now in the live tier, but
-   SQLite and MariaDB need live/runtime probes too.
+5. Broader **multi-dialect** runtime coverage: Postgres, MySQL, MariaDB, and
+   SQLite now run in the live tier, but deeper live/runtime probes are still
+   needed.
 6. A declared, justified scope for what is deliberately **out** of parity (HCL
    schema, Cloud, Pro drivers), so "parity" has an explicit boundary.
 
