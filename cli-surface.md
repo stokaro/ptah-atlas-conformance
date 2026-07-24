@@ -6,16 +6,16 @@ It records the command paths, help usage, and long flags exposed by the pinned
 Atlas CE binary, then compares them with both Ptah compatibility surfaces:
 `ptah atlas <command>` and a `ptah-compat` binary named `atlas`.
 
-## Status: NOT DONE — 44 non-OK observation(s)
+## Status: NOT DONE — 26 non-OK observation(s)
 
 The full CLI-surface gate is red until Ptah's Atlas namespace and drop-in
 compatibility binary match the pinned Atlas CE help surface.
 
 - Atlas CE binary: `atlas community version v1.2.0`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724004419-5d0693726b05`
-- Outcomes: **78 ok**, **44 gap**, **0 fail**, **0 panic**
-- Full gate: **44 non-OK** (fails CI)
-- Regression budget input: **44 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260724020257-d4746472c3f3`
+- Outcomes: **96 ok**, **26 gap**, **0 fail**, **0 panic**
+- Full gate: **26 non-OK** (fails CI)
+- Regression budget input: **26 unwaived non-OK**, 0 waived
 
 ## Atlas CE Inventory
 
@@ -58,46 +58,28 @@ compatibility binary match the pinned Atlas CE help surface.
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate` | usage | usage mismatch; Atlas has `atlas migrate [command]`, Ptah has `atlas migrate [flags]` | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate apply` | flags | flag mismatch: extra --lock-name, --to-version | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate apply` | usage | usage mismatch; Atlas has `atlas migrate apply [flags] [amount]`, Ptah has `atlas migrate apply [amount] [flags]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | out-of-scope-runtime | `atlas migrate checkpoint` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["checkpoint"]` | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate diff` | flags | flag mismatch: missing --edit, --qualifier | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate diff` | usage | usage mismatch; Atlas has `atlas migrate diff [flags] [name]`, Ptah has `atlas migrate diff [name] [flags]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate edit` | out-of-scope-runtime | `atlas migrate edit` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["edit"]` | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate new` | flags | flag mismatch: missing --edit | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate new` | usage | usage mismatch; Atlas has `atlas migrate new [flags] [name]`, Ptah has `atlas migrate new [flags]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate push` | out-of-scope-runtime | `atlas migrate push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["push"]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate rebase` | out-of-scope-runtime | `atlas migrate rebase` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["rebase"]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate rm` | out-of-scope-runtime | `atlas migrate rm` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["rm"]` | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate set` | usage | usage mismatch; Atlas has `atlas migrate set [flags] [version]`, Ptah has `atlas migrate set <revision> [flags]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate test` | out-of-scope-runtime | `atlas migrate test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["test"]` | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas schema` | usage | usage mismatch; Atlas has `atlas schema [command]`, Ptah has `atlas schema [flags]` | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas schema apply` | flags | flag mismatch: missing --edit, --lock-timeout, --plan | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas schema diff` | flags | flag mismatch: extra --web | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas schema inspect` | flags | flag mismatch: extra --include | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas schema plan` | out-of-scope-runtime | `atlas schema plan` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["plan"]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas schema push` | out-of-scope-runtime | `atlas schema push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["push"]` | #514 |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas schema test` | out-of-scope-runtime | `atlas schema test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["test"]` | #514 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas` | usage | usage mismatch; Atlas has `atlas [command]`, Ptah has `ptah atlas [flags]` | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate` | usage | usage mismatch; Atlas has `atlas migrate [command]`, Ptah has `ptah atlas migrate [flags]` | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate apply` | flags | flag mismatch: extra --lock-name, --to-version | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate apply` | usage | usage mismatch; Atlas has `atlas migrate apply [flags] [amount]`, Ptah has `ptah atlas migrate apply [amount] [flags]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | out-of-scope-runtime | `ptah atlas migrate checkpoint` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["checkpoint"]` | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate diff` | flags | flag mismatch: missing --edit, --qualifier | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate diff` | usage | usage mismatch; Atlas has `atlas migrate diff [flags] [name]`, Ptah has `ptah atlas migrate diff [name] [flags]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate edit` | out-of-scope-runtime | `ptah atlas migrate edit` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["edit"]` | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate new` | flags | flag mismatch: missing --edit | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate new` | usage | usage mismatch; Atlas has `atlas migrate new [flags] [name]`, Ptah has `ptah atlas migrate new [flags]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate push` | out-of-scope-runtime | `ptah atlas migrate push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["push"]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rebase` | out-of-scope-runtime | `ptah atlas migrate rebase` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["rebase"]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rm` | out-of-scope-runtime | `ptah atlas migrate rm` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["rm"]` | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate set` | usage | usage mismatch; Atlas has `atlas migrate set [flags] [version]`, Ptah has `ptah atlas migrate set <revision> [flags]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas migrate test` | out-of-scope-runtime | `ptah atlas migrate test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["test"]` | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas schema` | usage | usage mismatch; Atlas has `atlas schema [command]`, Ptah has `ptah atlas schema [flags]` | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas schema apply` | flags | flag mismatch: missing --edit, --lock-timeout, --plan | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas schema diff` | flags | flag mismatch: extra --web | #510 |
 | **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas schema inspect` | flags | flag mismatch: extra --include | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan` | out-of-scope-runtime | `ptah atlas schema plan` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["plan"]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas schema push` | out-of-scope-runtime | `ptah atlas schema push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["push"]` | #510 |
-| **RED** | **gap** | atlas-cli-surface-ptah-namespace | `ptah atlas schema test` | out-of-scope-runtime | `ptah atlas schema test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments ["test"]` | #510 |
 | — | ok | atlas-cli-surface-inventory | `atlas` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas license` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
@@ -130,15 +112,21 @@ compatibility binary match the pinned Atlas CE help surface.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas license` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas license` | usage | usage matches Atlas: `atlas license [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate` | flags | long flags match Atlas: --config --env --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | out-of-scope-runtime | `atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate edit` | out-of-scope-runtime | `atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | flags | long flags match Atlas: --config --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | usage | usage matches Atlas: `atlas migrate hash [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate import` | flags | long flags match Atlas: --config --dir-format --env --from --to --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate import` | usage | usage matches Atlas: `atlas migrate import [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate lint` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --format --git-base --git-dir --latest --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate lint` | usage | usage matches Atlas: `atlas migrate lint [flags]` |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate push` | out-of-scope-runtime | `atlas migrate push` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rebase` | out-of-scope-runtime | `atlas migrate rebase` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rm` | out-of-scope-runtime | `atlas migrate rm` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate set` | flags | long flags match Atlas: --config --dir --dir-format --env --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate status` | flags | long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate status` | usage | usage matches Atlas: `atlas migrate status [flags]` |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate test` | out-of-scope-runtime | `atlas migrate test` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate validate` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate validate` | usage | usage matches Atlas: `atlas migrate validate [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema` | flags | long flags match Atlas: --config --env --var |  |
@@ -149,21 +137,30 @@ compatibility binary match the pinned Atlas CE help surface.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | flags | long flags match Atlas: --config --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | usage | usage matches Atlas: `atlas schema fmt [path ...] [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | usage | usage matches Atlas: `atlas schema inspect [flags]` |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan` | out-of-scope-runtime | `atlas schema plan` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema push` | out-of-scope-runtime | `atlas schema push` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema test` | out-of-scope-runtime | `atlas schema test` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas version` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas version` | usage | usage matches Atlas: `atlas version [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas license` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas license` | usage | usage matches Atlas: `atlas license [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate` | flags | long flags match Atlas: --config --env --var |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | out-of-scope-runtime | `ptah atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate edit` | out-of-scope-runtime | `ptah atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate hash` | flags | long flags match Atlas: --config --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate hash` | usage | usage matches Atlas: `atlas migrate hash [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate import` | flags | long flags match Atlas: --config --dir-format --env --from --to --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate import` | usage | usage matches Atlas: `atlas migrate import [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate lint` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --format --git-base --git-dir --latest --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate lint` | usage | usage matches Atlas: `atlas migrate lint [flags]` |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate push` | out-of-scope-runtime | `ptah atlas migrate push` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rebase` | out-of-scope-runtime | `ptah atlas migrate rebase` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rm` | out-of-scope-runtime | `ptah atlas migrate rm` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate set` | flags | long flags match Atlas: --config --dir --dir-format --env --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate status` | flags | long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate status` | usage | usage matches Atlas: `atlas migrate status [flags]` |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate test` | out-of-scope-runtime | `ptah atlas migrate test` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate validate` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate validate` | usage | usage matches Atlas: `atlas migrate validate [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema` | flags | long flags match Atlas: --config --env --var |  |
@@ -174,10 +171,13 @@ compatibility binary match the pinned Atlas CE help surface.
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema fmt` | flags | long flags match Atlas: --config --env --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema fmt` | usage | usage matches Atlas: `atlas schema fmt [path ...] [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema inspect` | usage | usage matches Atlas: `atlas schema inspect [flags]` |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan` | out-of-scope-runtime | `ptah atlas schema plan` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema push` | out-of-scope-runtime | `ptah atlas schema push` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema test` | out-of-scope-runtime | `ptah atlas schema test` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas version` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas version` | usage | usage matches Atlas: `atlas version [flags]` |  |
 
 ## Gaps by related issue
 
-- **stokaro/ptah#510** — 22 finding(s)
-- **stokaro/ptah#514** — 22 finding(s)
+- **stokaro/ptah#510** — 13 finding(s)
+- **stokaro/ptah#514** — 13 finding(s)
