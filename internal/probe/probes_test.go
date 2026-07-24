@@ -1088,6 +1088,9 @@ CREATE TABLE "users" ("id" integer NOT NULL, PRIMARY KEY ("id"));
 	if !strings.Contains(results[0].Detail, "checked 1 assertion") {
 		t.Fatalf("detail missing assertion count: %s", results[0].Detail)
 	}
+	if !strings.Contains(results[0].Detail, "script surface: atlas schema inspect=1") {
+		t.Fatalf("detail missing script-surface inventory: %s", results[0].Detail)
+	}
 }
 
 func TestTxtarScriptProbeExecutesPostgresSchemaInspectSQLWithCheckConstraints(t *testing.T) {

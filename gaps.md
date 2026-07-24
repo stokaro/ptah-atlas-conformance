@@ -617,104 +617,104 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-down | `txtar-down` | 20240305171146/down | down.sql captured 1 statement(s) |  |
 | — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/up | migration.sql captured 1 statement(s) |  |
 | — | ok | txtar-down | `txtar-down-boundary` | 20240305171147/down | down.sql captured 2 statement(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | executed 2 supported command(s), checked 2 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | executed 8 supported command(s), checked 8 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | executed 3 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar` | script-runtime | executed 2 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | executed 17 supported command(s), checked 25 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | executed 23 supported command(s), checked 18 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | executed 2 supported command(s), checked 2 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | executed 7 supported command(s), checked 5 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | script-runtime | executed 2 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | executed 5 supported command(s), checked 2 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | script-runtime | executed 1 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | executed 9 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-bit.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | executed 10 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | executed 3 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | executed 7 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | executed 3 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | executed 7 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | executed 8 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | executed 7 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | executed 5 supported command(s), checked 2 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | executed 6 supported command(s), checked 6 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | executed 8 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect-file.txtar` | script-runtime | executed 3 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | executed 5 supported command(s), checked 4 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar` | script-runtime | executed 2 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | executed 54 supported command(s), checked 29 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | executed 3 supported command(s), checked 2 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | script-runtime | executed 5 supported command(s), checked 4 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-status.txtar` | script-runtime | executed 6 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | executed 8 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | executed 5 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | executed 10 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | executed 11 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-identity.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-interval.txtar` | script-runtime | executed 3 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-range.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-textsearch.txtar` | script-runtime | executed 3 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-time-precision.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/foreign-key-action.txtar` | script-runtime | executed 5 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/foreign-key.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | executed 9 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | executed 8 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-issue-557.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | executed 11 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | executed 6 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-type.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | executed 8 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | executed 8 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | executed 8 supported command(s), checked 8 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | executed 16 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/autoincrement.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | script-runtime | executed 3 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-inspect.txtar` | script-runtime | executed 5 supported command(s), checked 4 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | executed 52 supported command(s), checked 31 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar` | script-runtime | executed 1 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar` | script-runtime | executed 1 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-minimal-env.txtar` | script-runtime | executed 1 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | executed 5 supported command(s), checked 4 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | executed 3 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | executed 4 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar` | script-runtime | executed 1 supported command(s), checked 17 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | executed 2 supported command(s), checked 35 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar` | script-runtime | executed 6 supported command(s), checked 57 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar` | script-runtime | executed 1 supported command(s), checked 18 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | executed 2 supported command(s), checked 2 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | executed 5 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | executed 8 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | executed 21 supported command(s), checked 12 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | script-runtime | executed 3 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | executed 8 supported command(s), checked 6 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-default.txtar` | script-runtime | executed 2 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | executed 9 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | executed 6 supported command(s), checked 4 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | executed 7 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/autoincrement.txtar` | script-runtime | script surface: apply=3, cmpshow=3, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/check-maria.txtar` | script-runtime | script surface: atlas schema inspect=2, executed 2 supported command(s), checked 2 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/check.txtar` | script-runtime | script surface: atlas migrate diff=6, cmpmig=3, atlas schema inspect=2, executed 8 supported command(s), checked 8 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-inspect-file.txtar` | script-runtime | script surface: atlas schema inspect=3, executed 3 supported command(s), checked 3 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar` | script-runtime | script surface: atlas migrate apply=1, atlas migrate hash=1, executed 2 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-apply.txtar` | script-runtime | script surface: atlas migrate apply=8, cmpshow=6, clearSchema=2, atlas migrate hash=1, validJSON=1, executed 17 supported command(s), checked 25 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-format.txtar` | script-runtime | script surface: cmpmig=18, atlas migrate diff=12, mkdir=6, rm=5, executed 23 supported command(s), checked 18 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar` | script-runtime | script surface: atlas migrate diff=1, atlas migrate hash=1, cmpmig=1, executed 2 supported command(s), checked 2 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-migrate-diff.txtar` | script-runtime | script surface: atlas migrate diff=5, cmpmig=3, mkdir=1, rm=1, executed 7 supported command(s), checked 5 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-project-schemas.txtar` | script-runtime | script surface: atlas schema apply=1, cat=1, executed 2 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-project-url-escape.txtar` | script-runtime | script surface: execsql=3, atlas schema inspect=2, executed 5 supported command(s), checked 2 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar` | script-runtime | script surface: atlas schema apply=1, executed 1 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-add-drop.txtar` | script-runtime | script surface: apply=4, cmpshow=3, exist=2, executed 9 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-bit.txtar` | script-runtime | script surface: apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-bool.txtar` | script-runtime | script surface: apply=2, cmpshow=2, synced=2, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-charset.txtar` | script-runtime | script surface: apply=5, cmpshow=5, executed 10 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-default-expr.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-generated-inspect.txtar` | script-runtime | script surface: apply=1, cmphcl=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-generated.txtar` | script-runtime | script surface: apply=5, cmpshow=2, executed 7 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-json.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-time-precision-maria.txtar` | script-runtime | script surface: apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/column-time-precision-mysql.txtar` | script-runtime | script surface: apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key-add.txtar` | script-runtime | script surface: apply=4, exist=2, cmpshow=1, executed 7 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key-modify-action.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/foreign-key.txtar` | script-runtime | script surface: cmpshow=2, apply=1, cmphcl=1, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/index-add-drop.txtar` | script-runtime | script surface: apply=4, cmpshow=4, executed 8 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/index-desc.txtar` | script-runtime | script surface: apply=3, cmpshow=3, synced=1, executed 7 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/index-expr.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/index-prefix.txtar` | script-runtime | script surface: apply=3, cmpshow=3, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/index-type.txtar` | script-runtime | script surface: apply=2, cmpshow=2, atlas schema inspect=1, executed 5 supported command(s), checked 2 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/index-unique.txtar` | script-runtime | script surface: apply=3, cmpshow=2, execsql=1, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/primary-key-parts.txtar` | script-runtime | script surface: atlas migrate diff=4, atlas schema inspect=2, cmpmig=2, executed 6 supported command(s), checked 6 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/primary-key.txtar` | script-runtime | script surface: apply=4, cmpshow=4, executed 8 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/mysql/table-engine.txtar` | script-runtime | script surface: apply=3, cmphcl=3, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect-file.txtar` | script-runtime | script surface: atlas schema inspect=3, executed 3 supported command(s), checked 3 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-inspect.txtar` | script-runtime | script surface: atlas schema inspect=4, apply=1, executed 5 supported command(s), checked 4 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar` | script-runtime | script surface: atlas migrate apply=1, atlas migrate hash=1, executed 2 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-apply.txtar` | script-runtime | script surface: atlas migrate apply=15, cmpshow=15, atlas schema inspect=9, atlas migrate hash=6, clearSchema=4, cp=3, rm=2, executed 54 supported command(s), checked 29 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | script surface: atlas migrate diff=2, atlas migrate hash=1, cmpmig=1, executed 3 supported command(s), checked 2 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | script-runtime | script surface: atlas migrate diff=4, cmpmig=2, mkdir=1, executed 5 supported command(s), checked 4 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-status.txtar` | script-runtime | script surface: atlas migrate status=3, atlas migrate apply=2, atlas migrate hash=1, executed 6 supported command(s), checked 3 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | script surface: apply=3, cmpshow=3, synced=2, executed 8 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | script surface: apply=2, cmpshow=2, atlas schema inspect=1, executed 5 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, execsql=1, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | script surface: apply=5, cmpshow=5, atlas schema inspect=1, executed 11 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | script surface: apply=1, cmphcl=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-identity.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-interval.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-numeric.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-range.txtar` | script-runtime | script surface: apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-serial.txtar` | script-runtime | script surface: apply=3, cmpshow=3, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-textsearch.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-time-precision.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/foreign-key-action.txtar` | script-runtime | script surface: cmpshow=3, apply=1, cmphcl=1, executed 5 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/foreign-key.txtar` | script-runtime | script surface: cmpshow=2, apply=1, cmphcl=1, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-desc.txtar` | script-runtime | script surface: apply=4, cmpshow=4, synced=1, executed 9 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-expr.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-include.txtar` | script-runtime | script surface: apply=4, cmpshow=4, executed 8 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-issue-557.txtar` | script-runtime | script surface: apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-nulls-distinct.txtar` | script-runtime | script surface: apply=2, cmphcl=2, cmpshow=2, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-operator-class.txtar` | script-runtime | script surface: apply=5, cmpshow=5, cmphcl=1, executed 11 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-partial.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-type-brin.txtar` | script-runtime | script surface: apply=3, cmpshow=3, executed 6 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-type.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/index-unique-constraint.txtar` | script-runtime | script surface: apply=2, cmpshow=2, atlas schema clean=1, atlas schema inspect=1, cmphcl=1, execsql=1, executed 8 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/primary-key.txtar` | script-runtime | script surface: apply=4, cmpshow=4, executed 8 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/table-checks.txtar` | script-runtime | script surface: atlas migrate diff=6, cmpmig=3, atlas schema inspect=2, executed 8 supported command(s), checked 8 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/table-partition.txtar` | script-runtime | script surface: apply=8, cmpshow=5, cmphcl=2, execsql=1, executed 16 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/autoincrement.txtar` | script-runtime | script surface: apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-multifile.txtar` | script-runtime | script surface: atlas schema apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar` | script-runtime | script surface: atlas schema apply=1, cmpshow=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-apply-vars.txtar` | script-runtime | script surface: atlas schema apply=2, cmpshow=1, executed 3 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-inspect.txtar` | script-runtime | script surface: atlas schema inspect=4, apply=1, executed 5 supported command(s), checked 4 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-apply.txtar` | script-runtime | script surface: atlas migrate apply=14, cmpshow=14, atlas schema inspect=9, atlas migrate hash=6, clearSchema=4, cp=3, rm=2, executed 52 supported command(s), checked 31 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar` | script-runtime | script surface: atlas migrate diff=1, cmpmig=1, executed 1 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar` | script-runtime | script surface: atlas migrate diff=1, cmpmig=1, executed 1 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-minimal-env.txtar` | script-runtime | script surface: atlas migrate diff=1, cmpmig=1, executed 1 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar` | script-runtime | script surface: atlas migrate diff=4, cmpmig=2, rm=1, executed 5 supported command(s), checked 4 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | script surface: atlas migrate diff=2, atlas schema diff=1, cmpmig=1, executed 3 supported command(s), checked 3 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | script surface: atlas migrate diff=3, cmpmig=1, mkdir=1, executed 4 supported command(s), checked 3 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar` | script-runtime | script surface: atlas migrate lint=1, executed 1 supported command(s), checked 17 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | script surface: atlas migrate lint=2, executed 2 supported command(s), checked 35 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar` | script-runtime | script surface: atlas migrate lint=6, executed 6 supported command(s), checked 57 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar` | script-runtime | script surface: atlas migrate lint=1, executed 1 supported command(s), checked 18 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | script surface: atlas migrate lint=2, executed 2 supported command(s), checked 2 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | script surface: atlas migrate diff=3, cmpmig=3, rm=2, executed 5 supported command(s), checked 3 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | script surface: atlas migrate validate=3, cmpmig=2, atlas migrate diff=1, atlas migrate hash=1, atlas migrate new=1, mkdir=1, touch=1, executed 8 supported command(s), checked 3 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | script surface: atlas migrate set=9, atlas migrate apply=7, atlas migrate hash=2, clearSchema=2, mv=1, executed 21 supported command(s), checked 12 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-project-vars.txtar` | script-runtime | script surface: atlas schema apply=2, cmpshow=1, executed 3 supported command(s), checked 1 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | script surface: atlas schema apply=5, atlas schema inspect=3, executed 8 supported command(s), checked 6 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-default.txtar` | script-runtime | script surface: cmphcl=1, execsql=1, executed 2 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | script surface: apply=4, cmpshow=4, execsql=1, executed 9 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | script surface: atlas schema apply=4, atlas schema inspect=2, executed 6 supported command(s), checked 4 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | script surface: apply=3, cmpshow=3, synced=1, executed 7 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | script surface: cmpshow=4, apply=2, executed 6 supported command(s) |  |
