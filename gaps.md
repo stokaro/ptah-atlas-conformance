@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724035838-86b571d92a80`
-- Outcomes: **693 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260724050240-3bafa19662a9`
+- Outcomes: **697 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -49,6 +49,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --dir-format goose` | execute | `ptah atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --revisions-schema` | execute | `ptah atlas migrate status --revisions-schema` is accepted and reaches the revision-schema execution path |  |
 | — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate validate --dir-format goose` | execute | `ptah atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-report-format | `ptah atlas migrate apply --dry-run --format json` | format | `ptah atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
+| — | ok | atlas-cli-report-format | `ptah atlas migrate apply --format json` | format | `ptah atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
+| — | ok | atlas-cli-report-format | `ptah atlas migrate status --format json` | format | `ptah atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries |  |
+| — | ok | atlas-cli-report-format | `ptah atlas schema clean --dry-run --format json` | format | `ptah atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields |  |
 | — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean --dry-run --format` | execute | `ptah atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite |  |
 | — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean --format --auto-approve` | execute | `ptah atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table |  |
 | — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean actual invalid --format` | execute | `ptah atlas schema clean` rejects applied-state invalid format templates before mutating SQLite |  |
