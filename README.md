@@ -86,6 +86,17 @@ Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
 drop-in path — a parse failure there is itself reported as a gap, not mistaken
 for a schema disagreement.
 
+Live fixture directories may include an optional `fixture.json` manifest:
+
+```json
+{"dialects":["postgres"]}
+```
+
+Fixtures without the manifest run on every live dialect supported by the tier.
+When `dialects` is set, the fixture runs only for those dialect names; use this
+for schema shapes that are intentionally dialect-specific, such as PostgreSQL
+multi-schema fixtures.
+
 ```
 make probe-live   # regenerate gaps-live.md / gaps-live.json; SQLite runs without external DB
 make budget-live  # live progress gate: red only on regression/stale waivers

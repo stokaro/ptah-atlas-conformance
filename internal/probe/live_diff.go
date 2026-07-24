@@ -45,7 +45,7 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 	if err != nil {
 		return []Result{{"atlas-differential", name, "parse", Fail, oneLine(err.Error()), ""}}
 	}
-	schemaName, err := resetDatabase(ctx, conn, dialect)
+	schemas, err := resetDatabase(ctx, conn, dialect, desired)
 	if err != nil {
 		return []Result{{"atlas-differential", name, "reset", Fail, oneLine(err.Error()), ""}}
 	}
@@ -80,17 +80,18 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 		return []Result{{"atlas-differential", name, "atlas-hcl", Gap,
 			"Ptah's core/atlashcl cannot ingest Atlas's inspect output: " + oneLine(err.Error()), "stokaro/ptah#276"}}
 	}
-	atlasFacts := factsFromDatabase(atlasDB)
+	defaultAttrs := schemaDefaults(atlasDB, schemas[0])
+	atlasFacts := factsFromDatabase(foldDefaultSchema(atlasDB, schemas[0], defaultAttrs))
 
 	// Ptah's view of the same live schema (the introspect -> convert chain
 	// `ptah read-db` uses).
-	got, err := dbschema.ReadSchemaWithSchemas(conn, []string{schemaName})
+	got, err := dbschema.ReadSchemaWithSchemas(conn, schemas)
 	if err != nil {
 		return []Result{{"atlas-differential", name, "introspect", Fail, oneLine(err.Error()), ""}}
 	}
 	var ptahFacts tableFacts
 	if panicked, pmsg := guard(func() {
-		ptahFacts = factsFromDatabase(atlascompat.DBSchemaToGoSchema(got))
+		ptahFacts = factsFromDatabase(foldDefaultSchema(atlascompat.DBSchemaToGoSchema(got), schemas[0], defaultAttrs))
 	}); panicked {
 		return []Result{{"atlas-differential", name, "ptah-convert", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
 	}
@@ -129,9 +130,92 @@ func atlasInspectHCL(ctx context.Context, atlasBin, dbURL string) ([]byte, error
 }
 
 func countTables(f tableFacts) string {
-	n := len(f)
+	n := 0
+	for key := range f {
+		if key != globalFactsKey {
+			n++
+		}
+	}
 	if n == 1 {
 		return "1 table"
 	}
 	return strconv.Itoa(n) + " tables"
+}
+
+type defaultSchemaAttrs struct {
+	charset string
+	collate string
+}
+
+func schemaDefaults(db *goschema.Database, defaultSchema string) defaultSchemaAttrs {
+	defaultSchema = normSchema(defaultSchema)
+	if db == nil || defaultSchema == "" {
+		return defaultSchemaAttrs{}
+	}
+	for _, schema := range db.Schemas {
+		if normSchema(schema.Name) == defaultSchema {
+			return defaultSchemaAttrs{charset: normIdent(schema.Charset), collate: normIdent(schema.Collate)}
+		}
+	}
+	return defaultSchemaAttrs{}
+}
+
+func foldDefaultSchema(db *goschema.Database, defaultSchema string, attrs defaultSchemaAttrs) *goschema.Database {
+	defaultSchema = normSchema(defaultSchema)
+	if db == nil || defaultSchema == "" {
+		return db
+	}
+	filteredSchemas := db.Schemas[:0]
+	for _, schema := range db.Schemas {
+		if normSchema(schema.Name) != defaultSchema {
+			filteredSchemas = append(filteredSchemas, schema)
+		}
+	}
+	db.Schemas = filteredSchemas
+	for i := range db.Tables {
+		if normSchema(db.Tables[i].Schema) == defaultSchema {
+			db.Tables[i].Schema = ""
+		}
+		if normIdent(db.Tables[i].Charset) == attrs.charset {
+			db.Tables[i].Charset = ""
+		}
+		if normIdent(db.Tables[i].Collate) == attrs.collate {
+			db.Tables[i].Collate = ""
+		}
+	}
+	for i := range db.Fields {
+		db.Fields[i].Foreign = foldDefaultSchemaRef(db.Fields[i].Foreign, defaultSchema)
+		if normIdent(db.Fields[i].Charset) == attrs.charset {
+			db.Fields[i].Charset = ""
+		}
+		if normIdent(db.Fields[i].Collate) == attrs.collate {
+			db.Fields[i].Collate = ""
+		}
+	}
+	for i := range db.Indexes {
+		db.Indexes[i].TableName = foldDefaultSchemaRef(db.Indexes[i].TableName, defaultSchema)
+	}
+	for i := range db.Constraints {
+		db.Constraints[i].Table = foldDefaultSchemaRef(db.Constraints[i].Table, defaultSchema)
+		db.Constraints[i].ForeignTable = foldDefaultSchemaRef(db.Constraints[i].ForeignTable, defaultSchema)
+	}
+	return db
+}
+
+func foldDefaultSchemaRef(ref, defaultSchema string) string {
+	ref = strings.TrimSpace(ref)
+	if ref == "" {
+		return ""
+	}
+	table, cols, hasCols := strings.Cut(ref, "(")
+	table = strings.TrimSpace(table)
+	parts := strings.Split(strings.ReplaceAll(strings.ReplaceAll(table, "`", ""), `"`, ""), ".")
+	if len(parts) < 2 || normSchema(parts[len(parts)-2]) != defaultSchema {
+		return ref
+	}
+	folded := parts[len(parts)-1]
+	if hasCols {
+		return folded + "(" + cols
+	}
+	return folded
 }

@@ -2,6 +2,7 @@ package probe
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/stokaro/ptah/core/goschema"
@@ -20,7 +21,10 @@ import (
 // genuine differences (a dropped length, a missing column, a different
 // nullability, a lost primary-key membership) visible.
 
-// tableFacts maps table name -> sorted list of "object: signature" strings.
+const globalFactsKey = "\x00global-schema-facts"
+
+// tableFacts maps a table/global object key -> sorted list of "object:
+// signature" strings.
 type tableFacts map[string][]string
 
 // factsFromDatabase reads canonical schema facts off a typed schema.
@@ -28,6 +32,12 @@ func factsFromDatabase(db *goschema.Database) tableFacts {
 	if db == nil {
 		return tableFacts{}
 	}
+	out := tableFacts{}
+	if global := globalFacts(db); len(global) > 0 {
+		sort.Strings(global)
+		out[globalFactsKey] = global
+	}
+
 	tableByStruct := map[string]goschema.Table{}
 	for _, t := range db.Tables {
 		tableByStruct[t.StructName] = t
@@ -37,9 +47,9 @@ func factsFromDatabase(db *goschema.Database) tableFacts {
 		fieldsByStruct[f.StructName] = append(fieldsByStruct[f.StructName], f)
 	}
 
-	out := tableFacts{}
 	for structName, t := range tableByStruct {
 		fields := fieldsByStruct[structName]
+		tableKey := tableFactKey(t)
 
 		// Effective primary key = table-level composite key plus any field
 		// marked primary, so inline and table-level PKs compare equal.
@@ -54,10 +64,17 @@ func factsFromDatabase(db *goschema.Database) tableFacts {
 		}
 
 		var list []string
+		if tableMeta := tableMetaFact(t); tableMeta != "" {
+			list = append(list, tableMeta)
+		}
+		if primaryKey := primaryKeyFact(t, fields); primaryKey != "" {
+			list = append(list, primaryKey)
+		}
 		for _, f := range fields {
 			list = append(list, normIdent(f.Name)+": "+fieldSignature(f, pk[normIdent(f.Name)]))
 			if f.Unique {
-				list = append(list, "~unique("+normColumns([]string{f.Name})+"): columns="+normColumns([]string{f.Name}))
+				cols := normColumns([]string{f.Name})
+				list = append(list, uniqueFact(cols, "columns="+cols, nil, nil, ""))
 			}
 			if strings.TrimSpace(f.Check) != "" {
 				list = append(list, checkFact(f.Check))
@@ -66,12 +83,108 @@ func factsFromDatabase(db *goschema.Database) tableFacts {
 				list = append(list, "~fk("+normIdent(f.Name)+"): "+foreignSignature(f))
 			}
 		}
-		list = append(list, constraintFacts(db.Constraints, tableByStruct, t.Name)...)
-		list = append(list, indexFacts(db.Indexes, tableByStruct, t.Name)...)
+		list = append(list, constraintFacts(db.Constraints, tableByStruct, tableKey)...)
+		list = append(list, indexFacts(db.Indexes, tableByStruct, tableKey)...)
 		sort.Strings(list)
-		out[t.Name] = list
+		out[tableKey] = list
 	}
 	return out
+}
+
+func globalFacts(db *goschema.Database) []string {
+	var facts []string
+	for _, schema := range db.Schemas {
+		name := normSchema(schema.Name)
+		if name == "" {
+			continue
+		}
+		sig := "name=" + name
+		if comment := normComment(schema.Comment); comment != "" {
+			sig += " comment=" + comment
+		}
+		facts = append(facts, "~schema("+name+"): "+sig)
+	}
+	for _, enum := range db.Enums {
+		name := normIdent(enum.Name)
+		values := normEnumValues(strings.Join(enum.Values, ","))
+		facts = append(facts, "~enum("+name+"): values="+values)
+	}
+	return facts
+}
+
+func tableMetaFact(t goschema.Table) string {
+	parts := []string{}
+	if schema := normSchema(t.Schema); schema != "" {
+		parts = append(parts, "schema="+schema)
+	}
+	if engine := normIdent(t.Engine); engine != "" {
+		parts = append(parts, "engine="+engine)
+	}
+	if value := strings.TrimSpace(t.AutoIncrement); value != "" {
+		parts = append(parts, "auto_increment="+value)
+	}
+	if charset := normIdent(t.Charset); charset != "" {
+		parts = append(parts, "charset="+charset)
+	}
+	if collate := normIdent(t.Collate); collate != "" {
+		parts = append(parts, "collate="+collate)
+	}
+	if t.Strict {
+		parts = append(parts, "strict=true")
+	}
+	if t.WithoutRowID {
+		parts = append(parts, "without_rowid=true")
+	}
+	if comment := normComment(t.Comment); comment != "" {
+		parts = append(parts, "comment="+comment)
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "~table: " + strings.Join(parts, " ")
+}
+
+func primaryKeyFact(t goschema.Table, fields []goschema.Field) string {
+	parts := primaryKeyParts(t, fields)
+	if len(parts) == 0 {
+		return ""
+	}
+	sig := "columns=" + strings.Join(parts, ",")
+	if include := normColumns(t.PrimaryKeyInclude); include != "" {
+		sig += " include=" + include
+	}
+	return "~primary_key: " + sig
+}
+
+func primaryKeyParts(t goschema.Table, fields []goschema.Field) []string {
+	if len(t.PrimaryKeyParts) > 0 {
+		parts := make([]string, 0, len(t.PrimaryKeyParts))
+		for _, part := range t.PrimaryKeyParts {
+			parts = append(parts, primaryKeyPartSignature(part))
+		}
+		return parts
+	}
+	if len(t.PrimaryKey) > 0 {
+		return normColumnList(t.PrimaryKey)
+	}
+	parts := []string{}
+	for _, field := range fields {
+		if field.Primary {
+			parts = append(parts, normIdent(field.Name))
+		}
+	}
+	return parts
+}
+
+func primaryKeyPartSignature(part goschema.PrimaryKeyPart) string {
+	sig := normIdent(part.Name)
+	if prefix := strings.TrimSpace(part.Prefix); prefix != "" {
+		sig += " prefix=" + prefix
+	}
+	if part.Desc {
+		sig += " desc"
+	}
+	return sig
 }
 
 // fieldSignature canonicalizes one column: type, nullability, default presence,
@@ -103,7 +216,47 @@ func fieldSignature(f goschema.Field, isPK bool) string {
 			sig += " kind=" + kind
 		}
 	}
+	if identity := identitySignature(f); identity != "" {
+		sig += " identity=" + identity
+	}
+	if update := normExpr(f.UpdateExpression); update != "" {
+		sig += " on_update=" + update
+	}
+	if charset := normIdent(f.Charset); charset != "" {
+		sig += " charset=" + charset
+	}
+	if collate := normIdent(f.Collate); collate != "" {
+		sig += " collate=" + collate
+	}
+	if enum := normEnumValues(strings.Join(f.Enum, ",")); enum != "" {
+		sig += " enum=" + enum
+	}
+	if comment := normComment(f.Comment); comment != "" {
+		sig += " comment=" + comment
+	}
 	return sig
+}
+
+func identitySignature(f goschema.Field) string {
+	generation := normGeneratedKind(f.IdentityGeneration)
+	if generation == "" && strings.TrimSpace(f.IdentityStart) == "" &&
+		strings.TrimSpace(f.IdentityIncrement) == "" && strings.TrimSpace(f.IdentityOptions) == "" {
+		return ""
+	}
+	if generation == "" {
+		generation = "by default"
+	}
+	parts := []string{generation}
+	if start := strings.TrimSpace(f.IdentityStart); start != "" {
+		parts = append(parts, "start="+start)
+	}
+	if increment := strings.TrimSpace(f.IdentityIncrement); increment != "" {
+		parts = append(parts, "increment="+increment)
+	}
+	if options := strings.TrimSpace(f.IdentityOptions); options != "" {
+		parts = append(parts, "options="+normExpr(options))
+	}
+	return strings.Join(parts, " ")
 }
 
 // foreignSignature canonicalizes a field's foreign key: referenced target plus
@@ -123,13 +276,13 @@ func checkFact(expr string) string {
 func constraintFacts(constraints []goschema.Constraint, tableByStruct map[string]goschema.Table, tableName string) []string {
 	var facts []string
 	for _, c := range constraints {
-		if normIdent(constraintTable(c, tableByStruct)) != normIdent(tableName) {
+		if constraintTableKey(c, tableByStruct) != tableName {
 			continue
 		}
 		switch strings.ToUpper(strings.TrimSpace(c.Type)) {
 		case "UNIQUE":
 			cols := normColumns(c.Columns)
-			facts = append(facts, "~unique("+cols+"): columns="+cols)
+			facts = append(facts, uniqueFact(cols, "columns="+cols, c.IncludeColumns, c.NullsDistinct, c.Comment))
 		case "CHECK":
 			facts = append(facts, checkFact(c.CheckExpression))
 		case "FOREIGN KEY":
@@ -143,31 +296,94 @@ func constraintFacts(constraints []goschema.Constraint, tableByStruct map[string
 func indexFacts(indexes []goschema.Index, tableByStruct map[string]goschema.Table, tableName string) []string {
 	var facts []string
 	for _, idx := range indexes {
-		if normIdent(indexTable(idx, tableByStruct)) != normIdent(tableName) {
+		if indexTableKey(idx, tableByStruct) != tableName {
 			continue
 		}
-		cols := normColumns(indexColumns(idx))
+		cols := normIndexParts(idx)
 		if idx.Unique {
-			sig := "columns=" + cols
-			if condition := normExpr(idx.Condition); condition != "" {
-				sig += " where=" + condition
-			}
-			facts = append(facts, "~unique("+cols+"): "+sig)
+			facts = append(facts, uniqueFact(cols, indexFactCoreSignature(idx, cols), idx.IncludeColumns, idx.NullsDistinct, idx.Comment))
 			continue
 		}
-		sig := "columns=" + cols
-		if typ := strings.ToLower(strings.TrimSpace(idx.Type)); typ != "" {
-			sig += " type=" + typ
-		}
-		if condition := normExpr(idx.Condition); condition != "" {
-			sig += " where=" + condition
-		}
-		if include := normColumns(idx.IncludeColumns); include != "" {
-			sig += " include=" + include
-		}
-		facts = append(facts, "~index("+normIdent(idx.Name)+"): "+sig)
+		facts = append(facts, "~index("+normIdent(idx.Name)+"): "+indexFactSignature(idx, cols))
 	}
 	return facts
+}
+
+func uniqueFact(cols, sig string, include []string, nullsDistinct *bool, comment string) string {
+	if include := normColumns(include); include != "" {
+		sig += " include=" + include
+	}
+	if nulls := nullsDistinctSignature(nullsDistinct); nulls != "" {
+		sig += " nulls=" + nulls
+	}
+	if comment := normComment(comment); comment != "" {
+		sig += " comment=" + comment
+	}
+	return "~unique(" + cols + "): " + sig
+}
+
+func indexFactSignature(idx goschema.Index, cols string) string {
+	sig := indexFactCoreSignature(idx, cols)
+	if include := normColumns(idx.IncludeColumns); include != "" {
+		sig += " include=" + include
+	}
+	if storage := storageParamsSignature(idx.StorageParams); storage != "" {
+		sig += " storage=" + storage
+	}
+	if idx.Granularity != 0 {
+		sig += " granularity=" + strconv.Itoa(idx.Granularity)
+	}
+	if comment := normComment(idx.Comment); comment != "" {
+		sig += " comment=" + comment
+	}
+	return sig
+}
+
+func indexFactCoreSignature(idx goschema.Index, cols string) string {
+	sig := "columns=" + cols
+	if typ := normIdent(idx.Type); typ != "" {
+		sig += " type=" + typ
+	}
+	if parser := normIdent(idx.Parser); parser != "" {
+		sig += " parser=" + parser
+	}
+	if operator := normIdent(idx.Operator); operator != "" {
+		sig += " operator=" + operator
+	}
+	if condition := normExpr(idx.Condition); condition != "" {
+		sig += " where=" + condition
+	}
+	return sig
+}
+
+func nullsDistinctSignature(value *bool) string {
+	if value == nil {
+		return ""
+	}
+	if *value {
+		return "distinct"
+	}
+	return "not_distinct"
+}
+
+func storageParamsSignature(params map[string]string) string {
+	if len(params) == 0 {
+		return ""
+	}
+	type pair struct {
+		key   string
+		value string
+	}
+	pairs := make([]pair, 0, len(params))
+	for key, value := range params {
+		pairs = append(pairs, pair{key: normIdent(key), value: normLiteral(value)})
+	}
+	sort.Slice(pairs, func(i, j int) bool { return pairs[i].key < pairs[j].key })
+	parts := make([]string, 0, len(pairs))
+	for _, pair := range pairs {
+		parts = append(parts, pair.key+"="+pair.value)
+	}
+	return strings.Join(parts, ",")
 }
 
 // isSerial folds the two spellings of an auto-incrementing integer: Atlas's
@@ -282,14 +498,12 @@ func normEnumValues(raw string) string {
 func normRef(ref string) string {
 	ref = strings.ToLower(strings.TrimSpace(ref))
 	ref = strings.ReplaceAll(ref, `"`, "")
+	ref = strings.ReplaceAll(ref, "`", "")
 	table, cols := ref, ""
 	if i := strings.IndexRune(ref, '('); i >= 0 {
 		table, cols = ref[:i], ref[i:]
 	}
-	if i := strings.LastIndex(table, "."); i >= 0 {
-		table = table[i+1:]
-	}
-	return strings.TrimSpace(table) + cols
+	return normTableRef(table) + normRefColumns(cols)
 }
 
 // normAction folds a referential action, unifying Atlas HCL's underscore
@@ -304,48 +518,79 @@ func normAction(a string) string {
 	return a
 }
 
-func constraintTable(c goschema.Constraint, tableByStruct map[string]goschema.Table) string {
+func constraintTableKey(c goschema.Constraint, tableByStruct map[string]goschema.Table) string {
 	if strings.TrimSpace(c.Table) != "" {
-		return c.Table
+		return normTableRef(c.Table)
 	}
 	if t, ok := tableByStruct[c.StructName]; ok {
-		return t.Name
+		return tableFactKey(t)
 	}
-	return c.StructName
+	return normTableRef(c.StructName)
 }
 
-func indexTable(idx goschema.Index, tableByStruct map[string]goschema.Table) string {
+func indexTableKey(idx goschema.Index, tableByStruct map[string]goschema.Table) string {
 	if strings.TrimSpace(idx.TableName) != "" {
-		return idx.TableName
+		return normTableRef(idx.TableName)
 	}
 	if t, ok := tableByStruct[idx.StructName]; ok {
-		return t.Name
+		return tableFactKey(t)
 	}
-	return idx.StructName
+	return normTableRef(idx.StructName)
 }
 
-func indexColumns(idx goschema.Index) []string {
-	if len(idx.Fields) > 0 {
-		return idx.Fields
-	}
-	cols := make([]string, 0, len(idx.Parts))
-	for _, part := range idx.Parts {
-		switch {
-		case strings.TrimSpace(part.Name) != "":
-			cols = append(cols, part.Name)
-		case strings.TrimSpace(part.Expr) != "":
-			cols = append(cols, "expr("+part.Expr+")")
+func normIndexParts(idx goschema.Index) string {
+	return strings.Join(indexParts(idx), ",")
+}
+
+func indexParts(idx goschema.Index) []string {
+	if len(idx.Parts) > 0 {
+		cols := make([]string, 0, len(idx.Parts))
+		for _, part := range idx.Parts {
+			switch {
+			case strings.TrimSpace(part.Name) != "":
+				cols = append(cols, indexPartSignature(part))
+			case strings.TrimSpace(part.Expr) != "":
+				cols = append(cols, indexPartSignature(part))
+			}
 		}
+		return cols
 	}
-	return cols
+	if len(idx.Fields) > 0 {
+		return normColumnList(idx.Fields)
+	}
+	return nil
+}
+
+func indexPartSignature(part goschema.IndexPart) string {
+	sig := ""
+	if name := strings.TrimSpace(part.Name); name != "" {
+		sig = normIdent(name)
+	}
+	if expr := strings.TrimSpace(part.Expr); expr != "" {
+		sig = "expr(" + normExpr(expr) + ")"
+	}
+	if operator := normIdent(part.Operator); operator != "" {
+		sig += " op=" + operator
+	}
+	if prefix := strings.TrimSpace(part.Prefix); prefix != "" {
+		sig += " prefix=" + prefix
+	}
+	if part.Desc {
+		sig += " desc"
+	}
+	return sig
 }
 
 func normColumns(cols []string) string {
+	return strings.Join(normColumnList(cols), ",")
+}
+
+func normColumnList(cols []string) []string {
 	normalized := make([]string, 0, len(cols))
 	for _, c := range cols {
 		normalized = append(normalized, normColumnOrExpr(c))
 	}
-	return strings.Join(normalized, ",")
+	return normalized
 }
 
 func normColumnOrExpr(s string) string {
@@ -359,11 +604,65 @@ func normColumnOrExpr(s string) string {
 
 func normIdent(s string) string {
 	s = strings.TrimSpace(s)
+	s = strings.Trim(s, "`")
 	s = strings.Trim(s, `"`)
 	if i := strings.LastIndex(s, "."); i >= 0 { // strip schema qualifier
 		s = s[i+1:]
 	}
-	return strings.ToLower(strings.Trim(s, `"`))
+	return strings.ToLower(strings.Trim(strings.Trim(s, "`"), `"`))
+}
+
+func normSchema(s string) string {
+	s = normIdent(s)
+	switch s {
+	case "", "public", "main":
+		return ""
+	default:
+		return s
+	}
+}
+
+func tableFactKey(t goschema.Table) string {
+	schema := normSchema(t.Schema)
+	name := normIdent(t.Name)
+	if schema == "" {
+		return name
+	}
+	return schema + "." + name
+}
+
+func normTableRef(ref string) string {
+	ref = strings.TrimSpace(ref)
+	ref = strings.ReplaceAll(ref, "`", "")
+	ref = strings.ReplaceAll(ref, `"`, "")
+	parts := strings.Split(ref, ".")
+	switch len(parts) {
+	case 0:
+		return ""
+	case 1:
+		return normIdent(parts[0])
+	default:
+		schema := normSchema(parts[len(parts)-2])
+		name := normIdent(parts[len(parts)-1])
+		if schema == "" {
+			return name
+		}
+		return schema + "." + name
+	}
+}
+
+func normRefColumns(cols string) string {
+	cols = strings.TrimSpace(cols)
+	if cols == "" {
+		return ""
+	}
+	cols = strings.TrimPrefix(cols, "(")
+	cols = strings.TrimSuffix(cols, ")")
+	return "(" + normColumns(strings.Split(cols, ",")) + ")"
+}
+
+func normComment(s string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(s)), " ")
 }
 
 func normGeneratedKind(kind string) string {
@@ -611,9 +910,10 @@ func diffTableFacts(atlas, ptah tableFacts) []string {
 	for _, t := range tables {
 		a, aok := atlas[t]
 		p, pok := ptah[t]
+		label := factGroupLabel(t)
 		switch {
 		case aok && !pok:
-			diffs = append(diffs, "Ptah is missing table "+t)
+			diffs = append(diffs, "Ptah is missing "+label)
 		case !aok && pok:
 			// Ptah has a table Atlas did not report (e.g. a CE-omitted object);
 			// not a gap in the Atlas-can-see sense.
@@ -625,7 +925,15 @@ func diffTableFacts(atlas, ptah tableFacts) []string {
 	return diffs
 }
 
+func factGroupLabel(key string) string {
+	if key == globalFactsKey {
+		return "global schema facts"
+	}
+	return "table " + key
+}
+
 func diffLists(table string, atlas, ptah []string) []string {
+	table = factGroupDiffPrefix(table)
 	am := factMap(atlas)
 	pm := factMap(ptah)
 	var diffs []string
@@ -654,6 +962,13 @@ func diffLists(table string, atlas, ptah []string) []string {
 		}
 	}
 	return diffs
+}
+
+func factGroupDiffPrefix(key string) string {
+	if key == globalFactsKey {
+		return "global"
+	}
+	return key
 }
 
 func factMap(facts []string) map[string]string {

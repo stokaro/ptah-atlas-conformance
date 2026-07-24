@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 
@@ -36,7 +35,7 @@ func main() {
 	defer os.RemoveAll(sqliteDir) //nolint:errcheck
 	configured := configuredLiveTargets(sqliteDir, os.Getenv)
 
-	dirs, err := fixtureDirs(*corpus)
+	dirs, err := probe.LiveFixtureDirs(*corpus)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "discover fixtures:", err)
 		os.Exit(2)
@@ -56,7 +55,12 @@ func main() {
 			fmt.Fprintln(os.Stderr, "connect", tgt.label, ":", err)
 			os.Exit(2)
 		}
-		for _, d := range dirs {
+		targetDirs, err := probe.LiveFixtureDirsForDialect(dirs, tgt.label)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "filter fixtures", tgt.label, ":", err)
+			os.Exit(2)
+		}
+		for _, d := range targetDirs {
 			name := tgt.label + "/" + filepath.Base(d)
 			results = append(results, probe.RunRoundTrip(ctx, conn, name, d)...)
 		}
@@ -112,21 +116,6 @@ func configuredLiveTargets(sqliteDir string, getenv func(string) string) []liveT
 		sqliteURL = "sqlite://" + filepath.Join(sqliteDir, "conformance.sqlite")
 	}
 	return append(configured, liveTarget{label: "sqlite", url: sqliteURL})
-}
-
-func fixtureDirs(root string) ([]string, error) {
-	entries, err := os.ReadDir(root)
-	if err != nil {
-		return nil, err
-	}
-	var out []string
-	for _, e := range entries {
-		if e.IsDir() {
-			out = append(out, filepath.Join(root, e.Name()))
-		}
-	}
-	sort.Strings(out)
-	return out, nil
 }
 
 func ptahVersion() string {

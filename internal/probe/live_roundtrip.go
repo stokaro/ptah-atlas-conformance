@@ -32,7 +32,7 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 	if err != nil {
 		return []Result{{"roundtrip-consistency", name, "parse", Fail, oneLine(err.Error()), ""}}
 	}
-	schemaName, err := resetDatabase(ctx, conn, dialect)
+	schemas, err := resetDatabase(ctx, conn, dialect, desired)
 	if err != nil {
 		return []Result{{"roundtrip-consistency", name, "reset", Fail, oneLine(err.Error()), ""}}
 	}
@@ -53,7 +53,7 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 		}
 	}
 
-	got, err := dbschema.ReadSchemaWithSchemas(conn, []string{schemaName})
+	got, err := dbschema.ReadSchemaWithSchemas(conn, schemas)
 	if err != nil {
 		return []Result{{"roundtrip-consistency", name, "introspect", Fail, oneLine(err.Error()), ""}}
 	}
@@ -90,23 +90,32 @@ func liveRoundTripIssue(name string) string {
 // The reset is dialect-aware: PostgreSQL recreates the public schema; MySQL and
 // MariaDB drop every table and view in the current database; SQLite drops user
 // tables and views from the main database.
-func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, dialect string) (string, error) {
+func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, dialect string, desired *goschema.Database) ([]string, error) {
 	switch dialect {
 	case "postgres":
-		for _, s := range []string{"DROP SCHEMA IF EXISTS public CASCADE", "CREATE SCHEMA public"} {
-			if _, err := conn.ExecContext(ctx, s); err != nil {
-				return "", err
+		existingSchemas, err := postgresNonSystemSchemas(ctx, conn)
+		if err != nil {
+			return nil, err
+		}
+		for _, schema := range existingSchemas {
+			if _, err := conn.ExecContext(ctx, "DROP SCHEMA IF EXISTS "+quotePostgresIdent(schema)+" CASCADE"); err != nil {
+				return nil, err
 			}
 		}
-		return "public", nil
+		for _, s := range []string{"DROP SCHEMA IF EXISTS public CASCADE", "CREATE SCHEMA public"} {
+			if _, err := conn.ExecContext(ctx, s); err != nil {
+				return nil, err
+			}
+		}
+		return postgresSchemasToRead(desired), nil
 	case "mysql", "mariadb":
 		var db string
 		if err := conn.QueryRowContext(ctx, "SELECT DATABASE()").Scan(&db); err != nil {
-			return "", err
+			return nil, err
 		}
 		rows, err := conn.Query("SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = DATABASE()")
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		type obj struct{ name, typ string }
 		var objs []obj
@@ -114,16 +123,16 @@ func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, diale
 			var o obj
 			if err := rows.Scan(&o.name, &o.typ); err != nil {
 				rows.Close()
-				return "", err
+				return nil, err
 			}
 			objs = append(objs, o)
 		}
 		rows.Close()
 		if err := rows.Err(); err != nil {
-			return "", err
+			return nil, err
 		}
 		if _, err := conn.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=0"); err != nil {
-			return "", err
+			return nil, err
 		}
 		defer conn.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=1") //nolint:errcheck
 		for _, o := range objs {
@@ -132,14 +141,14 @@ func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, diale
 				drop = "DROP VIEW IF EXISTS `" + o.name + "`"
 			}
 			if _, err := conn.ExecContext(ctx, drop); err != nil {
-				return "", err
+				return nil, err
 			}
 		}
-		return db, nil
+		return []string{db}, nil
 	case "sqlite":
 		rows, err := conn.QueryContext(ctx, "SELECT name, type FROM sqlite_schema WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'")
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		type obj struct{ name, typ string }
 		var objs []obj
@@ -147,16 +156,16 @@ func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, diale
 			var o obj
 			if err := rows.Scan(&o.name, &o.typ); err != nil {
 				rows.Close()
-				return "", err
+				return nil, err
 			}
 			objs = append(objs, o)
 		}
 		rows.Close()
 		if err := rows.Err(); err != nil {
-			return "", err
+			return nil, err
 		}
 		if _, err := conn.ExecContext(ctx, "PRAGMA foreign_keys = OFF"); err != nil {
-			return "", err
+			return nil, err
 		}
 		defer conn.ExecContext(ctx, "PRAGMA foreign_keys = ON") //nolint:errcheck
 		for _, typ := range []string{"view", "table"} {
@@ -165,14 +174,78 @@ func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, diale
 					continue
 				}
 				if _, err := conn.ExecContext(ctx, "DROP "+strings.ToUpper(o.typ)+" IF EXISTS "+quoteSQLiteIdent(o.name)); err != nil {
-					return "", err
+					return nil, err
 				}
 			}
 		}
-		return "main", nil
+		return []string{"main"}, nil
 	default:
-		return "", fmt.Errorf("round-trip reset does not support dialect %q", dialect)
+		return nil, fmt.Errorf("round-trip reset does not support dialect %q", dialect)
 	}
+}
+
+func postgresNonSystemSchemas(ctx context.Context, conn *dbschema.DatabaseConnection) ([]string, error) {
+	rows, err := conn.QueryContext(ctx, `
+SELECT schema_name
+FROM information_schema.schemata
+WHERE schema_name <> 'public'
+  AND schema_name <> 'information_schema'
+  AND schema_name NOT LIKE 'pg_%'
+ORDER BY schema_name`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var schemas []string
+	for rows.Next() {
+		var schema string
+		if err := rows.Scan(&schema); err != nil {
+			return nil, err
+		}
+		schemas = append(schemas, schema)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return schemas, nil
+}
+
+func postgresSchemasToRead(desired *goschema.Database) []string {
+	schemas := []string{"public"}
+	schemas = append(schemas, nonDefaultPostgresSchemas(desired)...)
+	return schemas
+}
+
+func nonDefaultPostgresSchemas(desired *goschema.Database) []string {
+	set := map[string]struct{}{}
+	if desired != nil {
+		for _, schema := range desired.Schemas {
+			addPostgresSchema(set, schema.Name)
+		}
+		for _, table := range desired.Tables {
+			addPostgresSchema(set, table.Schema)
+		}
+	}
+	out := make([]string, 0, len(set))
+	for schema := range set {
+		out = append(out, schema)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func addPostgresSchema(set map[string]struct{}, name string) {
+	name = strings.TrimSpace(name)
+	switch strings.ToLower(name) {
+	case "", "public":
+		return
+	default:
+		set[name] = struct{}{}
+	}
+}
+
+func quotePostgresIdent(name string) string {
+	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }
 
 func quoteSQLiteIdent(name string) string {

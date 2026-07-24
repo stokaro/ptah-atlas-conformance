@@ -64,6 +64,13 @@
   },
   {
     "probe": "atlas-differential",
+    "fixture": "postgres/10-schema-qualified",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "3 tables matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
     "fixture": "mysql/01-basic-table",
     "stage": "compare",
     "outcome": "ok",
