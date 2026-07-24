@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff atlas verify build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-cli-surface budget-cli-surface gate-cli-surface atlas verify build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -60,6 +60,24 @@ budget-diff: probe-diff
 # a faithful drop-in for `atlas schema inspect`.
 gate-diff:
 	$(GO_OFF) run ./cmd/gap-probe-diff -gate
+
+# The CLI surface tier: build/read the pinned Atlas CE binary and compare its
+# command help/usage/flag inventory to both `ptah atlas ...` and a ptah-compat
+# binary named `atlas`. Regenerates cli-surface.md / cli-surface.json and
+# always exits 0.
+probe-cli-surface:
+	$(GO_OFF) run ./cmd/cli-surface-probe
+
+# CI progress gate for the CLI surface tier: fail only when the current
+# CLI-surface report exceeds the committed budget. Full help/flag parity is
+# still `make gate-cli-surface`.
+budget-cli-surface: probe-cli-surface
+	$(GO_OFF) run ./cmd/gap-budget -report cli-surface.json -budget cli-surface-budget.txt
+
+# The full CLI surface gate: red while any Atlas CE OSS command, usage string,
+# or long flag is not mirrored by both Ptah compatibility surfaces.
+gate-cli-surface:
+	$(GO_OFF) run ./cmd/cli-surface-probe -gate
 
 # CI progress gate: fail only when the current report exceeds the committed
 # unwaived non-OK observation budget or has stale waivers. Full parity is still

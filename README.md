@@ -52,6 +52,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |
 | `atlas-cli-surface` | Does `ptah atlas <verb>` resolve for every OSS Atlas CLI verb? This is the `ptah atlas ...` drop-in surface; it builds the real Ptah CLI and checks each command, so it flips to green on its own when Ptah registers the command. | the built `ptah` binary |
 | `atlas-cli-flags` | Beyond resolving, does each `ptah atlas <verb>` accept the Atlas flags a drop-in caller passes (`--url`, `--dev-url`, `--to`, `--dir`, `--format`, …)? A resolving stub is not a drop-in. | the built `ptah` binary |
+| `atlas-cli-surface-inventory` / `atlas-cli-surface-ptah-*` | Dedicated CLI surface report over the current pinned Atlas CE binary: command paths, help usage, and long flags, compared separately against `ptah atlas ...` and binary-level `ptah-compat` drop-in behavior. | `bin/atlas`, the built `ptah` binary, the built `ptah-compat` binary |
 | `lint-analyzer-catalog` | For each Atlas sqlcheck analyzer concern, does Ptah's linter flag the same dangerous change? Behavioral, one synthetic migration per analyzer, so it flips green when Ptah gains the rule. | `migration/lint` |
 | `lex-split-parity` | Does Ptah split a migration into the same statements Atlas does? A differential check against Atlas's own `.golden` lexer outputs (no live Atlas needed), normalized so it measures statement boundaries, not comment preservation. Surfaces real drop-in blockers: function bodies, `BEGIN ATOMIC`, MySQL `DELIMITER`. | `migration/migrator` |
 
@@ -95,6 +96,42 @@ make budget-diff  # differential progress gate: red only on regression/stale wai
 make gate-diff    # differential full-parity yardstick: red until Ptah agrees with Atlas CE
 ```
 
+## CLI surface tier
+
+The dedicated CLI surface report is [`cli-surface.md`](./cli-surface.md). It is
+generated from the real Atlas CE binary pinned by [`atlas.version`](./atlas.version),
+not from a static table. The probe recursively reads `atlas --help`,
+`atlas schema --help`, `atlas migrate --help`, and every discovered leaf command's
+help, then records:
+
+- Atlas CE command paths;
+- help `Usage:` lines;
+- long flags from command and global help;
+- explicit OSS vs out-of-scope classification;
+- community-version unsupported behavior for Atlas CE commands that are present
+  only as Cloud/commercial or intentionally unsupported stubs;
+- separate compatibility findings for `ptah atlas ...` and for a `ptah-compat`
+  binary named `atlas`.
+
+The regression budget is [`cli-surface-budget.txt`](./cli-surface-budget.txt).
+`make budget-cli-surface` must stay green when Ptah preserves the current known
+CLI gaps. `make gate-cli-surface` is the full-parity signal and stays red until
+the Atlas CE OSS help/flag surface matches.
+
+Refresh this tier whenever [`atlas.version`](./atlas.version) changes, or after
+bumping Ptah in `go.mod`:
+
+```
+make atlas              # rebuild ./bin/atlas from the pinned Atlas CE tag
+make probe-cli-surface  # regenerate cli-surface.md / cli-surface.json
+make budget-cli-surface # verify the committed regression budget
+```
+
+If the report shows a new Atlas CE OSS command or flag, either implement the Ptah
+gap and lower the budget, or keep the report red and raise/refresh the budget
+only as an explicit measurement-baseline change. Do not remove commands from the
+inventory to make the report green.
+
 ## CI regression budget and full-parity gate
 
 This is a spec Ptah has not met, not a passing test log. CI publishes two
@@ -109,13 +146,18 @@ separate pipelines:
   regression-budget model for their real-database reports. They must stay green
   when a PR only preserves the current known gaps, and fail when `gaps-live.*` or
   `gaps-diff.*` is stale or worse than its committed budget.
+- The CLI surface job in
+  [`conformance-regression`](./.github/workflows/conformance-regression.yml)
+  uses [`cli-surface-budget.txt`](./cli-surface-budget.txt) the same way for
+  `cli-surface.*`.
 - [`full-conformance`](./.github/workflows/full-conformance.yml) runs
-  `make gate`, `make gate-live`, and `make gate-diff` as separate jobs. It stays
-  red until Ptah covers the offline corpus, the live round-trip corpus, and the
-  Atlas CE differential corpus. When probes become stricter, a generated report
-  may expose more non-OK observations even without a Ptah code change; that is a
-  measurement hardening and must be committed explicitly with the new
-  report/budget baseline. This workflow is a visible yardstick, not the
+  `make gate`, `make gate-live`, `make gate-diff`, and
+  `make gate-cli-surface` as separate jobs. It stays red until Ptah covers the
+  offline corpus, the live round-trip corpus, the Atlas CE differential corpus,
+  and the Atlas CE CLI help/flag surface. When probes become stricter, a
+  generated report may expose more non-OK observations even without a Ptah code
+  change; that is a measurement hardening and must be committed explicitly with
+  the new report/budget baseline. This workflow is a visible yardstick, not the
   regression/merge gate; branch protection should require the regression-budget
   workflows above, not expected-red full conformance.
 
@@ -149,6 +191,9 @@ make gate-live    # live full-parity yardstick: red until round-trip is lossless
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
 make budget-diff  # differential progress gate: red only on regression/stale waivers
 make gate-diff    # differential full-parity yardstick: red until Ptah agrees with Atlas CE
+make probe-cli-surface   # regenerate cli-surface.md / cli-surface.json (exit 0)
+make budget-cli-surface  # CLI progress gate: red only on regression/stale waivers
+make gate-cli-surface    # CLI full-parity yardstick: red until Atlas help/flags match
 make gate         # offline full-parity yardstick: red until parity on the corpus
 make verify       # build, vet, and assert Ptah's tree would gain no Apache file
 ```
@@ -161,10 +206,11 @@ Both sides are pinned for reproducibility:
   `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`, vendored under
   `third_party/atlas/upstream/` (never fetched at run time). The exact file list
   is `third_party/atlas/MANIFEST.txt`.
-- Atlas binary (differential tier): the release tag in [`atlas.version`](./atlas.version),
-  built from source by `make atlas`. [`renovate.json`](./renovate.json) carries a
-  custom manager that bumps this pin automatically when Atlas cuts a new release,
-  so the differential follows upstream on its own.
+- Atlas binary (differential and CLI-surface tiers): the release tag in
+  [`atlas.version`](./atlas.version), built from source by `make atlas`.
+  [`renovate.json`](./renovate.json) carries a custom manager that bumps this pin
+  automatically when Atlas cuts a new release, so the differential and CLI
+  surface probes follow upstream on their next report refresh.
 - Ptah: pinned in `go.mod`. Bump it to measure a newer Ptah.
 
 ## Relationship to Ptah issues

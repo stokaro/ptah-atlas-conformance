@@ -14,8 +14,8 @@ fixtures, 669 offline observations, **0 unwaived non-OK offline observations**.
 The corpus inventory imports 160 fixtures: every imported fixture is measured by
 at least one current offline probe. This means the deterministic imported-corpus
 report is green; it does **not** mean full Atlas OSS runtime parity, because the
-live round-trip report still has open gaps and several runtime dimensions remain
-unmeasured.
+live round-trip report still has open gaps, the dedicated CLI-surface report has
+tracked help/flag gaps, and several runtime dimensions remain unmeasured.
 
 ## What the probe found broken
 
@@ -45,6 +45,7 @@ is **"unknown — not measured"**, not "works".
 | **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on a live Postgres, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
 | **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
+| Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; current full CLI gate is red with tracked gaps | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
 | **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres and MySQL; SQLite/MariaDB runtime tiers are still missing | dialect runtime probes for SQLite and MariaDB once the harness provisions them |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
@@ -67,11 +68,18 @@ is **"unknown — not measured"**, not "works".
 Two behavioral probes make part of the drop-in surface exhaustively measured, so
 that when they go green Ptah genuinely covers that dimension:
 
-- **`atlas-cli-surface`** enumerates the complete Atlas OSS CLI verb set and
-  checks, against the real Ptah binary, whether `ptah atlas <verb>` resolves.
-  When every OSS row is green, `ptah atlas ...` is a CLI drop-in. The OSS vs
-  cloud/Pro split is taken from Atlas's documented open CLI feature surface, the
-  current CLI reference, and the pinned Apache-2.0 source where it is available.
+- **`atlas-cli-surface`** in the offline fixture report checks, against the real
+  Ptah binary, whether important OSS Atlas command paths resolve.
+- **`cli-surface.md`** is the stricter dedicated CLI-surface yardstick. It builds
+  or reads the pinned Atlas CE binary, discovers the current `atlas schema ...`
+  and `atlas migrate ...` command tree from Cobra help, records usage lines and
+  long flags, and compares both Ptah surfaces separately: `ptah atlas ...` and a
+  `ptah-compat` binary named `atlas`. This report also lists Cloud/commercial or
+  intentionally unsupported commands explicitly and checks that Ptah reports the
+  same community-version unsupported boundary instead of silently omitting them
+  or falling back to parent command help. Its full gate is currently red, which
+  is useful: it names the exact command usage, flag, and unsupported-boundary
+  mismatches Ptah must close before claiming drop-in CLI parity.
 - **`lint-analyzer-catalog`** covers the full set of Atlas analyzer concerns that
   fire by default in an OSS build — the DS, MF (data-dependent), BC, CD, PG1, PG3,
   PG110, MY, LT and TX families. This is the "lint matrix" listed below as a
