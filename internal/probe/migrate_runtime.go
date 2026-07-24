@@ -57,6 +57,7 @@ func RunMigrateRuntime() []Result {
 			checks = append(checks,
 				func(bin string) Result { return postgresMigrateApplyCustomRevisionsSchema(bin, target.URL) },
 				func(bin string) Result { return postgresMigrateNoTransactionConcurrentIndex(bin, target.URL) },
+				func(bin string) Result { return postgresGenerateDiffSkipDropTable(bin, target.URL) },
 			)
 		case "mysql":
 			checks = append(checks, func(bin string) Result { return mysqlMigrateApplyRecordsState(bin, target.URL) })
@@ -340,6 +341,143 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, dbURL string) Result {
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
 		"`-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction", ""}
+}
+
+// postgresGenerateDiffSkipDropTable exercises the ptah.yaml diff policy end to
+// end: given a database that still has a table the desired schema drops, plus a
+// `diff.skip: [drop_table]` policy, `ptah migrations generate` must omit the
+// DROP TABLE statement, record the omission as a comment, and still emit the
+// non-skipped change (an added column). This is Atlas-OSS diff-policy parity
+// (stokaro/ptah#668).
+func postgresGenerateDiffSkipDropTable(bin, dbURL string) Result {
+	const fixture = "postgres/generate-diff-skip-drop-table"
+	schema := migrateRuntimeIdentifier("ptah_rt_pg_diffskip")
+
+	if result := cleanupPostgresRuntimeSchema(dbURL, schema, fixture); result != nil {
+		return *result
+	}
+	defer cleanupPostgresRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
+	if result := seedPostgresDiffSkipSchema(dbURL, schema, fixture); result != nil {
+		return *result
+	}
+
+	root, cleanup, err := diffSkipWorkdir(schema)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+
+	output, err := commandOutput(bin, []string{
+		"migrations", "generate",
+		"--config", filepath.Join(root, "ptah.yaml"),
+		"--root-dir", filepath.Join(root, "models"),
+		"--db-url", dbURL,
+		"--migrations-dir", filepath.Join(root, "out"),
+		"--schemas", schema,
+		"--name", "diffskip",
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "generate", output, err)
+	}
+
+	up, err := readGeneratedUpSQL(filepath.Join(root, "out"))
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	// The DROP TABLE statement always carries IF EXISTS; the omission comment
+	// mentions "DROP TABLE" too, so match the statement form specifically.
+	if strings.Contains(up, "DROP TABLE IF EXISTS") {
+		return migrateRuntimeGap(fixture, "generate", "skipped DROP TABLE was still emitted: "+oneLine(up))
+	}
+	if !strings.Contains(up, "omitted by diff policy") {
+		return migrateRuntimeGap(fixture, "generate", "skip omission comment was not emitted: "+oneLine(up))
+	}
+	if !strings.Contains(up, "ADD COLUMN") {
+		return migrateRuntimeGap(fixture, "generate", "non-skipped ADD COLUMN change was not emitted: "+oneLine(up))
+	}
+	return Result{migrateRuntimeProbeName, fixture, "generate", OK,
+		"`diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change", ""}
+}
+
+func seedPostgresDiffSkipSchema(dbURL, schema, fixture string) *Result {
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		result := migrateRuntimeFail(fixture, "seed", err)
+		return &result
+	}
+	defer func() { _ = conn.Close() }()
+	stmts := []string{
+		"CREATE SCHEMA " + quotePostgresIdentifier(schema),
+		"CREATE TABLE " + quotePostgresIdentifier(schema) + ".legacy (id integer PRIMARY KEY)",
+		"CREATE TABLE " + quotePostgresIdentifier(schema) + ".keep (id integer PRIMARY KEY)",
+	}
+	for _, stmt := range stmts {
+		if _, err := conn.ExecContext(context.Background(), stmt); err != nil {
+			result := migrateRuntimeFail(fixture, "seed", err)
+			return &result
+		}
+	}
+	return nil
+}
+
+// diffSkipWorkdir writes a Go entity describing the desired schema (the kept
+// table gains a note column; the legacy table is absent) and a ptah.yaml that
+// skips table drops.
+func diffSkipWorkdir(schema string) (string, func(), error) {
+	root, err := os.MkdirTemp("", "diff-skip-*")
+	if err != nil {
+		return "", nil, err
+	}
+	cleanup := func() { _ = os.RemoveAll(root) }
+	models := filepath.Join(root, "models")
+	if err := os.MkdirAll(filepath.Join(root, "out"), 0o755); err != nil {
+		cleanup()
+		return "", nil, err
+	}
+	if err := os.MkdirAll(models, 0o755); err != nil {
+		cleanup()
+		return "", nil, err
+	}
+	model := "package models\n\n" +
+		"//migrator:schema:table name=\"keep\" schema=\"" + schema + "\"\n" +
+		"type Keep struct {\n" +
+		"\t//migrator:schema:field name=\"id\" type=\"INTEGER\" primary=\"true\"\n" +
+		"\tID int\n" +
+		"\t//migrator:schema:field name=\"note\" type=\"TEXT\"\n" +
+		"\tNote string\n" +
+		"}\n"
+	if err := os.WriteFile(filepath.Join(models, "models.go"), []byte(model), 0o600); err != nil {
+		cleanup()
+		return "", nil, err
+	}
+	if err := os.WriteFile(filepath.Join(root, "ptah.yaml"), []byte("diff:\n  skip: [drop_table]\n"), 0o600); err != nil {
+		cleanup()
+		return "", nil, err
+	}
+	return root, cleanup, nil
+}
+
+func readGeneratedUpSQL(outDir string) (string, error) {
+	entries, err := os.ReadDir(outDir)
+	if err != nil {
+		return "", err
+	}
+	var sql strings.Builder
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".up.sql") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(outDir, entry.Name()))
+		if err != nil {
+			return "", err
+		}
+		sql.Write(data)
+		sql.WriteByte('\n')
+	}
+	if sql.Len() == 0 {
+		return "", errors.New("no generated .up.sql file was produced")
+	}
+	return sql.String(), nil
 }
 
 func mysqlMigrateApplyRecordsState(bin, dbURL string) Result {
