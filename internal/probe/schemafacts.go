@@ -60,11 +60,7 @@ func factsFromDatabase(db *goschema.Database) tableFacts {
 				list = append(list, "~unique("+normColumns([]string{f.Name})+"): columns="+normColumns([]string{f.Name}))
 			}
 			if strings.TrimSpace(f.Check) != "" {
-				name := f.CheckName
-				if strings.TrimSpace(name) == "" {
-					name = t.Name + "_" + f.Name + "_check"
-				}
-				list = append(list, "~check("+normIdent(name)+"): expr="+normExpr(f.Check))
+				list = append(list, checkFact(f.Check))
 			}
 			if strings.TrimSpace(f.Foreign) != "" {
 				list = append(list, "~fk("+normIdent(f.Name)+"): "+foreignSignature(f))
@@ -117,6 +113,13 @@ func foreignSignature(f goschema.Field) string {
 	return "-> " + normRef(f.Foreign) + " del=" + normAction(f.OnDelete) + " upd=" + normAction(f.OnUpdate)
 }
 
+func checkFact(expr string) string {
+	normalized := normExpr(expr)
+	// SQLite does not preserve stable CHECK names through Atlas/Ptah inspect, so
+	// the expression is the semantic identity for this differential tier.
+	return "~check(" + normalized + "): expr=" + normalized
+}
+
 func constraintFacts(constraints []goschema.Constraint, tableByStruct map[string]goschema.Table, tableName string) []string {
 	var facts []string
 	for _, c := range constraints {
@@ -128,7 +131,7 @@ func constraintFacts(constraints []goschema.Constraint, tableByStruct map[string
 			cols := normColumns(c.Columns)
 			facts = append(facts, "~unique("+cols+"): columns="+cols)
 		case "CHECK":
-			facts = append(facts, "~check("+normIdent(c.Name)+"): expr="+normExpr(c.CheckExpression))
+			facts = append(facts, checkFact(c.CheckExpression))
 		case "FOREIGN KEY":
 			facts = append(facts, "~fk("+normColumns(c.Columns)+"): -> "+normRef(c.ForeignTable+"("+strings.Join(c.ForeignColumnsOrDefault(), ",")+")")+
 				" del="+normAction(c.OnDelete)+" upd="+normAction(c.OnUpdate))
@@ -178,17 +181,38 @@ func isSerial(f goschema.Field) bool {
 func defaultSignature(f goschema.Field) string {
 	if expr := strings.TrimSpace(f.DefaultExpr); expr != "" {
 		if value, ok := normDefaultConstant(expr, false); ok {
-			return "value(" + value + ")"
+			return "value(" + normDefaultValueForType(value, f.Type) + ")"
 		}
 		return "expr(" + normExpr(expr) + ")"
 	}
 	if f.DefaultSet || strings.TrimSpace(f.Default) != "" {
 		if value, ok := normDefaultConstant(f.Default, true); ok {
-			return "value(" + value + ")"
+			return "value(" + normDefaultValueForType(value, f.Type) + ")"
 		}
 		return "value(" + normLiteral(f.Default) + ")"
 	}
 	return ""
+}
+
+func normDefaultValueForType(value, typ string) string {
+	if !isNumericType(typ) {
+		return value
+	}
+	if normalized, ok := normNumber(value); ok {
+		return normalized
+	}
+	return value
+}
+
+func isNumericType(typ string) bool {
+	typ = canonType(typ)
+	return strings.HasPrefix(typ, "int") ||
+		strings.HasPrefix(typ, "bigint") ||
+		strings.HasPrefix(typ, "smallint") ||
+		strings.HasPrefix(typ, "decimal") ||
+		strings.HasPrefix(typ, "numeric") ||
+		strings.HasPrefix(typ, "float") ||
+		strings.HasPrefix(typ, "double")
 }
 
 // canonType folds equivalent type spellings, including the underscore forms Atlas
@@ -198,6 +222,9 @@ func defaultSignature(f goschema.Field) string {
 func canonType(t string) string {
 	t = strings.ToLower(strings.TrimSpace(t))
 	t = strings.ReplaceAll(t, `"`, "")
+	if inner, ok := functionArg(t, "sql"); ok {
+		t = inner
+	}
 
 	base, suffix := t, ""
 	if i := strings.IndexRune(t, '('); i >= 0 {
@@ -206,6 +233,9 @@ func canonType(t string) string {
 	base = strings.TrimSpace(base)
 	if i := strings.LastIndex(base, "."); i >= 0 { // strip schema qualifier on user types
 		base = base[i+1:]
+	}
+	if base == "tinyint" && suffix == "(1)" {
+		base, suffix = "bool", ""
 	}
 	// Longest-first so "double precision" wins before "double". Both spaced and
 	// underscored spellings map to the same canonical name.
@@ -222,6 +252,7 @@ func canonType(t string) string {
 		{"integer", "int"},
 		{"int4", "int"},
 		{"int8", "bigint"},
+		{"tinyint", "bool"},
 		{"boolean", "bool"},
 		{"numeric", "decimal"},
 	}
@@ -231,7 +262,19 @@ func canonType(t string) string {
 			break
 		}
 	}
+	if base == "enum" && suffix != "" {
+		suffix = "(" + normEnumValues(strings.Trim(suffix, "()")) + ")"
+	}
 	return strings.TrimSpace(base + suffix)
+}
+
+func normEnumValues(raw string) string {
+	parts := strings.Split(raw, ",")
+	values := make([]string, 0, len(parts))
+	for _, part := range parts {
+		values = append(values, normLiteral(part))
+	}
+	return strings.Join(values, ",")
 }
 
 // normRef canonicalizes a "table(col)" reference: strip a schema qualifier and
@@ -404,16 +447,26 @@ func normExpr(expr string) string {
 	if expr == "" {
 		return ""
 	}
+	expr = strings.ReplaceAll(expr, `\'`, `'`)
 	expr = stripOuterParens(expr)
-	expr = removeDoubleQuotesOutsideSingleQuotes(expr)
+	expr = removeIdentifierQuotesAndCharsetIntroducers(expr)
 	return strings.Join(strings.Fields(lowerOutsideSingleQuotes(expr)), " ")
 }
 
-func removeDoubleQuotesOutsideSingleQuotes(s string) string {
+func removeIdentifierQuotesAndCharsetIntroducers(s string) string {
 	var b strings.Builder
 	inQuote := false
 	for i := 0; i < len(s); i++ {
 		ch := s[i]
+		if !inQuote {
+			for _, charset := range []string{"_utf8mb4", "_utf8"} {
+				if strings.HasPrefix(strings.ToLower(s[i:]), charset+"'") {
+					i += len(charset)
+					ch = s[i]
+					break
+				}
+			}
+		}
 		if ch == '\'' {
 			b.WriteByte(ch)
 			if inQuote && i+1 < len(s) && s[i+1] == '\'' {
@@ -424,11 +477,19 @@ func removeDoubleQuotesOutsideSingleQuotes(s string) string {
 			inQuote = !inQuote
 			continue
 		}
-		if ch != '"' || inQuote {
+		if (ch != '"' && ch != '`') || inQuote {
 			b.WriteByte(ch)
 		}
 	}
 	return b.String()
+}
+
+func functionArg(s, name string) (string, bool) {
+	prefix := name + "("
+	if !strings.HasPrefix(s, prefix) || !strings.HasSuffix(s, ")") {
+		return "", false
+	}
+	return strings.TrimSpace(s[len(prefix) : len(s)-1]), true
 }
 
 func lowerOutsideSingleQuotes(s string) string {

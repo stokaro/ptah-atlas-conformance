@@ -35,14 +35,11 @@ import (
 // they are covered by the Ptah-vs-Ptah round-trip tier instead.
 //
 // Unlike the round-trip tier this needs a real Atlas binary; the caller passes
-// its path (built from the pinned atlas.version tag). When no binary is
-// available the caller skips this tier entirely.
+// its path (built from the pinned atlas.version tag) and an Atlas-compatible URL
+// for the same live database. When no binary is available the caller skips this
+// tier entirely.
 func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlasBin, dbURL, name, dir string) []Result {
 	dialect := conn.Info().Dialect
-	if dialect != "postgres" {
-		return []Result{{"atlas-differential", name, "scope", OK,
-			"differential is scoped to postgres (Atlas CE inspect parity); skipped for " + dialect, ""}}
-	}
 
 	desired, err := goschema.ParseDir(dir)
 	if err != nil {

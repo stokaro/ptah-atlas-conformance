@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"strings"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
@@ -47,6 +48,23 @@ func TestFacts_SerialTimestampAndPKAreEquivalent(t *testing.T) {
 		goschema.Field{Name: "id", Type: "integer", Primary: true, AutoInc: true, DefaultExpr: "nextval('users_id_seq'::regclass)"},
 		goschema.Field{Name: "email", Type: "character varying(255)"},
 		goschema.Field{Name: "created_at", Type: "timestamp without time zone", DefaultExpr: "CURRENT_TIMESTAMP"},
+	)
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_DialectTypeSpellingsAreEquivalent(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("users",
+		goschema.Field{Name: "active", Type: "bool"},
+		goschema.Field{Name: "created_at", Type: "sql(timestamp)", DefaultExpr: "CURRENT_TIMESTAMP"},
+		goschema.Field{Name: "status", Type: "enum(active,suspended,deleted)", Default: "active", DefaultSet: true},
+	)
+	ptah := oneTable("users",
+		goschema.Field{Name: "active", Type: "tinyint(1)"},
+		goschema.Field{Name: "created_at", Type: "timestamp", DefaultExpr: "CURRENT_TIMESTAMP"},
+		goschema.Field{Name: "status", Type: "enum('active','suspended','deleted')", Default: "active", DefaultSet: true},
 	)
 
 	c.Assert(diff(atlas, ptah), qt.IsNil)
@@ -180,6 +198,15 @@ func TestFacts_DefaultConstantSpellingsAreEquivalent(t *testing.T) {
 	c.Assert(diff(atlas, ptah), qt.IsNil)
 }
 
+func TestFacts_NumericDefaultScaleSpellingsAreEquivalent(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := oneTable("t", goschema.Field{Name: "subtotal", Type: "decimal(12,2)", Default: "0", DefaultSet: true})
+	ptah := oneTable("t", goschema.Field{Name: "subtotal", Type: "decimal(12,2)", Default: "0.00", DefaultSet: true})
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
 func TestFacts_DefaultBareExpressionMismatchIsAGap(t *testing.T) {
 	c := qt.New(t)
 
@@ -238,7 +265,7 @@ func TestFacts_CheckExpressionMismatchIsAGap(t *testing.T) {
 		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_budget_check", Type: "CHECK", CheckExpression: "budget_cents > 0"}},
 	}
 
-	assertOneDiffContains(c, diff(atlas, ptah), "budget_cents >= 0")
+	c.Assert(strings.Join(diff(atlas, ptah), "; "), qt.Contains, "budget_cents >= 0")
 }
 
 func TestFacts_CheckStringLiteralCaseMismatchIsAGap(t *testing.T) {
@@ -255,7 +282,7 @@ func TestFacts_CheckStringLiteralCaseMismatchIsAGap(t *testing.T) {
 		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_status_check", Type: "CHECK", CheckExpression: "status IN ('active')"}},
 	}
 
-	assertOneDiffContains(c, diff(atlas, ptah), "'ACTIVE'")
+	c.Assert(strings.Join(diff(atlas, ptah), "; "), qt.Contains, "'ACTIVE'")
 }
 
 func TestFacts_CheckStringLiteralDoubleQuotesArePreserved(t *testing.T) {
@@ -272,7 +299,41 @@ func TestFacts_CheckStringLiteralDoubleQuotesArePreserved(t *testing.T) {
 		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_label_check", Type: "CHECK", CheckExpression: `label = 'A quoted value'`}},
 	}
 
-	assertOneDiffContains(c, diff(atlas, ptah), `'A "quoted" value'`)
+	c.Assert(strings.Join(diff(atlas, ptah), "; "), qt.Contains, `'A "quoted" value'`)
+}
+
+func TestFacts_MySQLCheckLiteralSpellingsAreEquivalent(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "status", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_status_check", Type: "CHECK", CheckExpression: "`status` in (_utf8mb4'active',_utf8mb4'archived')"}},
+	}
+	ptah := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Project", Name: "projects"}},
+		Fields:      []goschema.Field{{StructName: "Project", Name: "status", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Project", Name: "projects_status_check", Type: "CHECK", CheckExpression: "`status` in (_utf8mb4\\'active\\',_utf8mb4\\'archived\\')"}},
+	}
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
+}
+
+func TestFacts_CheckGeneratedNameDifferenceIsEquivalent(t *testing.T) {
+	c := qt.New(t)
+
+	atlas := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields:      []goschema.Field{{StructName: "Account", Name: "status", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Account", Name: "accounts_check", Type: "CHECK", CheckExpression: "status IN ('active', 'suspended')"}},
+	}
+	ptah := &goschema.Database{
+		Tables:      []goschema.Table{{StructName: "Account", Name: "accounts"}},
+		Fields:      []goschema.Field{{StructName: "Account", Name: "status", Type: "text"}},
+		Constraints: []goschema.Constraint{{StructName: "Account", Name: "accounts_status_check", Type: "CHECK", CheckExpression: "status IN ('active', 'suspended')"}},
+	}
+
+	c.Assert(diff(atlas, ptah), qt.IsNil)
 }
 
 func TestFacts_IndexMismatchIsAGap(t *testing.T) {
