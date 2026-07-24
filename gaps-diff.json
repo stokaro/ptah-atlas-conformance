@@ -1,63 +1,189 @@
 [
   {
     "probe": "atlas-differential",
-    "fixture": "01-basic-table",
+    "fixture": "postgres/01-basic-table",
     "stage": "compare",
     "outcome": "ok",
     "detail": "1 table matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "02-enum",
+    "fixture": "postgres/02-enum",
     "stage": "compare",
     "outcome": "ok",
     "detail": "1 table matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "03-view",
+    "fixture": "postgres/03-view",
     "stage": "compare",
     "outcome": "ok",
     "detail": "1 table matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "04-index-fk",
+    "fixture": "postgres/04-index-fk",
     "stage": "compare",
     "outcome": "ok",
     "detail": "2 tables matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "05-composite",
+    "fixture": "postgres/05-composite",
     "stage": "compare",
     "outcome": "ok",
     "detail": "1 table matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "06-constraints-actions",
+    "fixture": "postgres/06-constraints-actions",
     "stage": "compare",
     "outcome": "ok",
     "detail": "2 tables matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "07-generated-column",
+    "fixture": "postgres/07-generated-column",
     "stage": "compare",
     "outcome": "ok",
     "detail": "1 table matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "08-self-reference",
+    "fixture": "postgres/08-self-reference",
     "stage": "compare",
     "outcome": "ok",
     "detail": "1 table matches Atlas CE"
   },
   {
     "probe": "atlas-differential",
-    "fixture": "09-defaults-types",
+    "fixture": "postgres/09-defaults-types",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/01-basic-table",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/02-enum",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/03-view",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/04-index-fk",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "2 tables matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/05-composite",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/06-constraints-actions",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "2 tables matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/07-generated-column",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/08-self-reference",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "mysql/09-defaults-types",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/01-basic-table",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/02-enum",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/03-view",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/04-index-fk",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "2 tables matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/05-composite",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/06-constraints-actions",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "2 tables matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/07-generated-column",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/08-self-reference",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
+    "fixture": "sqlite/09-defaults-types",
     "stage": "compare",
     "outcome": "ok",
     "detail": "1 table matches Atlas CE"

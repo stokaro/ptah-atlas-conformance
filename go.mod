@@ -6,7 +6,7 @@ require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.0.0-20260724080311-e002acc7cecf
+	github.com/stokaro/ptah v0.0.0-20260724092029-a183ab15f75d
 )
 
 require (

@@ -78,6 +78,21 @@ func RenderLiveMarkdownWithCommand(results []Result, ptahVersion, command string
 	})
 }
 
+// RenderDifferentialMarkdownWithCommand produces a live Ptah-vs-Atlas CE
+// differential report and records the command that regenerates that report file.
+func RenderDifferentialMarkdownWithCommand(results []Result, atlasSHA, ptahVersion, command string) string {
+	return renderMarkdownWithOptions(results, &Waivers{}, markdownReportOptions{
+		Title:   "# Ptah vs Atlas CE live differential report",
+		Command: command,
+		Intro: "It records whether first-party Ptah schema fixtures produce the same\n" +
+			"introspected schema facts when inspected by Ptah and Atlas CE on live\n" +
+			"databases. It is a behavioral equivalence probe, not an Atlas-authored\n" +
+			"fixture coverage score.\n\n",
+		SourceLine:  fmt.Sprintf("Live fixtures: `testdata/live` first-party Ptah schema fixtures; Atlas CE binary pinned at `ariga/atlas@%s`", atlasSHA),
+		PtahVersion: ptahVersion,
+	})
+}
+
 type markdownReportOptions struct {
 	Title       string
 	Command     string

@@ -1,10 +1,12 @@
 // Command gap-probe-diff runs the differential-vs-Atlas tier and writes
 // gaps-diff.md / gaps-diff.json. It applies each first-party Ptah schema to a
-// live Postgres, then compares what a real Atlas CE binary and Ptah each report
-// about that schema. It is kept separate from the offline and round-trip tiers
-// because it needs both a database (CONFORMANCE_POSTGRES_URL) and an Atlas binary
-// (ATLAS_BIN), built from the tag pinned in atlas.version so release parity is
-// explicit and auditable.
+// live databases, then compares what a real Atlas CE binary and Ptah each
+// report about that schema. It is kept separate from the offline and round-trip
+// tiers because it needs configured databases and an Atlas binary (ATLAS_BIN),
+// built from the tag pinned in atlas.version so release parity is explicit and
+// auditable. SQLite runs against a fresh local database when
+// CONFORMANCE_SQLITE_URL is not set; networked dialects run when their
+// CONFORMANCE_*_URL variables are configured.
 package main
 
 import (
@@ -32,12 +34,6 @@ func main() {
 	gate := flag.Bool("gate", false, "exit non-zero if any non-OK observation remains")
 	flag.Parse()
 
-	url := os.Getenv("CONFORMANCE_POSTGRES_URL")
-	if url == "" {
-		fmt.Fprintln(os.Stderr, "the differential tier needs a Postgres target.")
-		fmt.Fprintln(os.Stderr, "  export CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=disable'")
-		os.Exit(2)
-	}
 	atlasBin, err := resolveAtlas()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -48,6 +44,14 @@ func main() {
 	}
 	fmt.Printf("differential against %s (atlas.version=%s)\n", atlasReported(atlasBin), pinnedVersion())
 
+	sqliteDir, err := os.MkdirTemp("", "ptah-conformance-diff-*")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "create sqlite temp dir:", err)
+		os.Exit(2)
+	}
+	defer os.RemoveAll(sqliteDir) //nolint:errcheck
+	configured := configuredDifferentialTargets(sqliteDir, os.Getenv)
+
 	dirs, err := fixtureDirs(*corpus)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "discover fixtures:", err)
@@ -57,19 +61,24 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
-	conn, err := dbschema.ConnectToDatabase(ctx, url)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "connect postgres:", err)
-		os.Exit(2)
-	}
-	defer conn.Close()
-
 	var results []probe.Result
-	for _, d := range dirs {
-		results = append(results, probe.RunSchemaDiff(ctx, conn, atlasBin, url, filepath.Base(d), d)...)
+	for _, tgt := range configured {
+		conn, err := dbschema.ConnectToDatabase(ctx, tgt.ptahURL)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "connect", tgt.label+":", err)
+			os.Exit(2)
+		}
+		for _, d := range dirs {
+			name := tgt.label + "/" + filepath.Base(d)
+			results = append(results, probe.RunSchemaDiff(ctx, conn, atlasBin, tgt.atlasURL, name, d)...)
+		}
+		if err := conn.Close(); err != nil {
+			fmt.Fprintln(os.Stderr, "close", tgt.label+":", err)
+			os.Exit(2)
+		}
 	}
 
-	md := probe.RenderMarkdownWithCommand(results, &probe.Waivers{}, atlasSHA, ptahVersion(), "make probe-diff")
+	md := probe.RenderDifferentialMarkdownWithCommand(results, atlasSHA, ptahVersion(), "make probe-diff")
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
 		os.Exit(2)
@@ -81,7 +90,7 @@ func main() {
 	}
 
 	nonOK := probe.NonOK(results)
-	fmt.Printf("%d observations, %d non-OK -> %s\n", len(results), len(nonOK), *mdOut)
+	fmt.Printf("%d observations across %d dialect(s), %d non-OK -> %s\n", len(results), len(configured), len(nonOK), *mdOut)
 	if *gate && len(nonOK) > 0 {
 		fmt.Fprintf(os.Stderr, "\nDIFFERENTIAL GATE: RED - %d non-OK observation(s):\n", len(nonOK))
 		for _, r := range nonOK {
@@ -93,6 +102,65 @@ func main() {
 	if *gate {
 		fmt.Println("DIFFERENTIAL GATE: GREEN - Ptah agrees with Atlas CE on every fixture.")
 	}
+}
+
+type differentialTarget struct {
+	label    string
+	ptahURL  string
+	atlasURL string
+}
+
+func configuredDifferentialTargets(sqliteDir string, getenv func(string) string) []differentialTarget {
+	var configured []differentialTarget
+	if postgresURL := getenv("CONFORMANCE_POSTGRES_URL"); postgresURL != "" {
+		configured = append(configured, differentialTarget{
+			label:    "postgres",
+			ptahURL:  postgresURL,
+			atlasURL: atlasURLOrDefault(getenv, "CONFORMANCE_POSTGRES_ATLAS_URL", postgresURL),
+		})
+	}
+	if mysqlURL := getenv("CONFORMANCE_MYSQL_URL"); mysqlURL != "" {
+		configured = append(configured, differentialTarget{
+			label:    "mysql",
+			ptahURL:  mysqlURL,
+			atlasURL: atlasURLOrDefault(getenv, "CONFORMANCE_MYSQL_ATLAS_URL", atlasMySQLURL(mysqlURL)),
+		})
+	}
+
+	sqliteURL := getenv("CONFORMANCE_SQLITE_URL")
+	if sqliteURL == "" {
+		sqliteURL = "sqlite://" + filepath.Join(sqliteDir, "conformance.sqlite")
+	}
+	configured = append(configured, differentialTarget{
+		label:    "sqlite",
+		ptahURL:  sqliteURL,
+		atlasURL: atlasURLOrDefault(getenv, "CONFORMANCE_SQLITE_ATLAS_URL", sqliteURL),
+	})
+	return configured
+}
+
+func atlasURLOrDefault(getenv func(string) string, key, fallback string) string {
+	if value := getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func atlasMySQLURL(raw string) string {
+	const prefix = "mysql://"
+	rest, ok := strings.CutPrefix(raw, prefix)
+	if !ok {
+		return raw
+	}
+	userInfo, afterTCP, ok := strings.Cut(rest, "@tcp(")
+	if !ok {
+		return raw
+	}
+	host, suffix, ok := strings.Cut(afterTCP, ")")
+	if !ok {
+		return raw
+	}
+	return prefix + userInfo + "@" + host + suffix
 }
 
 // resolveAtlas finds the Atlas binary: ATLAS_BIN if set, else `atlas` on PATH.

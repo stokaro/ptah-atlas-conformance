@@ -38,6 +38,18 @@ func TestRenderLiveMarkdownShowsLiveFixtureSource(t *testing.T) {
 	c.Assert(report, qt.Not(qt.Contains), "Atlas fixtures pinned")
 }
 
+func TestRenderDifferentialMarkdownShowsLiveDifferentialSource(t *testing.T) {
+	c := qt.New(t)
+	report := RenderDifferentialMarkdownWithCommand([]Result{
+		{Outcome: OK, Probe: "atlas-differential", Fixture: "sqlite/fixture", Stage: "compare", Detail: "ok"},
+	}, "atlas-sha", "ptah-version", "make probe-diff")
+
+	c.Assert(report, qt.Contains, "# Ptah vs Atlas CE live differential report")
+	c.Assert(report, qt.Contains, "first-party Ptah schema fixtures")
+	c.Assert(report, qt.Contains, "Atlas CE binary pinned at `ariga/atlas@atlas-sha`")
+	c.Assert(report, qt.Not(qt.Contains), "Atlas fixtures pinned")
+}
+
 func TestRenderMarkdownShowsFailingGateWhenUnwaivedResultsRemain(t *testing.T) {
 	report := RenderMarkdown([]Result{
 		{Outcome: Gap, Probe: "probe", Fixture: "fixture", Stage: "stage", Detail: "gap"},

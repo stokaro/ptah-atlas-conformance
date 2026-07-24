@@ -68,7 +68,7 @@ DB-free.
 | Tier | Workflow | Question | Needs |
 | --- | --- | --- | --- |
 | `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. CI runs Postgres, MySQL, MariaDB, and SQLite over basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer default/type cases. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` / `CONFORMANCE_MARIADB_URL`; optional `CONFORMANCE_SQLITE_URL` |
-| `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by schema facts: columns, type/null/default/primary-key state, generated columns, foreign keys and actions, unique/check constraints, and indexes. Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. | `CONFORMANCE_POSTGRES_URL` + a real Atlas binary (`ATLAS_BIN`) |
+| `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by schema facts: columns, type/null/default/primary-key state, generated columns, foreign keys and actions, unique/check constraints, and indexes. Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. CI runs Postgres, MySQL, and SQLite. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL`; optional `CONFORMANCE_SQLITE_URL`; a real Atlas binary (`ATLAS_BIN`) |
 
 The differential builds a **real Atlas CE binary** from the release tag pinned in
 [`atlas.version`](./atlas.version) (`make atlas`), so it measures Ptah against a
@@ -78,10 +78,11 @@ Atlas CE silently omits Pro-gated objects (views, triggers, stored procedures,
 sequences) from inspection, so Ptah's support for those is a strength beyond CE,
 not a differential gap — that fidelity is covered by the Ptah-vs-Ptah round-trip
 tier instead. Today the differential tier agrees with Atlas CE on all committed
-first-party live fixtures, including enum/default spellings, generated columns,
-self-references, indexes, checks, unique constraints, and foreign-key actions.
-The live round-trip tier also agrees on the committed Postgres/MySQL/MariaDB/SQLite
-fixture corpus. Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
+first-party live fixtures across Postgres, MySQL, and SQLite, including
+enum/default spellings, generated columns, self-references, indexes, checks,
+unique constraints, and foreign-key actions. The live round-trip tier also
+agrees on the committed Postgres/MySQL/MariaDB/SQLite fixture corpus. Parsing
+Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
 drop-in path — a parse failure there is itself reported as a gap, not mistaken
 for a schema disagreement.
 
@@ -104,6 +105,18 @@ CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=dis
 CONFORMANCE_MYSQL_URL='mysql://root:pw@tcp(localhost:3306)/conf' \
 CONFORMANCE_MARIADB_URL='mariadb://root:pw@tcp(localhost:3307)/conf' \
 make probe-live
+```
+
+The differential tier uses the same first-party fixtures but compares Ptah
+against Atlas CE's own `schema inspect` output. MySQL uses Ptah's Go-driver URL
+for Ptah and an Atlas-native authority URL for Atlas:
+
+```
+CONFORMANCE_POSTGRES_URL='postgres://postgres:pw@localhost:5432/conf?sslmode=disable' \
+CONFORMANCE_MYSQL_URL='mysql://root:pw@tcp(localhost:3306)/conf' \
+CONFORMANCE_MYSQL_ATLAS_URL='mysql://root:pw@localhost:3306/conf' \
+ATLAS_BIN="$PWD/bin/atlas" \
+make probe-diff
 ```
 
 ## CLI surface tier

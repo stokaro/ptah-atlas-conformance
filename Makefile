@@ -46,10 +46,13 @@ atlas:
 		-o $(CURDIR)/bin/atlas .
 	@$(CURDIR)/bin/atlas version | head -1
 
-# The differential-vs-Atlas tier: apply first-party schemas to a real Postgres,
-# then compare what Atlas CE and Ptah each report about the schema. Needs
-# CONFORMANCE_POSTGRES_URL and ATLAS_BIN (or `atlas` on PATH). Regenerates
-# gaps-diff.md / gaps-diff.json and always exits 0.
+# The differential-vs-Atlas tier: apply first-party schemas to real databases,
+# then compare what Atlas CE and Ptah each report about the schema. Networked
+# dialects run when CONFORMANCE_POSTGRES_URL and/or CONFORMANCE_MYSQL_URL are
+# configured; SQLite always runs against CONFORMANCE_SQLITE_URL or a fresh local
+# temp database. MySQL may also set CONFORMANCE_MYSQL_ATLAS_URL when Atlas needs
+# a different URL spelling than Ptah's Go-driver URL. Needs ATLAS_BIN (or
+# `atlas` on PATH). Regenerates gaps-diff.md / gaps-diff.json and always exits 0.
 probe-diff:
 	$(GO_OFF) run ./cmd/gap-probe-diff
 

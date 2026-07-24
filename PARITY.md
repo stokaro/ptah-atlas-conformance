@@ -41,12 +41,12 @@ is **"unknown — not measured"**, not "works".
 | --- | --- | --- |
 | Schema **introspection** breadth (types, defaults, generated/partial/expression indexes, sequences, domains, composite types, FK actions, exclusion constraints, partitioning, collations, comments) | **Partially** — live/diff fixtures now cover basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer defaults/types | broader dedicated introspection probes against live DBs |
 | Schema **diff / plan** (desired A → desired B → migration) | **No** | a diff probe over paired schema fixtures |
-| **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on a live Postgres, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
+| **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on live Postgres, MySQL, and SQLite targets, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
 | **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
 | Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
-| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI | deeper dialect runtime probes |
+| **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI; Atlas CE differential runs on Postgres, MySQL, and SQLite | deeper dialect runtime probes |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
 | The migration **apply** path | **No** | Ptah applies migration SQL via raw `ExecContext`, bypassing its parser — a parse gap here is *not* an apply gap |
 
@@ -120,8 +120,8 @@ the domain of the end-state conformance in ptah#285.
 
 A sixth, **differential** tier (`conformance-diff` workflow) closes part of that
 end-state question against a **real Atlas CE binary**. It applies a first-party
-Ptah schema to Postgres, then reads what both tools understand as a *typed* schema
-and compares them by typed schema facts: columns, type/nullability/default/
+Ptah schema to Postgres, MySQL, and SQLite, then reads what both tools understand
+as a *typed* schema and compares them by typed schema facts: columns, type/nullability/default/
 primary-key state, generated columns, foreign keys with referential actions,
 unique/check constraints, and indexes. Atlas's view comes from `schema inspect` in
 its native HCL, parsed by Ptah's own `core/atlashcl` into a `goschema.Database`;
@@ -141,9 +141,9 @@ CE-visible object kinds: Atlas CE silently omits Pro-gated objects (views,
 triggers, functions, sequences) from inspection — no error, exit 0 — so those
 cannot be compared apples-to-apples and Ptah's support for them is a strength
 beyond CE rather than a differential gap (they stay covered by the Ptah-vs-Ptah
-round-trip tier). The committed differential corpus is currently green across 9
-fixtures, including constraints/actions, generated columns, self-references, and
-default/type cases. The folding logic is locked by offline unit tests so it
+round-trip tier). The committed differential corpus is currently green across
+Postgres, MySQL, and SQLite fixtures, including constraints/actions, generated
+columns, self-references, and default/type cases. The folding logic is locked by offline unit tests so it
 cannot silently start passing on genuine differences.
 
 ## What a real full-parity test would require
@@ -161,8 +161,8 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
 4. A **lint matrix** comparing Atlas analyzer codes against Ptah rule codes,
    fixture by fixture.
 5. Broader **multi-dialect** runtime coverage: Postgres, MySQL, MariaDB, and
-   SQLite now run in the live tier, but deeper live/runtime probes are still
-   needed.
+   SQLite now run in the live tier; Postgres, MySQL, and SQLite now run in the
+   Atlas CE differential tier, but deeper live/runtime probes are still needed.
 6. A declared, justified scope for what is deliberately **out** of parity (HCL
    schema, Cloud, Pro drivers), so "parity" has an explicit boundary.
 
