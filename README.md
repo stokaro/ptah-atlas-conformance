@@ -46,7 +46,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `corpus-inventory` | Is every vendored Atlas test artifact visible in the generated report, including still-unmeasured `.hcl`/other fixtures? | harness |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas's SQL in its AST? (round-trip / `read-db` / `compare` — **not** apply, which execs raw SQL) | `core/parser` |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | `migration/migrator` |
-| `txtar-script` | Does the harness parse Atlas integration txtar scripts, execute the narrow command subset currently mapped to Ptah APIs, and keep unsupported runtime commands red? | harness, `core/parser`, `core/renderer` |
+| `txtar-script` | Does the harness parse Atlas integration txtar scripts, execute the command subset currently mapped to Ptah APIs, publish the fixture-level script surface, and keep unsupported runtime commands red? | harness, `core/parser`, `core/renderer` |
 | `txtar-down` | Does Ptah load Atlas txtar migrations with an embedded `down.sql` section? | `migration/migrator` |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does Ptah's own hash reproduce it? | `migration/migratesum` |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |
@@ -80,20 +80,19 @@ not a differential gap — that fidelity is covered by the Ptah-vs-Ptah round-tr
 tier instead. Today the differential tier agrees with Atlas CE on all committed
 first-party live fixtures, including enum/default spellings, generated columns,
 self-references, indexes, checks, unique constraints, and foreign-key actions.
-The live round-trip tier is still red on generated-column/default/constraint
-fidelity, which is exactly why full conformance remains separate from regression
-budgets. Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
+The live round-trip tier also agrees on the committed Postgres/MySQL fixture
+corpus. Parsing Atlas's HCL through Ptah's `core/atlashcl` also exercises a real
 drop-in path — a parse failure there is itself reported as a gap, not mistaken
 for a schema disagreement.
 
 ```
 make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
 make budget-live  # live progress gate: red only on regression/stale waivers
-make gate-live    # live full-parity yardstick: red until round-trip is lossless
+make gate-live    # live corpus-parity yardstick: fails if any live non-OK remains
 make atlas        # build Atlas CE from the atlas.version tag into ./bin/atlas
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
 make budget-diff  # differential progress gate: red only on regression/stale waivers
-make gate-diff    # differential full-parity yardstick: red until Ptah agrees with Atlas CE
+make gate-diff    # differential corpus-parity yardstick: fails if any diff non-OK remains
 ```
 
 ## CLI surface tier
@@ -115,8 +114,8 @@ help, then records:
 
 The regression budget is [`cli-surface-budget.txt`](./cli-surface-budget.txt).
 `make budget-cli-surface` must stay green when Ptah preserves the current known
-CLI gaps. `make gate-cli-surface` is the full-parity signal and stays red until
-the Atlas CE OSS help/flag surface matches.
+CLI surface. `make gate-cli-surface` is the full-parity signal for the pinned
+Atlas CE OSS help/flag surface and is green on the current committed report.
 
 Refresh this tier whenever [`atlas.version`](./atlas.version) changes, or after
 bumping Ptah in `go.mod`:
@@ -134,8 +133,8 @@ inventory to make the report green.
 
 ## CI regression budget and full-parity gate
 
-This is a spec Ptah has not met, not a passing test log. CI publishes two
-separate pipelines:
+This is a measured corpus, not a claim of complete Atlas feature parity. CI
+publishes two separate pipelines:
 
 - [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses a committed offline corpus gap budget so progress PRs fail only when the
@@ -144,7 +143,7 @@ separate pipelines:
 - [`conformance-live`](./.github/workflows/conformance-live.yml) and
   [`conformance-diff`](./.github/workflows/conformance-diff.yml) use the same
   regression-budget model for their real-database reports. They must stay green
-  when a PR only preserves the current known gaps, and fail when `gaps-live.*` or
+  when a PR preserves the current reports, and fail when `gaps-live.*` or
   `gaps-diff.*` is stale or worse than its committed budget.
 - The CLI surface job in
   [`conformance-regression`](./.github/workflows/conformance-regression.yml)
@@ -152,14 +151,14 @@ separate pipelines:
   `cli-surface.*`.
 - [`full-conformance`](./.github/workflows/full-conformance.yml) runs
   `make gate`, `make gate-live`, `make gate-diff`, and
-  `make gate-cli-surface` as separate jobs. It stays red until Ptah covers the
-  offline corpus, the live round-trip corpus, the Atlas CE differential corpus,
-  and the Atlas CE CLI help/flag surface. When probes become stricter, a
+  `make gate-cli-surface` as separate jobs. It is green only when Ptah covers the
+  committed offline corpus, live round-trip corpus, Atlas CE differential
+  corpus, and Atlas CE CLI help/flag surface. When probes become stricter, a
   generated report may expose more non-OK observations even without a Ptah code
   change; that is a measurement hardening and must be committed explicitly with
   the new report/budget baseline. This workflow is a visible yardstick, not the
   regression/merge gate; branch protection should require the regression-budget
-  workflows above, not expected-red full conformance.
+  workflows above, and may keep full conformance as a separate status signal.
 
 - `make probe` regenerates the report and always exits 0.
 - `make budget` fails if the generated report exceeds [`gap-budget.txt`](./gap-budget.txt)
@@ -168,8 +167,7 @@ separate pipelines:
   [`gap-diff-budget.txt`](./gap-diff-budget.txt).
 - `make gate`, `make gate-live`, and `make gate-diff` regenerate their reports
   **and exit non-zero if any non-OK observation remains**, including waived
-  findings. These are the full-parity yardsticks and stay red until Ptah covers
-  their matching corpus.
+  findings. These are the corpus-parity yardsticks for their matching reports.
 
 A gap can be excused only by an explicit line in [`waivers.txt`](./waivers.txt),
 keyed on `probe fixture stage`, with a reason and a tracking issue. A waiver means
@@ -187,14 +185,14 @@ make probe        # regenerate gaps.md / gaps.json (exit 0)
 make budget       # offline progress gate: red only on regression/stale waivers
 make probe-live   # regenerate gaps-live.md / gaps-live.json (exit 0)
 make budget-live  # live progress gate: red only on regression/stale waivers
-make gate-live    # live full-parity yardstick: red until round-trip is lossless
+make gate-live    # live corpus-parity yardstick: fails if any live non-OK remains
 make probe-diff   # regenerate gaps-diff.md / gaps-diff.json (exit 0)
 make budget-diff  # differential progress gate: red only on regression/stale waivers
-make gate-diff    # differential full-parity yardstick: red until Ptah agrees with Atlas CE
+make gate-diff    # differential corpus-parity yardstick: fails if any diff non-OK remains
 make probe-cli-surface   # regenerate cli-surface.md / cli-surface.json (exit 0)
 make budget-cli-surface  # CLI progress gate: red only on regression/stale waivers
-make gate-cli-surface    # CLI full-parity yardstick: red until Atlas help/flags match
-make gate         # offline full-parity yardstick: red until parity on the corpus
+make gate-cli-surface    # CLI corpus-parity yardstick: fails if any CLI non-OK remains
+make gate         # offline corpus-parity yardstick: fails if any offline non-OK remains
 make verify       # build, vet, and assert Ptah's tree would gain no Apache file
 ```
 

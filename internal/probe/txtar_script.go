@@ -37,11 +37,10 @@ var (
 	spaceRunRE                 = regexp.MustCompile(`\s+`)
 )
 
-// TxtarScriptProbe parses Atlas integration txtar scripts and records the
-// command surface Ptah still needs to execute. This is intentionally not a
-// success probe yet: until commands are mapped to Ptah APIs/CLI and their
-// assertions are checked, each fixture remains a measured #285 gap instead of
-// an imported-but-unmeasured blind spot.
+// TxtarScriptProbe parses Atlas integration txtar scripts and executes the
+// mapped OSS command/runtime subset against a virtual fixture runtime. Its OK
+// rows include the script surface per fixture so the report is an inventory of
+// what was actually exercised or asserted, not just a green aggregate count.
 type TxtarScriptProbe struct{}
 
 func (TxtarScriptProbe) Name() string { return "txtar-script" }
@@ -71,7 +70,7 @@ func (TxtarScriptProbe) Run(fx Fixture) []Result {
 	}
 
 	return []Result{{"txtar-script", fx.Name, "script-surface", Gap,
-		"txtar command/runtime execution is not implemented yet; command surface: " + summarizeCommandSurface(commands),
+		"txtar command/runtime execution is not implemented yet; script surface: " + summarizeCommandSurface(commands),
 		"stokaro/ptah#285"}}
 }
 
@@ -168,6 +167,7 @@ func summarizeCommandSurface(commands []string) string {
 }
 
 type txtarRunSummary struct {
+	commands    []string
 	executed    int
 	checked     int
 	unsupported []string
@@ -220,6 +220,9 @@ func (r txtarRunSummary) hasWork() bool {
 
 func (r txtarRunSummary) detail() string {
 	var parts []string
+	if len(r.commands) > 0 {
+		parts = append(parts, "script surface: "+summarizeCommandSurface(r.commands))
+	}
 	if r.executed > 0 {
 		parts = append(parts, fmt.Sprintf("executed %d supported command(s)", r.executed))
 	}
@@ -277,7 +280,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 	runtime := newTxtarRuntime(data)
 	unsupportedFiles := map[string]bool{}
 	dbStateUnsupported := false
-	var summary txtarRunSummary
+	summary := txtarRunSummary{commands: commands}
 	var last txtarCommandResult
 	for _, line := range strings.Split(txtarScriptPrefix(data), "\n") {
 		trimmed := strings.TrimSpace(line)

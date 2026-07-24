@@ -10,12 +10,11 @@ there yet" from an opinion into a number that moves over time. Treat the results
 as a floor on the distance to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files grouped into 160
-fixtures, 669 offline observations, **0 unwaived non-OK offline observations**.
+fixtures, 697 offline observations, **0 unwaived non-OK offline observations**.
 The corpus inventory imports 160 fixtures: every imported fixture is measured by
 at least one current offline probe. This means the deterministic imported-corpus
-report is green; it does **not** mean full Atlas OSS runtime parity, because the
-live round-trip report still has open gaps, the dedicated CLI-surface report has
-tracked help/flag gaps, and several runtime dimensions remain unmeasured.
+report is green; it does **not** mean full Atlas OSS runtime parity, because
+several runtime dimensions remain unmeasured.
 
 ## What the probe found broken
 
@@ -26,7 +25,7 @@ All probes are offline and static — nothing is applied to a real database.
 | `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 160 imported fixtures are measured by at least one current offline probe. |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all vendored `.sql` files covered by the offline probe set and is currently green on the imported corpus. |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Current measured Atlas migration directories are recognized. |
-| `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus. |
+| `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Current measured fixtures pass the parsed/recomputed sum compatibility probe. |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Current analyzer catalog and fixture-level lint parity probes are green on the committed corpus. |
 
@@ -45,7 +44,7 @@ is **"unknown — not measured"**, not "works".
 | **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on a live Postgres, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
 | **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
-| Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; current full CLI gate is red with tracked gaps | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
+| Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
 | **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
 | **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres and MySQL; SQLite/MariaDB runtime tiers are still missing | dialect runtime probes for SQLite and MariaDB once the harness provisions them |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
@@ -77,9 +76,10 @@ that when they go green Ptah genuinely covers that dimension:
   `ptah-compat` binary named `atlas`. This report also lists Cloud/commercial or
   intentionally unsupported commands explicitly and checks that Ptah reports the
   same community-version unsupported boundary instead of silently omitting them
-  or falling back to parent command help. Its full gate is currently red, which
-  is useful: it names the exact command usage, flag, and unsupported-boundary
-  mismatches Ptah must close before claiming drop-in CLI parity.
+  or falling back to parent command help. The current full gate is green on the
+  pinned Atlas CE surface; future Atlas changes should either keep this green
+  by implementing Ptah parity, or create explicit tracked gaps instead of
+  dropping commands from the inventory.
 - **`lint-analyzer-catalog`** covers the full set of Atlas analyzer concerns that
   fire by default in an OSS build — the DS, MF (data-dependent), BC, CD, PG1, PG3,
   PG110, MY, LT and TX families. This is the "lint matrix" listed below as a
@@ -109,10 +109,9 @@ MySQL** (`CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL`), introspects it
 back, and diffs. A clean diff guarantees Ptah's generate → apply → introspect
 loop is lossless for that schema on that dialect — behavior a drop-in needs.
 Running the same fixtures on MySQL immediately found dialect-specific rendering
-defects Postgres alone missed, including an enum DDL ordering bug that is now
-closed. The expanded live corpus now exposes remaining generated-column,
-default/type, and MySQL constraint/action round-trip gaps tracked in
-`gaps-live.md`.
+defects Postgres alone missed, including enum-ordering, generated-column,
+default/type, and constraint/action bugs that are now closed. The current
+committed live corpus is green on Postgres and MySQL.
 SQLite is supported by Ptah, but this live tier currently runs only Postgres and
 MySQL containers. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity about
 which objects Atlas itself inspects. The deeper differential correctness of
@@ -151,8 +150,9 @@ cannot silently start passing on genuine differences.
 
 To earn the phrase "feature-set parity test", this repo would need, at minimum:
 
-1. Runtime probes for the imported Atlas `.txtar` integration fixtures, beyond
-   the current narrow file-inspect command runner.
+1. Deeper runtime probes for the imported Atlas `.txtar` integration fixtures,
+   beyond the current virtual command runner and fixture-level script-surface
+   inventory.
 2. An **introspection** probe: apply a schema with each tool, introspect with
    one reader, diff the canonical states (this is ptah#285 and needs a live DB).
    *Partially built:* the `conformance-diff` tier already compares Atlas CE's and

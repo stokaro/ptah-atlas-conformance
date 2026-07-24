@@ -18,13 +18,13 @@ probe-live:
 
 # CI progress gate for the live behavioral tier: fail only when the current
 # live report exceeds the committed budget or has stale waivers. Full live
-# parity is still `make gate-live`.
+# corpus parity is still `make gate-live`.
 budget-live: probe-live
 	$(GO_OFF) run ./cmd/gap-budget -report gaps-live.json -budget gap-live-budget.txt
 
 # The live conformance gate: regenerate the live report AND fail if any schema
-# does not survive Ptah's generate -> apply -> introspect loop. Red until that
-# loop is lossless. Needs CONFORMANCE_POSTGRES_URL and/or CONFORMANCE_MYSQL_URL.
+# does not survive Ptah's generate -> apply -> introspect loop. Needs
+# CONFORMANCE_POSTGRES_URL and/or CONFORMANCE_MYSQL_URL.
 gate-live:
 	$(GO_OFF) run ./cmd/gap-probe-live -gate
 
@@ -51,13 +51,12 @@ probe-diff:
 
 # CI progress gate for the differential-vs-Atlas tier: fail only when the
 # current differential report exceeds the committed budget or has stale waivers.
-# Full Atlas agreement is still `make gate-diff`.
+# Corpus-level Atlas agreement is still `make gate-diff`.
 budget-diff: probe-diff
 	$(GO_OFF) run ./cmd/gap-budget -report gaps-diff.json -budget gap-diff-budget.txt
 
 # The differential gate: regenerate the report AND fail while Ptah disagrees with
-# Atlas CE on any CE-visible construct. Red until Ptah's introspect -> render is
-# a faithful drop-in for `atlas schema inspect`.
+# Atlas CE on any committed CE-visible construct.
 gate-diff:
 	$(GO_OFF) run ./cmd/gap-probe-diff -gate
 
@@ -69,24 +68,24 @@ probe-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe
 
 # CI progress gate for the CLI surface tier: fail only when the current
-# CLI-surface report exceeds the committed budget. Full help/flag parity is
+# CLI-surface report exceeds the committed budget. Corpus help/flag parity is
 # still `make gate-cli-surface`.
 budget-cli-surface: probe-cli-surface
 	$(GO_OFF) run ./cmd/gap-budget -report cli-surface.json -budget cli-surface-budget.txt
 
-# The full CLI surface gate: red while any Atlas CE OSS command, usage string,
-# or long flag is not mirrored by both Ptah compatibility surfaces.
+# The full CLI surface gate: fail while any committed Atlas CE OSS command,
+# usage string, or long flag is not mirrored by both Ptah compatibility surfaces.
 gate-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe -gate
 
 # CI progress gate: fail only when the current report exceeds the committed
-# unwaived non-OK observation budget or has stale waivers. Full parity is still
+# unwaived non-OK observation budget or has stale waivers. Corpus parity is still
 # `make gate`.
 budget: probe
 	$(GO_OFF) run ./cmd/gap-budget
 
 # The conformance gate: regenerate the report AND fail if any non-OK observation
-# remains. Red until Ptah covers everything Atlas expresses in the corpus.
+# remains in the committed offline corpus.
 gate:
 	$(GO_OFF) run ./cmd/gap-probe -gate
 

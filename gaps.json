@@ -2356,707 +2356,707 @@
     "fixture": "internal/integration/testdata/mysql/autoincrement.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=3, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/check-maria.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s), checked 2 assertion(s)"
+    "detail": "script surface: atlas schema inspect=2, executed 2 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/check.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s), checked 8 assertion(s)"
+    "detail": "script surface: atlas migrate diff=6, cmpmig=3, atlas schema inspect=2, executed 8 supported command(s), checked 8 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-inspect-file.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s), checked 3 assertion(s)"
+    "detail": "script surface: atlas schema inspect=3, executed 3 supported command(s), checked 3 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-apply-datasrc.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas migrate apply=1, atlas migrate hash=1, executed 2 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-apply.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 17 supported command(s), checked 25 assertion(s)"
+    "detail": "script surface: atlas migrate apply=8, cmpshow=6, clearSchema=2, atlas migrate hash=1, validJSON=1, executed 17 supported command(s), checked 25 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-format.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 23 supported command(s), checked 18 assertion(s)"
+    "detail": "script surface: cmpmig=18, atlas migrate diff=12, mkdir=6, rm=5, executed 23 supported command(s), checked 18 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff-mode-normalized.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s), checked 2 assertion(s)"
+    "detail": "script surface: atlas migrate diff=1, atlas migrate hash=1, cmpmig=1, executed 2 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-migrate-diff.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 7 supported command(s), checked 5 assertion(s)"
+    "detail": "script surface: atlas migrate diff=5, cmpmig=3, mkdir=1, rm=1, executed 7 supported command(s), checked 5 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-project-schemas.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas schema apply=1, cat=1, executed 2 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-project-url-escape.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 2 assertion(s)"
+    "detail": "script surface: execsql=3, atlas schema inspect=2, executed 5 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/cli-schema-apply-datasrc.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 1 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas schema apply=1, executed 1 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-add-drop.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 9 supported command(s)"
+    "detail": "script surface: apply=4, cmpshow=3, exist=2, executed 9 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-bit.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-bool.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, synced=2, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-charset.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 10 supported command(s)"
+    "detail": "script surface: apply=5, cmpshow=5, executed 10 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-default-expr.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s)"
+    "detail": "script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-generated-inspect.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmphcl=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-generated.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 7 supported command(s)"
+    "detail": "script surface: apply=5, cmpshow=2, executed 7 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-json.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s)"
+    "detail": "script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-time-precision-maria.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/column-time-precision-mysql.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/foreign-key-add.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 7 supported command(s)"
+    "detail": "script surface: apply=4, exist=2, cmpshow=1, executed 7 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/foreign-key-modify-action.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/foreign-key.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: cmpshow=2, apply=1, cmphcl=1, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-add-drop.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s)"
+    "detail": "script surface: apply=4, cmpshow=4, executed 8 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-desc.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 7 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=3, synced=1, executed 7 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-expr.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-prefix.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=3, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-type.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 2 assertion(s)"
+    "detail": "script surface: apply=2, cmpshow=2, atlas schema inspect=1, executed 5 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/index-unique.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=2, execsql=1, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/primary-key-parts.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s), checked 6 assertion(s)"
+    "detail": "script surface: atlas migrate diff=4, atlas schema inspect=2, cmpmig=2, executed 6 supported command(s), checked 6 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/primary-key.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s)"
+    "detail": "script surface: apply=4, cmpshow=4, executed 8 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/mysql/table-engine.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=3, cmphcl=3, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-inspect-file.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s), checked 3 assertion(s)"
+    "detail": "script surface: atlas schema inspect=3, executed 3 supported command(s), checked 3 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-inspect.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 4 assertion(s)"
+    "detail": "script surface: atlas schema inspect=4, apply=1, executed 5 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-apply-datasrc.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas migrate apply=1, atlas migrate hash=1, executed 2 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-apply.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 54 supported command(s), checked 29 assertion(s)"
+    "detail": "script surface: atlas migrate apply=15, cmpshow=15, atlas schema inspect=9, atlas migrate hash=6, clearSchema=4, cp=3, rm=2, executed 54 supported command(s), checked 29 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s), checked 2 assertion(s)"
+    "detail": "script surface: atlas migrate diff=2, atlas migrate hash=1, cmpmig=1, executed 3 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-diff.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 4 assertion(s)"
+    "detail": "script surface: atlas migrate diff=4, cmpmig=2, mkdir=1, executed 5 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/cli-migrate-status.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s), checked 3 assertion(s)"
+    "detail": "script surface: atlas migrate status=3, atlas migrate apply=2, atlas migrate hash=1, executed 6 supported command(s), checked 3 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-array.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=3, synced=2, executed 8 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-bit.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-comment.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-default.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: apply=2, cmpshow=2, atlas schema inspect=1, executed 5 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-domain.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=1, cmphcl=1, cmpshow=1, execsql=1, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 10 supported command(s)"
+    "detail": "script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-enum.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 11 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: apply=5, cmpshow=5, atlas schema inspect=1, executed 11 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-float.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-generated-inspect.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmphcl=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-identity.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-interval.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s)"
+    "detail": "script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-numeric.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-range.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-serial.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=3, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-textsearch.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s)"
+    "detail": "script surface: apply=1, cmphcl=1, cmpshow=1, executed 3 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-time-precision.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/foreign-key-action.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s)"
+    "detail": "script surface: cmpshow=3, apply=1, cmphcl=1, executed 5 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/foreign-key.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: cmpshow=2, apply=1, cmphcl=1, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-desc.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 9 supported command(s)"
+    "detail": "script surface: apply=4, cmpshow=4, synced=1, executed 9 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-expr.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-include.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s)"
+    "detail": "script surface: apply=4, cmpshow=4, executed 8 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-issue-557.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-nulls-distinct.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=2, cmphcl=2, cmpshow=2, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-operator-class.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 11 supported command(s)"
+    "detail": "script surface: apply=5, cmpshow=5, cmphcl=1, executed 11 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-partial.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-type-brin.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=3, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-type.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/index-unique-constraint.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: apply=2, cmpshow=2, atlas schema clean=1, atlas schema inspect=1, cmphcl=1, execsql=1, executed 8 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/primary-key.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s)"
+    "detail": "script surface: apply=4, cmpshow=4, executed 8 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/table-checks.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s), checked 8 assertion(s)"
+    "detail": "script surface: atlas migrate diff=6, cmpmig=3, atlas schema inspect=2, executed 8 supported command(s), checked 8 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/table-partition.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 16 supported command(s)"
+    "detail": "script surface: apply=8, cmpshow=5, cmphcl=2, execsql=1, executed 16 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/autoincrement.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-multifile.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: atlas schema apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-project-multifile.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: atlas schema apply=1, cmpshow=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-apply-vars.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas schema apply=2, cmpshow=1, executed 3 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-inspect.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 4 assertion(s)"
+    "detail": "script surface: atlas schema inspect=4, apply=1, executed 5 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-apply.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 52 supported command(s), checked 31 assertion(s)"
+    "detail": "script surface: atlas migrate apply=14, cmpshow=14, atlas schema inspect=9, atlas migrate hash=6, clearSchema=4, cp=3, rm=2, executed 52 supported command(s), checked 31 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl-paths.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 1 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas migrate diff=1, cmpmig=1, executed 1 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-datasrc-hcl.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 1 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas migrate diff=1, cmpmig=1, executed 1 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-minimal-env.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 1 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas migrate diff=1, cmpmig=1, executed 1 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-multifile.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 4 assertion(s)"
+    "detail": "script surface: atlas migrate diff=4, cmpmig=2, rm=1, executed 5 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s), checked 3 assertion(s)"
+    "detail": "script surface: atlas migrate diff=2, atlas schema diff=1, cmpmig=1, executed 3 supported command(s), checked 3 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-diff.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s), checked 3 assertion(s)"
+    "detail": "script surface: atlas migrate diff=3, cmpmig=1, mkdir=1, executed 4 supported command(s), checked 3 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 1 supported command(s), checked 17 assertion(s)"
+    "detail": "script surface: atlas migrate lint=1, executed 1 supported command(s), checked 17 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s), checked 35 assertion(s)"
+    "detail": "script surface: atlas migrate lint=2, executed 2 supported command(s), checked 35 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s), checked 57 assertion(s)"
+    "detail": "script surface: atlas migrate lint=6, executed 6 supported command(s), checked 57 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 1 supported command(s), checked 18 assertion(s)"
+    "detail": "script surface: atlas migrate lint=1, executed 1 supported command(s), checked 18 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s), checked 2 assertion(s)"
+    "detail": "script surface: atlas migrate lint=2, executed 2 supported command(s), checked 2 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 5 supported command(s), checked 3 assertion(s)"
+    "detail": "script surface: atlas migrate diff=3, cmpmig=3, rm=2, executed 5 supported command(s), checked 3 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-project.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s), checked 3 assertion(s)"
+    "detail": "script surface: atlas migrate validate=3, cmpmig=2, atlas migrate diff=1, atlas migrate hash=1, atlas migrate new=1, mkdir=1, touch=1, executed 8 supported command(s), checked 3 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-set.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 21 supported command(s), checked 12 assertion(s)"
+    "detail": "script surface: atlas migrate set=9, atlas migrate apply=7, atlas migrate hash=2, clearSchema=2, mv=1, executed 21 supported command(s), checked 12 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-project-vars.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 3 supported command(s), checked 1 assertion(s)"
+    "detail": "script surface: atlas schema apply=2, cmpshow=1, executed 3 supported command(s), checked 1 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-schema-project-file.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 8 supported command(s), checked 6 assertion(s)"
+    "detail": "script surface: atlas schema apply=5, atlas schema inspect=3, executed 8 supported command(s), checked 6 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/column-default.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 2 supported command(s)"
+    "detail": "script surface: cmphcl=1, execsql=1, executed 2 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/column-generated.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 9 supported command(s)"
+    "detail": "script surface: apply=4, cmpshow=4, execsql=1, executed 9 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/column-user-defined.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s), checked 4 assertion(s)"
+    "detail": "script surface: atlas schema apply=4, atlas schema inspect=2, executed 6 supported command(s), checked 4 assertion(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/index-desc.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 7 supported command(s)"
+    "detail": "script surface: apply=3, cmpshow=3, synced=1, executed 7 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/index-expr.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/index-partial.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 4 supported command(s)"
+    "detail": "script surface: apply=2, cmpshow=2, executed 4 supported command(s)"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/table-options.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "executed 6 supported command(s)"
+    "detail": "script surface: cmpshow=4, apply=2, executed 6 supported command(s)"
   },
   {
     "probe": "txtar-down",
