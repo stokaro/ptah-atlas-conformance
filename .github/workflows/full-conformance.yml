@@ -103,3 +103,30 @@ jobs:
 
       - name: Differential Atlas conformance gate
         run: make gate-diff
+
+  # The CLI-surface full-parity signal. This is separate from
+  # conformance-regression, which enforces only the committed CLI-surface
+  # regression budget.
+  cli-surface-gate:
+    runs-on: ubuntu-latest
+    env:
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v6
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
+
+      - name: CLI surface full parity gate
+        run: make gate-cli-surface

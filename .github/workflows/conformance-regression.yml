@@ -50,3 +50,41 @@ jobs:
             echo "gaps.md / gaps.json are out of date -- run 'make probe' and commit the result."
             exit 1
           fi
+
+  # The Atlas CLI surface regression gate. This compares the pinned Atlas CE
+  # help/flag inventory to both Ptah command surfaces and fails only on a
+  # regression above cli-surface-budget.txt. Full help parity is a separate
+  # full-conformance job.
+  cli-surface-budget:
+    runs-on: ubuntu-latest
+    env:
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v6
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
+
+      - name: Regenerate CLI surface report
+        run: make probe-cli-surface
+
+      - name: Fail if the committed CLI surface report is stale
+        run: |
+          if ! git diff --exit-code cli-surface.md cli-surface.json; then
+            echo "cli-surface.md / cli-surface.json are out of date -- run 'make probe-cli-surface' and commit the result."
+            exit 1
+          fi
+
+      - name: Enforce CLI surface budget
+        run: make budget-cli-surface

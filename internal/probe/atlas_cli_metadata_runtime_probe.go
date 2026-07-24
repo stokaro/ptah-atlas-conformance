@@ -185,7 +185,7 @@ func atlasMigrateSetAcceptsRevisionsSchema(bin string) Result {
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "custom_meta",
-		"--version", "20240101000000",
+		"20240101000000",
 	})
 	if err == nil {
 		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate set --revisions-schema", "execute", OK,
@@ -217,7 +217,7 @@ func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
 		},
 		{
 			fixture: "ptah atlas migrate set --dir-format goose",
-			args:    []string{"atlas", "migrate", "set", "--url", "sqlite://ignored.db"},
+			args:    []string{"atlas", "migrate", "set", "--url", "sqlite://ignored.db", "20240101000000"},
 		},
 		{
 			fixture: "ptah atlas migrate status --dir-format goose",

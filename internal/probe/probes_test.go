@@ -610,7 +610,7 @@ esac
 func fakeMetadataRuntimeScript() string {
 	return `#!/bin/sh
 case "$*" in
-  "atlas migrate hash --dir file://"*" --dir-format goose"|"atlas migrate lint --latest 1 --dir file://"*" --dir-format goose"|"atlas migrate new init --dir file://"*" --dir-format goose"|"atlas migrate set --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"atlas migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"atlas migrate validate --dir file://"*" --dir-format goose")
+  "atlas migrate hash --dir file://"*" --dir-format goose"|"atlas migrate lint --latest 1 --dir file://"*" --dir-format goose"|"atlas migrate new init --dir file://"*" --dir-format goose"|"atlas migrate set --url sqlite://ignored.db 20240101000000 --dir file://"*" --dir-format goose"|"atlas migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"atlas migrate validate --dir file://"*" --dir-format goose")
     printf 'error: Atlas accepts --dir-format=goose, but Ptah does not implement that directory format yet\n' >&2
     exit 2
     ;;
@@ -621,7 +621,7 @@ case "$*" in
     printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
     printf 'Generated empty migration file:\nSQL:  %s/20240101000000_init.sql\n' "$dir"
     ;;
-  "atlas migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta"|"atlas migrate set --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta --version 20240101000000")
+  "atlas migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta"|"atlas migrate set --url sqlite://"*" --dir file://"*" --revisions-schema custom_meta 20240101000000")
     printf 'error: failed to create migrations schema: near "SCHEMA": syntax error\n' >&2
     exit 2
     ;;

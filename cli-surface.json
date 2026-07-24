@@ -1,0 +1,900 @@
+[
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas license",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate apply",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate checkpoint",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas feature intentionally tracked outside the current OSS drop-in target"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate diff",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate edit",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas convenience command intentionally tracked outside the current OSS drop-in target"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate hash",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate import",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate lint",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate new",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate push",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate rebase",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas convenience command intentionally tracked outside the current OSS drop-in target"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate rm",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas convenience command intentionally tracked outside the current OSS drop-in target"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate set",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate status",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate test",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas Cloud / commercial workflow, not present in the pinned CE binary"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas migrate validate",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema apply",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema clean",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema diff",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema fmt",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema inspect",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema plan",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas Cloud / commercial workflow, not present in the pinned CE binary"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema push",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas schema test",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "not an OSS drop-in target: Atlas Cloud / commercial workflow, not present in the pinned CE binary"
+  },
+  {
+    "probe": "atlas-cli-surface-inventory",
+    "fixture": "atlas version",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas [command]`, Ptah has `ptah atlas [flags]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: no long flags"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas license",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas license [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas license",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: no long flags"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate [command]`, Ptah has `ptah atlas migrate [flags]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate apply",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate apply [flags] [amount]`, Ptah has `ptah atlas migrate apply [amount] [flags]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate apply",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: extra --lock-name, --to-version",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate checkpoint",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate checkpoint` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"checkpoint\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate diff",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate diff [flags] [name]`, Ptah has `ptah atlas migrate diff [name] [flags]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate diff",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: missing --edit, --qualifier",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate edit",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate edit` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"edit\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate hash",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate hash [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate hash",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate import",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate import [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate import",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir-format --env --from --to --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate lint",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate lint [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate lint",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --dir --dir-format --env --format --git-base --git-dir --latest --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate new",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate new [flags] [name]`, Ptah has `ptah atlas migrate new [flags]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate new",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: missing --edit",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate push",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate rebase",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate rebase` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rebase\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate rm",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate rm` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rm\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate set",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate set [flags] [version]`, Ptah has `ptah atlas migrate set \u003crevision\u003e [flags]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate set",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --env --revisions-schema --url --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate status",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate status [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate status",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate test",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas migrate test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate validate",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate validate [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas migrate validate",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --dir --dir-format --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas schema [command]`, Ptah has `ptah atlas schema [flags]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema apply",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema apply [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema apply",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: missing --edit, --lock-timeout, --plan",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema clean",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema clean [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema clean",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --auto-approve --config --dry-run --env --format --url --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema diff",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema diff [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema diff",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: extra --web",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema fmt",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema fmt [path ...] [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema fmt",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema inspect",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema inspect [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema inspect",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: extra --include",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema plan",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas schema plan` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"plan\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema push",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas schema push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas schema test",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`ptah atlas schema test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
+    "issue": "stokaro/ptah#510"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas version",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas version [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-namespace",
+    "fixture": "ptah atlas version",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: no long flags"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas [command]`, Ptah has `atlas [flags]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: no long flags"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas license",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas license [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas license",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: no long flags"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate [command]`, Ptah has `atlas migrate [flags]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate apply",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate apply [flags] [amount]`, Ptah has `atlas migrate apply [amount] [flags]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate apply",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: extra --lock-name, --to-version",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate checkpoint",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas migrate checkpoint` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"checkpoint\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate diff",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate diff [flags] [name]`, Ptah has `atlas migrate diff [name] [flags]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate diff",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: missing --edit, --qualifier",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate edit",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas migrate edit` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"edit\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate hash",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate hash [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate hash",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate import",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate import [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate import",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir-format --env --from --to --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate lint",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate lint [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate lint",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --dir --dir-format --env --format --git-base --git-dir --latest --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate new",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate new [flags] [name]`, Ptah has `atlas migrate new [flags]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate new",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: missing --edit",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate push",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas migrate push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate rebase",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas migrate rebase` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rebase\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate rm",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas migrate rm` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"rm\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate set",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas migrate set [flags] [version]`, Ptah has `atlas migrate set \u003crevision\u003e [flags]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate set",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --env --revisions-schema --url --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate status",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate status [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate status",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate test",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas migrate test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate validate",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate validate [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate validate",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --dev-url --dir --dir-format --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema",
+    "stage": "usage",
+    "outcome": "gap",
+    "detail": "usage mismatch; Atlas has `atlas schema [command]`, Ptah has `atlas schema [flags]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema apply",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema apply [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema apply",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: missing --edit, --lock-timeout, --plan",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema clean",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema clean [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema clean",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --auto-approve --config --dry-run --env --format --url --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema diff",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema diff [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema diff",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: extra --web",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema fmt",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema fmt [path ...] [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema fmt",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: --config --env --var"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema inspect",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema inspect [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema inspect",
+    "stage": "flags",
+    "outcome": "gap",
+    "detail": "flag mismatch: extra --include",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas schema plan` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"plan\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema push",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas schema push` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"push\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema test",
+    "stage": "out-of-scope-runtime",
+    "outcome": "gap",
+    "detail": "`atlas schema test` does not report Atlas CE's community-version unsupported boundary; got `error: unexpected positional arguments [\"test\"]`",
+    "issue": "stokaro/ptah#514"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas version",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas version [flags]`"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas version",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "long flags match Atlas: no long flags"
+  }
+]
