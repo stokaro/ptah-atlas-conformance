@@ -12,8 +12,8 @@ fixture coverage score.
 Every fixture is covered. The conformance gate is green.
 
 - Live fixtures: `testdata/live` first-party Ptah schema fixtures; Atlas CE binary pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724151047-32f703d7a2f2`
-- Outcomes: **29 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260724164034-b63b51ee5632`
+- Outcomes: **30 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -51,6 +51,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-differential | `postgres/09-defaults-types` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `postgres/10-schema-qualified` | compare | 3 tables matches Atlas CE |  |
 | — | ok | atlas-differential | `postgres/11-sequences` | compare | 1 table matches Atlas CE |  |
+| — | ok | atlas-differential | `postgres/12-user-types` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `sqlite/01-basic-table` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `sqlite/02-enum` | compare | 1 table matches Atlas CE |  |
 | — | ok | atlas-differential | `sqlite/03-view` | compare | 1 table matches Atlas CE |  |
