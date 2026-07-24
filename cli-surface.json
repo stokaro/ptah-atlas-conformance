@@ -199,9 +199,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas [command]`, Ptah has `ptah atlas [flags]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas [command]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -228,9 +227,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate [command]`, Ptah has `ptah atlas migrate [flags]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate [command]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -243,9 +241,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate apply",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate apply [flags] [amount]`, Ptah has `ptah atlas migrate apply [amount] [flags]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate apply [flags] [amount]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -266,9 +263,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate diff",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate diff [flags] [name]`, Ptah has `ptah atlas migrate diff [name] [flags]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate diff [flags] [name]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -331,9 +327,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate new",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate new [flags] [name]`, Ptah has `ptah atlas migrate new [flags]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate new [flags] [name]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -368,9 +363,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate set",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate set [flags] [version]`, Ptah has `ptah atlas migrate set \u003crevision\u003e [flags]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate set [flags] [version]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -418,9 +412,8 @@
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas schema",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas schema [command]`, Ptah has `ptah atlas schema [flags]`",
-    "issue": "stokaro/ptah#510"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema [command]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -541,9 +534,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas [command]`, Ptah has `atlas [flags]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas [command]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -570,9 +562,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate [command]`, Ptah has `atlas migrate [flags]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate [command]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -585,9 +576,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate apply",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate apply [flags] [amount]`, Ptah has `atlas migrate apply [amount] [flags]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate apply [flags] [amount]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -608,9 +598,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate diff",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate diff [flags] [name]`, Ptah has `atlas migrate diff [name] [flags]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate diff [flags] [name]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -673,9 +662,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate new",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate new [flags] [name]`, Ptah has `atlas migrate new [flags]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate new [flags] [name]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -710,9 +698,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate set",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas migrate set [flags] [version]`, Ptah has `atlas migrate set \u003crevision\u003e [flags]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas migrate set [flags] [version]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -760,9 +747,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema",
     "stage": "usage",
-    "outcome": "gap",
-    "detail": "usage mismatch; Atlas has `atlas schema [command]`, Ptah has `atlas schema [flags]`",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "usage matches Atlas: `atlas schema [command]`"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
