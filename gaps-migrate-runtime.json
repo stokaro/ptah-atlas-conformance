@@ -50,6 +50,13 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "postgres/generate-diff-skip-drop-table",
+    "stage": "generate",
+    "outcome": "ok",
+    "detail": "`diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "mysql/apply-state",
     "stage": "inspect",
     "outcome": "ok",
