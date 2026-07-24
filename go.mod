@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.0.0-20260724030415-0dec86e9eb76
+	github.com/stokaro/ptah v0.0.0-20260724035838-86b571d92a80
 )
 
 require (
