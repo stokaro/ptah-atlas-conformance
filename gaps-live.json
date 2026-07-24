@@ -71,6 +71,13 @@
   },
   {
     "probe": "roundtrip-consistency",
+    "fixture": "postgres/11-sequences",
+    "stage": "roundtrip",
+    "outcome": "ok",
+    "detail": "clean round-trip: 1 table(s), 0 view(s), 0 enum(s)"
+  },
+  {
+    "probe": "roundtrip-consistency",
     "fixture": "mysql/01-basic-table",
     "stage": "roundtrip",
     "outcome": "ok",

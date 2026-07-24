@@ -71,6 +71,13 @@
   },
   {
     "probe": "atlas-differential",
+    "fixture": "postgres/11-sequences",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "1 table matches Atlas CE"
+  },
+  {
+    "probe": "atlas-differential",
     "fixture": "mysql/01-basic-table",
     "stage": "compare",
     "outcome": "ok",
