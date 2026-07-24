@@ -33,6 +33,7 @@ func AllProbes() []Probe {
 		AtlasCLIUtilityRuntimeProbe{},
 		AtlasCLIFlagsProbe{},
 		AtlasCLISchemaCleanRuntimeProbe{},
+		AtlasCLIReportFormatProbe{},
 		AtlasCLIMetadataRuntimeProbe{},
 		AtlasCLIShorthandProbe{},
 		AtlasCLIHiddenRuntimeProbe{},

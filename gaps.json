@@ -4236,6 +4236,34 @@
     "detail": "`ptah atlas schema clean` rejects applied-state invalid format templates before mutating SQLite"
   },
   {
+    "probe": "atlas-cli-report-format",
+    "fixture": "ptah atlas migrate apply --dry-run --format json",
+    "stage": "format",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields"
+  },
+  {
+    "probe": "atlas-cli-report-format",
+    "fixture": "ptah atlas migrate apply --format json",
+    "stage": "format",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values"
+  },
+  {
+    "probe": "atlas-cli-report-format",
+    "fixture": "ptah atlas migrate status --format json",
+    "stage": "format",
+    "outcome": "ok",
+    "detail": "`ptah atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries"
+  },
+  {
+    "probe": "atlas-cli-report-format",
+    "fixture": "ptah atlas schema clean --dry-run --format json",
+    "stage": "format",
+    "outcome": "ok",
+    "detail": "`ptah atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields"
+  },
+  {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "ptah atlas migrate new",
     "stage": "execute",
