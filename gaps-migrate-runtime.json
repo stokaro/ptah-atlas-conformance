@@ -43,6 +43,13 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "goose/import-roundtrip",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "postgres/custom-revisions-schema",
     "stage": "inspect",
     "outcome": "ok",

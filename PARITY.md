@@ -72,9 +72,10 @@ is **"unknown — not measured"**, not "works".
 - Native migration **import** (`ptah migrations import`, ptah#667) is Atlas OSS
   `migrate import` parity, but it emits **Ptah-native** format (not Atlas format),
   so it is not a schema-object round-trip. It is measured directly by the
-  `golang-migrate/import-roundtrip` migrate-runtime probe: import a golang-migrate
-  directory, then assert the output passes `ptah migrations validate`. Goose,
-  Flyway, and Liquibase parsers (and their probes) are phased follow-ups.
+  `golang-migrate/import-roundtrip` and `goose/import-roundtrip` migrate-runtime
+  probes: import a source directory, then assert the output passes
+  `ptah migrations validate`. golang-migrate and Goose are covered; Flyway and
+  Liquibase parsers (and their probes) are phased follow-ups.
 
 ## What the `ptah atlas` and analyzer probes now measure exhaustively
 
