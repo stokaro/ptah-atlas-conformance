@@ -161,6 +161,20 @@ that when they go green Ptah genuinely covers that dimension:
   ptah#688). It needs no live Atlas binary: the asserted contract is Atlas's
   verified behavior, and the exact codes are recorded for the record rather than
   diffed live.
+- **`schema-planning`** is a **paired-schema planning matrix** (PostgreSQL, in the
+  `migrate-runtime` tier). Correct introspection does not guarantee a correct
+  *plan*: for each paired desired schema (A, B) it applies A then B to one reset
+  database — exercising the A→B plan produced by `ptah atlas schema apply` — and B
+  alone to another, then asserts the two introspect to the **same canonical
+  schema**. This proves the generated plan reaches the intended end state, and a
+  plan that drops an add/drop/modify operation turns the row red. Covered and
+  green: add/drop table, add/drop column, nullability changes, and cross-category
+  type changes (`INTEGER`→`TEXT`), plus a mixed case. One divergence it surfaced
+  and tracks (ptah#691): Ptah's diff normalizer collapses column **precision** —
+  integer width (`INTEGER`→`BIGINT`) and `VARCHAR` length — so `schema apply` does
+  not plan those modifications and reports "synced". Those cases are recorded here
+  and in the issue rather than asserted as red rows, since this tier has no waiver
+  mechanism; they return to the matrix once ptah#691 is fixed.
 
 A fifth, **live** tier now measures behavioral self-consistency on a real
 database (`conformance-live` workflow, separate from the offline report):

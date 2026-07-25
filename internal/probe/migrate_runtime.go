@@ -64,6 +64,11 @@ func RunMigrateRuntime() []Result {
 				func(bin string) Result { return postgresMigrateNoTransactionConcurrentIndex(bin, target.URL) },
 				func(bin string) Result { return postgresGenerateDiffSkipDropTable(bin, target.URL) },
 			)
+			pgURL := target.URL
+			for i := range planningCatalog {
+				c := planningCatalog[i]
+				checks = append(checks, func(bin string) Result { return c.runPostgres(bin, pgURL) })
+			}
 		case "mysql":
 			checks = append(checks, func(bin string) Result { return mysqlMigrateApplyRecordsState(bin, target.URL) })
 		}
