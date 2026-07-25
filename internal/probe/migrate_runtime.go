@@ -51,6 +51,7 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxModeFileKeepsPriorFiles,
 		sqliteMigrateApplyTxModeNoneKeepsPartialStatement,
 		migrationsImportGolangMigrate,
+		migrationsImportGoose,
 	}
 	for _, target := range configuredMigrateRuntimeTargets(os.Getenv) {
 		switch target.Label {
@@ -533,7 +534,27 @@ func mysqlMigrateApplyRecordsState(bin, dbURL string) Result {
 // result must pass `ptah migrations validate`. This is Atlas OSS `migrate import`
 // parity (stokaro/ptah#667). It needs no database.
 func migrationsImportGolangMigrate(bin string) Result {
-	const fixture = "golang-migrate/import-roundtrip"
+	return importRoundtripProbe(bin, "golang-migrate/import-roundtrip", map[string]string{
+		"1_init.up.sql":      "CREATE TABLE users (id integer PRIMARY KEY);\n",
+		"1_init.down.sql":    "DROP TABLE users;\n",
+		"2_add_email.up.sql": "ALTER TABLE users ADD email text;\n", // no down -> placeholder
+	}, "golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts")
+}
+
+func migrationsImportGoose(bin string) Result {
+	return importRoundtripProbe(bin, "goose/import-roundtrip", map[string]string{
+		"20230101_init.sql": "-- +goose Up\n" +
+			"-- +goose StatementBegin\nCREATE TABLE users (id integer PRIMARY KEY);\n-- +goose StatementEnd\n" +
+			"-- +goose Down\nDROP TABLE users;\n",
+		"20230102_add_email.sql": "-- +goose Up\nALTER TABLE users ADD email text;\n", // no down -> placeholder
+	}, "goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts")
+}
+
+// importRoundtripProbe writes a source migration directory, runs
+// `ptah migrations import` on it, and asserts the emitted Ptah directory passes
+// `ptah migrations validate` and produces the expected two up/down pairs. It
+// needs no database.
+func importRoundtripProbe(bin, fixture string, sourceFiles map[string]string, okDetail string) Result {
 	root, err := os.MkdirTemp("", "import-*")
 	if err != nil {
 		return migrateRuntimeFail(fixture, "setup", err)
@@ -544,11 +565,6 @@ func migrationsImportGolangMigrate(bin string) Result {
 	out := filepath.Join(root, "out")
 	if err := os.MkdirAll(source, 0o755); err != nil {
 		return migrateRuntimeFail(fixture, "setup", err)
-	}
-	sourceFiles := map[string]string{
-		"1_init.up.sql":      "CREATE TABLE users (id integer PRIMARY KEY);\n",
-		"1_init.down.sql":    "DROP TABLE users;\n",
-		"2_add_email.up.sql": "ALTER TABLE users ADD email text;\n", // no down -> placeholder
 	}
 	for name, sql := range sourceFiles {
 		if err := os.WriteFile(filepath.Join(source, name), []byte(sql), 0o600); err != nil {
@@ -580,13 +596,12 @@ func migrationsImportGolangMigrate(bin string) Result {
 			sqlFiles++
 		}
 	}
-	// Two source migrations -> two up + two down Ptah files (the missing down is
+	// Two source migrations -> two up + two down Ptah files (a missing down is
 	// filled with a placeholder).
 	if sqlFiles != 4 {
 		return migrateRuntimeGap(fixture, "inspect", fmt.Sprintf("expected 4 imported .sql files, got %d", sqlFiles))
 	}
-	return Result{migrateRuntimeProbeName, fixture, "import", OK,
-		"golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts", ""}
+	return Result{migrateRuntimeProbeName, fixture, "import", OK, okDetail, ""}
 }
 
 func migrateRuntimeDir(files map[string]string) (string, string, func(), error) {
