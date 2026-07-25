@@ -148,6 +148,20 @@
   },
   {
     "probe": "schema-planning",
+    "fixture": "postgres/modify-column-decimal-scale",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-varchar-unbounded",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
     "fixture": "postgres/mixed-add/drop/modify",
     "stage": "end-state",
     "outcome": "ok",

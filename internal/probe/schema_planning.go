@@ -65,6 +65,16 @@ var planningCatalog = []planningCase{
 		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code VARCHAR(100));`,
 	},
 	{
+		Name: "modify column decimal scale",
+		A:    `CREATE TABLE users (id SERIAL PRIMARY KEY, price NUMERIC(10,2));`,
+		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, price NUMERIC(10));`,
+	},
+	{
+		Name: "modify column varchar unbounded",
+		A:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code VARCHAR(50));`,
+		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code VARCHAR);`,
+	},
+	{
 		Name: "mixed add/drop/modify",
 		A:    `CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT);` + "\n" + `CREATE TABLE legacy (id SERIAL PRIMARY KEY);`,
 		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT);` + "\n" + `CREATE TABLE orders (id SERIAL PRIMARY KEY, total INTEGER);`,
