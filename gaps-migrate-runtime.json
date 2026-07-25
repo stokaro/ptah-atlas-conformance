@@ -36,6 +36,13 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "golang-migrate/import-roundtrip",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "postgres/custom-revisions-schema",
     "stage": "inspect",
     "outcome": "ok",
