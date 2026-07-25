@@ -4660,7 +4660,7 @@
     "fixture": "Atlas MY133 (drop primary key copies the table and blocks DML)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "Ptah flags this change: DS105"
+    "detail": "Ptah flags this change: CD103"
   },
   {
     "probe": "lint-analyzer-catalog",
