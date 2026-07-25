@@ -45,7 +45,7 @@ is **"unknown — not measured"**, not "works".
 | **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
 | Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
-| **sqlcheck analyzers**, rule by rule | **No** | a lint matrix mapping Atlas codes ↔ Ptah rules |
+| **sqlcheck analyzers**, rule by rule | **Yes** — the `lint-analyzer-catalog` fidelity matrix maps every default-firing Atlas concern to the covering Ptah rule, severity, and line, classified covered/mapped/unsupported/missing, and enforces suppression, config disable/severity-override, attribution, and SARIF-shape fidelity | `lint-analyzer-catalog` rows in `gaps.md` + `fidelity: sarif output shape` in `gaps-migrate-runtime.md` |
 | **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI; Atlas CE differential runs on Postgres, MySQL, and SQLite | deeper dialect runtime probes |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
 | The migration **apply** path | **No** | Ptah applies migration SQL via raw `ExecContext`, bypassing its parser — a parse gap here is *not* an apply gap |
@@ -100,18 +100,33 @@ that when they go green Ptah genuinely covers that dimension:
   pinned Atlas CE surface; future Atlas changes should either keep this green
   by implementing Ptah parity, or create explicit tracked gaps instead of
   dropping commands from the inventory.
-- **`lint-analyzer-catalog`** covers the full set of Atlas analyzer concerns that
-  fire by default in an OSS build — the DS, MF (data-dependent), BC, CD, PG1, PG3,
-  PG110, MY, LT and TX families. This is the "lint matrix" listed below as a
-  requirement. Its criterion is **behavioral**: a concern reads green when Ptah's
-  linter emits any substantive finding on the change, with the actual Ptah rule
-  code shown, so it measures "does Ptah warn about this change" and flips green on
-  its own when Ptah adds an equivalent rule. Note that Ptah's rule *codes* collide
-  with Atlas's (Ptah `PG102` is an enum-in-transaction rule, not Atlas's
-  drop-index rule), which is exactly why the probe matches on behavior, not codes.
-  Deliberately excluded: NM (naming) fires only under a configured policy, and
-  SA (injection) / OW (ownership) are policy/enterprise analyzers — none run in a
-  default OSS pass, so their absence is not a default drop-in gap.
+- **`lint-analyzer-catalog`** is an **analyzer fidelity matrix** over the full set
+  of Atlas analyzer concerns that fire by default in an OSS build — the DS, MF
+  (data-dependent), BC, CD, PG1, PG3, PG110, MY, LT and TX families. This is the
+  "lint matrix" listed below as a requirement. It goes beyond "some warning fired":
+  each concern row records **which Ptah rule covers it, at what severity, and on
+  which line**, classified as a `covered (exact)` code match, a `covered (mapped)`
+  code with a documented reason (Ptah's `PG102` is an enum-in-transaction rule, not
+  Atlas's drop-index rule — Ptah reports drop-index under `PG106`; PostgreSQL
+  constraint drops use the untyped ANSI `DROP CONSTRAINT`, so they read `DS105`
+  while the typed `CD1xx` codes fire on the MySQL forms), or — for a concern a
+  SQL-only linter cannot reach (a data-dependent check needing a dev database) or
+  that Ptah does not yet cover — an intentionally `unsupported` row or a `missing`
+  gap linked to a Ptah issue. Today every default-firing concern is covered, so an
+  uncovered concern added later fails closed to a red `missing` gap. Because the
+  covering code, severity, and line are all committed to the report, any drift —
+  a rule renumbered, a severity lowered, a covered concern regressing to silence —
+  turns the gate red. Alongside the per-concern rows, enforced cross-cutting
+  fidelity checks assert the analyzer behaviors CI automation depends on: inline
+  `-- ptah:nolint` **suppression**, configuration-driven **disable** and
+  **severity override**, **line attribution**, and the **SARIF 2.1.0 output shape**
+  (`ruleId`, `level`, and a file:line location) emitted by `migrations lint
+  --format sarif` (this last one lives in the `migrate-runtime` tier because it
+  runs the real CLI). Removing any of those behaviors flips its check red, which is
+  the drop-in-safety guarantee automation consumers need. Deliberately excluded:
+  NM (naming) fires only under a configured policy, and SA (injection) / OW
+  (ownership) are policy/enterprise analyzers — none run in a default OSS pass, so
+  their absence is not a default drop-in gap.
 - **`lex-split-parity`** is a differential check against Atlas's own recorded
   output: for every Atlas lexer fixture that ships a `.golden`, it asks whether
   Ptah's statement splitter breaks the SQL into the same statements Atlas does.
@@ -179,7 +194,9 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
    Ptah's introspection of the same live schema, scoped to CE-visible objects.
 3. A **diff/plan** probe over paired before/after schemas.
 4. A **lint matrix** comparing Atlas analyzer codes against Ptah rule codes,
-   fixture by fixture.
+   fixture by fixture. *Built:* the `lint-analyzer-catalog` fidelity matrix records
+   the covering Ptah rule, severity, and line per concern and enforces
+   suppression, config, attribution, and SARIF-shape fidelity (ptah#649).
 5. Broader **multi-dialect** runtime coverage: Postgres, MySQL, MariaDB, and
    SQLite now run in the live tier; Postgres, MySQL, and SQLite now run in the
    Atlas CE differential tier, but deeper live/runtime probes are still needed.

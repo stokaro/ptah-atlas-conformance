@@ -12,7 +12,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260725033647-d187050a0f23`
-- Outcomes: **697 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **701 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **160 imported fixture(s)**, **160 measured**, **0 imported-but-unmeasured**
@@ -317,49 +317,53 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lex-split-parity | `sql/migrate/testdata/lexgroup/3_delimiter.sql` | split | Ptah splits into the same 5 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/sqlserver/1_return_table.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/sqlserver/2_function.sql` | out-of-scope | SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target |  |
-| — | ok | lint-analyzer-catalog | `Atlas BC101 (rename table)` | postgres | Ptah flags this change: BC101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas BC102 (rename column)` | postgres | Ptah flags this change: BC101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas CD101 (drop foreign key)` | postgres | Ptah flags this change: DS105 |  |
-| — | ok | lint-analyzer-catalog | `Atlas CD102 (drop check constraint)` | postgres | Ptah flags this change: DS105 |  |
-| — | ok | lint-analyzer-catalog | `Atlas CD103 (drop primary key)` | postgres | Ptah flags this change: DS105 |  |
-| — | ok | lint-analyzer-catalog | `Atlas DS101 (drop schema)` | postgres | Ptah flags this change: DS107 |  |
-| — | ok | lint-analyzer-catalog | `Atlas DS102 (drop table)` | postgres | Ptah flags this change: DS101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas DS103 (drop column)` | postgres | Ptah flags this change: DS102 |  |
-| — | ok | lint-analyzer-catalog | `Atlas LT101 (modify nullable to non-nullable without default)` | sqlite | Ptah flags this change: LT101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MF101 (add unique constraint on existing column)` | postgres | Ptah flags this change: PG105 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MF103 (add non-nullable column without default)` | postgres | Ptah flags this change: DD101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MF104 (modify nullable column to non-nullable)` | postgres | Ptah flags this change: PG303 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY101 (add non-nullable column without default)` | mysql | Ptah flags this change: DD101, MY101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY102 (inline REFERENCES on added column has no effect)` | mysql | Ptah flags this change: MY102 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY110 (remove enum value requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY112 (insert enum value not at the end requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY120 (remove set value requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY130 (change column type requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY131 (add foreign key blocks DML)` | mysql | Ptah flags this change: MY131 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY132 (add primary key rebuilds the table)` | mysql | Ptah flags this change: MY132 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | Ptah flags this change: CD103 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY134 (add fulltext index blocks DML)` | mysql | Ptah flags this change: MY134 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY135 (add spatial index blocks DML)` | mysql | Ptah flags this change: MY135 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY136 (change table character set rebuilds the table)` | mysql | Ptah flags this change: MY101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG101 (create index without CONCURRENTLY)` | postgres | Ptah flags this change: PG101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG102 (drop index without CONCURRENTLY)` | postgres | Ptah flags this change: PG106 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)` | postgres | Ptah flags this change: PG103 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)` | postgres | Ptah flags this change: PG104 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)` | postgres | Ptah flags this change: PG105 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG110 (create table with non-optimal column alignment)` | postgres | Ptah flags this change: PG110 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG301 (column type change rewrites the table)` | postgres | Ptah flags this change: DS103 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG302 (add column with volatile default rewrites the table)` | postgres | Ptah flags this change: PG302 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG303 (modify nullable to non-nullable requires full scan)` | postgres | Ptah flags this change: PG303 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG304 (add primary key on nullable columns requires full scan)` | postgres | Ptah flags this change: PG104 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG305 (add check constraint requires full scan)` | postgres | Ptah flags this change: PG305 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG306 (add foreign key validates existing rows and blocks writes)` | postgres | Ptah flags this change: PG306 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG307 (change table logging mode rewrites the table)` | postgres | Ptah flags this change: PG307 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)` | postgres | Ptah flags this change: PG308 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG309 (add stored generated column rewrites the table)` | postgres | Ptah flags this change: PG309 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG310 (add identity column rewrites the table)` | postgres | Ptah flags this change: PG310 |  |
-| — | ok | lint-analyzer-catalog | `Atlas PG311 (change table access method rewrites the table)` | postgres | Ptah flags this change: PG311 |  |
-| — | ok | lint-analyzer-catalog | `Atlas TX101 (mixing transactional and non-transactional statements)` | postgres | Ptah flags this change: PG103, TX101 |  |
-| — | ok | lint-analyzer-catalog | `Atlas TX201 (nested transaction block)` | postgres | Ptah flags this change: TX201 |  |
+| — | ok | lint-analyzer-catalog | `Atlas BC101 (rename table)` | postgres | covered (exact): Ptah BC101 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas BC102 (rename column)` | postgres | covered (mapped): Ptah BC101 (warning) at L1 — Ptah reports table and column renames under a single BC101 rename rule. |  |
+| — | ok | lint-analyzer-catalog | `Atlas CD101 (drop foreign key)` | postgres | covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD101 fires on the MySQL DROP FOREIGN KEY form. |  |
+| — | ok | lint-analyzer-catalog | `Atlas CD102 (drop check constraint)` | postgres | covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD102 fires on the MySQL DROP CHECK form. |  |
+| — | ok | lint-analyzer-catalog | `Atlas CD103 (drop primary key)` | postgres | covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD103 fires on the MySQL DROP PRIMARY KEY form. |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS101 (drop schema)` | postgres | covered (mapped): Ptah DS107 (error) at L1 — Ptah groups schema and other database-object drops under DS107. |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS102 (drop table)` | postgres | covered (mapped): Ptah DS101 (error) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas). |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS103 (drop column)` | postgres | covered (mapped): Ptah DS102 (error) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas). |  |
+| — | ok | lint-analyzer-catalog | `Atlas LT101 (modify nullable to non-nullable without default)` | sqlite | covered (exact): Ptah LT101 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MF101 (add unique constraint on existing column)` | postgres | covered (mapped): Ptah PG105 (warning) at L1 — Ptah has no data-dependent uniqueness analyzer; the PG105 access-exclusive-lock rule covers the same statement. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MF103 (add non-nullable column without default)` | postgres | covered (mapped): Ptah DD101 (warning) at L1 — Ptah's data-dependent DD101 rule covers this. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MF104 (modify nullable column to non-nullable)` | postgres | covered (mapped): Ptah PG303 (warning) at L1 — Ptah's PG303 full-scan rule covers this. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY101 (add non-nullable column without default)` | mysql | covered (exact): Ptah DD101 (warning) at L1, MY101 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY102 (inline REFERENCES on added column has no effect)` | mysql | covered (exact): Ptah MY102 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY110 (remove enum value requires table copy)` | mysql | covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY112 (insert enum value not at the end requires table copy)` | mysql | covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY120 (remove set value requires table copy)` | mysql | covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific set-copy concern. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY130 (change column type requires table copy)` | mysql | covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the MySQL copy-algorithm concern specifically. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY131 (add foreign key blocks DML)` | mysql | covered (exact): Ptah MY131 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY132 (add primary key rebuilds the table)` | mysql | covered (exact): Ptah MY132 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | covered (mapped): Ptah CD103 (error) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY134 (add fulltext index blocks DML)` | mysql | covered (exact): Ptah MY134 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY135 (add spatial index blocks DML)` | mysql | covered (exact): Ptah MY135 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY136 (change table character set rebuilds the table)` | mysql | covered (mapped): Ptah MY101 (warning) at L1 — Ptah's MY101 table-rewrite warning covers the character-set conversion. |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG101 (create index without CONCURRENTLY)` | postgres | covered (exact): Ptah PG101 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG102 (drop index without CONCURRENTLY)` | postgres | covered (mapped): Ptah PG106 (warning) at L1 — Ptah's drop-index rule is PG106; Ptah's own PG102 is an unrelated enum-in-transaction rule. |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)` | postgres | covered (exact): Ptah PG103 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)` | postgres | covered (exact): Ptah PG104 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)` | postgres | covered (exact): Ptah PG105 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG110 (create table with non-optimal column alignment)` | postgres | covered (exact): Ptah PG110 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG301 (column type change rewrites the table)` | postgres | covered (mapped): Ptah DS103 (warning) at L1 — Ptah's DS103 column-type-change rule covers this. |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG302 (add column with volatile default rewrites the table)` | postgres | covered (exact): Ptah PG302 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG303 (modify nullable to non-nullable requires full scan)` | postgres | covered (exact): Ptah PG303 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG304 (add primary key on nullable columns requires full scan)` | postgres | covered (mapped): Ptah PG104 (warning) at L1 — Ptah folds add-primary-key hazards into PG104. |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG305 (add check constraint requires full scan)` | postgres | covered (exact): Ptah PG305 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG306 (add foreign key validates existing rows and blocks writes)` | postgres | covered (exact): Ptah PG306 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG307 (change table logging mode rewrites the table)` | postgres | covered (exact): Ptah PG307 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)` | postgres | covered (exact): Ptah PG308 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG309 (add stored generated column rewrites the table)` | postgres | covered (exact): Ptah PG309 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG310 (add identity column rewrites the table)` | postgres | covered (exact): Ptah PG310 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas PG311 (change table access method rewrites the table)` | postgres | covered (exact): Ptah PG311 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas TX101 (mixing transactional and non-transactional statements)` | postgres | covered (exact): Ptah PG103 (warning) at L1, TX101 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `Atlas TX201 (nested transaction block)` | postgres | covered (exact): Ptah TX201 (warning) at L1 |  |
+| — | ok | lint-analyzer-catalog | `fidelity: config disable` | lint | Options.Disabled:[DS101] silences the DS101 finding that fires without it |  |
+| — | ok | lint-analyzer-catalog | `fidelity: config severity override` | lint | RuleConfig{DS101: warning} lowers DS101 from its default error severity to warning |  |
+| — | ok | lint-analyzer-catalog | `fidelity: inline suppression` | lint | `-- ptah:nolint DS101` removes the DS101 finding that fires without it |  |
+| — | ok | lint-analyzer-catalog | `fidelity: line attribution` | lint | DS101 is attributed to line 3, the offending statement's line, not the file head |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | content findings: PG101 |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `atlasexec/testdata/broken` | lint | no substantive lint findings expected |  |

@@ -13,7 +13,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260725033647-d187050a0f23`
-- Outcomes: **13 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **14 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -29,6 +29,7 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| — | ok | migrate-runtime | `fidelity: sarif output shape` | shape | lint --format sarif emits SARIF 2.1.0 with a named driver and a result carrying ruleId, level, and a file:line location |  |
 | — | ok | migrate-runtime | `flyway/import-roundtrip` | import | flyway import mapped dotted versions, paired the undo as a down, and imported the repeatable as a one-time migration that validate accepts |  |
 | — | ok | migrate-runtime | `golang-migrate/import-roundtrip` | import | golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts |  |
 | — | ok | migrate-runtime | `goose/import-roundtrip` | import | goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts |  |
