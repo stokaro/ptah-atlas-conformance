@@ -50,6 +50,7 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxModeAllRollsBack,
 		sqliteMigrateApplyTxModeFileKeepsPriorFiles,
 		sqliteMigrateApplyTxModeNoneKeepsPartialStatement,
+		migrationsImportGolangMigrate,
 	}
 	for _, target := range configuredMigrateRuntimeTargets(os.Getenv) {
 		switch target.Label {
@@ -525,6 +526,67 @@ func mysqlMigrateApplyRecordsState(bin, dbURL string) Result {
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
 		"apply created expected MySQL tables and Atlas revision rows", ""}
+}
+
+// migrationsImportGolangMigrate exercises `ptah migrations import` end to end:
+// a golang-migrate source directory is converted to Ptah's native format and the
+// result must pass `ptah migrations validate`. This is Atlas OSS `migrate import`
+// parity (stokaro/ptah#667). It needs no database.
+func migrationsImportGolangMigrate(bin string) Result {
+	const fixture = "golang-migrate/import-roundtrip"
+	root, err := os.MkdirTemp("", "import-*")
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer func() { _ = os.RemoveAll(root) }()
+
+	source := filepath.Join(root, "source")
+	out := filepath.Join(root, "out")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	sourceFiles := map[string]string{
+		"1_init.up.sql":      "CREATE TABLE users (id integer PRIMARY KEY);\n",
+		"1_init.down.sql":    "DROP TABLE users;\n",
+		"2_add_email.up.sql": "ALTER TABLE users ADD email text;\n", // no down -> placeholder
+	}
+	for name, sql := range sourceFiles {
+		if err := os.WriteFile(filepath.Join(source, name), []byte(sql), 0o600); err != nil {
+			return migrateRuntimeFail(fixture, "setup", err)
+		}
+	}
+
+	if output, err := commandOutput(bin, []string{
+		"migrations", "import", "--source-dir", source, "--migrations-dir", out,
+	}); err != nil {
+		return migrateRuntimeExit(fixture, "import", output, err)
+	}
+
+	validateOut, err := commandOutput(bin, []string{"migrations", "validate", "--dir", out})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "validate", validateOut, err)
+	}
+	if !strings.Contains(validateOut, "matches ptah.sum") {
+		return migrateRuntimeGap(fixture, "validate", "imported directory did not validate: "+oneLine(validateOut))
+	}
+
+	imported, err := os.ReadDir(out)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	sqlFiles := 0
+	for _, entry := range imported {
+		if strings.HasSuffix(entry.Name(), ".sql") {
+			sqlFiles++
+		}
+	}
+	// Two source migrations -> two up + two down Ptah files (the missing down is
+	// filled with a placeholder).
+	if sqlFiles != 4 {
+		return migrateRuntimeGap(fixture, "inspect", fmt.Sprintf("expected 4 imported .sql files, got %d", sqlFiles))
+	}
+	return Result{migrateRuntimeProbeName, fixture, "import", OK,
+		"golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts", ""}
 }
 
 func migrateRuntimeDir(files map[string]string) (string, string, func(), error) {

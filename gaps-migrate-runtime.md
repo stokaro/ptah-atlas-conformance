@@ -12,8 +12,8 @@ database state directly.
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260724222152-cda365dbaec4`
-- Outcomes: **9 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260725000816-26d23d0681bc`
+- Outcomes: **10 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -29,6 +29,7 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| — | ok | migrate-runtime | `golang-migrate/import-roundtrip` | import | golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts |  |
 | — | ok | migrate-runtime | `mysql/apply-state` | inspect | apply created expected MySQL tables and Atlas revision rows |  |
 | — | ok | migrate-runtime | `postgres/custom-revisions-schema` | inspect | apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema |  |
 | — | ok | migrate-runtime | `postgres/generate-diff-skip-drop-table` | generate | `diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change |  |
