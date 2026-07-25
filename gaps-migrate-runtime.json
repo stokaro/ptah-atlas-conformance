@@ -57,6 +57,13 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "liquibase/import-roundtrip",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "liquibase import split formatted-SQL changesets into Ptah up/down pairs (rollback as down) that validate accepts"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "postgres/custom-revisions-schema",
     "stage": "inspect",
     "outcome": "ok",

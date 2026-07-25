@@ -53,6 +53,7 @@ func RunMigrateRuntime() []Result {
 		migrationsImportGolangMigrate,
 		migrationsImportGoose,
 		migrationsImportFlyway,
+		migrationsImportLiquibase,
 	}
 	for _, target := range configuredMigrateRuntimeTargets(os.Getenv) {
 		switch target.Label {
@@ -563,6 +564,21 @@ func migrationsImportFlyway(bin string) Result {
 		"V1.1__add_email.sql": "ALTER TABLE users ADD email text;\n",                 // dotted -> remap; no undo -> placeholder
 		"R__active_users.sql": "CREATE VIEW active_users AS SELECT id FROM users;\n", // repeatable -> one-time
 	}, 6, "flyway import mapped dotted versions, paired the undo as a down, and imported the repeatable as a one-time migration that validate accepts")
+}
+
+// migrationsImportLiquibase exercises the Liquibase formatted-SQL parser: a
+// single changelog whose `--changeset author:id` markers become migrations
+// (sequential Ptah versions, author:id in the name) and whose `--rollback` lines
+// become the down. Two changesets -> four Ptah files.
+func migrationsImportLiquibase(bin string) Result {
+	return importRoundtripProbe(bin, "liquibase/import-roundtrip", map[string]string{
+		"changelog.sql": "--liquibase formatted sql\n" +
+			"--changeset alice:create-users\n" +
+			"CREATE TABLE users (id integer PRIMARY KEY);\n" +
+			"--rollback DROP TABLE users;\n" +
+			"--changeset bob:add-email\n" +
+			"ALTER TABLE users ADD email text;\n", // no rollback -> placeholder down
+	}, 4, "liquibase import split formatted-SQL changesets into Ptah up/down pairs (rollback as down) that validate accepts")
 }
 
 // importRoundtripProbe writes a source migration directory, runs
