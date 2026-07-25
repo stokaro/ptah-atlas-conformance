@@ -11,7 +11,7 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260725024633-3bde05ad9c7a`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260725033647-d187050a0f23`
 - Outcomes: **697 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -337,7 +337,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-analyzer-catalog | `Atlas MY130 (change column type requires table copy)` | mysql | Ptah flags this change: DS103, MY101 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY131 (add foreign key blocks DML)` | mysql | Ptah flags this change: MY131 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY132 (add primary key rebuilds the table)` | mysql | Ptah flags this change: MY132 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | Ptah flags this change: DS105 |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | Ptah flags this change: CD103 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY134 (add fulltext index blocks DML)` | mysql | Ptah flags this change: MY134 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY135 (add spatial index blocks DML)` | mysql | Ptah flags this change: MY135 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY136 (change table character set rebuilds the table)` | mysql | Ptah flags this change: MY101 |  |
