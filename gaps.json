@@ -1100,6 +1100,13 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/cli-exit-behavior/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "_capability/lint-analyzers/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
@@ -4731,6 +4738,118 @@
     "stage": "lint",
     "outcome": "ok",
     "detail": "DS101 is attributed to line 3, the offending statement's line, not the file head"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/help-succeeds",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/invalid-database-URL",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/missing-migration-directory",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/broken-atlas.sum",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/unknown-flag",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/unknown-subcommand",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/accepted-but-unimplemented-flag",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/missing-project-config",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/help-succeeds",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/invalid-database-URL",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/missing-migration-directory",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/broken-atlas.sum",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/unknown-flag",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/unknown-subcommand",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/accepted-but-unimplemented-flag",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/missing-project-config",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 2, error → stderr"
   },
   {
     "probe": "lex-split-parity",

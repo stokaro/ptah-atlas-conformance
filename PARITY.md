@@ -136,6 +136,23 @@ that when they go green Ptah genuinely covers that dimension:
   Atlas binary (which does not build cleanly on current Go and whose release is
   proprietary). SQL Server delimiting (GO / BEGIN TRY) is out of scope — SQL
   Server is a Pro Atlas driver.
+- **`cli-exit-behavior`** is an **exit and error-behavior matrix** over
+  representative Atlas OSS success and failure paths (invalid URL, missing
+  migration directory, broken `atlas.sum`, unknown flag, unknown subcommand,
+  accepted-but-unimplemented flag, missing project config, plus `--help`), run
+  against both the `ptah-compat` drop-in `atlas` binary and the `ptah atlas`
+  namespace. It enforces the drop-in exit **contract** — success exits 0, a
+  failure exits non-zero with its error on stderr — that scripts branch on, and
+  records the exact exit code, the stream the output reached, and the error
+  class, so a deliberately inverted exit code, a moved stream, or a changed error
+  class turns the committed-report gate red. Every row is green: the matrix
+  already drove one fix — `ptah atlas <unknown-subcommand>` used to exit 0 and
+  print help instead of erroring, now fixed to fail like Atlas (ptah#687). One
+  documented divergence remains: both surfaces exit `2` where Atlas exits `1` (a
+  compatible error class — both non-zero on stderr — recorded and tracked as
+  ptah#688). It needs no live Atlas binary: the asserted contract is Atlas's
+  verified behavior, and the exact codes are recorded for the record rather than
+  diffed live.
 
 A fifth, **live** tier now measures behavioral self-consistency on a real
 database (`conformance-live` workflow, separate from the offline report):
