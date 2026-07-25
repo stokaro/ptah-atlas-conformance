@@ -69,6 +69,14 @@ is **"unknown — not measured"**, not "works".
   execution nor the Cloud approval half, so there is nothing to compare against.
   This is scope, not a gap — the check parser and apply-abort behavior are
   verified in Ptah's `migration/migrator` package.
+- **Migration directory maintenance** (`ptah migrations edit`, `rebase`, and `rm`,
+  ptah#662) is another: Atlas keeps directory-maintenance commands in its
+  proprietary (Pro) build, so Atlas CE has no `migrate edit`/`rebase`/`rm` to
+  differential against — Ptah's atlas-compat surface correctly reports them as
+  unsupported-community, matching CE. Ptah provides the capability for free through
+  its **native** command tree (mutate a migration and atomically rewrite
+  `ptah.sum`/`atlas.sum`, refusing already-applied history), verified by unit tests
+  in `migration` and `cmd`. This is scope, not a gap: there is no CE oracle.
 - Native migration **import** (`ptah migrations import`, ptah#667) is Atlas OSS
   `migrate import` parity, but it emits **Ptah-native** format (not Atlas format),
   so it is not a schema-object round-trip. It is measured directly by the
