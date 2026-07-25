@@ -13,7 +13,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260725071810-39a980e3036d`
-- Outcomes: **14 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **21 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -43,3 +43,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `sqlite/tx-mode-all` | inspect | `--tx-mode all` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-file` | inspect | `--tx-mode file` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-none` | inspect | `--tx-mode none` leaves the expected SQLite state after a failed migration |  |
+| — | ok | schema-planning | `postgres/add-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
+| — | ok | schema-planning | `postgres/add-table` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
+| — | ok | schema-planning | `postgres/drop-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
+| — | ok | schema-planning | `postgres/drop-table` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
+| — | ok | schema-planning | `postgres/mixed-add/drop/modify` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
+| — | ok | schema-planning | `postgres/modify-column-nullability` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
+| — | ok | schema-planning | `postgres/modify-column-type-category` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |

@@ -91,6 +91,55 @@
     "detail": "`diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change"
   },
   {
+    "probe": "schema-planning",
+    "fixture": "postgres/add-table",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/drop-table",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/add-column",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/drop-column",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-nullability",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-type-category",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/mixed-add/drop/modify",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
     "probe": "migrate-runtime",
     "fixture": "mysql/apply-state",
     "stage": "inspect",
