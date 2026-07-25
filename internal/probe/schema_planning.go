@@ -55,17 +55,21 @@ var planningCatalog = []planningCase{
 		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code TEXT);`,
 	},
 	{
+		Name: "modify column type width",
+		A:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code INTEGER);`,
+		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code BIGINT);`,
+	},
+	{
+		Name: "modify column varchar length",
+		A:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code VARCHAR(50));`,
+		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, code VARCHAR(100));`,
+	},
+	{
 		Name: "mixed add/drop/modify",
 		A:    `CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT);` + "\n" + `CREATE TABLE legacy (id SERIAL PRIMARY KEY);`,
 		B:    `CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT);` + "\n" + `CREATE TABLE orders (id SERIAL PRIMARY KEY, total INTEGER);`,
 	},
 }
-
-// Note: column PRECISION changes (integer width INTEGER->BIGINT and VARCHAR
-// length changes) are intentionally not in this passing matrix — Ptah's diff
-// normalizer collapses them, so it does not plan those modifications. That
-// divergence is tracked as stokaro/ptah#691 and recorded in PARITY.md rather than
-// being asserted here (which would need an unwaivable red row in this tier).
 
 // Each planningCatalog case runs as its own migrate-runtime check (via
 // runPostgres) so the paired-schema planning matrix emits one report row per

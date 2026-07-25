@@ -134,6 +134,20 @@
   },
   {
     "probe": "schema-planning",
+    "fixture": "postgres/modify-column-type-width",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-varchar-length",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
     "fixture": "postgres/mixed-add/drop/modify",
     "stage": "end-state",
     "outcome": "ok",
