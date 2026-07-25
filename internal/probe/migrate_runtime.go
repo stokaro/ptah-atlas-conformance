@@ -54,6 +54,7 @@ func RunMigrateRuntime() []Result {
 		migrationsImportGoose,
 		migrationsImportFlyway,
 		migrationsImportLiquibase,
+		lintSarifShape,
 	}
 	for _, target := range configuredMigrateRuntimeTargets(os.Getenv) {
 		switch target.Label {

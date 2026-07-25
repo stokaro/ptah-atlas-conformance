@@ -64,6 +64,13 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "fidelity: sarif output shape",
+    "stage": "shape",
+    "outcome": "ok",
+    "detail": "lint --format sarif emits SARIF 2.1.0 with a named driver and a result carrying ruleId, level, and a file:line location"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "postgres/custom-revisions-schema",
     "stage": "inspect",
     "outcome": "ok",
