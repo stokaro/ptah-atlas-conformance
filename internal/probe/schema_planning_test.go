@@ -34,6 +34,7 @@ func TestPlanningCatalogCoversOperations(t *testing.T) {
 		"add column": false, "drop column": false,
 		"modify column nullability": false, "modify column type category": false,
 		"modify column type width": false, "modify column varchar length": false,
+		"modify column decimal scale": false, "modify column varchar unbounded": false,
 	}
 	for _, c := range planningCatalog {
 		if _, ok := want[c.Name]; ok {
