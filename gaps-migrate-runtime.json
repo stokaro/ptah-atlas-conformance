@@ -50,6 +50,13 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "flyway/import-roundtrip",
+    "stage": "import",
+    "outcome": "ok",
+    "detail": "flyway import mapped dotted versions, paired the undo as a down, and imported the repeatable as a one-time migration that validate accepts"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "postgres/custom-revisions-schema",
     "stage": "inspect",
     "outcome": "ok",

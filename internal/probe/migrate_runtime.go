@@ -52,6 +52,7 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxModeNoneKeepsPartialStatement,
 		migrationsImportGolangMigrate,
 		migrationsImportGoose,
+		migrationsImportFlyway,
 	}
 	for _, target := range configuredMigrateRuntimeTargets(os.Getenv) {
 		switch target.Label {
@@ -538,7 +539,7 @@ func migrationsImportGolangMigrate(bin string) Result {
 		"1_init.up.sql":      "CREATE TABLE users (id integer PRIMARY KEY);\n",
 		"1_init.down.sql":    "DROP TABLE users;\n",
 		"2_add_email.up.sql": "ALTER TABLE users ADD email text;\n", // no down -> placeholder
-	}, "golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts")
+	}, 4, "golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts")
 }
 
 func migrationsImportGoose(bin string) Result {
@@ -547,14 +548,28 @@ func migrationsImportGoose(bin string) Result {
 			"-- +goose StatementBegin\nCREATE TABLE users (id integer PRIMARY KEY);\n-- +goose StatementEnd\n" +
 			"-- +goose Down\nDROP TABLE users;\n",
 		"20230102_add_email.sql": "-- +goose Up\nALTER TABLE users ADD email text;\n", // no down -> placeholder
-	}, "goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts")
+	}, 4, "goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts")
+}
+
+// migrationsImportFlyway exercises the Flyway-specific parts of the importer: a
+// dotted version (V1.1, reassigned to a sequential Ptah version), an undo file
+// (U1, imported as the versioned migration's down), and a repeatable (R__,
+// imported as a one-time migration ordered last). Three source migrations ->
+// six Ptah files.
+func migrationsImportFlyway(bin string) Result {
+	return importRoundtripProbe(bin, "flyway/import-roundtrip", map[string]string{
+		"V1__init.sql":        "CREATE TABLE users (id integer PRIMARY KEY);\n",
+		"U1__init.sql":        "DROP TABLE users;\n",                                 // undo -> down for V1
+		"V1.1__add_email.sql": "ALTER TABLE users ADD email text;\n",                 // dotted -> remap; no undo -> placeholder
+		"R__active_users.sql": "CREATE VIEW active_users AS SELECT id FROM users;\n", // repeatable -> one-time
+	}, 6, "flyway import mapped dotted versions, paired the undo as a down, and imported the repeatable as a one-time migration that validate accepts")
 }
 
 // importRoundtripProbe writes a source migration directory, runs
 // `ptah migrations import` on it, and asserts the emitted Ptah directory passes
-// `ptah migrations validate` and produces the expected two up/down pairs. It
-// needs no database.
-func importRoundtripProbe(bin, fixture string, sourceFiles map[string]string, okDetail string) Result {
+// `ptah migrations validate` and produces expectedFiles up/down files. It needs
+// no database.
+func importRoundtripProbe(bin, fixture string, sourceFiles map[string]string, expectedFiles int, okDetail string) Result {
 	root, err := os.MkdirTemp("", "import-*")
 	if err != nil {
 		return migrateRuntimeFail(fixture, "setup", err)
@@ -596,10 +611,10 @@ func importRoundtripProbe(bin, fixture string, sourceFiles map[string]string, ok
 			sqlFiles++
 		}
 	}
-	// Two source migrations -> two up + two down Ptah files (a missing down is
+	// Each source migration -> an up + a down Ptah file (a missing down is
 	// filled with a placeholder).
-	if sqlFiles != 4 {
-		return migrateRuntimeGap(fixture, "inspect", fmt.Sprintf("expected 4 imported .sql files, got %d", sqlFiles))
+	if sqlFiles != expectedFiles {
+		return migrateRuntimeGap(fixture, "inspect", fmt.Sprintf("expected %d imported .sql files, got %d", expectedFiles, sqlFiles))
 	}
 	return Result{migrateRuntimeProbeName, fixture, "import", OK, okDetail, ""}
 }
