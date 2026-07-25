@@ -168,13 +168,13 @@ that when they go green Ptah genuinely covers that dimension:
   alone to another, then asserts the two introspect to the **same canonical
   schema**. This proves the generated plan reaches the intended end state, and a
   plan that drops an add/drop/modify operation turns the row red. Covered and
-  green: add/drop table, add/drop column, nullability changes, and cross-category
-  type changes (`INTEGER`→`TEXT`), plus a mixed case. One divergence it surfaced
-  and tracks (ptah#691): Ptah's diff normalizer collapses column **precision** —
-  integer width (`INTEGER`→`BIGINT`) and `VARCHAR` length — so `schema apply` does
-  not plan those modifications and reports "synced". Those cases are recorded here
-  and in the issue rather than asserted as red rows, since this tier has no waiver
-  mechanism; they return to the matrix once ptah#691 is fixed.
+  green: add/drop table, add/drop column, nullability changes, cross-category
+  type changes (`INTEGER`→`TEXT`), column precision changes — integer width
+  (`INTEGER`→`BIGINT`) and `VARCHAR` length — plus a mixed case. The two precision
+  cases were originally omitted because Ptah's diff normalizer collapsed integer
+  width and `VARCHAR` length, so `schema apply` did not plan them and reported
+  "synced" (the divergence this matrix surfaced); ptah#691 fixed that, and they
+  now hold as green rows.
 
 A fifth, **live** tier now measures behavioral self-consistency on a real
 database (`conformance-live` workflow, separate from the offline report):
