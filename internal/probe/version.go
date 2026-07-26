@@ -1,7 +1,10 @@
 package probe
 
 import (
+	"os"
 	"runtime/debug"
+	"strconv"
+	"strings"
 )
 
 const ptahModulePath = "github.com/stokaro/ptah"
@@ -10,6 +13,15 @@ const ptahModulePath = "github.com/stokaro/ptah"
 // binary. Reports include this value so generated conformance artifacts identify
 // the implementation they actually exercised.
 func PtahVersion() string {
+	linkedVersion := linkedPtahVersion()
+	overrides := ptahBinaryOverrides()
+	if len(overrides) == 0 {
+		return linkedVersion
+	}
+	return linkedVersion + "; external binary overrides: " + strings.Join(overrides, ", ")
+}
+
+func linkedPtahVersion() string {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		return ptahVersionUnknown()
@@ -20,6 +32,17 @@ func PtahVersion() string {
 		}
 	}
 	return ptahVersionUnknown()
+}
+
+func ptahBinaryOverrides() []string {
+	var overrides []string
+	if value := strings.TrimSpace(os.Getenv("PTAH_BIN")); value != "" {
+		overrides = append(overrides, "PTAH_BIN="+strconv.Quote(value))
+	}
+	if value := strings.TrimSpace(os.Getenv("PTAH_COMPAT_BIN")); value != "" {
+		overrides = append(overrides, "PTAH_COMPAT_BIN="+strconv.Quote(value))
+	}
+	return overrides
 }
 
 func moduleVersion(module *debug.Module) string {

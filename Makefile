@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-cli-surface budget-cli-surface gate-cli-surface atlas verify build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-cli-surface budget-cli-surface gate-cli-surface verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -104,6 +104,11 @@ budget-cli-surface: probe-cli-surface
 gate-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe -gate
 
+# Verify that the static process-level exit/output expectations still match the
+# pinned Atlas CE binary. ATLAS_BIN is required and normally points to bin/atlas.
+verify-cli-exit-oracle:
+	ATLAS_BIN="$(abspath $(ATLAS_BIN))" $(GO_OFF) test -tags atlasoracle ./internal/probe -run '^TestCLIExitCatalogMatchesAtlasCE$$'
+
 # CI progress gate: fail only when the current report exceeds the committed
 # unwaived non-OK observation budget or has stale waivers. Corpus parity is still
 # `make gate`.
@@ -118,13 +123,16 @@ gate:
 build:
 	$(GO_OFF) build ./...
 
+test:
+	$(GO_OFF) test ./...
+
 vet:
 	$(GO_OFF) vet ./...
 
 # Guard the one-way boundary: this repo may depend on ptah, but the Apache-2.0
 # fixtures must stay confined to third_party/. Fails if an Apache header leaks
 # into the harness source.
-verify: build vet
+verify: test build vet
 	@echo "checking no Apache-licensed material outside third_party/ ..."
 	@! grep -rIl "Apache License" --include='*.go' . | grep -v '/third_party/' || \
 		{ echo "Apache-licensed material found outside third_party/"; exit 1; }

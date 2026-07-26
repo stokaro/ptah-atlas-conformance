@@ -53,6 +53,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |
 | `atlas-cli-surface` | Does `ptah atlas <verb>` resolve for every OSS Atlas CLI verb? This is the `ptah atlas ...` drop-in surface; it builds the real Ptah CLI and checks each command, so it flips to green on its own when Ptah registers the command. | the built `ptah` binary |
 | `atlas-cli-flags` | Beyond resolving, does each `ptah atlas <verb>` accept the Atlas flags a drop-in caller passes (`--url`, `--dev-url`, `--to`, `--dir`, `--format`, …)? A resolving stub is not a drop-in. | the built `ptah` binary |
+| `cli-exit-behavior` | Do `ptah atlas ...` and `ptah-compat` match Atlas CE's exact process exit code and stdout/stderr contract for representative success, argument, configuration, and migration-checksum paths? Stable checksum and unknown-command output is byte-checked. The catalog is also run directly against the pinned Atlas binary so Ptah-specific expectations cannot make the probe false-green. | `bin/atlas`, the built `ptah` binary, the built `ptah-compat` binary |
 | `atlas-cli-surface-inventory` / `atlas-cli-surface-ptah-*` | Dedicated CLI surface report over the current pinned Atlas CE binary: command paths, help usage, and long flags, compared separately against `ptah atlas ...` and binary-level `ptah-compat` drop-in behavior. | `bin/atlas`, the built `ptah` binary, the built `ptah-compat` binary |
 | `migrate-runtime` | Does `ptah atlas migrate ...` preserve Atlas-compatible runtime state against real databases: applied schema objects, Atlas revision rows, `set` repair behavior, and transaction-mode rollback/partial-apply semantics? | the built `ptah` binary, live SQLite databases |
 | `lint-analyzer-catalog` | For each Atlas sqlcheck analyzer concern, does Ptah's linter flag the same dangerous change? Behavioral, one synthetic migration per analyzer, so it flips green when Ptah gains the rule. | `migration/lint` |
@@ -252,8 +253,9 @@ make gate-migrate-runtime    # migrate-runtime corpus-parity yardstick
 make probe-cli-surface   # regenerate cli-surface.md / cli-surface.json (exit 0)
 make budget-cli-surface  # CLI progress gate: red only on regression/stale waivers
 make gate-cli-surface    # CLI corpus-parity yardstick: fails if any CLI non-OK remains
+ATLAS_BIN=./bin/atlas make verify-cli-exit-oracle  # audit static exit/output expectations against Atlas CE
 make gate         # offline corpus-parity yardstick: fails if any offline non-OK remains
-make verify       # build, vet, and assert Ptah's tree would gain no Apache file
+make verify       # test, build, vet, and assert Ptah's tree would gain no Apache file
 ```
 
 ## Pinning
@@ -264,7 +266,7 @@ Both sides are pinned for reproducibility:
   `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`, vendored under
   `third_party/atlas/upstream/` (never fetched at run time). The exact file list
   is `third_party/atlas/MANIFEST.txt`.
-- Atlas binary (differential and CLI-surface tiers): the release tag in
+- Atlas binary (differential, CLI-surface, and exit-oracle tiers): the release tag in
   [`atlas.version`](./atlas.version), built from source by `make atlas`.
   [`renovate.json`](./renovate.json) carries a custom manager that bumps this pin
   automatically when Atlas cuts a new release, so the differential and CLI

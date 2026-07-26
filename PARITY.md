@@ -146,21 +146,23 @@ that when they go green Ptah genuinely covers that dimension:
   Server is a Pro Atlas driver.
 - **`cli-exit-behavior`** is an **exit and error-behavior matrix** over
   representative Atlas OSS success and failure paths (invalid URL, missing
-  migration directory, broken `atlas.sum`, unknown flag, unknown subcommand,
-  accepted-but-unimplemented flag, missing project config, plus `--help`), run
-  against both the `ptah-compat` drop-in `atlas` binary and the `ptah atlas`
-  namespace. It enforces the drop-in exit **contract** — success exits 0, a
-  failure exits non-zero with its error on stderr — that scripts branch on, and
-  records the exact exit code, the stream the output reached, and the error
-  class, so a deliberately inverted exit code, a moved stream, or a changed error
-  class turns the committed-report gate red. Every row is green: the matrix
-  already drove one fix — `ptah atlas <unknown-subcommand>` used to exit 0 and
-  print help instead of erroring, now fixed to fail like Atlas (ptah#687). One
-  documented divergence remains: both surfaces exit `2` where Atlas exits `1` (a
-  compatible error class — both non-zero on stderr — recorded and tracked as
-  ptah#688). It needs no live Atlas binary: the asserted contract is Atlas's
-  verified behavior, and the exact codes are recorded for the record rather than
-  diffed live.
+  migration directory, missing/malformed/duplicate `atlas.sum`, clean checksum
+  success, valid edited/added/removed migration drift, directory-hash-only
+  drift, unknown flag, unknown subcommand, accepted-but-unimplemented flag,
+  missing project config, plus `--help`), run against both the `ptah-compat`
+  drop-in `atlas` binary and the `ptah atlas` namespace. It enforces the drop-in
+  exit **contract** — success exits 0, a failure exits 1, and each case uses
+  Atlas CE's verified stdout/stderr pattern. Stable checksum guidance and the
+  unknown-command diagnostic are byte-checked. A wrong exit code, moved output,
+  changed error class, extra success banner, or incomplete recovery message
+  turns the full conformance gate red. The static catalog is also executed
+  directly against the binary pinned by `atlas.version` in regression and full
+  conformance CI, with Atlas's network-dependent update notifier disabled,
+  preventing Ptah-specific strings from becoming a false-green oracle. The
+  matrix drove fixes for unknown-command exit behavior (ptah#687),
+  exact failure codes (ptah#688), checksum mismatch output (ptah#714), missing
+  checksum output (ptah#723), unknown-command diagnostics (ptah#725), and silent
+  checksum success (ptah#727).
 - **`schema-planning`** is a **paired-schema planning matrix** (PostgreSQL, in the
   `migrate-runtime` tier). Correct introspection does not guarantee a correct
   *plan*: for each paired desired schema (A, B) it applies A then B to one reset
