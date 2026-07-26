@@ -18,16 +18,32 @@ const cliExitSentinel = "_capability/cli-exit-behavior/SENTINEL"
 // cliExitProbeName is the probe/report name.
 const cliExitProbeName = "cli-exit-behavior"
 
-// cliExitClass is the expected exit-code class of a CLI invocation. Atlas — and
-// therefore a drop-in — exits zero on success and non-zero on any error; scripts
-// branch on exactly that boundary, so it is the contract this matrix enforces
-// (the exact non-zero value is recorded but treated as a documented divergence,
-// since Atlas does not publish specific codes as a contract).
-type cliExitClass int
+const (
+	atlasChecksumGuidance = "You have a checksum error in your migration directory.\n" +
+		"Please check your migration files and run 'atlas migrate hash' to re-hash the contents\n\n"
+	atlasSingleMigrationSum = "h1:RwlBQllTgRiQ5aUj9/rR1G0CguPI2caCrrSf7y+LbzA=\n" +
+		"1_initial.sql h1:7PYyx3jJKyr9v/6Ta0xuXTz4HqAKDLjXxLWjRtnDhWA=\n"
+	atlasTwoMigrationSum = "h1:+34914C9ncHjtpQsy5S8WcVKs661cvqzMlPhZ7LbT0E=\n" +
+		"1_initial.sql h1:7PYyx3jJKyr9v/6Ta0xuXTz4HqAKDLjXxLWjRtnDhWA=\n" +
+		"2_second.sql h1:ZwOkl2cGwIRo6FFePelI6LT91EmqcXgP9/b9YOhfahg=\n"
+)
+
+// cliExitCode is the exact process exit code required by the Atlas-compatible
+// surfaces. Atlas CE exits zero on success and one on command failures.
+type cliExitCode int
 
 const (
-	exitOK   cliExitClass = iota // must exit 0
-	exitFail                     // must exit non-zero
+	exitOK   cliExitCode = 0
+	exitFail cliExitCode = 1
+)
+
+type cliExitStream int
+
+const (
+	exitStreamSilent cliExitStream = iota + 1
+	exitStreamStdout
+	exitStreamStderr
+	exitStreamBoth
 )
 
 // cliExitCase is one CLI invocation exercised for exit and stream behavior,
@@ -39,13 +55,21 @@ type cliExitCase struct {
 	// Build returns the Atlas-form args for the invocation. It may create files
 	// under tmp (a fresh per-case directory the command also runs in), so setup
 	// like a tampered atlas.sum stays isolated.
-	Build func(tmp string) []string
-	// Want is the required exit-code class.
-	Want cliExitClass
-	// Class is a stable stderr substring documenting the error class (empty for a
-	// success case). It is recorded, not brittle-matched — a change is visible in
-	// the report but does not by itself fail the class contract.
-	Class string
+	Build func(tmp string) ([]string, error)
+	// Want is the required process exit code.
+	Want cliExitCode
+	// WantStream is the required stdout/stderr output pattern.
+	WantStream cliExitStream
+	// ExactStdout requires byte-for-byte stdout when non-empty.
+	ExactStdout string
+	// ExactStderr requires byte-for-byte stderr when non-empty.
+	ExactStderr string
+	// StdoutClass and StderrClass are stable substrings documenting the expected
+	// output class. Empty values skip content matching on that stream.
+	StdoutClass string
+	StderrClass string
+	// Issue owns any compatibility gap reported for this case.
+	Issue string
 }
 
 // cliExitCatalog covers representative Atlas OSS success and failure paths that
@@ -54,52 +78,280 @@ type cliExitCase struct {
 var cliExitCatalog = []cliExitCase{
 	{
 		Name:  "help succeeds",
-		Build: func(string) []string { return []string{"--help"} },
-		Want:  exitOK,
+		Build: func(string) ([]string, error) { return []string{"--help"}, nil },
+		Want:  exitOK, WantStream: exitStreamStdout, Issue: "stokaro/ptah#688",
 	},
 	{
-		Name:  "invalid database URL",
-		Build: func(string) []string { return []string{"schema", "inspect", "--url", "not-a-valid-url"} },
-		Want:  exitFail, Class: "URL",
+		Name: "clean atlas.sum succeeds silently",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"1_initial.sql": "CREATE TABLE t (id INT);\n",
+				"atlas.sum":     atlasSingleMigrationSum,
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
+		},
+		Want:       exitOK,
+		WantStream: exitStreamSilent,
+		Issue:      "stokaro/ptah#727",
+	},
+	{
+		Name: "invalid database URL",
+		Build: func(string) ([]string, error) {
+			return []string{"schema", "inspect", "--url", "not-a-valid-url"}, nil
+		},
+		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "missing scheme",
+		Issue: "stokaro/ptah#688",
+	},
+	{
+		Name:  "missing required flag",
+		Build: func(string) ([]string, error) { return []string{"schema", "inspect"}, nil },
+		Want:  exitFail, WantStream: exitStreamStderr, StderrClass: "required", Issue: "stokaro/ptah#688",
 	},
 	{
 		Name: "missing migration directory",
-		Build: func(string) []string {
-			return []string{"migrate", "validate", "--dir", "file:///nonexistent-ptah-conformance-dir"}
+		Build: func(tmp string) ([]string, error) {
+			missingDir := filepath.Join(tmp, "missing")
+			return []string{"migrate", "validate", "--dir", "file://" + missingDir}, nil
 		},
-		Want: exitFail, Class: "no such file or directory",
+		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "no such file or directory",
+		Issue: "stokaro/ptah#688",
 	},
 	{
-		Name: "broken atlas.sum",
-		Build: func(tmp string) []string {
-			_ = os.WriteFile(filepath.Join(tmp, "20230101000000_init.sql"), []byte("CREATE TABLE t (id int);\n"), 0o600)
-			_ = os.WriteFile(filepath.Join(tmp, "atlas.sum"), []byte("h1:tampered\n20230101000000_init.sql h1:bogus\n"), 0o600)
-			return []string{"migrate", "validate", "--dir", "file://" + tmp}
+		Name: "malformed atlas.sum",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"1_initial.sql": "CREATE TABLE t (id INT);\n",
+				"atlas.sum":     "h1:tampered\n1_initial.sql h1:bogus\n",
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
 		},
-		Want: exitFail, Class: "atlas.sum",
+		Want:        exitFail,
+		WantStream:  exitStreamBoth,
+		ExactStdout: atlasChecksumGuidance,
+		StdoutClass: "checksum error",
+		StderrClass: "checksum mismatch",
+		Issue:       "stokaro/ptah#714",
 	},
 	{
-		Name:  "unknown flag",
-		Build: func(string) []string { return []string{"migrate", "validate", "--totally-unknown-flag"} },
-		Want:  exitFail, Class: "unknown flag",
+		Name: "missing atlas.sum",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"1_initial.sql": "CREATE TABLE t (id INT);\n",
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
+		},
+		Want:        exitFail,
+		WantStream:  exitStreamBoth,
+		ExactStdout: atlasChecksumGuidance,
+		ExactStderr: "Error: checksum file not found\n",
+		StdoutClass: "checksum error",
+		StderrClass: "checksum file not found",
+		Issue:       "stokaro/ptah#723",
 	},
 	{
-		Name:  "unknown subcommand",
-		Build: func(string) []string { return []string{"definitely-not-a-command"} },
-		Want:  exitFail, Class: "positional",
+		Name: "edited migration",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"1_initial.sql": "CREATE TABLE t (id BIGINT);\n",
+				"atlas.sum":     atlasSingleMigrationSum,
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
+		},
+		Want:       exitFail,
+		WantStream: exitStreamBoth,
+		ExactStdout: "You have a checksum error in your migration directory.\n\n" +
+			"\tL2: 1_initial.sql was edited\n\n" +
+			"Please check your migration files and run 'atlas migrate hash' to re-hash the contents\n\n",
+		StderrClass: "checksum mismatch",
+		Issue:       "stokaro/ptah#714",
+	},
+	{
+		Name: "added migration",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"1_initial.sql": "CREATE TABLE t (id INT);\n",
+				"2_second.sql":  "CREATE TABLE u (id INT);\n",
+				"atlas.sum":     atlasSingleMigrationSum,
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
+		},
+		Want:       exitFail,
+		WantStream: exitStreamBoth,
+		ExactStdout: "You have a checksum error in your migration directory.\n\n" +
+			"\tL3: 2_second.sql was added\n\n" +
+			"Please check your migration files and run 'atlas migrate hash' to re-hash the contents\n\n",
+		StderrClass: "checksum mismatch",
+		Issue:       "stokaro/ptah#714",
+	},
+	{
+		Name: "removed migration",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"2_second.sql": "CREATE TABLE u (id INT);\n",
+				"atlas.sum":    atlasTwoMigrationSum,
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
+		},
+		Want:       exitFail,
+		WantStream: exitStreamBoth,
+		ExactStdout: "You have a checksum error in your migration directory.\n\n" +
+			"\tL2: 1_initial.sql was removed\n\n" +
+			"Please check your migration files and run 'atlas migrate hash' to re-hash the contents\n\n",
+		StderrClass: "checksum mismatch",
+		Issue:       "stokaro/ptah#714",
+	},
+	{
+		Name: "duplicate atlas.sum entry",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"1_initial.sql": "CREATE TABLE t (id INT);\n",
+				"atlas.sum": atlasSingleMigrationSum +
+					"1_initial.sql h1:7PYyx3jJKyr9v/6Ta0xuXTz4HqAKDLjXxLWjRtnDhWA=\n",
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
+		},
+		Want:        exitFail,
+		WantStream:  exitStreamBoth,
+		ExactStdout: atlasChecksumGuidance,
+		StderrClass: "checksum mismatch",
+		Issue:       "stokaro/ptah#714",
+	},
+	{
+		Name: "directory hash mismatch",
+		Build: func(tmp string) ([]string, error) {
+			err := writeCLIExitFixture(tmp, map[string]string{
+				"1_initial.sql": "CREATE TABLE t (id INT);\n",
+				"atlas.sum": "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n" +
+					"1_initial.sql h1:7PYyx3jJKyr9v/6Ta0xuXTz4HqAKDLjXxLWjRtnDhWA=\n",
+			})
+			if err != nil {
+				return nil, err
+			}
+			return []string{"migrate", "validate", "--dir", "file://" + tmp}, nil
+		},
+		Want:        exitFail,
+		WantStream:  exitStreamBoth,
+		ExactStdout: atlasChecksumGuidance,
+		StderrClass: "checksum mismatch",
+		Issue:       "stokaro/ptah#714",
+	},
+	{
+		Name: "unknown flag",
+		Build: func(string) ([]string, error) {
+			return []string{"migrate", "validate", "--totally-unknown-flag"}, nil
+		},
+		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "unknown flag",
+		Issue: "stokaro/ptah#688",
+	},
+	{
+		Name:       "unknown subcommand",
+		Build:      func(string) ([]string, error) { return []string{"definitely-not-a-command"}, nil },
+		Want:       exitFail,
+		WantStream: exitStreamStderr,
+		ExactStderr: "Error: unknown command \"definitely-not-a-command\" for \"atlas\"\n" +
+			"Run 'atlas --help' for usage.\n",
+		StderrClass: "unknown command",
+		Issue:       "stokaro/ptah#725",
+	},
+	{
+		Name:       "unknown subcommand suggests close verb",
+		Build:      func(string) ([]string, error) { return []string{"migrat"}, nil },
+		Want:       exitFail,
+		WantStream: exitStreamStderr,
+		ExactStderr: "Error: unknown command \"migrat\" for \"atlas\"\n\n" +
+			"Did you mean this?\n" +
+			"\tmigrate\n\n" +
+			"Run 'atlas --help' for usage.\n",
+		StderrClass: "Did you mean this?",
+		Issue:       "stokaro/ptah#725",
+	},
+	{
+		Name: "migrate group extra token shows help",
+		Build: func(string) ([]string, error) {
+			return []string{"migrate", "aplly"}, nil
+		},
+		Want:        exitOK,
+		WantStream:  exitStreamStdout,
+		StdoutClass: "migrate [command]",
+		Issue:       "stokaro/ptah#725",
+	},
+	{
+		Name: "completion group extra token shows help",
+		Build: func(string) ([]string, error) {
+			return []string{"completion", "sh"}, nil
+		},
+		Want:        exitOK,
+		WantStream:  exitStreamStdout,
+		StdoutClass: "completion [command]",
+		Issue:       "stokaro/ptah#725",
+	},
+	{
+		Name: "completion bash generates script",
+		Build: func(string) ([]string, error) {
+			return []string{"completion", "bash"}, nil
+		},
+		Want:        exitOK,
+		WantStream:  exitStreamStdout,
+		StdoutClass: "# bash completion V2 for ",
+		Issue:       "stokaro/ptah#725",
+	},
+	{
+		Name: "completion shell extra token fails",
+		Build: func(string) ([]string, error) {
+			return []string{"completion", "bash", "extra"}, nil
+		},
+		Want:        exitFail,
+		WantStream:  exitStreamStderr,
+		ExactStderr: "Error: unknown command \"extra\" for \"atlas completion bash\"\n",
+		StderrClass: "unknown command",
+		Issue:       "stokaro/ptah#725",
 	},
 	{
 		Name: "accepted but unimplemented flag",
-		Build: func(string) []string {
-			return []string{"schema", "apply", "--url", "sqlite://f", "--to", "file://x", "--plan", "p"}
+		Build: func(string) ([]string, error) {
+			return []string{"schema", "apply", "--url", "sqlite://f", "--to", "file://x", "--plan", "p"}, nil
 		},
-		Want: exitFail, Class: "--plan",
+		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "--plan",
+		Issue: "stokaro/ptah#688",
 	},
 	{
-		Name:  "missing project config",
-		Build: func(string) []string { return []string{"schema", "inspect", "--env", "nonexistent"} },
-		Want:  exitFail, Class: "atlas.hcl",
+		Name: "missing project config",
+		Build: func(string) ([]string, error) {
+			return []string{"schema", "inspect", "--env", "nonexistent"}, nil
+		},
+		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "atlas.hcl",
+		Issue: "stokaro/ptah#688",
 	},
+}
+
+func writeCLIExitFixture(root string, files map[string]string) error {
+	for name, content := range files {
+		if err := os.WriteFile(filepath.Join(root, name), []byte(content), 0o600); err != nil {
+			return fmt.Errorf("write %s fixture: %w", name, err)
+		}
+	}
+	return nil
 }
 
 // cliExitSurface is one Ptah CLI presenting the Atlas surface.
@@ -118,10 +370,9 @@ func cliExitSurfaces() []cliExitSurface {
 
 // AtlasCLIExitBehaviorProbe exercises Atlas OSS success and failure paths across
 // the ptah-compat drop-in and the `ptah atlas` namespace, asserting the drop-in
-// exit contract (success → 0, failure → non-zero on stderr) and recording the
-// exact exit code, the stream the output went to, and the error class — so a
-// deliberately inverted exit code, a moved stream, or a changed error class turns
-// the committed-report gate red.
+// exit contract (success → 0, failure → 1 on stderr) and recording the stream
+// the output went to and the error class. A wrong exit code, output stream, or
+// error class turns the probe red.
 type AtlasCLIExitBehaviorProbe struct{}
 
 func (AtlasCLIExitBehaviorProbe) Name() string { return cliExitProbeName }
@@ -138,9 +389,15 @@ func (AtlasCLIExitBehaviorProbe) Run(fx Fixture) []Result {
 				"could not build the Ptah CLI: " + oneLine(err.Error()), "stokaro/ptah#270"})
 			continue
 		}
-		for _, c := range cliExitCatalog {
-			out = append(out, runCLIExitCase(bin, surface, c))
-		}
+		out = append(out, runCLIExitCatalog(bin, surface)...)
+	}
+	return out
+}
+
+func runCLIExitCatalog(bin string, surface cliExitSurface) []Result {
+	out := make([]Result, 0, len(cliExitCatalog))
+	for _, c := range cliExitCatalog {
+		out = append(out, runCLIExitCase(bin, surface, c))
 	}
 	return out
 }
@@ -154,46 +411,85 @@ func runCLIExitCase(bin string, surface cliExitSurface, c cliExitCase) Result {
 	}
 	defer func() { _ = os.RemoveAll(tmp) }()
 
-	args := append(append([]string{}, surface.prefix...), c.Build(tmp)...)
+	caseArgs, err := c.Build(tmp)
+	if err != nil {
+		return Result{cliExitProbeName, label, "setup", Fail, err.Error(), ""}
+	}
+	args := append(append([]string{}, surface.prefix...), caseArgs...)
 	res := runCLIExit(bin, args, tmp)
+	return classifyCLIExitResult(label, c, res)
+}
 
+func classifyCLIExitResult(label string, c cliExitCase, res cliExitResult) Result {
 	if res.timedOut {
 		return Result{cliExitProbeName, label, "run", Fail, "the command timed out", "stokaro/ptah#270"}
 	}
+	if res.runErr != "" {
+		return Result{cliExitProbeName, label, "run", Fail,
+			"could not start command: " + oneLine(res.runErr), ""}
+	}
 
 	stream := streamChoice(res.stdout, res.stderr)
-	classNote := ""
-	if c.Class != "" && !strings.Contains(res.stderr, c.Class) {
-		classNote = fmt.Sprintf("; error-class substring %q not on stderr", c.Class)
+	if res.exit != int(c.Want) {
+		return Result{cliExitProbeName, label, "exit", Gap,
+			fmt.Sprintf("expected exit %d, got %d (%s)", c.Want, res.exit, stream), c.Issue}
 	}
 
-	switch c.Want {
-	case exitOK:
-		if res.exit != 0 {
-			return Result{cliExitProbeName, label, "exit", Gap,
-				fmt.Sprintf("expected success but exited %d (%s)%s", res.exit, stream, classNote), "stokaro/ptah#270"}
+	switch c.WantStream {
+	case exitStreamSilent:
+		if res.stdout > 0 || res.stderr != "" {
+			return Result{cliExitProbeName, label, "stream", Gap,
+				fmt.Sprintf("expected silent command, got %s", stream), c.Issue}
 		}
+	case exitStreamStdout:
+		if res.stdout == 0 || res.stderr != "" {
+			return Result{cliExitProbeName, label, "stream", Gap,
+				fmt.Sprintf("expected output only on stdout, got %s", stream), c.Issue}
+		}
+	case exitStreamStderr:
+		if res.stderr == "" || res.stdout > 0 {
+			return Result{cliExitProbeName, label, "stream", Gap,
+				fmt.Sprintf("expected error only on stderr, got %s", stream), c.Issue}
+		}
+	case exitStreamBoth:
+		if res.stdout == 0 || res.stderr == "" {
+			return Result{cliExitProbeName, label, "stream", Gap,
+				fmt.Sprintf("expected output on stdout and stderr, got %s", stream), c.Issue}
+		}
+	default:
+		return Result{cliExitProbeName, label, "setup", Fail, "missing output-stream expectation", ""}
+	}
+
+	if c.ExactStdout != "" && res.stdoutText != c.ExactStdout {
+		return Result{cliExitProbeName, label, "content", Gap,
+			"stdout does not match Atlas CE output", c.Issue}
+	}
+	if c.ExactStderr != "" && res.stderr != c.ExactStderr {
+		return Result{cliExitProbeName, label, "content", Gap,
+			"stderr does not match Atlas CE output", c.Issue}
+	}
+	if c.StdoutClass != "" && !strings.Contains(res.stdoutText, c.StdoutClass) {
+		return Result{cliExitProbeName, label, "class", Gap,
+			fmt.Sprintf("expected output-class substring %q on stdout", c.StdoutClass), c.Issue}
+	}
+	if c.StderrClass != "" && !strings.Contains(res.stderr, c.StderrClass) {
+		return Result{cliExitProbeName, label, "class", Gap,
+			fmt.Sprintf("expected error-class substring %q on stderr", c.StderrClass), c.Issue}
+	}
+	if c.Want == exitOK {
 		return Result{cliExitProbeName, label, "exit", OK,
 			fmt.Sprintf("exit 0, output → %s", stream), ""}
-	default: // exitFail
-		if res.exit == 0 {
-			// A failure path that exits 0 means scripts cannot observe the error.
-			return Result{cliExitProbeName, label, "exit", Gap,
-				fmt.Sprintf("expected non-zero exit, got 0 — the failure is not observable via exit code (%s)%s", stream, classNote), "stokaro/ptah#270"}
-		}
-		return Result{cliExitProbeName, label, "exit", OK,
-			fmt.Sprintf("exit %d, error → %s%s", res.exit, stream, classNote), ""}
 	}
+	return Result{cliExitProbeName, label, "exit", OK,
+		fmt.Sprintf("exit 1, error → %s", stream), ""}
 }
 
-// streamChoice describes which stream carried output, so the report gates the
-// stdout/stderr choice: an error must reach stderr, and (like Atlas) ideally
-// leave stdout clean.
+// streamChoice describes which streams carried output.
 func streamChoice(stdoutLen int, stderr string) string {
-	hasErr := strings.TrimSpace(stderr) != ""
+	hasErr := stderr != ""
 	switch {
 	case stdoutLen > 0 && hasErr:
-		return "stderr (stdout not clean)"
+		return "stdout and stderr"
 	case hasErr:
 		return "stderr"
 	case stdoutLen > 0:
@@ -204,31 +500,50 @@ func streamChoice(stdoutLen int, stderr string) string {
 }
 
 type cliExitResult struct {
-	exit     int
-	stdout   int
-	stderr   string
-	timedOut bool
+	exit       int
+	stdout     int
+	stdoutText string
+	stderr     string
+	runErr     string
+	timedOut   bool
 }
 
 func runCLIExit(bin string, args []string, dir string) cliExitResult {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	return runCLIExitWithLimits(bin, args, dir, 30*time.Second, 2*time.Second)
+}
+
+func runCLIExitWithLimits(
+	bin string,
+	args []string,
+	dir string,
+	timeout time.Duration,
+	waitDelay time.Duration,
+) cliExitResult {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = dir
+	cmd.WaitDelay = waitDelay
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
-	res := cliExitResult{exit: 0, stdout: stdout.Len(), stderr: stderr.String()}
+	res := cliExitResult{
+		exit:       0,
+		stdout:     stdout.Len(),
+		stdoutText: stdout.String(),
+		stderr:     stderr.String(),
+	}
 	if ctx.Err() == context.DeadlineExceeded {
 		res.timedOut = true
 		return res
 	}
 	if err != nil {
-		res.exit = -1
 		var ee *exec.ExitError
 		if errors.As(err, &ee) {
 			res.exit = ee.ExitCode()
+		} else {
+			res.runErr = err.Error()
 		}
 	}
 	return res

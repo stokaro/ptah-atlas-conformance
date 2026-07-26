@@ -11,8 +11,8 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260725135152-312121ec5c72`
-- Outcomes: **718 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260726201241-f1e22be30eea`
+- Outcomes: **744 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **161 imported fixture(s)**, **161 measured**, **0 imported-but-unmeasured**
@@ -129,22 +129,48 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | Atlas schemahcl fixture has no schema objects; outside Ptah schema surface |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/variables.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: variable |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/accepted-but-unimplemented-flag` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/broken-atlas.sum` | exit | exit 2, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/accepted-but-unimplemented-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/added-migration` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/clean-atlas.sum-succeeds-silently` | exit | exit 0, output → silent |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/completion-bash-generates-script` | exit | exit 0, output → stdout |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/completion-group-extra-token-shows-help` | exit | exit 0, output → stdout |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/completion-shell-extra-token-fails` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/directory-hash-mismatch` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/duplicate-atlas.sum-entry` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/edited-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-atlas/help-succeeds` | exit | exit 0, output → stdout |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/invalid-database-URL` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/missing-migration-directory` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/missing-project-config` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/unknown-flag` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/unknown-subcommand` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-compat/accepted-but-unimplemented-flag` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-compat/broken-atlas.sum` | exit | exit 2, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/invalid-database-URL` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/malformed-atlas.sum` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/migrate-group-extra-token-shows-help` | exit | exit 0, output → stdout |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/missing-atlas.sum` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/missing-migration-directory` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/missing-project-config` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/missing-required-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/removed-migration` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/unknown-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/unknown-subcommand` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-atlas/unknown-subcommand-suggests-close-verb` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/accepted-but-unimplemented-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/added-migration` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/clean-atlas.sum-succeeds-silently` | exit | exit 0, output → silent |  |
+| — | ok | cli-exit-behavior | `ptah-compat/completion-bash-generates-script` | exit | exit 0, output → stdout |  |
+| — | ok | cli-exit-behavior | `ptah-compat/completion-group-extra-token-shows-help` | exit | exit 0, output → stdout |  |
+| — | ok | cli-exit-behavior | `ptah-compat/completion-shell-extra-token-fails` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/directory-hash-mismatch` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/duplicate-atlas.sum-entry` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/edited-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/help-succeeds` | exit | exit 0, output → stdout |  |
-| — | ok | cli-exit-behavior | `ptah-compat/invalid-database-URL` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-compat/missing-migration-directory` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-compat/missing-project-config` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-compat/unknown-flag` | exit | exit 2, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand` | exit | exit 2, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/invalid-database-URL` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/malformed-atlas.sum` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/migrate-group-extra-token-shows-help` | exit | exit 0, output → stdout |  |
+| — | ok | cli-exit-behavior | `ptah-compat/missing-atlas.sum` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/missing-migration-directory` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/missing-project-config` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/missing-required-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/removed-migration` | exit | exit 1, error → stdout and stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/unknown-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand-suggests-close-verb` | exit | exit 1, error → stderr |  |
 | — | ok | corpus-inventory | `_capability/atlas-cli/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/cli-exit-behavior/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/lint-analyzers/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |

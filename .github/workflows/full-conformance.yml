@@ -199,5 +199,8 @@ jobs:
         if: steps.atlas-cache.outputs.cache-hit != 'true'
         run: make atlas
 
+      - name: Verify CLI exit oracle against Atlas CE
+        run: make verify-cli-exit-oracle
+
       - name: CLI surface full parity gate
         run: make gate-cli-surface

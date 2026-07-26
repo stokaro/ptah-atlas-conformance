@@ -4748,52 +4748,143 @@
   },
   {
     "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/clean-atlas.sum-succeeds-silently",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → silent"
+  },
+  {
+    "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/invalid-database-URL",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/missing-required-flag",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/missing-migration-directory",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
-    "fixture": "ptah-compat/broken-atlas.sum",
+    "fixture": "ptah-compat/malformed-atlas.sum",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/missing-atlas.sum",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/edited-migration",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/added-migration",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/removed-migration",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/duplicate-atlas.sum-entry",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/directory-hash-mismatch",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/unknown-flag",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/unknown-subcommand",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/unknown-subcommand-suggests-close-verb",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/migrate-group-extra-token-shows-help",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/completion-group-extra-token-shows-help",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/completion-bash-generates-script",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/completion-shell-extra-token-fails",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/accepted-but-unimplemented-flag",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/missing-project-config",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
@@ -4804,52 +4895,143 @@
   },
   {
     "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/clean-atlas.sum-succeeds-silently",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → silent"
+  },
+  {
+    "probe": "cli-exit-behavior",
     "fixture": "ptah-atlas/invalid-database-URL",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/missing-required-flag",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-atlas/missing-migration-directory",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/broken-atlas.sum",
+    "fixture": "ptah-atlas/malformed-atlas.sum",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/missing-atlas.sum",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/edited-migration",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/added-migration",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/removed-migration",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/duplicate-atlas.sum-entry",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/directory-hash-mismatch",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-atlas/unknown-flag",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-atlas/unknown-subcommand",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/unknown-subcommand-suggests-close-verb",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/migrate-group-extra-token-shows-help",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/completion-group-extra-token-shows-help",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/completion-bash-generates-script",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 0, output → stdout"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-atlas/completion-shell-extra-token-fails",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-atlas/accepted-but-unimplemented-flag",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-atlas/missing-project-config",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 2, error → stderr"
+    "detail": "exit 1, error → stderr"
   },
   {
     "probe": "lex-split-parity",
