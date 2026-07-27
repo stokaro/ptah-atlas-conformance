@@ -3470,14 +3470,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -3519,14 +3519,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -3687,7 +3687,7 @@
     "fixture": "sql/sqltool/testdata/dbmate",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
@@ -3708,7 +3708,7 @@
     "fixture": "sql/sqltool/testdata/liquibase",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "atlas-cli-surface",

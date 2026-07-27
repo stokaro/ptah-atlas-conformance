@@ -229,7 +229,13 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
 
 1. Deeper runtime probes for the imported Atlas `.txtar` integration fixtures,
    beyond the current virtual command runner and fixture-level script-surface
-   inventory.
+   inventory. *In progress:* the sqlite `cli-migrate-lint-*` fixtures are now
+   executed end to end by the real `ptah atlas migrate lint` CLI against an
+   ephemeral SQLite dev database — default analysis text report,
+   destructive/data-dependent diagnostics, `-- atlas:nolint` suppression, the
+   exit-1 failure threshold, and atlas.hcl `--env`/`lint.log` project-config
+   resolution — so their green is proven against Ptah's own output rather than a
+   harness-local reimplementation of Atlas's linter (ptah#651, ptah#747).
 2. An **introspection** probe: apply a schema with each tool, introspect with
    one reader, diff the canonical states (this is ptah#285 and needs a live DB).
    *Partially built:* the `conformance-diff` tier already compares Atlas CE's and

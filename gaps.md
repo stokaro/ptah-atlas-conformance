@@ -11,7 +11,7 @@ a `gap` here is a thing Atlas expresses that Ptah does not yet.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260726201241-f1e22be30eea`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260727195114-0c2fa0f22edf`
 - Outcomes: **744 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -413,15 +413,15 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `atlasexec/testdata/migrations` | lint | content findings: DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline1` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | content findings: DD101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | content findings: DD101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | content findings: DD101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
@@ -444,10 +444,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `sql/migrate/testdata/migrate/sub` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/partial-checkpoint` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/sqlserver` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/sqltool/testdata/dbmate` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | content findings: DD101 |  |
-| — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/testdata/broken` | recognize | all 1 files recognized |  |

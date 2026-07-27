@@ -6,7 +6,7 @@ require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.0.0-20260726201241-f1e22be30eea
+	github.com/stokaro/ptah v0.0.0-20260727195114-0c2fa0f22edf
 	modernc.org/sqlite v1.54.0
 )
 
