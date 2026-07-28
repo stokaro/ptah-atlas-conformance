@@ -13,10 +13,10 @@ Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260728072831-6fcf6405d140`
-- Outcomes: **776 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **789 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
-- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **6 first-party capability sentinel(s)**
+- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **7 first-party capability sentinel(s)**
 
 ## Findings
 
@@ -130,6 +130,18 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | Atlas schemahcl fixture has no schema objects; outside Ptah schema surface |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/variables.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: variable |  |
+| — | ok | checkpoint-workflow | `SQLite schema facts` | bootstrap schema equivalence | the checkpoint-bootstrapped schema is structurally identical to the full-history replay (tables, columns, defaults, primary keys, foreign keys, and indexes) |  |
+| — | ok | checkpoint-workflow | `SQLite schema facts` | post-checkpoint schema equivalence | the full-history path (1-3 then 5) and the checkpoint bootstrap path (4 then 5) converged to structurally identical schemas |  |
+| — | ok | checkpoint-workflow | `ptah migrations checkpoint` | checkpoint creation | the shadow replay produced the deterministic version-4 checkpoint pair with the cumulative schema, and ptah.sum was rewritten to cover it |  |
+| — | ok | checkpoint-workflow | `ptah migrations down` | rollback boundary guard | rolling back below the checkpoint boundary was refused with exit code 2 and an actionable error, leaving the database untouched |  |
+| — | ok | checkpoint-workflow | `ptah migrations down` | rollback to zero | rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history |  |
+| — | ok | checkpoint-workflow | `ptah migrations status` | status convergence | status reflects the bootstrap decision on both databases: the checkpoint is not pending on the already-migrated one, and the bootstrapped one is complete at revision 4 |  |
+| — | ok | checkpoint-workflow | `ptah migrations up` | full history application | the three-migration history applied in full, recording versions 1-3 individually |  |
+| — | ok | checkpoint-workflow | `ptah migrations up` | fresh bootstrap | a fresh database bootstrapped from the checkpoint alone, recording only revision 4 with the squashed history satisfied |  |
+| — | ok | checkpoint-workflow | `ptah migrations up` | already-migrated no-op | the already-migrated database ignored the checkpoint: re-running up applied nothing and left revisions 1-3 unchanged |  |
+| — | ok | checkpoint-workflow | `ptah migrations up` | post-checkpoint continuation | a fresh database bootstrapped from the checkpoint and applied only the post-checkpoint migration, recording revisions 4 and 5 |  |
+| — | ok | checkpoint-workflow | `ptah migrations validate` | checkpoint integrity | the directory including the fresh checkpoint pair validates against the rewritten ptah.sum |  |
+| — | ok | checkpoint-workflow | `ptah migrations validate` | tamper detection | a single tampered byte in the checkpoint file failed validation naming that file, and restoring the bytes validated cleanly again |  |
 | — | ok | cli-exit-behavior | `ptah-atlas/accepted-but-unimplemented-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-atlas/added-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-atlas/clean-atlas.sum-succeeds-silently` | exit | exit 0, output → silent |  |
@@ -181,6 +193,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | composite-schema-workflow | `ptah migrations generate` | migration generation | the mixed desired schema generated a Ptah migration pair against an empty SQLite database |  |
 | — | ok | composite-schema-workflow | `ptah migrations up` | migration application | the generated composite-schema migration applied to SQLite |  |
 | — | ok | corpus-inventory | `_capability/atlas-cli/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/checkpoint-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/cli-exit-behavior/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/composite-schema/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/dbtest-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |

@@ -1,0 +1,9 @@
+Capability sentinel for the checkpoint-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/checkpoint
+through the real Ptah CLI. It exercises Ptah's migration checkpoint capability
+(`ptah migrations checkpoint` plus checkpoint-aware `up`, `status`, `validate`,
+and `down`), which Atlas keeps in its proprietary Pro build: Atlas OSS prints
+"'atlas migrate checkpoint' is not supported by the community version." These
+fixtures are intentionally separate from the Atlas schema round-trip corpus
+because they measure a Ptah-native capability (stokaro/ptah#660).
