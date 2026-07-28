@@ -1,18 +1,20 @@
 # ptah-atlas-conformance
 
-A coverage probe that drives [Atlas](https://github.com/ariga/atlas)'s own
-migration fixtures through [Ptah](https://github.com/stokaro/ptah)'s public API
-and reports, per fixture, the stage at which Ptah cannot ingest what Atlas
-authored.
+A conformance harness that drives [Atlas](https://github.com/ariga/atlas)'s own
+fixtures through [Ptah](https://github.com/stokaro/ptah)'s public API, compares
+selected runtime behavior with Atlas CE, and executes first-party workflows for
+open Ptah capabilities that Atlas keeps outside CE.
 
-It answers a question Ptah's own test suite cannot: **what does Atlas express
-that Ptah does not yet cover?** By construction, fixtures written by the Ptah
-maintainer only exercise what the maintainer already thought to support. Pointing
-Atlas's corpus at Ptah surfaces the blind spots.
+It answers two questions Ptah's own test suite cannot answer alone: **what does
+Atlas express that Ptah does not yet cover, and do Ptah's beyond-CE workflows
+still work through the shipped CLI?** Pointing Atlas's corpus at Ptah surfaces
+blind spots; separate capability fixtures prevent open workflow features from
+being inferred from schema parsing alone.
 
 The generated report is [`gaps.md`](./gaps.md). It is a coverage map, not a
-quality score: a `gap` is a thing Atlas expresses that Ptah does not model yet,
-and each row links the Ptah issue that tracks closing it.
+quality score: a `gap` is either an Atlas construct Ptah does not model yet or a
+first-party workflow contract Ptah failed to preserve. Each row links the Ptah
+issue that tracks closing it.
 
 **This is not a full feature-set parity test.** The repository now vendors every
 file under Atlas's open-source `*/testdata/*` tree at the pinned commit (286
@@ -57,16 +59,20 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `atlas-cli-surface-inventory` / `atlas-cli-surface-ptah-*` | Dedicated CLI surface report over the current pinned Atlas CE binary: command paths, help usage, and long flags, compared separately against `ptah atlas ...` and binary-level `ptah-compat` drop-in behavior. | `bin/atlas`, the built `ptah` binary, the built `ptah-compat` binary |
 | `migrate-runtime` | Does `ptah atlas migrate ...` preserve Atlas-compatible runtime state against real databases: applied schema objects, Atlas revision rows, `set` repair behavior, and transaction-mode rollback/partial-apply semantics? | the built `ptah` binary, live SQLite databases |
 | `lint-analyzer-catalog` | For each Atlas sqlcheck analyzer concern, does Ptah's linter flag the same dangerous change? Behavioral, one synthetic migration per analyzer, so it flips green when Ptah gains the rule. | `migration/lint` |
-| `lex-split-parity` | Does Ptah split a migration into the same statements Atlas does? A differential check against Atlas's own `.golden` lexer outputs (no live Atlas needed), normalized so it measures statement boundaries, not comment preservation. Surfaces real drop-in blockers: function bodies, `BEGIN ATOMIC`, MySQL `DELIMITER`. | `migration/migrator` |
+| `lex-split-parity` | Does Ptah split a migration into the same statements Atlas does? A differential check against Atlas's own `.golden` lexer outputs (no live Atlas needed), normalized so it measures statement boundaries, not comment preservation. Surfaces real drop-in blockers: function bodies, `BEGIN ATOMIC`, MySQL `DELIMITER`. | `core/sqlutil` dialect-aware statement splitting |
+| `dbtest-workflow` | Do the native `ptah migrations test` and `ptah schema test` commands execute committed migration/schema/seed fixtures against isolated SQLite databases, filter cases, repair schema drift, render text/JSON/HTML reports, and preserve exit codes 1 (assertion failure) and 2 (setup failure)? | the built `ptah` binary, `migration/dbtest`, ephemeral SQLite |
+| `composite-schema-workflow` | Do independently owned Go and YAML desired-schema sources render exactly like a committed hand-merged schema, reject conflicting identities, generate identical up/down migrations, and converge on verified SQLite schema facts? | the built `ptah` binary, `core/goschema`, ephemeral SQLite |
 
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
 
 ## Live tiers (real database)
 
-The probes above are offline and deterministic. Three further tiers run against a
-real database in their own workflows, kept separate so the offline report stays
-DB-free.
+The probes above are deterministic and require no external services.
+`dbtest-workflow` and `composite-schema-workflow` intentionally execute local
+ephemeral SQLite databases; the remaining offline probes do not open a
+database. Three further tiers run against real networked databases in their own
+workflows, kept separate from the deterministic report.
 
 | Tier | Workflow | Question | Needs |
 | --- | --- | --- | --- |
@@ -159,7 +165,9 @@ help, then records:
 - long flags from command and global help;
 - explicit OSS vs out-of-scope classification;
 - community-version unsupported behavior for Atlas CE commands that are present
-  only as Cloud/commercial or intentionally unsupported stubs;
+  only as Cloud/commercial features, or explicit resolution when Ptah provides
+  an open capability beyond CE; dedicated workflow probes, not help output, own
+  behavioral evidence for those extra capabilities;
 - separate compatibility findings for `ptah atlas ...` and for a `ptah-compat`
   binary named `atlas`.
 

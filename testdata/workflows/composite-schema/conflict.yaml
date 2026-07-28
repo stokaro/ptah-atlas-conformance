@@ -1,0 +1,4 @@
+tables:
+  users:
+    columns:
+      id: { type: TEXT, primary: true }

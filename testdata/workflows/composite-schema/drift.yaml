@@ -1,0 +1,19 @@
+tables:
+  users:
+    columns:
+      id: { type: INTEGER, primary: true }
+      email: { type: TEXT, not_null: true, unique: true }
+  orders:
+    columns:
+      id: { type: INTEGER, primary: true }
+      user_id:
+        type: INTEGER
+        not_null: true
+        foreign: users(id)
+        foreign_key_name: fk_orders_user
+      reference: { type: TEXT, not_null: true }
+    indexes:
+      idx_orders_reference: { fields: [reference] }
+  audit_log:
+    columns:
+      id: { type: INTEGER, primary: true }

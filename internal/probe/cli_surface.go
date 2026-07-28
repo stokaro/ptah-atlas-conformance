@@ -219,8 +219,13 @@ func compareOutOfScopeCommand(probeName, display, bin string, path []string, atl
 		return Result{probeName, display, "out-of-scope-runtime", OK,
 			"`" + display + "` reports the same community-version unsupported boundary as Atlas CE", ""}
 	}
+	target, helpErr := readCommandSurface(bin, path)
+	if helpErr == nil && (target.Usage == display || strings.HasPrefix(target.Usage, display+" ")) {
+		return Result{probeName, display, "out-of-scope-runtime", OK,
+			"`" + display + "` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage", ""}
+	}
 	return Result{probeName, display, "out-of-scope-runtime", Gap,
-		"`" + display + "` does not report Atlas CE's community-version unsupported boundary; got `" + oneLine(out) + "`",
+		"`" + display + "` neither reports Atlas CE's community-version unsupported boundary nor resolves as an explicit Ptah capability; got `" + oneLine(out) + "`",
 		issue}
 }
 

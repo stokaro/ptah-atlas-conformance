@@ -11,7 +11,7 @@ Atlas CE binary, then compares them with both Ptah compatibility surfaces:
 Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 - Atlas CE binary: `atlas community version v1.2.0`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260726201241-f1e22be30eea`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260728072831-6fcf6405d140`
 - Outcomes: **122 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -89,7 +89,7 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate` | usage | usage matches Atlas: `atlas migrate [command]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | flags | long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | usage | usage matches Atlas: `atlas migrate apply [flags] [amount]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | out-of-scope-runtime | `atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | out-of-scope-runtime | `atlas migrate checkpoint` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | usage | usage matches Atlas: `atlas migrate diff [flags] [name]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate edit` | out-of-scope-runtime | `atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE |  |
@@ -136,7 +136,7 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate` | usage | usage matches Atlas: `atlas migrate [command]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate apply` | flags | long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate apply` | usage | usage matches Atlas: `atlas migrate apply [flags] [amount]` |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | out-of-scope-runtime | `ptah atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | out-of-scope-runtime | `ptah atlas migrate checkpoint` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate diff` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate diff` | usage | usage matches Atlas: `atlas migrate diff [flags] [name]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate edit` | out-of-scope-runtime | `ptah atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE |  |

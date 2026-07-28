@@ -1,0 +1,7 @@
+cases:
+  - name: first isolated database
+    steps:
+      - exec: CREATE TABLE isolated (id INTEGER PRIMARY KEY)
+  - name: second isolated database
+    steps:
+      - exec: CREATE TABLE isolated (id INTEGER PRIMARY KEY)

@@ -40,6 +40,8 @@ func AllProbes() []Probe {
 		AtlasLintAnalyzerProbe{},
 		AtlasCLIExitBehaviorProbe{},
 		LexSplitParityProbe{},
+		DBTestWorkflowProbe{FixtureRoot: filepath.Join("testdata", "workflows", "dbtest")},
+		CompositeSchemaWorkflowProbe{FixtureRoot: filepath.Join("testdata", "workflows", "composite-schema")},
 	}
 }
 

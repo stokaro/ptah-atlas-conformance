@@ -1,0 +1,12 @@
+tables:
+  orders:
+    columns:
+      id: { type: INTEGER, primary: true }
+      user_id:
+        type: INTEGER
+        not_null: true
+        foreign: users(id)
+        foreign_key_name: fk_orders_user
+      reference: { type: TEXT, not_null: true }
+    indexes:
+      idx_orders_reference: { fields: [reference] }

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/stokaro/ptah/core/sqlutil"
-	"github.com/stokaro/ptah/migration/migrator"
 )
 
 // atlasGoldenSep is how Atlas's lexer tests serialize a statement list into a
@@ -18,18 +17,11 @@ const atlasGoldenSep = "\n-- end --\n"
 
 // LexSplitParityProbe is a differential check against Atlas's own recorded
 // output: for every Atlas lexer fixture that ships a `.golden`, it asks whether
-// Ptah's migration statement splitter breaks the same SQL into the same
-// statements Atlas does. This matters for drop-in: if Ptah splits a
+// Ptah's dialect-aware migration statement splitter breaks the same SQL into the
+// same statements Atlas does. This matters for drop-in: if Ptah splits a
 // multi-statement migration — a stored function body, a BEGIN ATOMIC block, a
-// MySQL DELIMITER section — differently from Atlas, the migration executes
-// differently.
-//
-// Atlas records each fixture's `.golden` with a specific dialect, and the
-// dialect governs string-literal escaping (a backslash is a C-style escape only
-// for MySQL/MariaDB/ClickHouse), which moves statement boundaries. The probe
-// therefore splits with the fixture's own dialect (derived from its filename
-// suffix, see lexFixtureDialect) so a dialect-specific golden is compared
-// against a matching dialect-aware split, not the dialect-blind one.
+// MySQL DELIMITER section — differently from Atlas, the migration
+// executes differently.
 //
 // The comparison is normalized (comments, trailing semicolons and whitespace are
 // stripped on both sides) so it measures statement BOUNDARIES and core content,
@@ -70,9 +62,8 @@ func (LexSplitParityProbe) Run(fx Fixture) []Result {
 		}
 
 		var ptahStmts []string
-		dialect := lexFixtureDialect(rel)
 		panicked, pmsg := guard(func() {
-			ptahStmts = splitLexStatements(string(in), dialect)
+			ptahStmts = sqlutil.SplitSQLStatementsForDialect(string(in), atlasLexFixtureDialect(f))
 		})
 		if panicked {
 			out = append(out, Result{"lex-split-parity", rel, "split", Panic,
@@ -89,10 +80,27 @@ func (LexSplitParityProbe) Run(fx Fixture) []Result {
 			out = append(out, Result{"lex-split-parity", rel, "split", Gap,
 				fmt.Sprintf("Ptah splits this into %d statement(s), Atlas into %d — statement boundaries differ "+
 					"(delimiter directive, function/atomic body, or embedded-semicolon handling)", len(ptah), len(atlas)),
-				"stokaro/ptah#756"})
+				"stokaro/ptah#273"})
 		}
 	}
 	return out
+}
+
+// atlasLexFixtureDialect maps Atlas's explicit lexer-fixture suffixes to the
+// dialect the upstream golden was produced for. The dialect is part of the
+// fixture contract: MySQL processes backslash escapes while PostgreSQL standard
+// strings do not. Files without an explicit suffix keep Ptah's compatibility
+// default.
+func atlasLexFixtureDialect(path string) string {
+	name := strings.ToLower(filepath.Base(path))
+	switch {
+	case strings.HasSuffix(name, ".my.sql"):
+		return "mysql"
+	case strings.HasSuffix(name, ".pg.sql"):
+		return "postgres"
+	default:
+		return ""
+	}
 }
 
 // sqlServerLexFixture reports whether a lexer fixture exercises SQL Server
@@ -103,44 +111,7 @@ func sqlServerLexFixture(rel string) bool {
 	return strings.Contains(l, "/sqlserver/") ||
 		strings.Contains(l, "/lexbegintry/") ||
 		strings.Contains(l, "ms_gocmd") ||
-		strings.Contains(l, "ms_go-delim") ||
-		strings.HasSuffix(l, ".ms.sql")
-}
-
-// lexFixtureDialect derives the SQL dialect for an Atlas lexer fixture from its
-// filename suffix. Atlas records each fixture's `.golden` with a specific
-// dialect, and the dialect governs string-literal escaping (a backslash is a
-// C-style escape only for MySQL/MariaDB/ClickHouse), which moves statement
-// boundaries. The escaped-literal fixtures encode the dialect as `.my.sql`
-// (MySQL) and `.pg.sql` (PostgreSQL); `.lt.sql`/`.sqlite.sql` denote SQLite. The
-// remaining fixtures use Atlas's generic lexer and map to the empty dialect,
-// which preserves Ptah's dialect-blind, PostgreSQL-safe split. SQL Server
-// (`.ms.sql`) is filtered out as out-of-scope before this is consulted.
-func lexFixtureDialect(rel string) string {
-	switch l := strings.ToLower(rel); {
-	case strings.HasSuffix(l, ".my.sql"):
-		return "mysql"
-	case strings.HasSuffix(l, ".pg.sql"):
-		return "postgres"
-	case strings.HasSuffix(l, ".lt.sql"), strings.HasSuffix(l, ".sqlite.sql"):
-		return "sqlite"
-	default:
-		return ""
-	}
-}
-
-// splitLexStatements splits a migration into statements the way the migrator
-// does — client-delimiter normalization followed by comment stripping — but
-// scans string literals with the fixture's dialect so backslash-escape handling
-// matches the target engine. For the empty (generic) dialect it delegates to
-// migrator.SplitSQLStatements, so every non-dialect fixture keeps its exact
-// current behavior; only dialect-tagged fixtures change.
-func splitLexStatements(sql, dialect string) []string {
-	if dialect == "" {
-		return migrator.SplitSQLStatements(sql)
-	}
-	normalized := sqlutil.NormalizeClientDelimiters(sql)
-	return sqlutil.SplitSQLStatementsForDialect(sqlutil.StripComments(normalized), dialect)
+		strings.Contains(l, "ms_go-delim")
 }
 
 var (
