@@ -14,13 +14,13 @@ import (
 	qt "github.com/frankban/quicktest"
 )
 
-func TestDBTestCommandEnvironment_StripsPtahVariables(t *testing.T) {
+func TestPtahCommandEnvironment_StripsPtahVariables(t *testing.T) {
 	c := qt.New(t)
 	t.Setenv("PTAH_DB_URL", "sqlite://must-not-escape")
 	t.Setenv("ptah_token", "must-not-escape")
 	t.Setenv("DBTEST_KEEP", "present")
 
-	environment := dbTestCommandEnvironment()
+	environment := ptahCommandEnvironment()
 
 	c.Assert(environment, qt.Not(qt.Contains), "PTAH_DB_URL=sqlite://must-not-escape")
 	c.Assert(environment, qt.Not(qt.Contains), "ptah_token=must-not-escape")

@@ -61,6 +61,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `lint-analyzer-catalog` | For each Atlas sqlcheck analyzer concern, does Ptah's linter flag the same dangerous change? Behavioral, one synthetic migration per analyzer, so it flips green when Ptah gains the rule. | `migration/lint` |
 | `lex-split-parity` | Does Ptah split a migration into the same statements Atlas does? A differential check against Atlas's own `.golden` lexer outputs (no live Atlas needed), normalized so it measures statement boundaries, not comment preservation. Surfaces real drop-in blockers: function bodies, `BEGIN ATOMIC`, MySQL `DELIMITER`. | `core/sqlutil` dialect-aware statement splitting |
 | `dbtest-workflow` | Do the native `ptah migrations test` and `ptah schema test` commands execute committed migration/schema/seed fixtures against isolated SQLite databases, filter cases, repair schema drift, render text/JSON/HTML reports, and preserve exit codes 1 (assertion failure) and 2 (setup failure)? | the built `ptah` binary, `migration/dbtest`, ephemeral SQLite |
+| `composite-schema-workflow` | Do independently owned Go and YAML desired-schema sources render exactly like a committed hand-merged schema, reject conflicting identities, generate identical up/down migrations, and converge on verified SQLite schema facts? | the built `ptah` binary, `core/goschema`, ephemeral SQLite |
 
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
@@ -68,10 +69,10 @@ own (strongest) outcome rather than aborting the run.
 ## Live tiers (real database)
 
 The probes above are deterministic and require no external services.
-`dbtest-workflow` intentionally executes local ephemeral SQLite databases; the
-remaining offline probes do not open a database. Three further tiers run against
-real networked databases in their own workflows, kept separate from the
-deterministic report.
+`dbtest-workflow` and `composite-schema-workflow` intentionally execute local
+ephemeral SQLite databases; the remaining offline probes do not open a
+database. Three further tiers run against real networked databases in their own
+workflows, kept separate from the deterministic report.
 
 | Tier | Workflow | Question | Needs |
 | --- | --- | --- | --- |

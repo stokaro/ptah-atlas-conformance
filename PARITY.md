@@ -6,14 +6,15 @@ should be read as one.**
 It is a deterministic coverage probe over the full vendored Atlas
 `*/testdata/*` snapshot plus first-party Atlas-compatible regression and
 workflow fixtures, run through Ptah's public API and real CLI. Most observations
-are structural and database-free; the `dbtest-workflow` capability probe uses
-fresh local SQLite databases and no external service. It exists to turn "are we
-there yet" from an opinion into a number that moves over time. Treat the results
-as a floor on the distance to Atlas, never a ceiling.
+are structural and database-free; the `dbtest-workflow` and
+`composite-schema-workflow` capability probes use fresh local SQLite databases
+and no external service. It exists to turn "are we there yet" from an opinion
+into a number that moves over time. Treat the results as a floor on the distance
+to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files plus first-party
 regression and capability fixtures, grouped into 158 imported Atlas fixtures,
-4 first-party capability sentinels, and 758 deterministic observations, with
+5 first-party capability sentinels, and 767 deterministic observations, with
 **0 unwaived non-OK observations**. Every imported fixture and capability
 sentinel is measured by at least one current probe. This means the
 deterministic report is green; it does **not** mean full Atlas OSS runtime
@@ -21,19 +22,20 @@ parity, because several runtime dimensions remain unmeasured.
 
 ## What the probe found broken
 
-Corpus probes are offline and structural. The `dbtest-workflow` probe also
-executes committed first-party fixtures through the real Ptah CLI against
-ephemeral SQLite databases.
+Corpus probes are offline and structural. The `dbtest-workflow` and
+`composite-schema-workflow` probes also execute committed first-party fixtures
+through the real Ptah CLI against ephemeral SQLite databases.
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 4 first-party capability sentinels are reported separately. |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 5 first-party capability sentinels are reported separately. |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all vendored `.sql` files covered by the offline probe set and is currently green on the imported corpus. |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Current measured Atlas migration directories are recognized. |
 | `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Current measured fixtures pass the parsed/recomputed sum compatibility probe. |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Current analyzer catalog and fixture-level lint parity probes are green on the committed corpus. |
 | `dbtest-workflow` | Do Ptah's native declarative migration and schema test commands preserve their key end-to-end CLI contracts? | Both commands execute committed fixtures against isolated SQLite databases; numeric/latest/zero migration targets, desired-schema application and drift repair, seed steps, all assertion kinds, `--run`, text/JSON/HTML reports, invalid schema steps, and command-specific exit codes 1/2 are checked. |
+| `composite-schema-workflow` | Do multiple desired-schema sources behave exactly like one hand-merged source? | Full SQLite DDL snapshots, source conflicts, generated up/down equivalence, direct live schema facts, clean mixed/hand-merged comparisons, and a drift-detecting negative control are checked. |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -72,7 +74,10 @@ is **"unknown — not measured"**, not "works".
   first-party behavioral probes rather than falsely compared with CE.
   Declarative database testing (ptah#659) is measured here by
   `dbtest-workflow`, which runs committed fixtures through both native commands
-  on ephemeral SQLite and verifies reports and process exits. Pre-migration
+  on ephemeral SQLite and verifies reports and process exits. Composite desired
+  schemas (ptah#666) are measured by `composite-schema-workflow`, which proves
+  source composition against a hand-merged oracle and a live SQLite end state.
+  Pre-migration
   assertion checks (`-- +ptah check`, ptah#661) remain covered in Ptah's own
   behavioral tests: Atlas CE offers neither the check execution nor the Cloud
   approval half, so there is no CE oracle. This is scope, not a gap.

@@ -1107,6 +1107,13 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/composite-schema/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "_capability/dbtest-workflow/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
@@ -5326,5 +5333,61 @@
     "stage": "step validation",
     "outcome": "ok",
     "detail": "schema tests rejected migrate_to with process exit code 1 and an actionable result"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "mixed render",
+    "stage": "render",
+    "outcome": "ok",
+    "detail": "Go and YAML sources rendered users and orders exactly once"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "hand-merged equivalence",
+    "stage": "render equivalence",
+    "outcome": "ok",
+    "detail": "mixed and hand-merged desired schemas rendered identical SQLite SQL"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "conflicting sources",
+    "stage": "conflict detection",
+    "outcome": "ok",
+    "detail": "conflicting database identities failed before rendering"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "ptah migrations generate",
+    "stage": "migration generation",
+    "outcome": "ok",
+    "detail": "the mixed desired schema generated a Ptah migration pair against an empty SQLite database"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "hand-merged migration equivalence",
+    "stage": "migration equivalence",
+    "outcome": "ok",
+    "detail": "mixed and hand-merged desired schemas generated identical SQLite up/down SQL"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "ptah migrations up",
+    "stage": "migration application",
+    "outcome": "ok",
+    "detail": "the generated composite-schema migration applied to SQLite"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "SQLite schema facts",
+    "stage": "live schema facts",
+    "outcome": "ok",
+    "detail": "SQLite contained both tables, every expected column attribute, the cross-source foreign key, and the index"
+  },
+  {
+    "probe": "composite-schema-workflow",
+    "fixture": "live comparison controls",
+    "stage": "live end state",
+    "outcome": "ok",
+    "detail": "mixed and hand-merged sources reported an empty diff; an intentionally drifted source reported changes with exit code 1"
   }
 ]
