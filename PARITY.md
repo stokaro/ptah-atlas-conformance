@@ -6,15 +6,16 @@ should be read as one.**
 It is a deterministic coverage probe over the full vendored Atlas
 `*/testdata/*` snapshot plus first-party Atlas-compatible regression and
 workflow fixtures, run through Ptah's public API and real CLI. Most observations
-are structural and database-free; the `dbtest-workflow` and
-`composite-schema-workflow` capability probes use fresh local SQLite databases
-and no external service. It exists to turn "are we there yet" from an opinion
+are structural and database-free; the `dbtest-workflow`,
+`composite-schema-workflow`, and `managed-data-workflow` capability probes use
+fresh local SQLite databases and no external service. It exists to turn "are we
+there yet" from an opinion
 into a number that moves over time. Treat the results as a floor on the distance
 to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files plus first-party
 regression and capability fixtures, grouped into 158 imported Atlas fixtures,
-5 first-party capability sentinels, and 767 deterministic observations, with
+6 first-party capability sentinels, and 776 deterministic observations, with
 **0 unwaived non-OK observations**. Every imported fixture and capability
 sentinel is measured by at least one current probe. This means the
 deterministic report is green; it does **not** mean full Atlas OSS runtime
@@ -22,13 +23,14 @@ parity, because several runtime dimensions remain unmeasured.
 
 ## What the probe found broken
 
-Corpus probes are offline and structural. The `dbtest-workflow` and
-`composite-schema-workflow` probes also execute committed first-party fixtures
-through the real Ptah CLI against ephemeral SQLite databases.
+Corpus probes are offline and structural. The `dbtest-workflow`,
+`composite-schema-workflow`, and `managed-data-workflow` probes also execute
+committed first-party fixtures through the real Ptah CLI against ephemeral
+SQLite databases.
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 5 first-party capability sentinels are reported separately. |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 6 first-party capability sentinels are reported separately. |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all vendored `.sql` files covered by the offline probe set and is currently green on the imported corpus. |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Current measured Atlas migration directories are recognized. |
 | `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
@@ -36,6 +38,7 @@ through the real Ptah CLI against ephemeral SQLite databases.
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Current analyzer catalog and fixture-level lint parity probes are green on the committed corpus. |
 | `dbtest-workflow` | Do Ptah's native declarative migration and schema test commands preserve their key end-to-end CLI contracts? | Both commands execute committed fixtures against isolated SQLite databases; numeric/latest/zero migration targets, desired-schema application and drift repair, seed steps, all assertion kinds, `--run`, text/JSON/HTML reports, invalid schema steps, and command-specific exit codes 1/2 are checked. |
 | `composite-schema-workflow` | Do multiple desired-schema sources behave exactly like one hand-merged source? | Full SQLite DDL snapshots, source conflicts, generated up/down equivalence, direct live schema facts, clean mixed/hand-merged comparisons, and a drift-detecting negative control are checked. |
+| `managed-data-workflow` | Does Ptah's declarative reference/seed data round-trip apply, introspect, and converge? | A model's `//migrator:schema:data` rows are applied via `ptah migrations data`, the seeded rows are introspected and matched to the declared desired state, a re-diff converges to "no data changes", a divergent desired set is refused by the destructive gate (exit 2), and rolling the data migration back removes exactly the inserted rows. |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -77,6 +80,12 @@ is **"unknown — not measured"**, not "works".
   on ephemeral SQLite and verifies reports and process exits. Composite desired
   schemas (ptah#666) are measured by `composite-schema-workflow`, which proves
   source composition against a hand-merged oracle and a live SQLite end state.
+  Declarative reference/seed data management (ptah#663) is measured by
+  `managed-data-workflow`, which proves the full round-trip on ephemeral SQLite:
+  declared rows are applied through `ptah migrations data`, introspected back,
+  and re-diffed to a converged "no data changes" state, with a destructive-gate
+  refusal and a reversible rollback. Atlas CE offers no declarative
+  reference-data management or inspection, so there is no CE oracle.
   Pre-migration
   assertion checks (`-- +ptah check`, ptah#661) remain covered in Ptah's own
   behavioral tests: Atlas CE offers neither the check execution nor the Cloud
@@ -173,6 +182,24 @@ workflow probes are fixture-driven and make only the claims listed below.
   remain owned by Ptah's package and command tests. These fixtures live under
   `testdata/workflows/dbtest`, outside the Atlas round-trip corpus, because they
   measure a Ptah-native capability rather than an Atlas CE schema object.
+- **`managed-data-workflow`** is an end-to-end capability probe over Ptah's
+  declarative reference/seed data feature, which Atlas CE does not offer. It
+  builds the go.mod-pinned `ptah` binary and drives the whole round-trip
+  ptah#663 asks for on an ephemeral SQLite database: a committed model declares
+  managed rows via `//migrator:schema:data` pointing at a YAML row-data file;
+  `ptah migrations generate` and `up` create the empty table; `ptah migrations
+  data` generates a reversible data migration (the up body inserts every
+  declared row, the down body deletes exactly those keys); `up` applies it; the
+  seeded rows are introspected directly from SQLite and matched to the declared
+  desired state; a re-run of `ptah migrations data` against the seeded database
+  converges to "no data changes"; a divergent desired set that would delete a
+  row is refused by the generation-time destructive gate with exit code 2 and
+  writes no files; and rolling the data migration back with `ptah migrations
+  down` removes exactly the inserted rows while leaving the schema intact. Row
+  application and diffing run entirely through the real CLI — the probe only
+  reads the resulting SQLite rows to verify them. These fixtures live under
+  `testdata/workflows/managed-data`, outside the Atlas round-trip corpus,
+  because they measure a Ptah-native capability with no Atlas CE oracle.
 - **`cli-exit-behavior`** is an **exit and error-behavior matrix** over
   representative Atlas OSS success and failure paths (invalid URL, missing
   migration directory, missing/malformed/duplicate `atlas.sum`, clean checksum

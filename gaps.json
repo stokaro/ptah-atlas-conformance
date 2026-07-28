@@ -1128,6 +1128,13 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/managed-data-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "txtar-down",
     "stage": "import",
     "outcome": "ok",
@@ -5389,5 +5396,61 @@
     "stage": "live end state",
     "outcome": "ok",
     "detail": "mixed and hand-merged sources reported an empty diff; an intentionally drifted source reported changes with exit code 1"
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "ptah migrations generate",
+    "stage": "schema generation",
+    "outcome": "ok",
+    "detail": "the managed-data model generated a schema migration that creates the countries table"
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "ptah migrations up",
+    "stage": "schema application",
+    "outcome": "ok",
+    "detail": "the schema migration applied to SQLite and left an empty countries table"
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "ptah migrations data",
+    "stage": "data migration generation",
+    "outcome": "ok",
+    "detail": "the declared rows generated a reversible data migration (up inserts every row, down deletes exactly those keys)"
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "ptah migrations up",
+    "stage": "data application",
+    "outcome": "ok",
+    "detail": "the generated data migration applied to SQLite"
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "managed rows",
+    "stage": "row introspection",
+    "outcome": "ok",
+    "detail": "the introspected countries rows match the declared managed reference data exactly"
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "ptah migrations data",
+    "stage": "convergence re-diff",
+    "outcome": "ok",
+    "detail": "re-running the data diff against the seeded database converged to \"no data changes\""
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "ptah migrations data",
+    "stage": "destructive gate",
+    "outcome": "ok",
+    "detail": "a divergent desired set that would delete rows was refused with exit code 2 and wrote no files"
+  },
+  {
+    "probe": "managed-data-workflow",
+    "fixture": "ptah migrations down",
+    "stage": "data reversibility",
+    "outcome": "ok",
+    "detail": "rolling back the data migration removed exactly the seeded rows, leaving the schema intact"
   }
 ]

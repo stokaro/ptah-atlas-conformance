@@ -13,10 +13,10 @@ Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260728072831-6fcf6405d140`
-- Outcomes: **767 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **776 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
-- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **5 first-party capability sentinel(s)**
+- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **6 first-party capability sentinel(s)**
 
 ## Findings
 
@@ -185,6 +185,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | corpus-inventory | `_capability/composite-schema/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/dbtest-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/lint-analyzers/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/managed-data-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
@@ -472,6 +473,14 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
+| — | ok | managed-data-workflow | `managed rows` | row introspection | the introspected countries rows match the declared managed reference data exactly |  |
+| — | ok | managed-data-workflow | `ptah migrations data` | data migration generation | the declared rows generated a reversible data migration (up inserts every row, down deletes exactly those keys) |  |
+| — | ok | managed-data-workflow | `ptah migrations data` | convergence re-diff | re-running the data diff against the seeded database converged to "no data changes" |  |
+| — | ok | managed-data-workflow | `ptah migrations data` | destructive gate | a divergent desired set that would delete rows was refused with exit code 2 and wrote no files |  |
+| — | ok | managed-data-workflow | `ptah migrations down` | data reversibility | rolling back the data migration removed exactly the seeded rows, leaving the schema intact |  |
+| — | ok | managed-data-workflow | `ptah migrations generate` | schema generation | the managed-data model generated a schema migration that creates the countries table |  |
+| — | ok | managed-data-workflow | `ptah migrations up` | schema application | the schema migration applied to SQLite and left an empty countries table |  |
+| — | ok | managed-data-workflow | `ptah migrations up` | data application | the generated data migration applied to SQLite |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `atlasexec/testdata/broken` | recognize | all 1 files recognized |  |

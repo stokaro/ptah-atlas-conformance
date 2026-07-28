@@ -1,0 +1,5 @@
+# Divergent desired set: only US. Dropping CZ from the desired rows means
+# reconciling against the seeded database would DELETE the CZ row, which the
+# destructive gate must refuse without --allow-destructive.
+- code: US
+  name: United States
