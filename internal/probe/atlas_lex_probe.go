@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/stokaro/ptah/migration/migrator"
+	"github.com/stokaro/ptah/core/sqlutil"
 )
 
 // atlasGoldenSep is how Atlas's lexer tests serialize a statement list into a
@@ -17,10 +17,10 @@ const atlasGoldenSep = "\n-- end --\n"
 
 // LexSplitParityProbe is a differential check against Atlas's own recorded
 // output: for every Atlas lexer fixture that ships a `.golden`, it asks whether
-// Ptah's migration statement splitter (migrator.SplitSQLStatements) breaks the
-// same SQL into the same statements Atlas does. This matters for drop-in: if Ptah
-// splits a multi-statement migration — a stored function body, a BEGIN ATOMIC
-// block, a MySQL DELIMITER section — differently from Atlas, the migration
+// Ptah's dialect-aware migration statement splitter breaks the same SQL into the
+// same statements Atlas does. This matters for drop-in: if Ptah splits a
+// multi-statement migration — a stored function body, a BEGIN ATOMIC block, a
+// MySQL DELIMITER section — differently from Atlas, the migration
 // executes differently.
 //
 // The comparison is normalized (comments, trailing semicolons and whitespace are
@@ -63,7 +63,7 @@ func (LexSplitParityProbe) Run(fx Fixture) []Result {
 
 		var ptahStmts []string
 		panicked, pmsg := guard(func() {
-			ptahStmts = migrator.SplitSQLStatements(string(in))
+			ptahStmts = sqlutil.SplitSQLStatementsForDialect(string(in), atlasLexFixtureDialect(f))
 		})
 		if panicked {
 			out = append(out, Result{"lex-split-parity", rel, "split", Panic,
@@ -84,6 +84,23 @@ func (LexSplitParityProbe) Run(fx Fixture) []Result {
 		}
 	}
 	return out
+}
+
+// atlasLexFixtureDialect maps Atlas's explicit lexer-fixture suffixes to the
+// dialect the upstream golden was produced for. The dialect is part of the
+// fixture contract: MySQL processes backslash escapes while PostgreSQL standard
+// strings do not. Files without an explicit suffix keep Ptah's compatibility
+// default.
+func atlasLexFixtureDialect(path string) string {
+	name := strings.ToLower(filepath.Base(path))
+	switch {
+	case strings.HasSuffix(name, ".my.sql"):
+		return "mysql"
+	case strings.HasSuffix(name, ".pg.sql"):
+		return "postgres"
+	default:
+		return ""
+	}
 }
 
 // sqlServerLexFixture reports whether a lexer fixture exercises SQL Server

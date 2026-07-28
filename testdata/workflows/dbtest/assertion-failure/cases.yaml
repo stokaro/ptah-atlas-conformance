@@ -1,0 +1,7 @@
+cases:
+  - name: expected assertion failure
+    steps:
+      - exec: CREATE TABLE items (id INTEGER PRIMARY KEY)
+      - assert:
+          query: SELECT id FROM items
+          row_count: 1

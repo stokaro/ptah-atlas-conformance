@@ -1,0 +1,7 @@
+cases:
+  - name: first isolated schema database
+    steps:
+      - exec: INSERT INTO users (id, name) VALUES (1, 'first')
+  - name: second isolated schema database
+    steps:
+      - exec: INSERT INTO users (id, name) VALUES (1, 'second')

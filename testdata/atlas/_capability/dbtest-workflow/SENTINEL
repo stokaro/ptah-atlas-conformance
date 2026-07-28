@@ -1,0 +1,5 @@
+Capability sentinel for the dbtest-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/dbtest through
+the real Ptah CLI. These fixtures are intentionally separate from Atlas schema
+round-trip fixtures because they measure a Ptah-native workflow capability.

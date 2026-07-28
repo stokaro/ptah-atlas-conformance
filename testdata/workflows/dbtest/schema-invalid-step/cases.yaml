@@ -1,0 +1,5 @@
+cases:
+  - name: schema rejects migrate_to
+    steps:
+      - name: migration step is invalid
+        migrate_to: latest

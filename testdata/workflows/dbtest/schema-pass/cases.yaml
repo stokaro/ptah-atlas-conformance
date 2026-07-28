@@ -1,0 +1,25 @@
+cases:
+  - name: schema workflow
+    steps:
+      - name: schema starts empty
+        assert:
+          query: SELECT id FROM users
+          row_count: 0
+      - name: seed user
+        seed:
+          env: test
+      - name: user name matches
+        assert:
+          query: SELECT name FROM users
+          scalar: ada
+      - name: introduce drift
+        exec: DROP TABLE users
+      - name: repair drift
+        apply_schema: true
+      - name: repaired table is empty
+        assert:
+          query: SELECT id FROM users
+          row_count: 0
+  - name: excluded schema failure
+    steps:
+      - exec: SELECT missing_column

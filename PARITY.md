@@ -3,31 +3,37 @@
 **This is not a full feature-set parity test, and no number in this repository
 should be read as one.**
 
-It is an offline, structural coverage probe over the full vendored Atlas
-`*/testdata/*` snapshot plus first-party Atlas-compatible regression fixtures,
-run through narrow entry points of Ptah's public API. It exists to turn "are we
+It is a deterministic coverage probe over the full vendored Atlas
+`*/testdata/*` snapshot plus first-party Atlas-compatible regression and
+workflow fixtures, run through Ptah's public API and real CLI. Most observations
+are structural and database-free; the `dbtest-workflow` capability probe uses
+fresh local SQLite databases and no external service. It exists to turn "are we
 there yet" from an opinion into a number that moves over time. Treat the results
 as a floor on the distance to Atlas, never a ceiling.
 
-Generated snapshot: 286 vendored upstream testdata files grouped into 160
-fixtures, 697 offline observations, **0 unwaived non-OK offline observations**.
-The corpus inventory imports 160 fixtures: every imported fixture is measured by
-at least one current offline probe. This means the deterministic imported-corpus
-report is green; it does **not** mean full Atlas OSS runtime parity, because
-several runtime dimensions remain unmeasured.
+Generated snapshot: 286 vendored upstream testdata files plus first-party
+regression and capability fixtures, grouped into 158 imported Atlas fixtures,
+4 first-party capability sentinels, and 758 deterministic observations, with
+**0 unwaived non-OK observations**. Every imported fixture and capability
+sentinel is measured by at least one current probe. This means the
+deterministic report is green; it does **not** mean full Atlas OSS runtime
+parity, because several runtime dimensions remain unmeasured.
 
 ## What the probe found broken
 
-All probes are offline and static — nothing is applied to a real database.
+Corpus probes are offline and structural. The `dbtest-workflow` probe also
+executes committed first-party fixtures through the real Ptah CLI against
+ephemeral SQLite databases.
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 160 imported fixtures are measured by at least one current offline probe. |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 4 first-party capability sentinels are reported separately. |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all vendored `.sql` files covered by the offline probe set and is currently green on the imported corpus. |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Current measured Atlas migration directories are recognized. |
 | `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Current measured fixtures pass the parsed/recomputed sum compatibility probe. |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Current analyzer catalog and fixture-level lint parity probes are green on the committed corpus. |
+| `dbtest-workflow` | Do Ptah's native declarative migration and schema test commands preserve their key end-to-end CLI contracts? | Both commands execute committed fixtures against isolated SQLite databases; numeric/latest/zero migration targets, desired-schema application and drift repair, seed steps, all assertion kinds, `--run`, text/JSON/HTML reports, invalid schema steps, and command-specific exit codes 1/2 are checked. |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -40,15 +46,15 @@ is **"unknown — not measured"**, not "works".
 | Atlas open-source capability | Tested here? | Where it would be measured |
 | --- | --- | --- |
 | Schema **introspection** breadth (types, defaults, generated/partial/expression indexes, sequences, domains, composite types, FK actions, exclusion constraints, partitioning, collations, comments) | **Partially** — live/diff fixtures now cover basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer defaults/types | broader dedicated introspection probes against live DBs |
-| Schema **diff / plan** (desired A → desired B → migration) | **No** | a diff probe over paired schema fixtures |
+| Schema **diff / plan** (desired A → desired B → migration) | **Partially** — the PostgreSQL `schema-planning` matrix applies paired A/B schemas and compares converged end states across add/drop/modify and precision changes | broader paired-schema coverage across every supported dialect |
 | **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on live Postgres, MySQL, and SQLite targets, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
 | **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
-| Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **No** | a runtime probe; several are open Ptah issues (#124, #265, #275) |
+| Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **Partially** — the migrate-runtime tier checks real SQLite/PostgreSQL/MySQL apply/status/set state and `all`/`file`/`none` transaction behavior | broader baseline, lock-contention, failure-recovery, and multi-process contours |
 | Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
 | **sqlcheck analyzers**, rule by rule | **Yes** — the `lint-analyzer-catalog` fidelity matrix maps every default-firing Atlas concern to the covering Ptah rule, severity, and line, classified covered/mapped/unsupported/missing, and enforces suppression, config disable/severity-override, attribution, and SARIF-shape fidelity | `lint-analyzer-catalog` rows in `gaps.md` + `fidelity: sarif output shape` in `gaps-migrate-runtime.md` |
 | **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI; Atlas CE differential runs on Postgres, MySQL, and SQLite | deeper dialect runtime probes |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
-| The migration **apply** path | **No** | Ptah applies migration SQL via raw `ExecContext`, bypassing its parser — a parse gap here is *not* an apply gap |
+| The migration **apply** path | **Partially** — migrate-runtime checks Atlas-compatible apply behavior and `dbtest-workflow` checks native migration up/down on SQLite | broader Atlas fixture execution and failure-state equivalence; parser gaps remain distinct because apply executes migration SQL directly |
 
 ## Honest framing, both directions
 
@@ -63,12 +69,13 @@ is **"unknown — not measured"**, not "works".
   between and, for most of the surface, **not yet measured here**.
 - Some Ptah capabilities are the **local, open half of an Atlas *Pro* feature**
   and have **no CE oracle to differential against**, so they are covered by
-  Ptah's own behavioral tests rather than a conformance probe here. Pre-migration
-  assertion checks (`-- +ptah check`, ptah#661) are one: Atlas keeps pre-migration
-  checks in its proprietary build, and Atlas CE offers neither the check
-  execution nor the Cloud approval half, so there is nothing to compare against.
-  This is scope, not a gap — the check parser and apply-abort behavior are
-  verified in Ptah's `migration/migrator` package.
+  first-party behavioral probes rather than falsely compared with CE.
+  Declarative database testing (ptah#659) is measured here by
+  `dbtest-workflow`, which runs committed fixtures through both native commands
+  on ephemeral SQLite and verifies reports and process exits. Pre-migration
+  assertion checks (`-- +ptah check`, ptah#661) remain covered in Ptah's own
+  behavioral tests: Atlas CE offers neither the check execution nor the Cloud
+  approval half, so there is no CE oracle. This is scope, not a gap.
 - **Migration directory maintenance** (`ptah migrations edit`, `rebase`, and `rm`,
   ptah#662) is another: Atlas keeps directory-maintenance commands in its
   proprietary (Pro) build, so Atlas CE has no `migrate edit`/`rebase`/`rm` to
@@ -90,10 +97,11 @@ is **"unknown — not measured"**, not "works".
   golang-migrate, Goose, Flyway, and Liquibase (formatted SQL) — are covered,
   closing ptah#667; Liquibase XML/YAML/JSON changelogs remain a follow-up.
 
-## What the `ptah atlas` and analyzer probes now measure exhaustively
+## What focused probes measure
 
-Two behavioral probes make part of the drop-in surface exhaustively measured, so
-that when they go green Ptah genuinely covers that dimension:
+The following probes measure bounded dimensions. CLI help/flag inventory and the
+default analyzer catalog are exhaustive within their pinned scopes; lexer and
+workflow probes are fixture-driven and make only the claims listed below.
 
 - **`atlas-cli-surface`** in the offline fixture report checks, against the real
   Ptah binary, whether important OSS Atlas command paths resolve.
@@ -101,10 +109,12 @@ that when they go green Ptah genuinely covers that dimension:
   or reads the pinned Atlas CE binary, discovers the current `atlas schema ...`
   and `atlas migrate ...` command tree from Cobra help, records usage lines and
   long flags, and compares both Ptah surfaces separately: `ptah atlas ...` and a
-  `ptah-compat` binary named `atlas`. This report also lists Cloud/commercial or
-  intentionally unsupported commands explicitly and checks that Ptah reports the
-  same community-version unsupported boundary instead of silently omitting them
-  or falling back to parent command help. The current full gate is green on the
+  `ptah-compat` binary named `atlas`. This report also lists Cloud/commercial
+  commands explicitly and checks that Ptah either reports the same
+  community-version unsupported boundary or resolves an explicit open capability
+  beyond Atlas CE instead of silently omitting the command or falling back to
+  parent help. Resolution proves only the CLI surface; dedicated workflow probes
+  own behavioral evidence for extra Ptah capabilities. The current full gate is green on the
   pinned Atlas CE surface; future Atlas changes should either keep this green
   by implementing Ptah parity, or create explicit tracked gaps instead of
   dropping commands from the inventory.
@@ -144,6 +154,20 @@ that when they go green Ptah genuinely covers that dimension:
   Atlas binary (which does not build cleanly on current Go and whose release is
   proprietary). SQL Server delimiting (GO / BEGIN TRY) is out of scope — SQL
   Server is a Pro Atlas driver.
+- **`dbtest-workflow`** is an end-to-end capability probe over Ptah's open
+  replacement for Atlas's proprietary declarative test workflows. It builds the
+  go.mod-pinned `ptah` binary and executes committed migration, schema, seed,
+  assertion-failure, setup-failure, and isolation fixtures. Both native command
+  paths must filter deliberately failing cases, run on ephemeral SQLite, render
+  text/JSON/HTML reports without external HTML assets, repair desired-schema
+  drift, reject migration-only steps in schema tests, and preserve stdout,
+  stderr, assertion-failure exit 1, and malformed-input exit 2 on both commands.
+  This is representative workflow coverage, not an exhaustive CLI matrix:
+  explicit shared `--db-url`, every directory format and invalid flag, step-local
+  seed directories, connection/interruption failures, and report-write failures
+  remain owned by Ptah's package and command tests. These fixtures live under
+  `testdata/workflows/dbtest`, outside the Atlas round-trip corpus, because they
+  measure a Ptah-native capability rather than an Atlas CE schema object.
 - **`cli-exit-behavior`** is an **exit and error-behavior matrix** over
   representative Atlas OSS success and failure paths (invalid URL, missing
   migration directory, missing/malformed/duplicate `atlas.sum`, clean checksum

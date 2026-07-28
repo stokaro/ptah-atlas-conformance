@@ -1,0 +1,5 @@
+cases:
+  - name: invalid case
+    unexpected: true
+    steps:
+      - exec: SELECT 1
