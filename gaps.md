@@ -12,11 +12,11 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260728031905-41e50c0dd43c`
-- Outcomes: **758 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260728072831-6fcf6405d140`
+- Outcomes: **767 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
-- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **4 first-party capability sentinel(s)**
+- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **5 first-party capability sentinel(s)**
 
 ## Findings
 
@@ -172,8 +172,17 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand-suggests-close-verb` | exit | exit 1, error → stderr |  |
+| — | ok | composite-schema-workflow | `SQLite schema facts` | live schema facts | SQLite contained both tables, every expected column attribute, the cross-source foreign key, and the index |  |
+| — | ok | composite-schema-workflow | `conflicting sources` | conflict detection | conflicting database identities failed before rendering |  |
+| — | ok | composite-schema-workflow | `hand-merged equivalence` | render equivalence | mixed and hand-merged desired schemas rendered identical SQLite SQL |  |
+| — | ok | composite-schema-workflow | `hand-merged migration equivalence` | migration equivalence | mixed and hand-merged desired schemas generated identical SQLite up/down SQL |  |
+| — | ok | composite-schema-workflow | `live comparison controls` | live end state | mixed and hand-merged sources reported an empty diff; an intentionally drifted source reported changes with exit code 1 |  |
+| — | ok | composite-schema-workflow | `mixed render` | render | Go and YAML sources rendered users and orders exactly once |  |
+| — | ok | composite-schema-workflow | `ptah migrations generate` | migration generation | the mixed desired schema generated a Ptah migration pair against an empty SQLite database |  |
+| — | ok | composite-schema-workflow | `ptah migrations up` | migration application | the generated composite-schema migration applied to SQLite |  |
 | — | ok | corpus-inventory | `_capability/atlas-cli/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/cli-exit-behavior/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/composite-schema/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/dbtest-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/lint-analyzers/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |

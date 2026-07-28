@@ -96,7 +96,7 @@ type dbTestOutputValidator interface {
 }
 
 func (c dbTestWorkflowCheck) run(bin string) Result {
-	commandResult, err := runDBTestCommand(bin, c.args)
+	commandResult, err := runPtahCommand(bin, c.args)
 	if err != nil {
 		return Result{
 			Probe:   "dbtest-workflow",
@@ -151,13 +151,13 @@ func (c dbTestWorkflowCheck) run(bin string) Result {
 	}
 }
 
-type dbTestCommandResult struct {
+type ptahCommandResult struct {
 	stdout   string
 	stderr   string
 	exitCode int
 }
 
-func (r dbTestCommandResult) diagnostic() string {
+func (r ptahCommandResult) diagnostic() string {
 	var parts []string
 	if output := strings.TrimSpace(r.stdout); output != "" {
 		parts = append(parts, "stdout: "+oneLine(output))
@@ -171,17 +171,22 @@ func (r dbTestCommandResult) diagnostic() string {
 	return strings.Join(parts, "; ")
 }
 
-func runDBTestCommand(bin string, args []string) (dbTestCommandResult, error) {
+func runPtahCommand(bin string, args []string) (ptahCommandResult, error) {
+	return runPtahCommandInDir(bin, args, "")
+}
+
+func runPtahCommandInDir(bin string, args []string, workingDir string) (ptahCommandResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, bin, args...)
-	cmd.Env = dbTestCommandEnvironment()
+	cmd.Dir = workingDir
+	cmd.Env = ptahCommandEnvironment()
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
-	result := dbTestCommandResult{
+	result := ptahCommandResult{
 		stdout:   stdout.String(),
 		stderr:   stderr.String(),
 		exitCode: 0,
@@ -204,7 +209,7 @@ func runDBTestCommand(bin string, args []string) (dbTestCommandResult, error) {
 	return result, err
 }
 
-func dbTestCommandEnvironment() []string {
+func ptahCommandEnvironment() []string {
 	environment := os.Environ()
 	filtered := make([]string, 0, len(environment))
 	for _, entry := range environment {
