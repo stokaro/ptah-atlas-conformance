@@ -8,8 +8,8 @@ It is a deterministic coverage probe over the full vendored Atlas
 workflow fixtures, run through Ptah's public API and real CLI. Most observations
 are structural and database-free; the `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
-`external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
-`pro-plan-workflow`, and `pro-down-workflow`
+`pro-test-workflow`, `pro-maint-workflow`, `pro-plan-workflow`, and
+`pro-down-workflow`
 capability probes use fresh local SQLite databases (or no database at all) and
 no external service. It
 exists to turn "are we there yet" from an opinion
@@ -18,7 +18,7 @@ to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files plus first-party
 regression and capability fixtures, grouped into 158 imported Atlas fixtures,
-12 first-party capability sentinels, and 826 deterministic observations, with
+11 first-party capability sentinels, and 805 deterministic observations, with
 **0 unwaived non-OK observations**. Every imported fixture and capability
 sentinel is measured by at least one current probe. This means the
 deterministic report is green; it does **not** mean full Atlas OSS runtime
@@ -28,14 +28,14 @@ parity, because several runtime dimensions remain unmeasured.
 
 Corpus probes are offline and structural. The `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
-`external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
-`pro-plan-workflow`, and `pro-down-workflow`
+`pro-test-workflow`, `pro-maint-workflow`, `pro-plan-workflow`, and
+`pro-down-workflow`
 probes also execute committed first-party fixtures through the real Ptah CLI
 against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 12 first-party capability sentinels are reported separately. |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 7 first-party capability sentinels are reported separately. |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all vendored `.sql` files covered by the offline probe set and is currently green on the imported corpus. |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Current measured Atlas migration directories are recognized. |
 | `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
@@ -45,7 +45,6 @@ against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 | `composite-schema-workflow` | Do multiple desired-schema sources behave exactly like one hand-merged source? | Full SQLite DDL snapshots, source conflicts, generated up/down equivalence, direct live schema facts, clean mixed/hand-merged comparisons, and a drift-detecting negative control are checked. |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data round-trip apply, introspect, and converge? | A model's `//migrator:schema:data` rows are applied via `ptah migrations data`, the seeded rows are introspected and matched to the declared desired state, a re-diff converges to "no data changes", a divergent desired set is refused by the destructive gate (exit 2), and rolling the data migration back removes exactly the inserted rows. |
 | `checkpoint-workflow` | Does Ptah's migration checkpoint round-trip squash, bootstrap, and stay safe? | A three-migration history is squashed by `ptah migrations checkpoint` into a deterministic cumulative-schema pair covered by a rewritten `ptah.sum`; a fresh database bootstraps from the checkpoint alone to a schema structurally identical to the full replay; an already-migrated database ignores the checkpoint; a tampered checkpoint fails `validate` (exit 1); rolling back below the boundary is refused (exit 2) while rolling back to zero runs the checkpoint's down body; and a post-checkpoint migration bootstraps on top of the checkpoint. |
-| `external-schema-workflow` | Do Ptah's native static and external desired-schema sources work end to end? | Twenty observations cover static SQL; external SQL/HCL/YAML providers; trust denial without side effects for render, compare, drift, plan, and generate; allowed configuration; generated migration application; table, primary-key, unique-index, and cascading-foreign-key facts; and converged no-op results on ephemeral SQLite. |
 | `pro-test-workflow` | Do the forwarded Atlas Pro test verbs preserve their end-to-end CLI contracts? | `atlas migrate test` applies the Atlas-format directory to a real SQLite dev database and runs the committed case set (exit 0); a deliberately failing assertion exits 1 with a structured FAIL report; `atlas schema test` provisions the desired schema from a local Go-annotation source and holds the same pass/fail exit contract. |
 | `pro-maint-workflow` | Do the forwarded Atlas Pro directory-maintenance verbs keep the directory valid? | `atlas migrate edit` applies a hermetic scripted `$EDITOR` change and rewrites `atlas.sum`; `atlas migrate rebase` moves a migration to the end of history under the deterministic next version; `atlas migrate rm` removes a migration and its checksum entry; `ptah migrations validate` passes after every verb. |
 | `pro-plan-workflow` | Does the local `schema plan` → `schema apply --plan` workflow bind plans to fingerprints? | `atlas schema plan --save` writes a format_version-1 plan file with sha256 source/target fingerprints and per-statement severities against a real SQLite target; `atlas schema apply --plan file://...` replays the reviewed plan; a target mutated after planning is refused as stale (exit 1) with the database untouched. |
@@ -258,16 +257,6 @@ workflow probes are fixture-driven and make only the claims listed below.
   and schema facts. These fixtures live under `testdata/workflows/checkpoint`,
   outside the Atlas round-trip corpus, because they measure a Ptah-native
   capability with no Atlas CE oracle.
-- **`external-schema-workflow`** is a deterministic end-to-end probe over
-  Ptah's native external-program desired-schema source (ptah#669). It invokes
-  the real CLI for SQL, HCL, and YAML provider output, proves the configuration
-  trust gate prevents execution and filesystem side effects across every
-  consumer, generates and applies a migration to ephemeral SQLite, verifies
-  live schema facts directly, and requires compare, drift, plan, and generate
-  to converge. A separate `orm-provider-smoke` report installs pinned GORM and
-  SQLAlchemy providers and checks both their direct output and Ptah-rendered
-  output. Neither probe claims Atlas HCL `data.external_schema` evaluation;
-  that is a separate Atlas project-language capability.
 - **`pro-test-workflow`**, **`pro-maint-workflow`**, **`pro-plan-workflow`**,
   and **`pro-down-workflow`** are end-to-end capability probes over the Atlas
   Pro verbs Ptah forwards as open capabilities (ptah#758: the `migrate

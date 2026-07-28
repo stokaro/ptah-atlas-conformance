@@ -1,0 +1,30 @@
+[
+  {
+    "probe": "orm-provider-smoke",
+    "fixture": "gorm",
+    "stage": "provider output",
+    "outcome": "ok",
+    "detail": "GORM provider v0.6.1 provider output preserved two tables, primary keys, a unique index, and a foreign key"
+  },
+  {
+    "probe": "orm-provider-smoke",
+    "fixture": "gorm",
+    "stage": "ptah schema render",
+    "outcome": "ok",
+    "detail": "GORM provider v0.6.1 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key"
+  },
+  {
+    "probe": "orm-provider-smoke",
+    "fixture": "sqlalchemy",
+    "stage": "provider output",
+    "outcome": "ok",
+    "detail": "SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 provider output preserved two tables, primary keys, a unique index, and a foreign key"
+  },
+  {
+    "probe": "orm-provider-smoke",
+    "fixture": "sqlalchemy",
+    "stage": "ptah schema render",
+    "outcome": "ok",
+    "detail": "SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key"
+  }
+]

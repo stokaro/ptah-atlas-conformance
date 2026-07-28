@@ -1,0 +1,19 @@
+tables:
+  users:
+    columns:
+      id: { type: INTEGER, primary: true }
+      email: { type: TEXT, not_null: true }
+    indexes:
+      idx_users_email: { fields: [email], unique: true }
+  posts:
+    columns:
+      id: { type: INTEGER, primary: true }
+      user_id:
+        type: INTEGER
+        not_null: true
+        foreign: users(id)
+        foreign_key_name: fk_posts_user
+        on_delete: CASCADE
+      title: { type: TEXT, not_null: true }
+    indexes:
+      idx_posts_user_id: { fields: [user_id] }

@@ -1128,6 +1128,13 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/external-schema-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "_capability/lint-analyzers/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
@@ -5655,5 +5662,145 @@
     "stage": "bare rollback",
     "outcome": "ok",
     "detail": "bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "static SQL schema",
+    "stage": "offline render",
+    "outcome": "ok",
+    "detail": "desired schema rendered with all expected SQLite facts"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external sql schema",
+    "stage": "explicit command render",
+    "outcome": "ok",
+    "detail": "desired schema rendered with all expected SQLite facts"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external hcl schema",
+    "stage": "explicit command render",
+    "outcome": "ok",
+    "detail": "desired schema rendered with all expected SQLite facts"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external yaml schema",
+    "stage": "explicit command render",
+    "outcome": "ok",
+    "detail": "desired schema rendered with all expected SQLite facts"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "schema render config trust gate",
+    "stage": "config trust denial",
+    "outcome": "ok",
+    "detail": "command rejected config-sourced execution before the provider ran or wrote migrations"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "schema compare config trust gate",
+    "stage": "config trust denial",
+    "outcome": "ok",
+    "detail": "command rejected config-sourced execution before the provider ran or wrote migrations"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "schema drift config trust gate",
+    "stage": "config trust denial",
+    "outcome": "ok",
+    "detail": "command rejected config-sourced execution before the provider ran or wrote migrations"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "migrations plan config trust gate",
+    "stage": "config trust denial",
+    "outcome": "ok",
+    "detail": "command rejected config-sourced execution before the provider ran or wrote migrations"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "migrations generate config trust gate",
+    "stage": "config trust denial",
+    "outcome": "ok",
+    "detail": "command rejected config-sourced execution before the provider ran or wrote migrations"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "configured external schema",
+    "stage": "allowed config render",
+    "outcome": "ok",
+    "detail": "desired schema rendered with all expected SQLite facts"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema versus empty database",
+    "stage": "initial compare",
+    "outcome": "ok",
+    "detail": "compare detected the desired external schema against an empty SQLite database"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema drift from empty database",
+    "stage": "initial drift",
+    "outcome": "ok",
+    "detail": "drift detected the desired external schema against an empty SQLite database"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema migration plan",
+    "stage": "initial plan",
+    "outcome": "ok",
+    "detail": "plan emitted SQL for every external-schema table and index"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema migration generation",
+    "stage": "migration generation",
+    "outcome": "ok",
+    "detail": "generate wrote one reversible Ptah migration pair for the external schema"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema migration application",
+    "stage": "migration application",
+    "outcome": "ok",
+    "detail": "the generated external-schema migration applied to SQLite"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "SQLite external schema facts",
+    "stage": "live schema facts",
+    "outcome": "ok",
+    "detail": "SQLite preserved tables, columns, primary keys, unique/index facts, and the cascading foreign key"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema compare convergence",
+    "stage": "converged compare",
+    "outcome": "ok",
+    "detail": "compare reported no difference after applying the external schema"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema drift convergence",
+    "stage": "converged drift",
+    "outcome": "ok",
+    "detail": "drift reported a clean database after applying the external schema"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema plan convergence",
+    "stage": "converged plan",
+    "outcome": "ok",
+    "detail": "plan emitted no schema-changing SQL after applying the external schema"
+  },
+  {
+    "probe": "external-schema-workflow",
+    "fixture": "external schema generate convergence",
+    "stage": "converged generate",
+    "outcome": "ok",
+    "detail": "generate wrote no migration files after applying the external schema"
   }
 ]

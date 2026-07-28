@@ -12,11 +12,11 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260728144201-428754f61581`
-- Outcomes: **805 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260728150557-1e88814ba63a`
+- Outcomes: **826 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
-- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **11 first-party capability sentinel(s)**
+- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **12 first-party capability sentinel(s)**
 
 ## Findings
 
@@ -197,6 +197,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | corpus-inventory | `_capability/cli-exit-behavior/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/composite-schema/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/dbtest-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/external-schema-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/lint-analyzers/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/managed-data-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/pro-down-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
@@ -374,6 +375,26 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | dbtest-workflow | `ptah schema test/json` | JSON report | structured schema JSON report preserved exact summary, case, and step results |  |
 | — | ok | dbtest-workflow | `ptah schema test/setup failure` | setup exit contract | invalid schema-test input produced process exit code 2 and an actionable diagnostic |  |
 | — | ok | dbtest-workflow | `ptah schema test/text` | schema execution | desired-schema provisioning, seed, drift repair, assertions, and case filtering passed |  |
+| — | ok | external-schema-workflow | `SQLite external schema facts` | live schema facts | SQLite preserved tables, columns, primary keys, unique/index facts, and the cascading foreign key |  |
+| — | ok | external-schema-workflow | `configured external schema` | allowed config render | desired schema rendered with all expected SQLite facts |  |
+| — | ok | external-schema-workflow | `external hcl schema` | explicit command render | desired schema rendered with all expected SQLite facts |  |
+| — | ok | external-schema-workflow | `external schema compare convergence` | converged compare | compare reported no difference after applying the external schema |  |
+| — | ok | external-schema-workflow | `external schema drift convergence` | converged drift | drift reported a clean database after applying the external schema |  |
+| — | ok | external-schema-workflow | `external schema drift from empty database` | initial drift | drift detected the desired external schema against an empty SQLite database |  |
+| — | ok | external-schema-workflow | `external schema generate convergence` | converged generate | generate wrote no migration files after applying the external schema |  |
+| — | ok | external-schema-workflow | `external schema migration application` | migration application | the generated external-schema migration applied to SQLite |  |
+| — | ok | external-schema-workflow | `external schema migration generation` | migration generation | generate wrote one reversible Ptah migration pair for the external schema |  |
+| — | ok | external-schema-workflow | `external schema migration plan` | initial plan | plan emitted SQL for every external-schema table and index |  |
+| — | ok | external-schema-workflow | `external schema plan convergence` | converged plan | plan emitted no schema-changing SQL after applying the external schema |  |
+| — | ok | external-schema-workflow | `external schema versus empty database` | initial compare | compare detected the desired external schema against an empty SQLite database |  |
+| — | ok | external-schema-workflow | `external sql schema` | explicit command render | desired schema rendered with all expected SQLite facts |  |
+| — | ok | external-schema-workflow | `external yaml schema` | explicit command render | desired schema rendered with all expected SQLite facts |  |
+| — | ok | external-schema-workflow | `migrations generate config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
+| — | ok | external-schema-workflow | `migrations plan config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
+| — | ok | external-schema-workflow | `schema compare config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
+| — | ok | external-schema-workflow | `schema drift config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
+| — | ok | external-schema-workflow | `schema render config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
+| — | ok | external-schema-workflow | `static SQL schema` | offline render | desired schema rendered with all expected SQLite facts |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/1.sql` | split | Ptah splits into the same 6 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
