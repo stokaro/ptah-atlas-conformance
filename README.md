@@ -49,7 +49,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `corpus-inventory` | Is every vendored Atlas test artifact visible in the generated report, including still-unmeasured `.hcl`/other fixtures? | harness |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas's SQL in its AST? (round-trip / `read-db` / `compare` — **not** apply, which execs raw SQL) | `core/parser` |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | `migration/migrator` |
-| `txtar-script` | Does the harness parse Atlas integration txtar scripts, execute the command subset currently mapped to Ptah APIs, publish the fixture-level script surface, and keep unsupported runtime commands red? | harness, `core/parser`, `core/renderer` |
+| `txtar-script` | Does the harness parse Atlas integration txtar scripts, execute the command subset currently mapped to Ptah APIs, publish the fixture-level script surface, and keep unsupported runtime commands red? The sqlite `cli-migrate-lint-*` fixtures are executed end to end by the real `ptah atlas migrate lint` CLI against an ephemeral SQLite dev database, so their green proves Ptah's own Atlas lint report, not a harness reimplementation. | harness, `core/parser`, `core/renderer`, the built `ptah` binary (`migrate lint`) |
 | `txtar-down` | Does Ptah load Atlas txtar migrations with an embedded `down.sql` section? | `migration/migrator` |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does Ptah's own hash reproduce it? | `migration/migratesum` |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |

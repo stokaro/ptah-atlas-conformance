@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"os/exec"
@@ -414,6 +415,23 @@ func commandOutputDir(bin string, path []string, dir string) (string, error) {
 	cmd.Dir = dir
 	outBytes, err := cmd.CombinedOutput()
 	return string(outBytes), err
+}
+
+// commandStreams runs bin with args in dir and returns stdout and stderr
+// captured separately, along with the process error. Unlike commandOutput it
+// keeps the streams apart, which matters when a probe asserts on stdout alone
+// (e.g. Atlas migrate-lint writes its analysis report to stdout while genuine
+// errors go to stderr).
+func commandStreams(bin string, args []string, dir string) (stdout, stderr string, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, bin, args...)
+	cmd.Dir = dir
+	var out, errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	err = cmd.Run()
+	return out.String(), errOut.String(), err
 }
 
 func usageCommand(line string) string {

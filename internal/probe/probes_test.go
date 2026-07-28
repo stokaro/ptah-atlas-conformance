@@ -7302,95 +7302,80 @@ CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` int NOT NULL, `+"`"+`status`+
 	}
 }
 
-func TestTxtarScriptProbeExecutesSQLiteMigrateLintDiagnostics(t *testing.T) {
+// sqliteMigrateLintFixtureDir is the vendored Atlas sqlite testdata directory
+// that holds the imported cli-migrate-lint-* fixtures.
+const sqliteMigrateLintFixtureDir = "../../third_party/atlas/upstream/internal/integration/testdata/sqlite"
+
+// TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures drives every imported
+// sqlite cli-migrate-lint-* fixture through the harness. Each command is
+// executed by Ptah's real `ptah atlas migrate lint` CLI against an ephemeral
+// SQLite dev database, so a green result proves Ptah's own Atlas migrate-lint
+// report (ptah#747) — default text output, destructive/data-dependent
+// diagnostics, `-- atlas:nolint` suppression, exit-1 threshold, and atlas.hcl
+// env/lint.log project-config resolution — reproduces Atlas byte-for-byte, not a
+// harness-local reimplementation (stokaro/ptah#651).
+func TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures(t *testing.T) {
+	fixtures := []string{
+		"cli-migrate-lint-add-notnull.txtar",
+		"cli-migrate-lint-destructive.txtar",
+		"cli-migrate-lint-ignore.txtar",
+		"cli-migrate-lint-minimal-env.txtar",
+		"cli-migrate-lint-project.txtar",
+	}
+	for _, fixture := range fixtures {
+		t.Run(fixture, func(t *testing.T) {
+			path := filepath.Join(sqliteMigrateLintFixtureDir, fixture)
+			results := TxtarScriptProbe{}.Run(Fixture{
+				Name:  "sqlite/" + fixture,
+				Kind:  FixtureKindTxtar,
+				Dir:   filepath.Dir(path),
+				Files: []string{path},
+			})
+
+			if len(results) != 1 {
+				t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+			}
+			if results[0].Outcome != OK {
+				t.Fatalf("expected OK result, got %#v", results[0])
+			}
+		})
+	}
+}
+
+// TestTxtarScriptProbeMigrateLintBrokenTurnsRed proves the migrate-lint probe
+// cannot be false-green: because the assertions are matched against the real
+// Ptah CLI's output, a deliberately wrong expectation turns the fixture red. The
+// migration is a clean CREATE TABLE (no diagnostics, exit 0), but the script
+// asserts the destructive-changes banner that Ptah does not emit here, so the
+// probe must report a Fail.
+func TestTxtarScriptProbeMigrateLintBrokenTurnsRed(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `atlas migrate lint --dir file://migrations --dev-url URL --latest=2
-stdout 'Analyzing changes until version 2 \(2 migrations in total\):'
-stdout ''
-stdout '  -- analyzing version 1'
-stdout '    -- no diagnostics found'
-stdout '  -- analyzing version 2'
-stdout '    -- data dependent changes detected:'
-stdout '      -- L1: Adding a non-nullable "int" column "c2" will fail in case table "users" is not empty'
-stdout '         https://atlasgo.io/lint/analyzers#MF103'
-stdout '  -- 1 version ok, 1 with warnings'
-stdout '  -- 4 schema changes'
-stdout '  -- 1 diagnostic'
+	writeTestFile(t, path, `atlas migrate lint --dir file://migrations --dev-url URL --latest=1
+stdout 'destructive changes detected'
 
 -- migrations/1.sql --
 CREATE TABLE users (id int);
-
-/* Same-file additions are not data dependent. */
-ALTER TABLE users ADD COLUMN c1 int NOT NULL;
-
--- migrations/2.sql --
-ALTER TABLE users ADD COLUMN c2 int NOT NULL;
-ALTER TABLE users ADD COLUMN c3 int NOT NULL DEFAULT 1;
 `)
 
 	results := TxtarScriptProbe{}.Run(Fixture{
-		Name:  "sqlite/cli-migrate-lint-add-notnull.txtar",
+		Name:  "sqlite/cli-migrate-lint-broken.txtar",
 		Kind:  FixtureKindTxtar,
 		Dir:   dir,
 		Files: []string{path},
 	})
 
-	if len(results) != 1 {
-		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	if len(results) == 0 {
+		t.Fatalf("expected at least one result, got none")
 	}
-	if results[0].Outcome != OK {
-		t.Fatalf("expected OK result, got %#v", results[0])
+	sawFail := false
+	for _, result := range results {
+		if result.Outcome == Fail {
+			sawFail = true
+		}
 	}
-}
-
-func TestTxtarScriptProbeExecutesSQLiteMigrateLintNolintAndProjectLog(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "case.txtar")
-	writeTestFile(t, path, `atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt
-cmp got.txt expected.txt
-
-atlas migrate lint --dir file://migrations2 --dev-url URL --latest=1
-stdout '  -- 1 version ok'
-
--- atlas.hcl --
-lint {
-  latest = 1
-}
-
-env "log_name" {
-  lint {
-    log = "{{ range .Files }}{{ println .Name }}{{ end }}"
-  }
-}
--- migrations/1.sql --
-CREATE TABLE users (id int);
--- migrations/2.sql --
-DROP TABLE users;
--- expected.txt --
-2.sql
--- migrations2/1.sql --
-CREATE TABLE users (id int);
-CREATE TABLE pets (id int);
--- migrations2/2.sql --
--- atlas:nolint destructive data_depend
-
-DROP TABLE pets;
-ALTER TABLE users ADD COLUMN name text NOT NULL;
-`)
-
-	results := TxtarScriptProbe{}.Run(Fixture{
-		Name:  "sqlite/cli-migrate-lint-project.txtar",
-		Kind:  FixtureKindTxtar,
-		Dir:   dir,
-		Files: []string{path},
-	})
-
-	if len(results) != 1 {
-		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
-	}
-	if results[0].Outcome != OK {
-		t.Fatalf("expected OK result, got %#v", results[0])
+	if !sawFail {
+		t.Fatalf("expected a Fail result for a wrong migrate-lint expectation, got %#v", results)
 	}
 }
 
