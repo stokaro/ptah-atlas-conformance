@@ -1,5 +1,9 @@
 package probe
 
+// White-box testing required: CLI surface discovery has private help parsing,
+// command classification, and process-boundary comparison primitives whose
+// edge cases cannot be isolated through the report-level public API.
+
 import (
 	"os"
 	"testing"
@@ -144,6 +148,37 @@ printf "'atlas migrate checkpoint' is not supported by the community version.\n"
 	c.Assert(got.Outcome, qt.Equals, OK)
 }
 
+func TestCompareOutOfScopeCommand_PtahCapability(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+case "$*" in
+  *--help*)
+    printf "Usage:\n  atlas migrate checkpoint [flags]\n"
+    exit 0
+    ;;
+  *)
+    printf "error: a shadow database URL is required (--shadow-db)\n"
+    exit 2
+    ;;
+esac
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "checkpoint"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate checkpoint",
+		bin,
+		[]string{"migrate", "checkpoint"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got.Outcome, qt.Equals, OK)
+	c.Assert(got.Detail, qt.Contains, "open Ptah capability beyond Atlas CE")
+	c.Assert(got.Detail, qt.Contains, "does not claim behavioral coverage")
+}
+
 func TestCompareOutOfScopeCommand_FailurePath(t *testing.T) {
 	c := qt.New(t)
 
@@ -169,9 +204,7 @@ func writeExecutable(t *testing.T, content string) string {
 	t.Helper()
 
 	path := t.TempDir() + "/cmd"
-	err := os.WriteFile(path, []byte(content), 0o700)
-	if err != nil {
-		t.Fatal(err)
-	}
+	err := os.WriteFile(path, []byte(content), 0o700) //nolint:gosec // Test command must be executable.
+	qt.New(t).Assert(err, qt.IsNil)
 	return path
 }

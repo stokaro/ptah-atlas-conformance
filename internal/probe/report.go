@@ -56,10 +56,14 @@ func RenderMarkdownWithCommand(results []Result, w *Waivers, atlasSHA, ptahVersi
 	return renderMarkdownWithOptions(results, w, markdownReportOptions{
 		Title:   "# Ptah vs Atlas — coverage gap report",
 		Command: command,
-		Intro: "It records where Ptah, driven through its public API, cannot ingest what Atlas\n" +
-			"authored. It is a coverage probe over Atlas's own fixtures, not a quality score:\n" +
-			"a `gap` here is a thing Atlas expresses that Ptah does not yet.\n\n",
-		SourceLine:  fmt.Sprintf("Atlas fixtures pinned at `ariga/atlas@%s`", atlasSHA),
+		Intro: "It combines structural coverage over Atlas-authored fixtures with targeted\n" +
+			"first-party capability workflows executed through Ptah's public API and CLI.\n" +
+			"It is not a quality score: a `gap` records either an Atlas construct Ptah does\n" +
+			"not yet support or a first-party workflow contract Ptah failed to preserve.\n\n",
+		SourceLine: fmt.Sprintf(
+			"Atlas fixtures pinned at `ariga/atlas@%s`; first-party capability sentinels under `testdata/atlas/_capability`",
+			atlasSHA,
+		),
 		PtahVersion: ptahVersion,
 	})
 }
@@ -244,9 +248,13 @@ func conformanceGateStatus(nonOK int) string {
 }
 
 func writeCorpusSummary(b *strings.Builder, results []Result) {
-	var imported, measured, unmeasured int
+	var imported, measured, unmeasured, capabilitySentinels int
 	for _, r := range results {
 		if r.Probe != "corpus-inventory" {
+			continue
+		}
+		if r.Stage == "capability" {
+			capabilitySentinels++
 			continue
 		}
 		imported++
@@ -259,8 +267,12 @@ func writeCorpusSummary(b *strings.Builder, results []Result) {
 	if imported == 0 {
 		return
 	}
-	fmt.Fprintf(b, "- Corpus inventory: **%d imported fixture(s)**, **%d measured**, **%d imported-but-unmeasured**\n",
+	fmt.Fprintf(b, "- Corpus inventory: **%d imported Atlas fixture(s)**, **%d measured**, **%d imported-but-unmeasured**",
 		imported, measured, unmeasured)
+	if capabilitySentinels > 0 {
+		fmt.Fprintf(b, "; **%d first-party capability sentinel(s)**", capabilitySentinels)
+	}
+	b.WriteString("\n")
 }
 
 func badge(o Outcome) string {

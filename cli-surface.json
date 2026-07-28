@@ -256,7 +256,7 @@
     "fixture": "ptah atlas migrate checkpoint",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`ptah atlas migrate checkpoint` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -585,7 +585,7 @@
     "fixture": "atlas migrate checkpoint",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas migrate checkpoint` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas migrate checkpoint` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",

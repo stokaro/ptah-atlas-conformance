@@ -1,0 +1,37 @@
+cases:
+  - name: migration workflow
+    steps:
+      - name: migrate up
+        migrate_to: latest
+      - name: seed user
+        seed:
+          env: test
+      - name: apply desired schema
+        apply_schema: true
+      - name: one user exists
+        assert:
+          query: SELECT id FROM users
+          row_count: 1
+      - name: user name matches
+        assert:
+          query: SELECT name FROM users
+          scalar: ada
+      - name: expected query error
+        assert:
+          query: SELECT id FROM missing_table
+          error_contains: missing_table
+      - name: migrate down
+        migrate_to: 0
+      - name: table was removed
+        assert:
+          query: SELECT id FROM users
+          error_contains: users
+      - name: migrate to numeric version
+        migrate_to: 1
+      - name: restored table is empty
+        assert:
+          query: SELECT id FROM users
+          row_count: 0
+  - name: excluded migration failure
+    steps:
+      - exec: SELECT missing_column

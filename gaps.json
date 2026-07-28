@@ -1107,6 +1107,13 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/dbtest-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "_capability/lint-analyzers/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
@@ -3470,14 +3477,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/dbmate_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -3519,14 +3526,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "no substantive lint findings expected"
   },
   {
     "probe": "lint-parity",
@@ -3687,7 +3694,7 @@
     "fixture": "sql/sqltool/testdata/dbmate",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "lint-parity",
@@ -3708,7 +3715,7 @@
     "fixture": "sql/sqltool/testdata/liquibase",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
     "probe": "atlas-cli-surface",
@@ -5228,5 +5235,96 @@
     "stage": "out-of-scope",
     "outcome": "ok",
     "detail": "SQL Server statement delimiting (GO / BEGIN TRY); SQL Server is a Pro Atlas driver, not an OSS drop-in target"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah migrations test/text",
+    "stage": "migration execution",
+    "outcome": "ok",
+    "detail": "latest/numeric/zero migration targets, desired schema, seed, assertions, and case filtering passed"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah migrations test/json",
+    "stage": "JSON report",
+    "outcome": "ok",
+    "detail": "structured migration JSON report preserved exact summary, case, and step results"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah migrations test/html",
+    "stage": "HTML report",
+    "outcome": "ok",
+    "detail": "self-contained migration HTML report preserved the passing case and summary"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah schema test/text",
+    "stage": "schema execution",
+    "outcome": "ok",
+    "detail": "desired-schema provisioning, seed, drift repair, assertions, and case filtering passed"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah schema test/json",
+    "stage": "JSON report",
+    "outcome": "ok",
+    "detail": "structured schema JSON report preserved exact summary, case, and step results"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah schema test/html",
+    "stage": "HTML report",
+    "outcome": "ok",
+    "detail": "self-contained schema HTML report preserved the passing case and summary"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah migrations test/isolation",
+    "stage": "ephemeral isolation",
+    "outcome": "ok",
+    "detail": "two cases created the same table independently in separate ephemeral SQLite databases"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah schema test/isolation",
+    "stage": "ephemeral isolation",
+    "outcome": "ok",
+    "detail": "two schema cases inserted the same primary key independently in separate ephemeral SQLite databases"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah migrations test/assertion failure",
+    "stage": "assertion exit contract",
+    "outcome": "ok",
+    "detail": "failed assertion produced a structured report and process exit code 1"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah migrations test/setup failure",
+    "stage": "setup exit contract",
+    "outcome": "ok",
+    "detail": "invalid declarative input produced process exit code 2 and an actionable diagnostic"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah schema test/assertion failure",
+    "stage": "assertion exit contract",
+    "outcome": "ok",
+    "detail": "failed schema assertion produced a structured report and process exit code 1"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah schema test/setup failure",
+    "stage": "setup exit contract",
+    "outcome": "ok",
+    "detail": "invalid schema-test input produced process exit code 2 and an actionable diagnostic"
+  },
+  {
+    "probe": "dbtest-workflow",
+    "fixture": "ptah schema test/invalid migration step",
+    "stage": "step validation",
+    "outcome": "ok",
+    "detail": "schema tests rejected migrate_to with process exit code 1 and an actionable result"
   }
 ]
