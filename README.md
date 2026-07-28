@@ -64,6 +64,10 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `composite-schema-workflow` | Do independently owned Go and YAML desired-schema sources render exactly like a committed hand-merged schema, reject conflicting identities, generate identical up/down migrations, and converge on verified SQLite schema facts? | the built `ptah` binary, `core/goschema`, ephemeral SQLite |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data (`//migrator:schema:data` plus `ptah migrations data`) round-trip: apply declared rows, introspect them back, re-diff to a converged "no data changes" state, refuse a destructive divergent set (exit 2), and reverse cleanly on rollback? Atlas CE cannot declaratively manage or inspect reference data. | the built `ptah` binary, `internal/datamigrate`/`migration/datadiff`, ephemeral SQLite |
 | `checkpoint-workflow` | Does `ptah migrations checkpoint` squash a migration history into a deterministic cumulative-schema pair covered by `ptah.sum`, from which a fresh database bootstraps to a schema structurally identical to the full replay while an already-migrated database ignores it — with tamper detection (`validate` exit 1), a below-boundary rollback refusal (exit 2), a working rollback-to-zero, and post-checkpoint continuation? Atlas keeps `migrate checkpoint` in its proprietary Pro build. | the built `ptah` binary, `migration/generator`/`migration/migrator`, ephemeral SQLite |
+| `pro-test-workflow` | Do the Atlas Pro test verbs Ptah implements as open capabilities — `atlas migrate test` and `atlas schema test` — run committed case sets against a real SQLite dev database, passing sets with exit 0 and deliberately failing assertions with a structured FAIL report and exit 1? Atlas keeps both verbs in its proprietary Pro/Cloud build. | the built `ptah` binary (`atlas migrate test` / `atlas schema test`), ephemeral SQLite |
+| `pro-maint-workflow` | Do the Atlas Pro directory-maintenance verbs Ptah implements as open capabilities — `atlas migrate edit` (via a hermetic scripted `$EDITOR`), `atlas migrate rebase`, and `atlas migrate rm` — mutate an Atlas-format directory offline while rewriting `atlas.sum` so `ptah migrations validate` stays green after every verb? | the built `ptah` binary (`atlas migrate edit`/`rebase`/`rm`), no database |
+| `pro-plan-workflow` | Does the local half of Atlas's Pro `schema plan` workflow hold: `atlas schema plan --save` writes a fingerprinted format_version-1 plan file against a real SQLite target, `atlas schema apply --plan file://...` replays exactly that reviewed plan, and a target mutated after planning is refused as stale without touching the database? Atlas binds plan storage/approval to its Cloud registry. | the built `ptah` binary (`atlas schema plan` / `schema apply --plan`), ephemeral SQLite |
+| `pro-down-workflow` | Does bare `atlas migrate down` — no `--revision-format` flag — read the Atlas-format revision rows `atlas migrate apply` wrote and actually revert (the stokaro/ptah#810 default; previously a silent no-op against Ptah's native revision table)? | the built `ptah` binary (`atlas migrate apply`/`down`), ephemeral SQLite |
 
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
@@ -71,8 +75,9 @@ own (strongest) outcome rather than aborting the run.
 ## Live tiers (real database)
 
 The probes above are deterministic and require no external services.
-`dbtest-workflow`, `composite-schema-workflow`, `managed-data-workflow`, and
-`checkpoint-workflow` intentionally execute local ephemeral SQLite databases;
+`dbtest-workflow`, `composite-schema-workflow`, `managed-data-workflow`,
+`checkpoint-workflow`, `pro-test-workflow`, `pro-plan-workflow`, and
+`pro-down-workflow` intentionally execute local ephemeral SQLite databases;
 the remaining offline probes do not open a database. Three further tiers run against real networked
 databases in their own workflows, kept separate from the deterministic report.
 
@@ -166,10 +171,14 @@ help, then records:
 - help `Usage:` lines;
 - long flags from command and global help;
 - explicit OSS vs out-of-scope classification;
-- community-version unsupported behavior for Atlas CE commands that are present
-  only as Cloud/commercial features, or explicit resolution when Ptah provides
-  an open capability beyond CE; dedicated workflow probes, not help output, own
-  behavioral evidence for those extra capabilities;
+- per-verb expectations for the out-of-scope (Pro/Cloud) commands: verbs Ptah
+  has implemented as open capabilities (`migrate test`, `schema test`,
+  `migrate edit`/`rebase`/`rm`, `schema plan`, `migrate checkpoint`) **must**
+  resolve with a first-party usage/flag contract — regressing to Atlas CE's
+  community-version abort stub is a gap — while still-stubbed Cloud/registry
+  verbs (`migrate push`, `schema push`, the `schema plan` registry sub-verbs)
+  **must** keep the CE abort boundary; dedicated workflow probes, not help
+  output, own behavioral evidence for the implemented capabilities;
 - separate compatibility findings for `ptah atlas ...` and for a `ptah-compat`
   binary named `atlas`.
 

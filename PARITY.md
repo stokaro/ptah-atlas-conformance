@@ -7,15 +7,18 @@ It is a deterministic coverage probe over the full vendored Atlas
 `*/testdata/*` snapshot plus first-party Atlas-compatible regression and
 workflow fixtures, run through Ptah's public API and real CLI. Most observations
 are structural and database-free; the `dbtest-workflow`,
-`composite-schema-workflow`, `managed-data-workflow`, and `checkpoint-workflow`
-capability probes use fresh local SQLite databases and no external service. It
+`composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
+`pro-test-workflow`, `pro-maint-workflow`, `pro-plan-workflow`, and
+`pro-down-workflow`
+capability probes use fresh local SQLite databases (or no database at all) and
+no external service. It
 exists to turn "are we there yet" from an opinion
 into a number that moves over time. Treat the results as a floor on the distance
 to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files plus first-party
 regression and capability fixtures, grouped into 158 imported Atlas fixtures,
-7 first-party capability sentinels, and 789 deterministic observations, with
+11 first-party capability sentinels, and 805 deterministic observations, with
 **0 unwaived non-OK observations**. Every imported fixture and capability
 sentinel is measured by at least one current probe. This means the
 deterministic report is green; it does **not** mean full Atlas OSS runtime
@@ -24,9 +27,11 @@ parity, because several runtime dimensions remain unmeasured.
 ## What the probe found broken
 
 Corpus probes are offline and structural. The `dbtest-workflow`,
-`composite-schema-workflow`, `managed-data-workflow`, and `checkpoint-workflow`
+`composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
+`pro-test-workflow`, `pro-maint-workflow`, `pro-plan-workflow`, and
+`pro-down-workflow`
 probes also execute committed first-party fixtures through the real Ptah CLI
-against ephemeral SQLite databases.
+against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
@@ -40,6 +45,10 @@ against ephemeral SQLite databases.
 | `composite-schema-workflow` | Do multiple desired-schema sources behave exactly like one hand-merged source? | Full SQLite DDL snapshots, source conflicts, generated up/down equivalence, direct live schema facts, clean mixed/hand-merged comparisons, and a drift-detecting negative control are checked. |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data round-trip apply, introspect, and converge? | A model's `//migrator:schema:data` rows are applied via `ptah migrations data`, the seeded rows are introspected and matched to the declared desired state, a re-diff converges to "no data changes", a divergent desired set is refused by the destructive gate (exit 2), and rolling the data migration back removes exactly the inserted rows. |
 | `checkpoint-workflow` | Does Ptah's migration checkpoint round-trip squash, bootstrap, and stay safe? | A three-migration history is squashed by `ptah migrations checkpoint` into a deterministic cumulative-schema pair covered by a rewritten `ptah.sum`; a fresh database bootstraps from the checkpoint alone to a schema structurally identical to the full replay; an already-migrated database ignores the checkpoint; a tampered checkpoint fails `validate` (exit 1); rolling back below the boundary is refused (exit 2) while rolling back to zero runs the checkpoint's down body; and a post-checkpoint migration bootstraps on top of the checkpoint. |
+| `pro-test-workflow` | Do the forwarded Atlas Pro test verbs preserve their end-to-end CLI contracts? | `atlas migrate test` applies the Atlas-format directory to a real SQLite dev database and runs the committed case set (exit 0); a deliberately failing assertion exits 1 with a structured FAIL report; `atlas schema test` provisions the desired schema from a local Go-annotation source and holds the same pass/fail exit contract. |
+| `pro-maint-workflow` | Do the forwarded Atlas Pro directory-maintenance verbs keep the directory valid? | `atlas migrate edit` applies a hermetic scripted `$EDITOR` change and rewrites `atlas.sum`; `atlas migrate rebase` moves a migration to the end of history under the deterministic next version; `atlas migrate rm` removes a migration and its checksum entry; `ptah migrations validate` passes after every verb. |
+| `pro-plan-workflow` | Does the local `schema plan` → `schema apply --plan` workflow bind plans to fingerprints? | `atlas schema plan --save` writes a format_version-1 plan file with sha256 source/target fingerprints and per-statement severities against a real SQLite target; `atlas schema apply --plan file://...` replays the reviewed plan; a target mutated after planning is refused as stale (exit 1) with the database untouched. |
+| `pro-down-workflow` | Does bare `atlas migrate down` revert Atlas-format revisions by default? | `atlas migrate apply` records Atlas-format revision rows; a bare `atlas migrate down` — no `--revision-format` flag — reads exactly those rows, executes the embedded txtar down bodies, and clears the revision history (the stokaro/ptah#810 default; previously a silent no-op). |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -78,7 +87,14 @@ is **"unknown — not measured"**, not "works".
   first-party behavioral probes rather than falsely compared with CE.
   Declarative database testing (ptah#659) is measured here by
   `dbtest-workflow`, which runs committed fixtures through both native commands
-  on ephemeral SQLite and verifies reports and process exits. Composite desired
+  on ephemeral SQLite and verifies reports and process exits; the Atlas-shaped
+  forwards `atlas migrate test` and `atlas schema test` (ptah#805) are measured
+  by `pro-test-workflow` through the same real CLI. The local `schema plan`
+  plan-file workflow and `schema apply --plan file://` (ptah#809) are measured
+  by `pro-plan-workflow`, including the stale-fingerprint refusal; the plan
+  registry sub-verbs stay CE-boundary stubs by decision (ptah#810). The bare
+  `atlas migrate down` Atlas revision-format default (ptah#810) is measured by
+  `pro-down-workflow`. Composite desired
   schemas (ptah#666) are measured by `composite-schema-workflow`, which proves
   source composition against a hand-merged oracle and a live SQLite end state.
   Declarative reference/seed data management (ptah#663) is measured by
@@ -99,11 +115,14 @@ is **"unknown — not measured"**, not "works".
 - **Migration directory maintenance** (`ptah migrations edit`, `rebase`, and `rm`,
   ptah#662) is another: Atlas keeps directory-maintenance commands in its
   proprietary (Pro) build, so Atlas CE has no `migrate edit`/`rebase`/`rm` to
-  differential against — Ptah's atlas-compat surface correctly reports them as
-  unsupported-community, matching CE. Ptah provides the capability for free through
+  differential against. Ptah provides the capability through
   its **native** command tree (mutate a migration and atomically rewrite
   `ptah.sum`/`atlas.sum`, refusing already-applied history), verified by unit tests
-  in `migration` and `cmd`. This is scope, not a gap: there is no CE oracle.
+  in `migration` and `cmd`, and since ptah#807 also forwards the Atlas-shaped
+  verbs `atlas migrate edit`/`rebase`/`rm` as open capabilities — measured here
+  end to end by `pro-maint-workflow`, with the CLI-surface report requiring the
+  verbs to keep resolving instead of regressing to the CE abort stub. There is
+  still no CE oracle; the usage/flag contract is first-party.
 - Native migration **import** (`ptah migrations import`, ptah#667) is Atlas OSS
   `migrate import` parity, but it emits **Ptah-native** format (not Atlas format),
   so it is not a schema-object round-trip. It is measured directly by the
@@ -130,10 +149,15 @@ workflow probes are fixture-driven and make only the claims listed below.
   and `atlas migrate ...` command tree from Cobra help, records usage lines and
   long flags, and compares both Ptah surfaces separately: `ptah atlas ...` and a
   `ptah-compat` binary named `atlas`. This report also lists Cloud/commercial
-  commands explicitly and checks that Ptah either reports the same
-  community-version unsupported boundary or resolves an explicit open capability
-  beyond Atlas CE instead of silently omitting the command or falling back to
-  parent help. Resolution proves only the CLI surface; dedicated workflow probes
+  commands explicitly with **per-verb expectations**: verbs Ptah has implemented
+  as open capabilities (`migrate test`, `schema test`, `migrate
+  edit`/`rebase`/`rm`, `schema plan`, `migrate checkpoint`) must resolve with a
+  first-party usage line and required long-flag set — regressing to Atlas CE's
+  community-version abort stub is a gap — while still-stubbed Cloud/registry
+  verbs (`migrate push`, `schema push`, and the nine `schema plan` registry
+  sub-verbs) must keep reporting the CE abort boundary; a stub that silently
+  starts resolving is also a gap until it is explicitly promoted. Resolution
+  proves only the CLI surface; dedicated workflow probes
   own behavioral evidence for extra Ptah capabilities. The current full gate is green on the
   pinned Atlas CE surface; future Atlas changes should either keep this green
   by implementing Ptah parity, or create explicit tracked gaps instead of
@@ -233,6 +257,28 @@ workflow probes are fixture-driven and make only the claims listed below.
   and schema facts. These fixtures live under `testdata/workflows/checkpoint`,
   outside the Atlas round-trip corpus, because they measure a Ptah-native
   capability with no Atlas CE oracle.
+- **`pro-test-workflow`**, **`pro-maint-workflow`**, **`pro-plan-workflow`**,
+  and **`pro-down-workflow`** are end-to-end capability probes over the Atlas
+  Pro verbs Ptah forwards as open capabilities (ptah#758: the `migrate
+  test`/`schema test` forwards from ptah#805, the `migrate
+  edit`/`rebase`/`rm` forwards from ptah#807, the local `schema plan` /
+  `schema apply --plan file://` workflow from ptah#809, and the bare
+  `migrate down` Atlas revision-format default from ptah#810). Each builds the
+  go.mod-pinned `ptah` binary and drives the real `ptah atlas ...` CLI over
+  committed fixtures under `testdata/workflows/pro-*`: the test probe runs
+  passing and deliberately failing case sets against real SQLite dev
+  databases and enforces the exit-0/exit-1 report contract; the maintenance
+  probe edits (via a hermetic scripted `$EDITOR`), rebases, and removes
+  migrations fully offline, requiring `ptah migrations validate` to pass
+  after every verb; the plan probe saves a fingerprinted local plan file,
+  replays it with `schema apply --plan`, and proves a post-plan target
+  mutation is refused as stale with the database untouched; the down probe
+  proves bare `atlas migrate down` reads the Atlas-format revision rows
+  `atlas migrate apply` wrote and actually reverts. These are representative
+  workflow contours, not exhaustive CLI matrices — flag-by-flag coverage
+  stays owned by Ptah's own command tests, and the CLI-surface tier owns the
+  usage/flag contracts. Atlas keeps every one of these verbs outside CE, so
+  there is no CE oracle.
 - **`cli-exit-behavior`** is an **exit and error-behavior matrix** over
   representative Atlas OSS success and failure paths (invalid URL, missing
   migration directory, missing/malformed/duplicate `atlas.sum`, clean checksum

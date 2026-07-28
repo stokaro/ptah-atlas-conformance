@@ -1142,6 +1142,34 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/pro-down-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "_capability/pro-maint-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "_capability/pro-plan-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "_capability/pro-test-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "txtar-down",
     "stage": "import",
     "outcome": "ok",
@@ -5543,5 +5571,89 @@
     "stage": "post-checkpoint schema equivalence",
     "outcome": "ok",
     "detail": "the full-history path (1-3 then 5) and the checkpoint bootstrap path (4 then 5) converged to structurally identical schemas"
+  },
+  {
+    "probe": "pro-test-workflow",
+    "fixture": "ptah atlas migrate test",
+    "stage": "migration tests pass",
+    "outcome": "ok",
+    "detail": "the Atlas Pro test verb applied the Atlas-format migration directory to a real SQLite dev database and passed the committed case set: migrate_to latest, exec, and row-count/scalar assertions"
+  },
+  {
+    "probe": "pro-test-workflow",
+    "fixture": "ptah atlas migrate test",
+    "stage": "migration test failure exit contract",
+    "outcome": "ok",
+    "detail": "a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1"
+  },
+  {
+    "probe": "pro-test-workflow",
+    "fixture": "ptah atlas schema test",
+    "stage": "schema tests pass",
+    "outcome": "ok",
+    "detail": "the Atlas Pro schema-test verb provisioned the desired schema from the local Go-annotation source on a real SQLite dev database and passed the committed case set"
+  },
+  {
+    "probe": "pro-test-workflow",
+    "fixture": "ptah atlas schema test",
+    "stage": "schema test failure exit contract",
+    "outcome": "ok",
+    "detail": "a deliberately failing schema assertion produced a structured FAIL report and process exit code 1"
+  },
+  {
+    "probe": "pro-maint-workflow",
+    "fixture": "ptah atlas migrate edit",
+    "stage": "editor round-trip",
+    "outcome": "ok",
+    "detail": "the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate`"
+  },
+  {
+    "probe": "pro-maint-workflow",
+    "fixture": "ptah atlas migrate rebase",
+    "stage": "rebase to end of history",
+    "outcome": "ok",
+    "detail": "the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`"
+  },
+  {
+    "probe": "pro-maint-workflow",
+    "fixture": "ptah atlas migrate rm",
+    "stage": "remove migration",
+    "outcome": "ok",
+    "detail": "the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate`"
+  },
+  {
+    "probe": "pro-plan-workflow",
+    "fixture": "ptah atlas schema plan",
+    "stage": "plan creation",
+    "outcome": "ok",
+    "detail": "`schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
+  },
+  {
+    "probe": "pro-plan-workflow",
+    "fixture": "ptah atlas schema apply",
+    "stage": "plan application",
+    "outcome": "ok",
+    "detail": "`schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table"
+  },
+  {
+    "probe": "pro-plan-workflow",
+    "fixture": "ptah atlas schema apply",
+    "stage": "stale plan refusal",
+    "outcome": "ok",
+    "detail": "a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched"
+  },
+  {
+    "probe": "pro-down-workflow",
+    "fixture": "ptah atlas migrate apply",
+    "stage": "atlas-format application",
+    "outcome": "ok",
+    "detail": "`atlas migrate apply` executed both txtar migrations and recorded Atlas-format revision rows in atlas_schema_revisions"
+  },
+  {
+    "probe": "pro-down-workflow",
+    "fixture": "ptah atlas migrate down",
+    "stage": "bare rollback",
+    "outcome": "ok",
+    "detail": "bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)"
   }
 ]

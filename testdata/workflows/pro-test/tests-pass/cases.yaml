@@ -1,0 +1,19 @@
+cases:
+  - name: migration workflow
+    steps:
+      - name: migrate up
+        migrate_to: latest
+      - name: users table is empty
+        assert:
+          query: SELECT id FROM users
+          row_count: 0
+      - name: insert user
+        exec: INSERT INTO users (id, name) VALUES (1, 'ada')
+      - name: user name matches
+        assert:
+          query: SELECT name FROM users
+          scalar: ada
+      - name: posts table exists and is empty
+        assert:
+          query: SELECT id FROM posts
+          row_count: 0

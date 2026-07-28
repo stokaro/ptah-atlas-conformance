@@ -1,0 +1,9 @@
+cases:
+  - name: failing assertion
+    steps:
+      - name: migrate up
+        migrate_to: latest
+      - name: expects a row that does not exist
+        assert:
+          query: SELECT id FROM users
+          row_count: 1

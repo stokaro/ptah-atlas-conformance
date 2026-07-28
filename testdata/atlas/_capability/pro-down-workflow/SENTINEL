@@ -1,0 +1,12 @@
+Capability sentinel for the pro-down-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/pro-down
+through the real Ptah CLI. It proves the bare `atlas migrate down`
+revision-format default decided in stokaro/ptah#810: `atlas migrate apply`
+records Atlas-format revision rows on a real SQLite database, and a bare
+`atlas migrate down` — no `--revision-format` flag — must read exactly
+those rows, execute the embedded txtar down bodies, and clear the revision
+history (before #810 the bare verb read Ptah's native revision table and
+silently rolled back nothing). Atlas keeps `migrate down` in its
+proprietary Pro build, so these fixtures are intentionally separate from
+the Atlas schema round-trip corpus (stokaro/ptah#758).

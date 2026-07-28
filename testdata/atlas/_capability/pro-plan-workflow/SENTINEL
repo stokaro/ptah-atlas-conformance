@@ -1,0 +1,12 @@
+Capability sentinel for the pro-plan-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/pro-plan
+through the real Ptah CLI. It exercises the local half of Atlas's Pro
+`schema plan` workflow that Ptah implements as an open capability
+(stokaro/ptah#809): `atlas schema plan --save` writes a fingerprinted local
+plan file against a real SQLite target, `atlas schema apply --plan
+file://...` replays exactly that reviewed plan, and a target mutated after
+planning is refused as stale without touching the database. Atlas binds
+plan storage and approval to its Cloud registry — the pinned CE binary
+aborts on the verb — so these fixtures are intentionally separate from the
+Atlas schema round-trip corpus (stokaro/ptah#758).

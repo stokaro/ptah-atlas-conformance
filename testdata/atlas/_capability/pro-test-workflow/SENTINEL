@@ -1,0 +1,11 @@
+Capability sentinel for the pro-test-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/pro-test
+through the real Ptah CLI. It exercises the Atlas Pro test verbs Ptah
+implements as open capabilities (`atlas migrate test` and `atlas schema
+test`, stokaro/ptah#805) against real SQLite dev databases: a passing
+committed case set must exit 0 and a deliberately failing assertion must
+exit 1 with a structured failure report. Atlas keeps both verbs in its
+proprietary Pro/Cloud build — the pinned CE binary aborts on them — so
+these fixtures are intentionally separate from the Atlas schema round-trip
+corpus (stokaro/ptah#758).

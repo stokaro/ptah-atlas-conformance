@@ -12,11 +12,11 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260728092848-3d7bf6aa2d33`
-- Outcomes: **789 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260728144201-428754f61581`
+- Outcomes: **805 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
-- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **7 first-party capability sentinel(s)**
+- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **11 first-party capability sentinel(s)**
 
 ## Findings
 
@@ -199,6 +199,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | corpus-inventory | `_capability/dbtest-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/lint-analyzers/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/managed-data-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/pro-down-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/pro-maint-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/pro-plan-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/pro-test-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
@@ -537,6 +541,18 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migdir-ingest | `sql/sqltool/testdata/liquibase` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `txtar-down` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `txtar-down-boundary` | recognize | all 1 files recognized |  |
+| — | ok | pro-down-workflow | `ptah atlas migrate apply` | atlas-format application | `atlas migrate apply` executed both txtar migrations and recorded Atlas-format revision rows in atlas_schema_revisions |  |
+| — | ok | pro-down-workflow | `ptah atlas migrate down` | bare rollback | bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op) |  |
+| — | ok | pro-maint-workflow | `ptah atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `ptah atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `ptah atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
+| — | ok | pro-plan-workflow | `ptah atlas schema apply` | plan application | `schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table |  |
+| — | ok | pro-plan-workflow | `ptah atlas schema apply` | stale plan refusal | a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
+| — | ok | pro-plan-workflow | `ptah atlas schema plan` | plan creation | `schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity |  |
+| — | ok | pro-test-workflow | `ptah atlas migrate test` | migration tests pass | the Atlas Pro test verb applied the Atlas-format migration directory to a real SQLite dev database and passed the committed case set: migrate_to latest, exec, and row-count/scalar assertions |  |
+| — | ok | pro-test-workflow | `ptah atlas migrate test` | migration test failure exit contract | a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1 |  |
+| — | ok | pro-test-workflow | `ptah atlas schema test` | schema tests pass | the Atlas Pro schema-test verb provisioned the desired schema from the local Go-annotation source on a real SQLite dev database and passed the committed case set |  |
+| — | ok | pro-test-workflow | `ptah atlas schema test` | schema test failure exit contract | a deliberately failing schema assertion produced a structured FAIL report and process exit code 1 |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240116003831.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/versioned-basic/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |

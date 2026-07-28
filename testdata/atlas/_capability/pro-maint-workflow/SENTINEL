@@ -1,0 +1,12 @@
+Capability sentinel for the pro-maint-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/pro-maint
+through the real Ptah CLI. It exercises the Atlas Pro directory-maintenance
+verbs Ptah implements as open capabilities (`atlas migrate edit`, `atlas
+migrate rebase`, and `atlas migrate rm`, stokaro/ptah#807) fully offline: a
+hermetic scripted $EDITOR edits a migration, a migration is rebased to the
+end of history, and a migration is removed — each verb rewriting atlas.sum
+so `ptah migrations validate` stays green. Atlas keeps these verbs in its
+proprietary Pro build — the pinned CE binary aborts on them — so these
+fixtures are intentionally separate from the Atlas schema round-trip corpus
+(stokaro/ptah#758).
