@@ -1,0 +1,63 @@
+name: conformance-orm-providers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # This regression job accepts the committed non-OK budget while requiring the
+  # generated provider report to stay current. Provider installs run only in
+  # temporary copied modules and virtual environments.
+  regression-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: testdata/workflows/external-schema/orm/sqlalchemy/requirements.txt
+
+      - name: Regenerate the ORM provider report
+        run: go run ./cmd/gap-probe-orm-providers
+
+      - name: Fail if the committed ORM provider report is stale
+        run: |
+          if ! git diff --exit-code gaps-orm-providers.md gaps-orm-providers.json; then
+            echo "ORM provider reports are out of date -- run 'go run ./cmd/gap-probe-orm-providers' and commit the result."
+            exit 1
+          fi
+
+      - name: Enforce the ORM provider regression budget
+        run: >-
+          go run ./cmd/gap-budget
+          --report gaps-orm-providers.json
+          --budget gap-orm-providers-budget.txt
+
+  # This independent job is the full zero-gap signal. It intentionally does not
+  # inherit the regression budget: any provider harness failure or Ptah behavior
+  # mismatch makes the full gate red.
+  full-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: testdata/workflows/external-schema/orm/sqlalchemy/requirements.txt
+
+      - name: Run the ORM provider full gate
+        run: >-
+          go run ./cmd/gap-probe-orm-providers
+          --gate
+          --md "${{ runner.temp }}/gaps-orm-providers.md"
+          --json "${{ runner.temp }}/gaps-orm-providers.json"

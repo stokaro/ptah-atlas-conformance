@@ -277,7 +277,7 @@
     "fixture": "ptah atlas migrate edit",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`ptah atlas migrate edit` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -347,14 +347,14 @@
     "fixture": "ptah atlas migrate rebase",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate rebase` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`ptah atlas migrate rebase` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
     "fixture": "ptah atlas migrate rm",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate rm` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`ptah atlas migrate rm` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -389,7 +389,7 @@
     "fixture": "ptah atlas migrate test",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate test` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`ptah atlas migrate test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -494,7 +494,7 @@
     "fixture": "ptah atlas schema plan",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`ptah atlas schema plan` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`ptah atlas schema plan` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -508,7 +508,7 @@
     "fixture": "ptah atlas schema test",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`ptah atlas schema test` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`ptah atlas schema test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-namespace",
@@ -606,7 +606,7 @@
     "fixture": "atlas migrate edit",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas migrate edit` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas migrate edit` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -676,14 +676,14 @@
     "fixture": "atlas migrate rebase",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas migrate rebase` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas migrate rebase` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate rm",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas migrate rm` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas migrate rm` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -718,7 +718,7 @@
     "fixture": "atlas migrate test",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas migrate test` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas migrate test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -823,7 +823,7 @@
     "fixture": "atlas schema plan",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -837,7 +837,7 @@
     "fixture": "atlas schema test",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema test` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",

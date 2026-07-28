@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-cli-surface budget-cli-surface gate-cli-surface verify-cli-exit-oracle atlas verify test build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -86,6 +86,24 @@ budget-migrate-runtime: probe-migrate-runtime
 gate-migrate-runtime:
 	$(GO_OFF) run ./cmd/gap-probe-migrate-runtime -gate
 
+# The external ORM provider tier installs pinned GORM and SQLAlchemy provider
+# toolchains in temporary isolated environments, validates their direct output,
+# and sends the same commands through Ptah's external-schema CLI contract.
+# Regenerates gaps-orm-providers.md / gaps-orm-providers.json and always exits 0.
+probe-orm-providers:
+	$(GO_OFF) run ./cmd/gap-probe-orm-providers
+
+# CI progress gate for provider integration: fail only when the current report
+# exceeds the committed budget. Full provider conformance remains a separate
+# `make gate-orm-providers` signal.
+budget-orm-providers: probe-orm-providers
+	$(GO_OFF) run ./cmd/gap-budget -report gaps-orm-providers.json -budget gap-orm-providers-budget.txt
+
+# The full ORM provider gate: regenerate the report AND fail on any provider
+# setup, execution, output, or Ptah behavior mismatch.
+gate-orm-providers:
+	$(GO_OFF) run ./cmd/gap-probe-orm-providers -gate
+
 # The CLI surface tier: build/read the pinned Atlas CE binary and compare its
 # command help/usage/flag inventory to both `ptah atlas ...` and a ptah-compat
 # binary named `atlas`. Regenerates cli-surface.md / cli-surface.json and
@@ -139,4 +157,4 @@ verify: test build vet
 	@echo "ok"
 
 clean:
-	rm -f gaps.md gaps.json
+	rm -f gaps.md gaps.json gaps-orm-providers.md gaps-orm-providers.json

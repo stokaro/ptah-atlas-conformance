@@ -7,8 +7,9 @@ It is a deterministic coverage probe over the full vendored Atlas
 `*/testdata/*` snapshot plus first-party Atlas-compatible regression and
 workflow fixtures, run through Ptah's public API and real CLI. Most observations
 are structural and database-free; the `dbtest-workflow`,
-`composite-schema-workflow`, `managed-data-workflow`, and `checkpoint-workflow`
-capability probes use fresh local SQLite databases and no external service. It
+`composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
+and `external-schema-workflow` capability probes use fresh local SQLite
+databases and no external service. It
 exists to turn "are we there yet" from an opinion
 into a number that moves over time. Treat the results as a floor on the distance
 to Atlas, never a ceiling.
@@ -24,9 +25,9 @@ parity, because several runtime dimensions remain unmeasured.
 ## What the probe found broken
 
 Corpus probes are offline and structural. The `dbtest-workflow`,
-`composite-schema-workflow`, `managed-data-workflow`, and `checkpoint-workflow`
-probes also execute committed first-party fixtures through the real Ptah CLI
-against ephemeral SQLite databases.
+`composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
+and `external-schema-workflow` probes also execute committed first-party
+fixtures through the real Ptah CLI against ephemeral SQLite databases.
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
@@ -40,6 +41,7 @@ against ephemeral SQLite databases.
 | `composite-schema-workflow` | Do multiple desired-schema sources behave exactly like one hand-merged source? | Full SQLite DDL snapshots, source conflicts, generated up/down equivalence, direct live schema facts, clean mixed/hand-merged comparisons, and a drift-detecting negative control are checked. |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data round-trip apply, introspect, and converge? | A model's `//migrator:schema:data` rows are applied via `ptah migrations data`, the seeded rows are introspected and matched to the declared desired state, a re-diff converges to "no data changes", a divergent desired set is refused by the destructive gate (exit 2), and rolling the data migration back removes exactly the inserted rows. |
 | `checkpoint-workflow` | Does Ptah's migration checkpoint round-trip squash, bootstrap, and stay safe? | A three-migration history is squashed by `ptah migrations checkpoint` into a deterministic cumulative-schema pair covered by a rewritten `ptah.sum`; a fresh database bootstraps from the checkpoint alone to a schema structurally identical to the full replay; an already-migrated database ignores the checkpoint; a tampered checkpoint fails `validate` (exit 1); rolling back below the boundary is refused (exit 2) while rolling back to zero runs the checkpoint's down body; and a post-checkpoint migration bootstraps on top of the checkpoint. |
+| `external-schema-workflow` | Do Ptah's native static and external desired-schema sources work end to end? | Twenty observations cover static SQL; external SQL/HCL/YAML providers; trust denial without side effects for render, compare, drift, plan, and generate; allowed configuration; generated migration application; table, primary-key, unique-index, and cascading-foreign-key facts; and converged no-op results on ephemeral SQLite. |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -233,6 +235,16 @@ workflow probes are fixture-driven and make only the claims listed below.
   and schema facts. These fixtures live under `testdata/workflows/checkpoint`,
   outside the Atlas round-trip corpus, because they measure a Ptah-native
   capability with no Atlas CE oracle.
+- **`external-schema-workflow`** is a deterministic end-to-end probe over
+  Ptah's native external-program desired-schema source (ptah#669). It invokes
+  the real CLI for SQL, HCL, and YAML provider output, proves the configuration
+  trust gate prevents execution and filesystem side effects across every
+  consumer, generates and applies a migration to ephemeral SQLite, verifies
+  live schema facts directly, and requires compare, drift, plan, and generate
+  to converge. A separate `orm-provider-smoke` report installs pinned GORM and
+  SQLAlchemy providers and checks both their direct output and Ptah-rendered
+  output. Neither probe claims Atlas HCL `data.external_schema` evaluation;
+  that is a separate Atlas project-language capability.
 - **`cli-exit-behavior`** is an **exit and error-behavior matrix** over
   representative Atlas OSS success and failure paths (invalid URL, missing
   migration directory, missing/malformed/duplicate `atlas.sum`, clean checksum
