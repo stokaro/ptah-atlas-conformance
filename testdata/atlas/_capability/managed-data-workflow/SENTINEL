@@ -1,0 +1,8 @@
+Capability sentinel for the managed-data-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/managed-data
+through the real Ptah CLI. It exercises Ptah's declarative reference/seed data
+capability (//migrator:schema:data plus `ptah migrations data`), which Atlas CE
+cannot express: Atlas OSS neither declaratively manages nor inspects reference
+data. These fixtures are intentionally separate from the Atlas schema round-trip
+corpus because they measure a Ptah-native capability (stokaro/ptah#663).

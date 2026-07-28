@@ -1,0 +1,7 @@
+# Desired managed reference rows for the countries table. The managed-data
+# workflow probe applies these rows and asserts the live table converges to
+# exactly this set.
+- code: US
+  name: United States
+- code: CZ
+  name: Czechia
