@@ -63,6 +63,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `dbtest-workflow` | Do the native `ptah migrations test` and `ptah schema test` commands execute committed migration/schema/seed fixtures against isolated SQLite databases, filter cases, repair schema drift, render text/JSON/HTML reports, and preserve exit codes 1 (assertion failure) and 2 (setup failure)? | the built `ptah` binary, `migration/dbtest`, ephemeral SQLite |
 | `composite-schema-workflow` | Do independently owned Go and YAML desired-schema sources render exactly like a committed hand-merged schema, reject conflicting identities, generate identical up/down migrations, and converge on verified SQLite schema facts? | the built `ptah` binary, `core/goschema`, ephemeral SQLite |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data (`//migrator:schema:data` plus `ptah migrations data`) round-trip: apply declared rows, introspect them back, re-diff to a converged "no data changes" state, refuse a destructive divergent set (exit 2), and reverse cleanly on rollback? Atlas CE cannot declaratively manage or inspect reference data. | the built `ptah` binary, `internal/datamigrate`/`migration/datadiff`, ephemeral SQLite |
+| `checkpoint-workflow` | Does `ptah migrations checkpoint` squash a migration history into a deterministic cumulative-schema pair covered by `ptah.sum`, from which a fresh database bootstraps to a schema structurally identical to the full replay while an already-migrated database ignores it — with tamper detection (`validate` exit 1), a below-boundary rollback refusal (exit 2), a working rollback-to-zero, and post-checkpoint continuation? Atlas keeps `migrate checkpoint` in its proprietary Pro build. | the built `ptah` binary, `migration/generator`/`migration/migrator`, ephemeral SQLite |
 
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
@@ -70,9 +71,9 @@ own (strongest) outcome rather than aborting the run.
 ## Live tiers (real database)
 
 The probes above are deterministic and require no external services.
-`dbtest-workflow`, `composite-schema-workflow`, and `managed-data-workflow`
-intentionally execute local ephemeral SQLite databases; the remaining offline
-probes do not open a database. Three further tiers run against real networked
+`dbtest-workflow`, `composite-schema-workflow`, `managed-data-workflow`, and
+`checkpoint-workflow` intentionally execute local ephemeral SQLite databases;
+the remaining offline probes do not open a database. Three further tiers run against real networked
 databases in their own workflows, kept separate from the deterministic report.
 
 | Tier | Workflow | Question | Needs |

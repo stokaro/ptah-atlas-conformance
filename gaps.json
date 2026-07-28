@@ -1100,6 +1100,13 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/checkpoint-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "_capability/cli-exit-behavior/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
@@ -5452,5 +5459,89 @@
     "stage": "data reversibility",
     "outcome": "ok",
     "detail": "rolling back the data migration removed exactly the seeded rows, leaving the schema intact"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations up",
+    "stage": "full history application",
+    "outcome": "ok",
+    "detail": "the three-migration history applied in full, recording versions 1-3 individually"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations checkpoint",
+    "stage": "checkpoint creation",
+    "outcome": "ok",
+    "detail": "the shadow replay produced the deterministic version-4 checkpoint pair with the cumulative schema, and ptah.sum was rewritten to cover it"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations validate",
+    "stage": "checkpoint integrity",
+    "outcome": "ok",
+    "detail": "the directory including the fresh checkpoint pair validates against the rewritten ptah.sum"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations up",
+    "stage": "fresh bootstrap",
+    "outcome": "ok",
+    "detail": "a fresh database bootstrapped from the checkpoint alone, recording only revision 4 with the squashed history satisfied"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "SQLite schema facts",
+    "stage": "bootstrap schema equivalence",
+    "outcome": "ok",
+    "detail": "the checkpoint-bootstrapped schema is structurally identical to the full-history replay (tables, columns, defaults, primary keys, foreign keys, and indexes)"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations status",
+    "stage": "status convergence",
+    "outcome": "ok",
+    "detail": "status reflects the bootstrap decision on both databases: the checkpoint is not pending on the already-migrated one, and the bootstrapped one is complete at revision 4"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations up",
+    "stage": "already-migrated no-op",
+    "outcome": "ok",
+    "detail": "the already-migrated database ignored the checkpoint: re-running up applied nothing and left revisions 1-3 unchanged"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations validate",
+    "stage": "tamper detection",
+    "outcome": "ok",
+    "detail": "a single tampered byte in the checkpoint file failed validation naming that file, and restoring the bytes validated cleanly again"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations down",
+    "stage": "rollback boundary guard",
+    "outcome": "ok",
+    "detail": "rolling back below the checkpoint boundary was refused with exit code 2 and an actionable error, leaving the database untouched"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations down",
+    "stage": "rollback to zero",
+    "outcome": "ok",
+    "detail": "rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "ptah migrations up",
+    "stage": "post-checkpoint continuation",
+    "outcome": "ok",
+    "detail": "a fresh database bootstrapped from the checkpoint and applied only the post-checkpoint migration, recording revisions 4 and 5"
+  },
+  {
+    "probe": "checkpoint-workflow",
+    "fixture": "SQLite schema facts",
+    "stage": "post-checkpoint schema equivalence",
+    "outcome": "ok",
+    "detail": "the full-history path (1-3 then 5) and the checkpoint bootstrap path (4 then 5) converged to structurally identical schemas"
   }
 ]
