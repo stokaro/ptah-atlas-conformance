@@ -6,6 +6,7 @@ package probe
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
@@ -75,6 +76,7 @@ func TestClassifyAtlasCommand_HappyPath(t *testing.T) {
 		{name: "schema inspect", path: []string{"schema", "inspect"}, want: CLISurfaceOSS},
 		{name: "migrate set", path: []string{"migrate", "set"}, want: CLISurfaceOSS},
 		{name: "schema push", path: []string{"schema", "push"}, want: CLISurfaceOutOfScope},
+		{name: "schema plan registry sub-verb", path: []string{"schema", "plan", "approve"}, want: CLISurfaceOutOfScope},
 	}
 
 	for _, tt := range tests {
@@ -132,15 +134,15 @@ func TestCompareOutOfScopeCommand_HappyPath(t *testing.T) {
 	c := qt.New(t)
 
 	bin := writeExecutable(t, `#!/bin/sh
-printf "'atlas migrate checkpoint' is not supported by the community version.\n"
+printf "'atlas migrate push' is not supported by the community version.\n"
 `)
-	cmd := CLISurfaceCommand{Path: []string{"migrate", "checkpoint"}}
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
 
 	got := compareOutOfScopeCommand(
 		"atlas-cli-surface-ptah-compat",
-		"atlas migrate checkpoint",
+		"atlas migrate push",
 		bin,
-		[]string{"migrate", "checkpoint"},
+		[]string{"migrate", "push"},
 		cmd,
 		"stokaro/ptah#514",
 	)
@@ -148,35 +150,39 @@ printf "'atlas migrate checkpoint' is not supported by the community version.\n"
 	c.Assert(got.Outcome, qt.Equals, OK)
 }
 
-func TestCompareOutOfScopeCommand_PtahCapability(t *testing.T) {
+func TestCompareOutOfScopeCommand_ResolvingStubIsAGap(t *testing.T) {
 	c := qt.New(t)
 
+	// A still-stubbed Cloud/registry verb that silently starts resolving as an
+	// open capability must be a gap: an implemented verb belongs in
+	// implementedProVerbSurfaces, where its surface is measured instead of
+	// merely observed.
 	bin := writeExecutable(t, `#!/bin/sh
 case "$*" in
   *--help*)
-    printf "Usage:\n  atlas migrate checkpoint [flags]\n"
+    printf "Usage:\n  atlas migrate push [flags]\n"
     exit 0
     ;;
   *)
-    printf "error: a shadow database URL is required (--shadow-db)\n"
+    printf "error: a registry URL is required (--url)\n"
     exit 2
     ;;
 esac
 `)
-	cmd := CLISurfaceCommand{Path: []string{"migrate", "checkpoint"}}
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
 
 	got := compareOutOfScopeCommand(
 		"atlas-cli-surface-ptah-compat",
-		"atlas migrate checkpoint",
+		"atlas migrate push",
 		bin,
-		[]string{"migrate", "checkpoint"},
+		[]string{"migrate", "push"},
 		cmd,
 		"stokaro/ptah#514",
 	)
 
-	c.Assert(got.Outcome, qt.Equals, OK)
-	c.Assert(got.Detail, qt.Contains, "open Ptah capability beyond Atlas CE")
-	c.Assert(got.Detail, qt.Contains, "does not claim behavioral coverage")
+	c.Assert(got.Outcome, qt.Equals, Gap)
+	c.Assert(got.Detail, qt.Contains, "must keep the CE abort")
+	c.Assert(got.Detail, qt.Contains, "open-capability expectations")
 }
 
 func TestCompareOutOfScopeCommand_FailurePath(t *testing.T) {
@@ -185,19 +191,169 @@ func TestCompareOutOfScopeCommand_FailurePath(t *testing.T) {
 	bin := writeExecutable(t, `#!/bin/sh
 printf "Usage:\n  atlas migrate [flags]\n"
 `)
-	cmd := CLISurfaceCommand{Path: []string{"migrate", "checkpoint"}}
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
 
 	got := compareOutOfScopeCommand(
 		"atlas-cli-surface-ptah-compat",
-		"atlas migrate checkpoint",
+		"atlas migrate push",
 		bin,
-		[]string{"migrate", "checkpoint"},
+		[]string{"migrate", "push"},
 		cmd,
 		"stokaro/ptah#514",
 	)
 
 	c.Assert(got.Outcome, qt.Equals, Gap)
 	c.Assert(got.Detail, qt.Contains, "community-version unsupported boundary")
+}
+
+func TestImplementedProVerbSurfaces_CoverEveryImplementedVerb(t *testing.T) {
+	c := qt.New(t)
+
+	// Every implemented verb must also be a known out-of-scope command, so the
+	// inventory keeps one classification while the comparison tier applies the
+	// tightened open-capability expectation.
+	known := map[string]bool{}
+	for _, cmd := range knownOutOfScopeAtlasCommands() {
+		known[strings.Join(cmd.path, " ")] = true
+	}
+	for verb := range implementedProVerbSurfaces() {
+		c.Check(known[verb], qt.IsTrue, qt.Commentf("implemented verb %q is not a known out-of-scope command", verb))
+	}
+}
+
+func TestCompareImplementedProCommand_HappyPath(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+case "$*" in
+  *--help*)
+    printf "Usage:\n  atlas migrate edit [flags] {name | version}\n\nFlags:\n      --dir string          Migration directory\n      --dir-format string   Migration directory format\n  -h, --help                help for edit\n"
+    exit 0
+    ;;
+  *)
+    printf "error: atlas migrate edit requires version argument\n"
+    exit 1
+    ;;
+esac
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "edit"}}
+
+	got := compareImplementedProCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate edit",
+		bin,
+		[]string{"migrate", "edit"},
+		cmd,
+		implementedProVerbSurfaces()["migrate edit"],
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got, qt.HasLen, 3)
+	stages := []string{got[0].Stage, got[1].Stage, got[2].Stage}
+	c.Check(stages, qt.DeepEquals, []string{"capability-runtime", "usage", "flags"})
+	for _, result := range got {
+		c.Check(result.Outcome, qt.Equals, OK, qt.Commentf("%s: %s", result.Stage, result.Detail))
+	}
+	c.Check(got[0].Detail, qt.Contains, "open Ptah capability")
+	c.Check(got[1].Detail, qt.Contains, "atlas migrate edit [flags] {name | version}")
+	c.Check(got[2].Detail, qt.Contains, "--dir --dir-format")
+}
+
+func TestCompareImplementedProCommand_RemapsNamespaceUsage(t *testing.T) {
+	c := qt.New(t)
+
+	// The `ptah atlas ...` namespace reports its own binary prefix in usage;
+	// the comparison must remap it onto the Atlas-shaped contract.
+	bin := writeExecutable(t, `#!/bin/sh
+case "$*" in
+  *--help*)
+    printf "Usage:\n  ptah atlas migrate rm [flags] {name | version}\n\nFlags:\n      --dir string          Migration directory\n      --dir-format string   Migration directory format\n"
+    exit 0
+    ;;
+  *)
+    printf "error: atlas migrate rm requires version argument\n"
+    exit 1
+    ;;
+esac
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "rm"}}
+
+	got := compareImplementedProCommand(
+		"atlas-cli-surface-ptah-namespace",
+		"ptah atlas migrate rm",
+		bin,
+		[]string{"migrate", "rm"},
+		cmd,
+		implementedProVerbSurfaces()["migrate rm"],
+		"stokaro/ptah#510",
+	)
+
+	c.Assert(got, qt.HasLen, 3)
+	for _, result := range got {
+		c.Check(result.Outcome, qt.Equals, OK, qt.Commentf("%s: %s", result.Stage, result.Detail))
+	}
+}
+
+func TestCompareImplementedProCommand_StubRegressionShortCircuits(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Abort: 'atlas migrate test' is not supported by the community version.\n"
+exit 1
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "test"}}
+
+	got := compareImplementedProCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate test",
+		bin,
+		[]string{"migrate", "test"},
+		cmd,
+		implementedProVerbSurfaces()["migrate test"],
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got, qt.HasLen, 1)
+	c.Check(got[0].Stage, qt.Equals, "capability-runtime")
+	c.Check(got[0].Outcome, qt.Equals, Gap)
+	c.Check(got[0].Detail, qt.Contains, "regressed to Atlas CE's community-version abort stub")
+}
+
+func TestCompareImplementedProCommand_SurfaceDrift(t *testing.T) {
+	c := qt.New(t)
+
+	// Wrong usage line and a missing required flag must each produce a gap
+	// even though the verb resolves as an open capability.
+	bin := writeExecutable(t, `#!/bin/sh
+case "$*" in
+  *--help*)
+    printf "Usage:\n  atlas migrate test [flags]\n\nFlags:\n      --dir string   Migration directory\n"
+    exit 0
+    ;;
+  *)
+    printf "error: failed to load test cases\n"
+    exit 1
+    ;;
+esac
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "test"}}
+
+	got := compareImplementedProCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate test",
+		bin,
+		[]string{"migrate", "test"},
+		cmd,
+		implementedProVerbSurfaces()["migrate test"],
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got, qt.HasLen, 3)
+	c.Check(got[0].Outcome, qt.Equals, OK)
+	c.Check(got[1].Outcome, qt.Equals, Gap)
+	c.Check(got[1].Detail, qt.Contains, "usage mismatch")
+	c.Check(got[2].Outcome, qt.Equals, Gap)
+	c.Check(got[2].Detail, qt.Contains, "missing --dev-url, --dir-format, --run")
 }
 
 func writeExecutable(t *testing.T, content string) string {

@@ -1,0 +1,13 @@
+cases:
+  - name: schema workflow
+    steps:
+      - name: schema starts empty
+        assert:
+          query: SELECT id FROM users
+          row_count: 0
+      - name: insert user
+        exec: INSERT INTO users (id, name) VALUES (1, 'ada')
+      - name: user name matches
+        assert:
+          query: SELECT name FROM users
+          scalar: ada

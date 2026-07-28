@@ -182,6 +182,10 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 		}
 		display := displayCommand(prefix, atlasCmd.Path)
 		if atlasCmd.Classification == CLISurfaceOutOfScope {
+			if surface, ok := implementedProVerbSurfaces()[strings.Join(atlasCmd.Path, " ")]; ok {
+				out = append(out, compareImplementedProCommand(probeName, display, bin, path, atlasCmd, surface, issue)...)
+				continue
+			}
 			out = append(out, compareOutOfScopeCommand(probeName, display, bin, path, atlasCmd, issue))
 			continue
 		}
@@ -206,6 +210,14 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 	return out
 }
 
+// compareOutOfScopeCommand checks an out-of-scope Atlas command that Ptah
+// deliberately keeps as a CE-boundary stub — the Cloud/registry verbs such as
+// `migrate push`, `schema push`, and the `schema plan` registry sub-verbs.
+// The expectation is exact in the closed direction: the command must report
+// Atlas CE's community-version abort. A stub that starts resolving as an open
+// capability is a Gap, not a silent upgrade — an implemented verb must be
+// listed in implementedProVerbSurfaces so its usage/flag surface and workflow
+// behavior are measured instead of merely observed.
 func compareOutOfScopeCommand(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, issue string) Result {
 	out, err := commandOutput(bin, path)
 	if err != nil {
@@ -219,14 +231,118 @@ func compareOutOfScopeCommand(probeName, display, bin string, path []string, atl
 		return Result{probeName, display, "out-of-scope-runtime", OK,
 			"`" + display + "` reports the same community-version unsupported boundary as Atlas CE", ""}
 	}
-	target, helpErr := readCommandSurface(bin, path)
-	if helpErr == nil && (target.Usage == display || strings.HasPrefix(target.Usage, display+" ")) {
-		return Result{probeName, display, "out-of-scope-runtime", OK,
-			"`" + display + "` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage", ""}
-	}
 	return Result{probeName, display, "out-of-scope-runtime", Gap,
-		"`" + display + "` neither reports Atlas CE's community-version unsupported boundary nor resolves as an explicit Ptah capability; got `" + oneLine(out) + "`",
+		"`" + display + "` did not report Atlas CE's community-version unsupported boundary; still-stubbed Cloud/registry verbs must keep the CE abort until they are implemented and added to the open-capability expectations; got `" + oneLine(out) + "`",
 		issue}
+}
+
+// implementedProVerbSurface is the first-party usage/flag contract for an
+// Atlas Pro/Cloud verb that Ptah implements as an open capability. The pinned
+// Atlas CE binary aborts on these verbs and has no help for them, so — unlike
+// the OSS rows — there is no CE oracle: this repository owns the expected
+// surface, and Ptah exposing extra flags beyond the required set is allowed.
+type implementedProVerbSurface struct {
+	// usage is the Atlas-shaped usage line `--help` must report.
+	usage string
+	// flags are the long flags every Ptah surface must expose at minimum.
+	flags []string
+}
+
+// implementedProVerbSurfaces lists the out-of-scope Atlas commands Ptah has
+// implemented as open capabilities: `migrate test` / `schema test`
+// (stokaro/ptah#805), `migrate edit` / `rebase` / `rm` (stokaro/ptah#807),
+// the local half of `schema plan` (stokaro/ptah#809), and the earlier
+// `migrate checkpoint` (stokaro/ptah#660). For these verbs the out-of-scope
+// expectation is tight in the open direction: they must resolve with a real
+// command surface, and regressing to Atlas CE's community-version abort stub
+// is a conformance gap. Out-of-scope verbs absent from this map must keep the
+// CE abort boundary instead.
+func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
+	return map[string]implementedProVerbSurface{
+		"migrate checkpoint": {
+			usage: "atlas migrate checkpoint [flags] [name]",
+			flags: []string{"--dev-url", "--dir", "--dir-format"},
+		},
+		"migrate edit": {
+			usage: "atlas migrate edit [flags] {name | version}",
+			flags: []string{"--dir", "--dir-format"},
+		},
+		"migrate rebase": {
+			usage: "atlas migrate rebase [flags] {name | version}...",
+			flags: []string{"--dir", "--dir-format"},
+		},
+		"migrate rm": {
+			usage: "atlas migrate rm [flags] {name | version}",
+			flags: []string{"--dir", "--dir-format"},
+		},
+		"migrate test": {
+			usage: "atlas migrate test [flags] [paths]",
+			flags: []string{"--dev-url", "--dir", "--dir-format", "--run"},
+		},
+		"schema test": {
+			usage: "atlas schema test [flags] [paths]",
+			flags: []string{"--dev-url", "--run", "--url"},
+		},
+		"schema plan": {
+			usage: "atlas schema plan [flags]",
+			flags: []string{"--dev-url", "--dry-run", "--edit", "--from", "--name", "--output", "--save", "--to"},
+		},
+	}
+}
+
+// compareImplementedProCommand checks an out-of-scope Atlas command that Ptah
+// implements as an open capability. Three observations are emitted per
+// surface: the runtime boundary (the CE community-version abort must be gone),
+// the help usage line, and the minimum long-flag set. The usage/flag oracle is
+// first-party (see implementedProVerbSurfaces) because the CE binary cannot
+// supply help for these verbs; behavioral evidence is owned by the matching
+// workflow probes, not by help output. A regression to the CE abort stub
+// short-circuits so the gate points at the real problem.
+func compareImplementedProCommand(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, surface implementedProVerbSurface, issue string) []Result {
+	bare, err := commandOutput(bin, path)
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); !ok {
+			return []Result{{probeName, display, "capability-runtime", Fail,
+				"executing `" + display + "` failed: " + oneLine(err.Error()), ""}}
+		}
+	}
+	boundary := "'" + displayCommand("atlas", atlasCmd.Path) + "' is not supported by the community version"
+	if strings.Contains(bare, boundary) {
+		return []Result{{probeName, display, "capability-runtime", Gap,
+			"`" + display + "` regressed to Atlas CE's community-version abort stub; Ptah implements this Pro verb as an open capability and must keep it resolving", issue}}
+	}
+	out := []Result{{probeName, display, "capability-runtime", OK,
+		"`" + display + "` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe", ""}}
+
+	target, err := readCommandSurface(bin, path)
+	if err != nil {
+		return append(out, Result{probeName, display, "help", Fail,
+			"reading `" + display + " --help` failed: " + oneLine(err.Error()), ""})
+	}
+	out = append(out, compareImplementedProUsage(probeName, display, atlasCmd, surface, target, issue))
+	out = append(out, compareImplementedProFlags(probeName, display, surface, target, issue))
+	return out
+}
+
+func compareImplementedProUsage(probeName, display string, atlasCmd CLISurfaceCommand, surface implementedProVerbSurface, target helpDetails, issue string) Result {
+	want := normalizeUsage(surface.usage)
+	got := normalizeUsage(remapUsageBinary(target.Usage, displayCommand("atlas", atlasCmd.Path), display))
+	if got == want {
+		return Result{probeName, display, "usage", OK,
+			"usage matches the first-party open-capability contract: `" + surface.usage + "` (Atlas CE has no help for this verb)", ""}
+	}
+	return Result{probeName, display, "usage", Gap,
+		"usage mismatch; the first-party open-capability contract expects `" + surface.usage + "`, Ptah has `" + target.Usage + "`", issue}
+}
+
+func compareImplementedProFlags(probeName, display string, surface implementedProVerbSurface, target helpDetails, issue string) Result {
+	missing := missingStrings(surface.flags, target.Flags)
+	if len(missing) == 0 {
+		return Result{probeName, display, "flags", OK,
+			"exposes the first-party required long flags: " + strings.Join(surface.flags, " ") + " (extra flags are allowed; Atlas CE has no flag oracle for this verb)", ""}
+	}
+	return Result{probeName, display, "flags", Gap,
+		"flag mismatch against the first-party open-capability contract: missing " + strings.Join(missing, ", "), issue}
 }
 
 func compareUsage(probeName, display string, atlasCmd CLISurfaceCommand, target helpDetails, issue string) Result {
@@ -403,17 +519,32 @@ type outOfScopeCommand struct {
 	reason  string
 }
 
+// knownOutOfScopeAtlasCommands lists Atlas commands that are not OSS drop-in
+// parity targets because the pinned CE binary aborts on them. Two directions
+// exist within this set: verbs listed in implementedProVerbSurfaces must
+// resolve as open Ptah capabilities, while the rest (the Cloud/registry verbs,
+// including the `schema plan` registry sub-verbs) must keep Atlas CE's
+// community-version abort boundary.
 func knownOutOfScopeAtlasCommands() []outOfScopeCommand {
 	return []outOfScopeCommand{
-		{[]string{"schema", "test"}, "Test schemas through Atlas Cloud", "Atlas Cloud / commercial workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan"}, "Plan schema changes through Atlas Cloud", "Atlas Cloud / commercial workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "test"}, "Test schemas through Atlas Cloud", "Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"},
+		{[]string{"schema", "plan"}, "Plan schema changes through Atlas Cloud", "Atlas Pro/Cloud plan workflow not present in the pinned CE binary; Ptah implements the local plan-file half as an open capability"},
+		{[]string{"schema", "plan", "approve"}, "Approve a plan in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "lint"}, "Lint a plan against the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "list"}, "List plans in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "new"}, "Create a new plan in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "pull"}, "Pull a plan from the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "push"}, "Push a plan to the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "rm"}, "Remove a plan from the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "test"}, "Test a plan through the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
+		{[]string{"schema", "plan", "validate"}, "Validate a plan through the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
 		{[]string{"schema", "push"}, "Push schema state to Atlas Cloud", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"migrate", "checkpoint"}, "Create migration checkpoint files", "Atlas feature intentionally tracked outside the current OSS drop-in target"},
-		{[]string{"migrate", "edit"}, "Edit migration files", "Atlas convenience command intentionally tracked outside the current OSS drop-in target"},
+		{[]string{"migrate", "checkpoint"}, "Create migration checkpoint files", "Atlas Pro feature not present in the pinned CE binary; Ptah implements it as an open capability"},
+		{[]string{"migrate", "edit"}, "Edit migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
 		{[]string{"migrate", "push"}, "Push migration directory to Atlas Cloud", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"migrate", "rebase"}, "Rebase migration files", "Atlas convenience command intentionally tracked outside the current OSS drop-in target"},
-		{[]string{"migrate", "rm"}, "Remove migration files", "Atlas convenience command intentionally tracked outside the current OSS drop-in target"},
-		{[]string{"migrate", "test"}, "Test migration files through Atlas Cloud", "Atlas Cloud / commercial workflow, not present in the pinned CE binary"},
+		{[]string{"migrate", "rebase"}, "Rebase migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
+		{[]string{"migrate", "rm"}, "Remove migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
+		{[]string{"migrate", "test"}, "Test migration files through Atlas Cloud", "Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"},
 	}
 }
 

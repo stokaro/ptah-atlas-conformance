@@ -176,12 +176,20 @@ func runPtahCommand(bin string, args []string) (ptahCommandResult, error) {
 }
 
 func runPtahCommandInDir(bin string, args []string, workingDir string) (ptahCommandResult, error) {
+	return runPtahCommandInDirWithEnv(bin, args, workingDir, nil)
+}
+
+// runPtahCommandInDirWithEnv runs a Ptah CLI command with extra environment
+// entries appended to the filtered probe environment. Probes use it to inject
+// hermetic tool settings such as a scripted $EDITOR without leaking the
+// invoking user's environment into the measured command.
+func runPtahCommandInDirWithEnv(bin string, args []string, workingDir string, extraEnv []string) (ptahCommandResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = workingDir
-	cmd.Env = ptahCommandEnvironment()
+	cmd.Env = append(ptahCommandEnvironment(), extraEnv...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

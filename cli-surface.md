@@ -12,7 +12,7 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 - Atlas CE binary: `atlas community version v1.2.0`
 - Ptah at `github.com/stokaro/ptah v0.0.0-20260728150557-1e88814ba63a`
-- Outcomes: **122 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **177 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -24,19 +24,19 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | `atlas license` | oss | `atlas license [flags]` | `—` | present in Atlas CE and not cloud-gated |
 | `atlas migrate` | oss | `atlas migrate [command]` | `--config --env --var` | present in Atlas CE and not cloud-gated |
 | `atlas migrate apply` | oss | `atlas migrate apply [flags] [amount]` | `--allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var` | present in Atlas CE and not cloud-gated |
-| `atlas migrate checkpoint` | out-of-scope | `atlas migrate checkpoint` | `—` | Atlas feature intentionally tracked outside the current OSS drop-in target |
+| `atlas migrate checkpoint` | out-of-scope | `atlas migrate checkpoint` | `—` | Atlas Pro feature not present in the pinned CE binary; Ptah implements it as an open capability |
 | `atlas migrate diff` | oss | `atlas migrate diff [flags] [name]` | `--config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var` | present in Atlas CE and not cloud-gated |
-| `atlas migrate edit` | out-of-scope | `atlas migrate edit` | `—` | Atlas convenience command intentionally tracked outside the current OSS drop-in target |
+| `atlas migrate edit` | out-of-scope | `atlas migrate edit` | `—` | Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability |
 | `atlas migrate hash` | oss | `atlas migrate hash [flags]` | `--config --dir --dir-format --env --var` | present in Atlas CE and not cloud-gated |
 | `atlas migrate import` | oss | `atlas migrate import [flags]` | `--config --dir-format --env --from --to --var` | present in Atlas CE and not cloud-gated |
 | `atlas migrate lint` | oss | `atlas migrate lint [flags]` | `--config --dev-url --dir --dir-format --env --format --git-base --git-dir --latest --var` | present in Atlas CE and not cloud-gated |
 | `atlas migrate new` | oss | `atlas migrate new [flags] [name]` | `--config --dir --dir-format --edit --env --var` | present in Atlas CE and not cloud-gated |
 | `atlas migrate push` | out-of-scope | `atlas migrate push` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
-| `atlas migrate rebase` | out-of-scope | `atlas migrate rebase` | `—` | Atlas convenience command intentionally tracked outside the current OSS drop-in target |
-| `atlas migrate rm` | out-of-scope | `atlas migrate rm` | `—` | Atlas convenience command intentionally tracked outside the current OSS drop-in target |
+| `atlas migrate rebase` | out-of-scope | `atlas migrate rebase` | `—` | Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability |
+| `atlas migrate rm` | out-of-scope | `atlas migrate rm` | `—` | Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability |
 | `atlas migrate set` | oss | `atlas migrate set [flags] [version]` | `--config --dir --dir-format --env --revisions-schema --url --var` | present in Atlas CE and not cloud-gated |
 | `atlas migrate status` | oss | `atlas migrate status [flags]` | `--config --dir --dir-format --env --format --revisions-schema --url --var` | present in Atlas CE and not cloud-gated |
-| `atlas migrate test` | out-of-scope | `atlas migrate test` | `—` | Atlas Cloud / commercial workflow, not present in the pinned CE binary |
+| `atlas migrate test` | out-of-scope | `atlas migrate test` | `—` | Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability |
 | `atlas migrate validate` | oss | `atlas migrate validate [flags]` | `--config --dev-url --dir --dir-format --env --var` | present in Atlas CE and not cloud-gated |
 | `atlas schema` | oss | `atlas schema [command]` | `--config --env --var` | present in Atlas CE and not cloud-gated |
 | `atlas schema apply` | oss | `atlas schema apply [flags]` | `--auto-approve --config --dev-url --dry-run --edit --env --exclude --format --include --lock-timeout --plan --schema --to --tx-mode --url --var` | present in Atlas CE and not cloud-gated |
@@ -44,9 +44,18 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | `atlas schema diff` | oss | `atlas schema diff [flags]` | `--config --dev-url --env --exclude --format --from --include --schema --to --var` | present in Atlas CE and not cloud-gated |
 | `atlas schema fmt` | oss | `atlas schema fmt [path ...] [flags]` | `--config --env --var` | present in Atlas CE and not cloud-gated |
 | `atlas schema inspect` | oss | `atlas schema inspect [flags]` | `--config --dev-url --env --exclude --format --schema --url --var` | present in Atlas CE and not cloud-gated |
-| `atlas schema plan` | out-of-scope | `atlas schema plan` | `—` | Atlas Cloud / commercial workflow, not present in the pinned CE binary |
+| `atlas schema plan` | out-of-scope | `atlas schema plan` | `—` | Atlas Pro/Cloud plan workflow not present in the pinned CE binary; Ptah implements the local plan-file half as an open capability |
+| `atlas schema plan approve` | out-of-scope | `atlas schema plan approve` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan lint` | out-of-scope | `atlas schema plan lint` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan list` | out-of-scope | `atlas schema plan list` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan new` | out-of-scope | `atlas schema plan new` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan pull` | out-of-scope | `atlas schema plan pull` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan push` | out-of-scope | `atlas schema plan push` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan rm` | out-of-scope | `atlas schema plan rm` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan test` | out-of-scope | `atlas schema plan test` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
+| `atlas schema plan validate` | out-of-scope | `atlas schema plan validate` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
 | `atlas schema push` | out-of-scope | `atlas schema push` | `—` | Atlas Cloud / registry workflow, not present in the pinned CE binary |
-| `atlas schema test` | out-of-scope | `atlas schema test` | `—` | Atlas Cloud / commercial workflow, not present in the pinned CE binary |
+| `atlas schema test` | out-of-scope | `atlas schema test` | `—` | Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability |
 | `atlas version` | oss | `atlas version [flags]` | `—` | present in Atlas CE and not cloud-gated |
 
 ## Findings
@@ -57,19 +66,19 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-inventory | `atlas license` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate apply` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
-| — | ok | atlas-cli-surface-inventory | `atlas migrate checkpoint` | classify | not an OSS drop-in target: Atlas feature intentionally tracked outside the current OSS drop-in target |  |
+| — | ok | atlas-cli-surface-inventory | `atlas migrate checkpoint` | classify | not an OSS drop-in target: Atlas Pro feature not present in the pinned CE binary; Ptah implements it as an open capability |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate diff` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
-| — | ok | atlas-cli-surface-inventory | `atlas migrate edit` | classify | not an OSS drop-in target: Atlas convenience command intentionally tracked outside the current OSS drop-in target |  |
+| — | ok | atlas-cli-surface-inventory | `atlas migrate edit` | classify | not an OSS drop-in target: Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate hash` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate import` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate lint` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate new` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate push` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
-| — | ok | atlas-cli-surface-inventory | `atlas migrate rebase` | classify | not an OSS drop-in target: Atlas convenience command intentionally tracked outside the current OSS drop-in target |  |
-| — | ok | atlas-cli-surface-inventory | `atlas migrate rm` | classify | not an OSS drop-in target: Atlas convenience command intentionally tracked outside the current OSS drop-in target |  |
+| — | ok | atlas-cli-surface-inventory | `atlas migrate rebase` | classify | not an OSS drop-in target: Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability |  |
+| — | ok | atlas-cli-surface-inventory | `atlas migrate rm` | classify | not an OSS drop-in target: Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate set` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate status` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
-| — | ok | atlas-cli-surface-inventory | `atlas migrate test` | classify | not an OSS drop-in target: Atlas Cloud / commercial workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas migrate test` | classify | not an OSS drop-in target: Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate validate` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas schema` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas schema apply` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
@@ -77,9 +86,18 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-inventory | `atlas schema diff` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas schema fmt` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas schema inspect` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
-| — | ok | atlas-cli-surface-inventory | `atlas schema plan` | classify | not an OSS drop-in target: Atlas Cloud / commercial workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan` | classify | not an OSS drop-in target: Atlas Pro/Cloud plan workflow not present in the pinned CE binary; Ptah implements the local plan-file half as an open capability |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan approve` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan lint` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan list` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan new` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan pull` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan push` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan rm` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan test` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema plan validate` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
 | — | ok | atlas-cli-surface-inventory | `atlas schema push` | classify | not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary |  |
-| — | ok | atlas-cli-surface-inventory | `atlas schema test` | classify | not an OSS drop-in target: Atlas Cloud / commercial workflow, not present in the pinned CE binary |  |
+| — | ok | atlas-cli-surface-inventory | `atlas schema test` | classify | not an OSS drop-in target: Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability |  |
 | — | ok | atlas-cli-surface-inventory | `atlas version` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas` | usage | usage matches Atlas: `atlas [command]` |  |
@@ -89,10 +107,14 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate` | usage | usage matches Atlas: `atlas migrate [command]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | flags | long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | usage | usage matches Atlas: `atlas migrate apply [flags] [amount]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | out-of-scope-runtime | `atlas migrate checkpoint` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | capability-runtime | `atlas migrate checkpoint` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | flags | exposes the first-party required long flags: --dev-url --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate checkpoint` | usage | usage matches the first-party open-capability contract: `atlas migrate checkpoint [flags] [name]` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | usage | usage matches Atlas: `atlas migrate diff [flags] [name]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate edit` | out-of-scope-runtime | `atlas migrate edit` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate edit` | capability-runtime | `atlas migrate edit` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate edit` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate edit` | usage | usage matches the first-party open-capability contract: `atlas migrate edit [flags] {name \| version}` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | flags | long flags match Atlas: --config --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | usage | usage matches Atlas: `atlas migrate hash [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate import` | flags | long flags match Atlas: --config --dir-format --env --from --to --var |  |
@@ -102,13 +124,19 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate new` | flags | long flags match Atlas: --config --dir --dir-format --edit --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate new` | usage | usage matches Atlas: `atlas migrate new [flags] [name]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate push` | out-of-scope-runtime | `atlas migrate push` reports the same community-version unsupported boundary as Atlas CE |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rebase` | out-of-scope-runtime | `atlas migrate rebase` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rm` | out-of-scope-runtime | `atlas migrate rm` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rebase` | capability-runtime | `atlas migrate rebase` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rebase` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rebase` | usage | usage matches the first-party open-capability contract: `atlas migrate rebase [flags] {name \| version}...` (Atlas CE has no help for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rm` | capability-runtime | `atlas migrate rm` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rm` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate rm` | usage | usage matches the first-party open-capability contract: `atlas migrate rm [flags] {name \| version}` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate set` | flags | long flags match Atlas: --config --dir --dir-format --env --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate set` | usage | usage matches Atlas: `atlas migrate set [flags] [version]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate status` | flags | long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate status` | usage | usage matches Atlas: `atlas migrate status [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate test` | out-of-scope-runtime | `atlas migrate test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate test` | capability-runtime | `atlas migrate test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate test` | flags | exposes the first-party required long flags: --dev-url --dir --dir-format --run (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate test` | usage | usage matches the first-party open-capability contract: `atlas migrate test [flags] [paths]` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate validate` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate validate` | usage | usage matches Atlas: `atlas migrate validate [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema` | flags | long flags match Atlas: --config --env --var |  |
@@ -123,9 +151,22 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | usage | usage matches Atlas: `atlas schema fmt [path ...] [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | flags | long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | usage | usage matches Atlas: `atlas schema inspect [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan` | out-of-scope-runtime | `atlas schema plan` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan` | capability-runtime | `atlas schema plan` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan` | flags | exposes the first-party required long flags: --dev-url --dry-run --edit --from --name --output --save --to (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan` | usage | usage matches the first-party open-capability contract: `atlas schema plan [flags]` (Atlas CE has no help for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan approve` | out-of-scope-runtime | `atlas schema plan approve` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan lint` | out-of-scope-runtime | `atlas schema plan lint` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan list` | out-of-scope-runtime | `atlas schema plan list` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan new` | out-of-scope-runtime | `atlas schema plan new` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan pull` | out-of-scope-runtime | `atlas schema plan pull` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan push` | out-of-scope-runtime | `atlas schema plan push` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan rm` | out-of-scope-runtime | `atlas schema plan rm` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan test` | out-of-scope-runtime | `atlas schema plan test` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan validate` | out-of-scope-runtime | `atlas schema plan validate` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema push` | out-of-scope-runtime | `atlas schema push` reports the same community-version unsupported boundary as Atlas CE |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema test` | out-of-scope-runtime | `atlas schema test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema test` | capability-runtime | `atlas schema test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema test` | flags | exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema test` | usage | usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas version` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas version` | usage | usage matches Atlas: `atlas version [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas` | flags | long flags match Atlas: no long flags |  |
@@ -136,10 +177,14 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate` | usage | usage matches Atlas: `atlas migrate [command]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate apply` | flags | long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate apply` | usage | usage matches Atlas: `atlas migrate apply [flags] [amount]` |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | out-of-scope-runtime | `ptah atlas migrate checkpoint` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | capability-runtime | `ptah atlas migrate checkpoint` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | flags | exposes the first-party required long flags: --dev-url --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate checkpoint` | usage | usage matches the first-party open-capability contract: `atlas migrate checkpoint [flags] [name]` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate diff` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate diff` | usage | usage matches Atlas: `atlas migrate diff [flags] [name]` |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate edit` | out-of-scope-runtime | `ptah atlas migrate edit` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate edit` | capability-runtime | `ptah atlas migrate edit` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate edit` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate edit` | usage | usage matches the first-party open-capability contract: `atlas migrate edit [flags] {name \| version}` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate hash` | flags | long flags match Atlas: --config --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate hash` | usage | usage matches Atlas: `atlas migrate hash [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate import` | flags | long flags match Atlas: --config --dir-format --env --from --to --var |  |
@@ -149,13 +194,19 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate new` | flags | long flags match Atlas: --config --dir --dir-format --edit --env --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate new` | usage | usage matches Atlas: `atlas migrate new [flags] [name]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate push` | out-of-scope-runtime | `ptah atlas migrate push` reports the same community-version unsupported boundary as Atlas CE |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rebase` | out-of-scope-runtime | `ptah atlas migrate rebase` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rm` | out-of-scope-runtime | `ptah atlas migrate rm` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rebase` | capability-runtime | `ptah atlas migrate rebase` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rebase` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rebase` | usage | usage matches the first-party open-capability contract: `atlas migrate rebase [flags] {name \| version}...` (Atlas CE has no help for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rm` | capability-runtime | `ptah atlas migrate rm` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rm` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate rm` | usage | usage matches the first-party open-capability contract: `atlas migrate rm [flags] {name \| version}` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate set` | flags | long flags match Atlas: --config --dir --dir-format --env --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate set` | usage | usage matches Atlas: `atlas migrate set [flags] [version]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate status` | flags | long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate status` | usage | usage matches Atlas: `atlas migrate status [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate test` | out-of-scope-runtime | `ptah atlas migrate test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate test` | capability-runtime | `ptah atlas migrate test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate test` | flags | exposes the first-party required long flags: --dev-url --dir --dir-format --run (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate test` | usage | usage matches the first-party open-capability contract: `atlas migrate test [flags] [paths]` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate validate` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas migrate validate` | usage | usage matches Atlas: `atlas migrate validate [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema` | flags | long flags match Atlas: --config --env --var |  |
@@ -170,8 +221,21 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema fmt` | usage | usage matches Atlas: `atlas schema fmt [path ...] [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema inspect` | flags | long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema inspect` | usage | usage matches Atlas: `atlas schema inspect [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan` | out-of-scope-runtime | `ptah atlas schema plan` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan` | capability-runtime | `ptah atlas schema plan` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan` | flags | exposes the first-party required long flags: --dev-url --dry-run --edit --from --name --output --save --to (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan` | usage | usage matches the first-party open-capability contract: `atlas schema plan [flags]` (Atlas CE has no help for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan approve` | out-of-scope-runtime | `ptah atlas schema plan approve` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan lint` | out-of-scope-runtime | `ptah atlas schema plan lint` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan list` | out-of-scope-runtime | `ptah atlas schema plan list` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan new` | out-of-scope-runtime | `ptah atlas schema plan new` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan pull` | out-of-scope-runtime | `ptah atlas schema plan pull` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan push` | out-of-scope-runtime | `ptah atlas schema plan push` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan rm` | out-of-scope-runtime | `ptah atlas schema plan rm` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan test` | out-of-scope-runtime | `ptah atlas schema plan test` reports the same community-version unsupported boundary as Atlas CE |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema plan validate` | out-of-scope-runtime | `ptah atlas schema plan validate` reports the same community-version unsupported boundary as Atlas CE |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema push` | out-of-scope-runtime | `ptah atlas schema push` reports the same community-version unsupported boundary as Atlas CE |  |
-| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema test` | out-of-scope-runtime | `ptah atlas schema test` resolves as an open Ptah capability beyond Atlas CE; this surface check does not claim behavioral coverage |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema test` | capability-runtime | `ptah atlas schema test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema test` | flags | exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
+| — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas schema test` | usage | usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb) |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas version` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-namespace | `ptah atlas version` | usage | usage matches Atlas: `atlas version [flags]` |  |

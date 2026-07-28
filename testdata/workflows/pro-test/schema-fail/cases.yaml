@@ -1,0 +1,7 @@
+cases:
+  - name: failing schema assertion
+    steps:
+      - name: expects phantom rows
+        assert:
+          query: SELECT id FROM users
+          row_count: 5

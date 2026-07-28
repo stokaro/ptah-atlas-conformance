@@ -64,7 +64,6 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `composite-schema-workflow` | Do independently owned Go and YAML desired-schema sources render exactly like a committed hand-merged schema, reject conflicting identities, generate identical up/down migrations, and converge on verified SQLite schema facts? | the built `ptah` binary, `core/goschema`, ephemeral SQLite |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data (`//migrator:schema:data` plus `ptah migrations data`) round-trip: apply declared rows, introspect them back, re-diff to a converged "no data changes" state, refuse a destructive divergent set (exit 2), and reverse cleanly on rollback? Atlas CE cannot declaratively manage or inspect reference data. | the built `ptah` binary, `internal/datamigrate`/`migration/datadiff`, ephemeral SQLite |
 | `checkpoint-workflow` | Does `ptah migrations checkpoint` squash a migration history into a deterministic cumulative-schema pair covered by `ptah.sum`, from which a fresh database bootstraps to a schema structurally identical to the full replay while an already-migrated database ignores it — with tamper detection (`validate` exit 1), a below-boundary rollback refusal (exit 2), a working rollback-to-zero, and post-checkpoint continuation? Atlas keeps `migrate checkpoint` in its proprietary Pro build. | the built `ptah` binary, `migration/generator`/`migration/migrator`, ephemeral SQLite |
-| `external-schema-workflow` | Do static SQL and external SQL/HCL/YAML desired schemas preserve the trust boundary and drive render, compare, drift, plan, generate, apply, live SQLite facts, and converged no-op results through the real Ptah CLI? | the built `ptah` binary, external fixture provider, ephemeral SQLite |
 | `pro-test-workflow` | Do the Atlas Pro test verbs Ptah implements as open capabilities — `atlas migrate test` and `atlas schema test` — run committed case sets against a real SQLite dev database, passing sets with exit 0 and deliberately failing assertions with a structured FAIL report and exit 1? Atlas keeps both verbs in its proprietary Pro/Cloud build. | the built `ptah` binary (`atlas migrate test` / `atlas schema test`), ephemeral SQLite |
 | `pro-maint-workflow` | Do the Atlas Pro directory-maintenance verbs Ptah implements as open capabilities — `atlas migrate edit` (via a hermetic scripted `$EDITOR`), `atlas migrate rebase`, and `atlas migrate rm` — mutate an Atlas-format directory offline while rewriting `atlas.sum` so `ptah migrations validate` stays green after every verb? | the built `ptah` binary (`atlas migrate edit`/`rebase`/`rm`), no database |
 | `pro-plan-workflow` | Does the local half of Atlas's Pro `schema plan` workflow hold: `atlas schema plan --save` writes a fingerprinted format_version-1 plan file against a real SQLite target, `atlas schema apply --plan file://...` replays exactly that reviewed plan, and a target mutated after planning is refused as stale without touching the database? Atlas binds plan storage/approval to its Cloud registry. | the built `ptah` binary (`atlas schema plan` / `schema apply --plan`), ephemeral SQLite |
@@ -73,24 +72,20 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 Each probe recovers from panics: a panic in Ptah on Atlas input is reported as its
 own (strongest) outcome rather than aborting the run.
 
-## Live And External-Toolchain Tiers
+## Live tiers (real database)
 
 The probes above are deterministic and require no external services.
 `dbtest-workflow`, `composite-schema-workflow`, `managed-data-workflow`,
-`checkpoint-workflow`, `external-schema-workflow`, `pro-test-workflow`,
-`pro-plan-workflow`, and `pro-down-workflow` intentionally execute local
-ephemeral SQLite databases; the remaining offline probes do not open a
-database. Three further tiers run against real networked databases in their
-own workflows. The ORM provider tier installs external pinned toolchains but
-does not require a database service. These tiers stay separate from the
-deterministic report.
+`checkpoint-workflow`, `pro-test-workflow`, `pro-plan-workflow`, and
+`pro-down-workflow` intentionally execute local ephemeral SQLite databases;
+the remaining offline probes do not open a database. Three further tiers run against real networked
+databases in their own workflows, kept separate from the deterministic report.
 
 | Tier | Workflow | Question | Needs |
 | --- | --- | --- | --- |
 | `roundtrip-consistency` | [`conformance-live`](./.github/workflows/conformance-live.yml) | Does a first-party Ptah schema survive Ptah's own generate → apply → introspect → diff loop on a live database? Ptah-vs-Ptah, so no Pro/OSS ambiguity. CI runs Postgres, MySQL, MariaDB, and SQLite over basic tables, enums, views, indexes/FKs, composite keys, constraints/actions, generated columns, self-references, and richer default/type cases. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` / `CONFORMANCE_MARIADB_URL`; optional `CONFORMANCE_SQLITE_URL` |
 | `atlas-differential` | [`conformance-diff`](./.github/workflows/conformance-diff.yml) | Applied to the same live schema, do **Atlas CE and Ptah agree** about it? Atlas's `schema inspect` HCL is parsed by Ptah's own `core/atlashcl` into a typed schema and compared against Ptah's introspected schema by schema facts: columns, type/null/default/primary-key state, generated columns, foreign keys and actions, unique/check constraints, and indexes. Both sides are typed `goschema.Database`, so there is no fragile SQL-text parsing. CI runs Postgres, MySQL, and SQLite. | `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL`; optional `CONFORMANCE_SQLITE_URL`; a real Atlas binary (`ATLAS_BIN`) |
 | `migrate-runtime` | [`conformance-migrate-runtime`](./.github/workflows/conformance-migrate-runtime.yml) | Do real `ptah atlas migrate apply/status/set` executions leave the same supported migration state Atlas callers rely on? This tier inspects schema objects and `atlas_schema_revisions` rows directly. CI covers SQLite `--revisions-schema main` and `--tx-mode all/file/none`, PostgreSQL custom revision schemas and `CREATE INDEX CONCURRENTLY` with `atlas:txmode none`, and MySQL apply/status revision state. | built `ptah` binary; local SQLite databases; `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` |
-| `orm-provider-smoke` | [`conformance-orm-providers`](./.github/workflows/conformance-orm-providers.yml) | Do pinned GORM and SQLAlchemy providers emit the expected schema facts, and does Ptah preserve those facts when it executes the providers through `--schema-cmd`? | Go and Python package downloads; isolated temporary Go module and Python virtual environment; the built `ptah` binary |
 
 The differential builds a **real Atlas CE binary** from the release tag pinned in
 [`atlas.version`](./atlas.version) (`make atlas`), so it measures Ptah against a
@@ -130,9 +125,6 @@ make gate-diff    # differential corpus-parity yardstick: fails if any diff non-
 make probe-migrate-runtime   # regenerate gaps-migrate-runtime.md / gaps-migrate-runtime.json
 make budget-migrate-runtime  # migrate-runtime progress gate
 make gate-migrate-runtime    # migrate-runtime full-parity yardstick
-make probe-orm-providers     # regenerate gaps-orm-providers.md / gaps-orm-providers.json
-make budget-orm-providers    # ORM provider progress gate
-make gate-orm-providers      # ORM provider full-conformance gate
 ```
 
 Local live runs are explicit per networked dialect. Set whichever service URLs
@@ -225,10 +217,6 @@ publishes two separate pipelines:
   must stay green when a PR preserves the current reports, and fail when
   `gaps-live.*`, `gaps-diff.*`, or `gaps-migrate-runtime.*` is stale or worse
   than its committed budget.
-- [`conformance-orm-providers`](./.github/workflows/conformance-orm-providers.yml)
-  has independent regression-budget and full-gate jobs. The regression job
-  requires `gaps-orm-providers.*` to be current and within its committed
-  budget; the full job fails on every non-OK provider observation.
 - The CLI surface job in
   [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses [`cli-surface-budget.txt`](./cli-surface-budget.txt) the same way for
@@ -256,8 +244,6 @@ publishes two separate pipelines:
   `make gate-migrate-runtime` regenerate their reports **and exit non-zero if
   any non-OK observation remains**, including waived findings. These are the
   corpus-parity yardsticks for their matching reports.
-- `make budget-orm-providers` and `make gate-orm-providers` apply the same
-  split to the external provider report.
 
 A gap can be excused only by an explicit line in [`waivers.txt`](./waivers.txt),
 keyed on `probe fixture stage`, with a reason and a tracking issue. A waiver means
@@ -283,9 +269,6 @@ make gate-diff    # differential corpus-parity yardstick: fails if any diff non-
 make probe-migrate-runtime   # regenerate gaps-migrate-runtime.md / gaps-migrate-runtime.json
 make budget-migrate-runtime  # migrate-runtime progress gate
 make gate-migrate-runtime    # migrate-runtime corpus-parity yardstick
-make probe-orm-providers     # regenerate gaps-orm-providers.md / gaps-orm-providers.json
-make budget-orm-providers    # ORM provider progress gate
-make gate-orm-providers      # ORM provider full-conformance gate
 make probe-cli-surface   # regenerate cli-surface.md / cli-surface.json (exit 0)
 make budget-cli-surface  # CLI progress gate: red only on regression/stale waivers
 make gate-cli-surface    # CLI corpus-parity yardstick: fails if any CLI non-OK remains
