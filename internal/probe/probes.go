@@ -44,6 +44,7 @@ func AllProbes() []Probe {
 		CompositeSchemaWorkflowProbe{FixtureRoot: filepath.Join("testdata", "workflows", "composite-schema")},
 		ManagedDataWorkflowProbe{FixtureRoot: filepath.Join("testdata", "workflows", "managed-data")},
 		CheckpointWorkflowProbe{FixtureRoot: filepath.Join("testdata", "workflows", "checkpoint")},
+		ExternalSchemaWorkflowProbe{FixtureRoot: filepath.Join("testdata", "workflows", "external-schema")},
 	}
 }
 
