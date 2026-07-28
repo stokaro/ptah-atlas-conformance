@@ -166,11 +166,23 @@ jobs:
     env:
       CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
       CONFORMANCE_MYSQL_URL: mysql://root:pw@tcp(localhost:3306)/conf
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v6
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
 
       - name: Atlas migrate runtime conformance gate
         run: make gate-migrate-runtime

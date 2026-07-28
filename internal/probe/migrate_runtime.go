@@ -45,6 +45,9 @@ func RunMigrateRuntime() []Result {
 	}
 
 	checks := []migrateRuntimeCheck{
+		func(bin string) Result {
+			return atlasProjectConfigStatusOracle(bin, DefaultAtlasBinary())
+		},
 		sqliteMigrateApplyRecordsState,
 		sqliteMigrateSetRepairsRevisionState,
 		sqliteMigrateApplyTxModeAllRollsBack,
@@ -181,7 +184,7 @@ func sqliteMigrateSetRepairsRevisionState(bin string) Result {
 	}
 	defer func() { _ = db.Close() }()
 	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
-		{Version: "1", Description: "First", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "1", Description: "first", Applied: 0, Total: 0, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return migrateRuntimeGap(fixture, "revisions", detail)
 	}
@@ -199,7 +202,7 @@ func sqliteMigrateSetRepairsRevisionState(bin string) Result {
 		return migrateRuntimeGap(fixture, "inspect", detail)
 	}
 	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
-		{Version: "1", Description: "First", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "1", Description: "first", Applied: 0, Total: 0, OperatorVersion: "Ptah"},
 		{Version: "2", Description: "Second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return migrateRuntimeGap(fixture, "revisions", detail)

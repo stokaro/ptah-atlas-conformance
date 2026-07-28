@@ -115,12 +115,14 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 		Intro: "It records whether `ptah atlas migrate ...` commands preserve Atlas-compatible\n" +
 			"runtime behavior against real databases. Unlike the offline txtar-script\n" +
 			"simulator, this tier executes Ptah's CLI and inspects revision rows and end\n" +
-			"database state directly.\n\n",
-		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases",
+			"database state directly. Project configuration status also uses pinned Atlas\n" +
+			"CE as an independent runtime oracle.\n\n",
+		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE status oracle pinned by atlas.version",
 		PtahVersion: ptahVersion,
 		FactCategories: []string{
 			"Migration apply: applied schema objects, Atlas revision rows, and post-apply status.",
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
+			"Atlas project configuration: Atlas CE-created revision state and typed available, applied, pending, current, next, and status facts.",
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",
 			"PostgreSQL runtime behavior: custom revision schemas and `atlas:txmode none` for `CREATE INDEX CONCURRENTLY`.",
 			"MySQL runtime behavior: applied schema objects and Atlas revision rows.",

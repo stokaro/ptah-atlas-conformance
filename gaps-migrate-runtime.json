@@ -1,6 +1,13 @@
 [
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/project-config-status-oracle",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "Atlas CE created the brownfield revision state, and Atlas CE and Ptah reported identical project-config available, applied, pending, current, next, and status facts"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/apply-state",
     "stage": "inspect",
     "outcome": "ok",
