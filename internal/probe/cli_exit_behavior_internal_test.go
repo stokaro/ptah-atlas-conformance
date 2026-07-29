@@ -14,14 +14,16 @@ import (
 
 const testCLIExitIssue = "stokaro/ptah#688"
 
-// TestCLIExitBehaviorMatrixShape verifies that both compatibility surfaces emit
-// one well-formed observation per catalog case. Parity outcomes belong to the
-// regression-budget and full-conformance gates, not the harness unit-test tier.
+// TestCLIExitBehaviorMatrixShape verifies that the ptah-compat surface emits
+// one well-formed observation per catalog case, plus the single native
+// namespace-removal observation pinning stokaro/ptah#850. Parity outcomes
+// belong to the regression-budget and full-conformance gates, not the harness
+// unit-test tier.
 func TestCLIExitBehaviorMatrixShape(t *testing.T) {
 	c := qt.New(t)
 
 	results := AtlasCLIExitBehaviorProbe{}.Run(Fixture{Name: cliExitSentinel})
-	want := len(cliExitSurfaces()) * len(cliExitCatalog)
+	want := len(cliExitSurfaces())*len(cliExitCatalog) + 1
 	c.Assert(results, qt.HasLen, want)
 	for _, result := range results {
 		c.Check(result.Probe, qt.Equals, cliExitProbeName)
@@ -29,6 +31,9 @@ func TestCLIExitBehaviorMatrixShape(t *testing.T) {
 		c.Check(result.Stage, qt.Not(qt.Equals), "")
 		c.Check(result.Detail, qt.Not(qt.Equals), "")
 	}
+	last := results[len(results)-1]
+	c.Check(last.Fixture, qt.Equals, nativeAtlasNamespaceFixture)
+	c.Check(last.Outcome, qt.Equals, OK, qt.Commentf("%s/%s: %s", last.Fixture, last.Stage, last.Detail))
 }
 
 func TestCLIExitBehaviorIgnoresNonSentinel(t *testing.T) {
@@ -51,19 +56,19 @@ func TestClassifyCLIExitResult_HappyPath(t *testing.T) {
 			name: "successful help",
 			test: cliExitCase{Want: exitOK, WantStream: exitStreamStdout},
 			res:  cliExitResult{exit: 0, stdout: 42},
-			want: Result{cliExitProbeName, "ptah-atlas/help", "exit", OK, "exit 0, output → stdout", ""},
+			want: Result{cliExitProbeName, "ptah-compat/help", "exit", OK, "exit 0, output → stdout", ""},
 		},
 		{
 			name: "successful validation is silent",
 			test: cliExitCase{Want: exitOK, WantStream: exitStreamSilent},
 			res:  cliExitResult{exit: 0},
-			want: Result{cliExitProbeName, "ptah-atlas/help", "exit", OK, "exit 0, output → silent", ""},
+			want: Result{cliExitProbeName, "ptah-compat/help", "exit", OK, "exit 0, output → silent", ""},
 		},
 		{
 			name: "command failure",
 			test: cliExitCase{Want: exitFail, WantStream: exitStreamStderr, StderrClass: "unknown flag"},
 			res:  cliExitResult{exit: 1, stderr: "error: unknown flag: --bad\n"},
-			want: Result{cliExitProbeName, "ptah-atlas/help", "exit", OK, "exit 1, error → stderr", ""},
+			want: Result{cliExitProbeName, "ptah-compat/help", "exit", OK, "exit 1, error → stderr", ""},
 		},
 		{
 			name: "checksum failure uses both streams",
@@ -81,7 +86,7 @@ func TestClassifyCLIExitResult_HappyPath(t *testing.T) {
 			},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/help",
+				"ptah-compat/help",
 				"exit",
 				OK,
 				"exit 1, error → stdout and stderr",
@@ -92,7 +97,7 @@ func TestClassifyCLIExitResult_HappyPath(t *testing.T) {
 
 	for _, tt := range tests {
 		c.Run(tt.name, func(c *qt.C) {
-			got := classifyCLIExitResult("ptah-atlas/help", tt.test, tt.res)
+			got := classifyCLIExitResult("ptah-compat/help", tt.test, tt.res)
 			c.Assert(got, qt.DeepEquals, tt.want)
 		})
 	}
@@ -113,7 +118,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{exit: 1, stderr: "error: unexpected failure\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"exit",
 				Gap,
 				"expected exit 0, got 1 (stderr)",
@@ -129,7 +134,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res: cliExitResult{exit: 0, stderr: "error: unknown flag\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"exit",
 				Gap,
 				"expected exit 1, got 0 (stderr)",
@@ -145,7 +150,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res: cliExitResult{exit: 2, stderr: "error: unknown flag\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"exit",
 				Gap,
 				"expected exit 1, got 2 (stderr)",
@@ -161,7 +166,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res: cliExitResult{exit: 1},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected error only on stderr, got silent",
@@ -177,7 +182,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res: cliExitResult{exit: 1, stdout: 8, stderr: "error: unknown flag\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected error only on stderr, got stdout and stderr",
@@ -190,7 +195,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{exit: 0},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected output only on stdout, got silent",
@@ -203,7 +208,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{exit: 0, stdout: 8},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected silent command, got stdout",
@@ -216,7 +221,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{exit: 0, stderr: "help\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected output only on stdout, got stderr",
@@ -229,7 +234,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{exit: 0, stdout: 8, stderr: "help\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected output only on stdout, got stdout and stderr",
@@ -242,7 +247,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{exit: 0, stdout: 8, stderr: "\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected output only on stdout, got stdout and stderr",
@@ -258,7 +263,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res: cliExitResult{exit: 1, stderr: "error: connection refused\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"class",
 				Gap,
 				`expected error-class substring "unknown flag" on stderr`,
@@ -282,7 +287,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"class",
 				Gap,
 				`expected output-class substring "checksum error" on stdout`,
@@ -306,7 +311,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"content",
 				Gap,
 				"stdout does not match Atlas CE output",
@@ -327,7 +332,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"content",
 				Gap,
 				"stderr does not match Atlas CE output",
@@ -346,7 +351,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res: cliExitResult{exit: 1, stderr: "Error: checksum mismatch\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"stream",
 				Gap,
 				"expected output on stdout and stderr, got stderr",
@@ -359,7 +364,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{exit: 1, stderr: "error: unknown flag\n"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"setup",
 				Fail,
 				"missing output-stream expectation",
@@ -375,7 +380,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res: cliExitResult{timedOut: true},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"run",
 				Fail,
 				"the command timed out",
@@ -388,7 +393,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 			res:  cliExitResult{runErr: "fork/exec /missing: no such file or directory"},
 			want: Result{
 				cliExitProbeName,
-				"ptah-atlas/unknown-flag",
+				"ptah-compat/unknown-flag",
 				"run",
 				Fail,
 				"could not start command: fork/exec /missing: no such file or directory",
@@ -399,7 +404,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 
 	for _, tt := range tests {
 		c.Run(tt.name, func(c *qt.C) {
-			got := classifyCLIExitResult("ptah-atlas/unknown-flag", tt.test, tt.res)
+			got := classifyCLIExitResult("ptah-compat/unknown-flag", tt.test, tt.res)
 			c.Assert(got, qt.DeepEquals, tt.want)
 		})
 	}
@@ -408,7 +413,7 @@ func TestClassifyCLIExitResult_FailurePath(t *testing.T) {
 func TestRunCLIExitCase_FailurePath(t *testing.T) {
 	c := qt.New(t)
 
-	surface := cliExitSurface{label: "ptah-atlas"}
+	surface := cliExitSurface{label: "ptah-compat"}
 
 	c.Run("fixture setup fails", func(c *qt.C) {
 		test := cliExitCase{
@@ -423,7 +428,7 @@ func TestRunCLIExitCase_FailurePath(t *testing.T) {
 		got := runCLIExitCase("", surface, test)
 		want := Result{
 			cliExitProbeName,
-			"ptah-atlas/fixture-setup-fails",
+			"ptah-compat/fixture-setup-fails",
 			"setup",
 			Fail,
 			"fixture setup failed",
@@ -445,7 +450,7 @@ func TestRunCLIExitCase_FailurePath(t *testing.T) {
 
 		got := runCLIExitCase(missingBinary, surface, test)
 		c.Assert(got.Probe, qt.Equals, cliExitProbeName)
-		c.Assert(got.Fixture, qt.Equals, "ptah-atlas/binary-is-missing")
+		c.Assert(got.Fixture, qt.Equals, "ptah-compat/binary-is-missing")
 		c.Assert(got.Stage, qt.Equals, "run")
 		c.Assert(got.Outcome, qt.Equals, Fail)
 		c.Assert(got.Detail, qt.Contains, "could not start command:")

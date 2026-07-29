@@ -14,11 +14,12 @@ import (
 const proVerbsIssue = "stokaro/ptah#758"
 
 // proWorkflowRuntime bundles what every CLI workflow stage needs: the built
-// Ptah binary, the committed fixture root, and a scratch run directory the
-// fixture tree has been copied into. Stages run the real `ptah atlas ...` CLI
-// from the run directory so committed fixtures stay pristine while the
-// measured commands read and write relative paths exactly the way an Atlas
-// caller would.
+// ptah-compat binary (named `atlas`, the only Atlas-shaped surface since
+// stokaro/ptah#850), the committed fixture root, and a scratch run directory
+// the fixture tree has been copied into. Stages run the real drop-in CLI from
+// the run directory so committed fixtures stay pristine while the measured
+// commands read and write relative paths exactly the way an Atlas caller
+// would.
 type proWorkflowRuntime struct {
 	probe    string
 	sentinel string
@@ -30,7 +31,7 @@ type proWorkflowRuntime struct {
 }
 
 // newProWorkflowRuntime resolves the fixture root, builds (or accepts) the
-// pinned Ptah binary, creates the scratch run directory, and copies the
+// pinned ptah-compat binary, creates the scratch run directory, and copies the
 // committed fixture tree into it. Gaps reported through the runtime carry
 // issue. On error it returns a harness Fail result and a nil runtime; the
 // caller must invoke cleanup on a non-nil runtime.
@@ -57,7 +58,7 @@ func newProWorkflowRuntime(probeName, sentinel, fixtureRoot, binaryOverride, iss
 
 	bin := strings.TrimSpace(binaryOverride)
 	if bin == "" {
-		built, err := ptahBinary()
+		built, err := ptahCompatAtlasBinary()
 		if err != nil {
 			failure := proWorkflowHarnessFailure(probeName, sentinel, "binary build", err)
 			return nil, &failure
@@ -101,15 +102,35 @@ func (w *proWorkflowRuntime) runSteps(steps []func() Result) []Result {
 	return results
 }
 
-// runCLI runs a Ptah CLI command in the run directory. It returns either a
-// harness Fail (process could not run) via the pointer, or the completed
-// command result for the caller to validate.
+// runCLI runs a ptah-compat CLI command (Atlas argument form, no leading
+// `atlas` token — the compat root IS atlas) in the run directory. It returns
+// either a harness Fail (process could not run) via the pointer, or the
+// completed command result for the caller to validate.
 func (w *proWorkflowRuntime) runCLI(stage string, args ...string) (ptahCommandResult, *Result) {
 	return w.runCLIWithEnv(stage, nil, args...)
 }
 
 func (w *proWorkflowRuntime) runCLIWithEnv(stage string, extraEnv []string, args ...string) (ptahCommandResult, *Result) {
 	result, err := runPtahCommandInDirWithEnv(w.bin, args, w.runRoot, extraEnv)
+	if err != nil {
+		failure := proWorkflowHarnessFailure(w.probe, w.sentinel, stage, fmt.Errorf(
+			"execute `atlas %s`: %w; %s", strings.Join(args, " "), err, result.diagnostic()))
+		return result, &failure
+	}
+	return result, nil
+}
+
+// runNativeCLI runs a native `ptah` command in the run directory for harness
+// verification steps that live outside the measured Atlas surface (for
+// example `ptah migrations validate`). The native binary is resolved on
+// demand; PTAH_BIN still overrides the build.
+func (w *proWorkflowRuntime) runNativeCLI(stage string, args ...string) (ptahCommandResult, *Result) {
+	bin, err := ptahBinary()
+	if err != nil {
+		failure := proWorkflowHarnessFailure(w.probe, w.sentinel, stage, fmt.Errorf("build native Ptah CLI: %w", err))
+		return ptahCommandResult{}, &failure
+	}
+	result, err := runPtahCommandInDirWithEnv(bin, args, w.runRoot, nil)
 	if err != nil {
 		failure := proWorkflowHarnessFailure(w.probe, w.sentinel, stage, fmt.Errorf(
 			"execute `ptah %s`: %w; %s", strings.Join(args, " "), err, result.diagnostic()))
@@ -122,7 +143,7 @@ func (w *proWorkflowRuntime) runCLIWithEnv(stage string, extraEnv []string, args
 // scratch migration directory is always a valid, integrity-covered
 // Atlas-format directory before the measured stage runs.
 func (w *proWorkflowRuntime) hashAtlasMigrations(stage string) *Result {
-	result, harness := w.runCLI(stage, "atlas", "migrate", "hash", "--dir", "file://migrations")
+	result, harness := w.runCLI(stage, "migrate", "hash", "--dir", "file://migrations")
 	if harness != nil {
 		return harness
 	}

@@ -34,11 +34,11 @@ func TestDesiredStateWorkflowProbe_HappyPath(t *testing.T) {
 
 	c.Assert(results, qt.HasLen, 5)
 	assertWorkflowContours(c, "desired-state-workflow", results, []string{
-		"ptah atlas schema diff|database-url --from source",
-		"ptah atlas schema apply|database-url --to source",
-		"ptah atlas schema apply|migration-dir source replay",
-		"ptah atlas schema apply|migration-dir source without dev database",
-		"ptah atlas schema apply|env:// source resolution",
+		"atlas schema diff|database-url --from source",
+		"atlas schema apply|database-url --to source",
+		"atlas schema apply|migration-dir source replay",
+		"atlas schema apply|migration-dir source without dev database",
+		"atlas schema apply|env:// source resolution",
 	})
 }
 
@@ -56,10 +56,10 @@ func TestApplySimulationWorkflowProbe_HappyPath(t *testing.T) {
 
 	c.Assert(results, qt.HasLen, 4)
 	assertWorkflowContours(c, "apply-simulation-workflow", results, []string{
-		"ptah atlas schema apply --lock-timeout|lockless dialect note",
-		"ptah atlas schema apply --dev-url|plan simulation success",
-		"ptah atlas schema apply --dev-url|failed simulation refuses the target",
-		"ptah atlas schema apply --dev-url|dev database must differ from target",
+		"atlas schema apply --lock-timeout|lockless dialect note",
+		"atlas schema apply --dev-url|plan simulation success",
+		"atlas schema apply --dev-url|failed simulation refuses the target",
+		"atlas schema apply --dev-url|dev database must differ from target",
 	})
 }
 
@@ -73,10 +73,10 @@ func TestSchemaScopeWorkflowProbe_HappyPath(t *testing.T) {
 
 	c.Assert(results, qt.HasLen, 4)
 	assertWorkflowContours(c, "schema-scope-workflow", results, []string{
-		"ptah atlas schema apply --include|scoped apply leaves out-of-scope objects untouched",
-		"ptah atlas schema apply --include|repeated include values union",
-		"ptah atlas schema apply --include|cross-scope foreign key refusal",
-		"ptah atlas schema diff --include|malformed selector fails before the dev database",
+		"atlas schema apply --include|scoped apply leaves out-of-scope objects untouched",
+		"atlas schema apply --include|repeated include values union",
+		"atlas schema apply --include|cross-scope foreign key refusal",
+		"atlas schema diff --include|malformed selector fails before the dev database",
 	})
 }
 
@@ -90,10 +90,10 @@ func TestInspectSourceWorkflowProbe_HappyPath(t *testing.T) {
 
 	c.Assert(results, qt.HasLen, 4)
 	assertWorkflowContours(c, "inspect-source-workflow", results, []string{
-		"ptah atlas schema inspect|local schema file over dev database",
-		"ptah atlas schema inspect|split export writes a deterministic tree",
-		"ptah atlas schema inspect|written tree reloads to the same schema",
-		"ptah atlas schema inspect --exclude|resource and field selectors",
+		"atlas schema inspect|local schema file over dev database",
+		"atlas schema inspect|split export writes a deterministic tree",
+		"atlas schema inspect|written tree reloads to the same schema",
+		"atlas schema inspect --exclude|resource and field selectors",
 	})
 }
 
@@ -107,11 +107,11 @@ func TestQualifierTxModeWorkflowProbe_HappyPath(t *testing.T) {
 
 	c.Assert(results, qt.HasLen, 5)
 	assertWorkflowContours(c, "qualifier-txmode-workflow", results, []string{
-		"ptah atlas migrate diff --qualifier|invalid qualifier fails before the dev database",
-		"ptah atlas migrate diff --qualifier|qualified artifacts are scoped to qualified dialects",
-		"ptah atlas migrate diff|concurrent-index policy on sqlite plans one transactional file",
-		"ptah atlas migrate apply|concurrent-index artifact replays",
-		"ptah atlas migrate apply|txmode-none directive executes outside a transaction",
+		"atlas migrate diff --qualifier|invalid qualifier fails before the dev database",
+		"atlas migrate diff --qualifier|qualified artifacts are scoped to qualified dialects",
+		"atlas migrate diff|concurrent-index policy on sqlite plans one transactional file",
+		"atlas migrate apply|concurrent-index artifact replays",
+		"atlas migrate apply|txmode-none directive executes outside a transaction",
 	})
 }
 

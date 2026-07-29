@@ -21,10 +21,10 @@ func (AtlasCLIMetadataRuntimeProbe) Run(fx Fixture) []Result {
 	if fx.Name != atlasCLISentinel {
 		return nil
 	}
-	bin, err := ptahBinary()
+	bin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		return []Result{{"atlas-cli-metadata-runtime", atlasCLISentinel, "build", Fail,
-			"could not build the Ptah CLI to probe Atlas metadata runtime: " + oneLine(err.Error()), ""}}
+			"could not build the Ptah compatibility CLI to probe Atlas metadata runtime: " + oneLine(err.Error()), ""}}
 	}
 
 	checks := []func(string) Result{
@@ -48,142 +48,142 @@ func (AtlasCLIMetadataRuntimeProbe) Run(fx Fixture) []Result {
 func atlasMigrateNewDefaultsToAtlasDir(bin string) Result {
 	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
 	if err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate new", "setup", err)
+		return atlasMetadataRuntimeFail("atlas migrate new", "setup", err)
 	}
 	defer cleanup()
 
-	output, err := commandOutput(bin, []string{"atlas", "migrate", "new", "init", "--dir", fileURL(migrations)})
+	output, err := commandOutput(bin, []string{"migrate", "new", "init", "--dir", fileURL(migrations)})
 	if err != nil {
-		return atlasMetadataRuntimeExit("ptah atlas migrate new", "execute", output, err)
+		return atlasMetadataRuntimeExit("atlas migrate new", "execute", output, err)
 	}
 	if ok, detail := atlasMigrationDirLooksNativeAtlas(root, migrations); !ok {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate new", "files", Gap, detail, "stokaro/ptah#622"}
+		return Result{"atlas-cli-metadata-runtime", "atlas migrate new", "files", Gap, detail, "stokaro/ptah#622"}
 	}
-	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate new", "execute", OK,
-		"`ptah atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum", ""}
+	return Result{"atlas-cli-metadata-runtime", "atlas migrate new", "execute", OK,
+		"`atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum", ""}
 }
 
 func atlasMigrateHashDefaultsToAtlasSum(bin string) Result {
 	_, migrations, cleanup, err := atlasMetadataRuntimeDir()
 	if err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate hash", "setup", err)
+		return atlasMetadataRuntimeFail("atlas migrate hash", "setup", err)
 	}
 	defer cleanup()
 	if err := writeAtlasMigration(migrations); err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate hash", "setup", err)
+		return atlasMetadataRuntimeFail("atlas migrate hash", "setup", err)
 	}
 
-	output, err := commandOutput(bin, []string{"atlas", "migrate", "hash", "--dir", fileURL(migrations)})
+	output, err := commandOutput(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
 	if err != nil {
-		return atlasMetadataRuntimeExit("ptah atlas migrate hash", "execute", output, err)
+		return atlasMetadataRuntimeExit("atlas migrate hash", "execute", output, err)
 	}
 	sum, err := os.ReadFile(filepath.Join(migrations, "atlas.sum"))
 	if err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate hash", "files", err)
+		return atlasMetadataRuntimeFail("atlas migrate hash", "files", err)
 	}
 	if !strings.Contains(string(sum), "20240101000000_init.sql") {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate hash", "files", Gap,
-			"`ptah atlas migrate hash` did not write an atlas.sum entry for the Atlas migration file", "stokaro/ptah#622"}
+		return Result{"atlas-cli-metadata-runtime", "atlas migrate hash", "files", Gap,
+			"`atlas migrate hash` did not write an atlas.sum entry for the Atlas migration file", "stokaro/ptah#622"}
 	}
-	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate hash", "execute", OK,
-		"`ptah atlas migrate hash` defaults to Atlas directory format and writes atlas.sum", ""}
+	return Result{"atlas-cli-metadata-runtime", "atlas migrate hash", "execute", OK,
+		"`atlas migrate hash` defaults to Atlas directory format and writes atlas.sum", ""}
 }
 
 func atlasMigrateStatusDefaultsToAtlasDir(bin string) Result {
 	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
 	if err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate status", "setup", err)
+		return atlasMetadataRuntimeFail("atlas migrate status", "setup", err)
 	}
 	defer cleanup()
-	if result := prepareAtlasMetadataMigration(bin, migrations, "ptah atlas migrate status"); result != nil {
+	if result := prepareAtlasMetadataMigration(bin, migrations, "atlas migrate status"); result != nil {
 		return *result
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "status.db")
-	output, err := commandOutput(bin, []string{"atlas", "migrate", "status", "--url", dbURL, "--dir", fileURL(migrations)})
+	output, err := commandOutput(bin, []string{"migrate", "status", "--url", dbURL, "--dir", fileURL(migrations)})
 	if err != nil {
-		return atlasMetadataRuntimeExit("ptah atlas migrate status", "execute", output, err)
+		return atlasMetadataRuntimeExit("atlas migrate status", "execute", output, err)
 	}
 	if !strings.Contains(output, "Total Migrations: 1") || !strings.Contains(output, "Pending Migrations: 1") {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate status", "execute", Gap,
-			"`ptah atlas migrate status` did not report the Atlas migration directory as one pending migration: " + oneLine(output),
+		return Result{"atlas-cli-metadata-runtime", "atlas migrate status", "execute", Gap,
+			"`atlas migrate status` did not report the Atlas migration directory as one pending migration: " + oneLine(output),
 			"stokaro/ptah#622"}
 	}
-	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate status", "execute", OK,
-		"`ptah atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations", ""}
+	return Result{"atlas-cli-metadata-runtime", "atlas migrate status", "execute", OK,
+		"`atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations", ""}
 }
 
 func atlasMigrateApplyAcceptsRevisionsSchema(bin string) Result {
 	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
 	if err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate apply --revisions-schema", "setup", err)
+		return atlasMetadataRuntimeFail("atlas migrate apply --revisions-schema", "setup", err)
 	}
 	defer cleanup()
-	if result := prepareAtlasMetadataMigration(bin, migrations, "ptah atlas migrate apply --revisions-schema"); result != nil {
+	if result := prepareAtlasMetadataMigration(bin, migrations, "atlas migrate apply --revisions-schema"); result != nil {
 		return *result
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "apply-schema.db")
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "main",
 	})
 	if err != nil {
-		return atlasMetadataRuntimeExit("ptah atlas migrate apply --revisions-schema", "execute", output, err)
+		return atlasMetadataRuntimeExit("atlas migrate apply --revisions-schema", "execute", output, err)
 	}
-	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate apply --revisions-schema", "execute", OK,
-		"`ptah atlas migrate apply --revisions-schema main` executed successfully", ""}
+	return Result{"atlas-cli-metadata-runtime", "atlas migrate apply --revisions-schema", "execute", OK,
+		"`atlas migrate apply --revisions-schema main` executed successfully", ""}
 }
 
 func atlasMigrateStatusAcceptsRevisionsSchema(bin string) Result {
 	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
 	if err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate status --revisions-schema", "setup", err)
+		return atlasMetadataRuntimeFail("atlas migrate status --revisions-schema", "setup", err)
 	}
 	defer cleanup()
-	if result := prepareAtlasMetadataMigration(bin, migrations, "ptah atlas migrate status --revisions-schema"); result != nil {
+	if result := prepareAtlasMetadataMigration(bin, migrations, "atlas migrate status --revisions-schema"); result != nil {
 		return *result
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "status-schema.db")
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "status",
+		"migrate", "status",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "main",
 	})
 	if err != nil {
-		return atlasMetadataRuntimeExit("ptah atlas migrate status --revisions-schema", "execute", output, err)
+		return atlasMetadataRuntimeExit("atlas migrate status --revisions-schema", "execute", output, err)
 	}
-	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate status --revisions-schema", "execute", OK,
-		"`ptah atlas migrate status --revisions-schema main` executed successfully", ""}
+	return Result{"atlas-cli-metadata-runtime", "atlas migrate status --revisions-schema", "execute", OK,
+		"`atlas migrate status --revisions-schema main` executed successfully", ""}
 }
 
 func atlasMigrateSetAcceptsRevisionsSchema(bin string) Result {
 	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
 	if err != nil {
-		return atlasMetadataRuntimeFail("ptah atlas migrate set --revisions-schema", "setup", err)
+		return atlasMetadataRuntimeFail("atlas migrate set --revisions-schema", "setup", err)
 	}
 	defer cleanup()
-	if result := prepareAtlasMetadataMigration(bin, migrations, "ptah atlas migrate set --revisions-schema"); result != nil {
+	if result := prepareAtlasMetadataMigration(bin, migrations, "atlas migrate set --revisions-schema"); result != nil {
 		return *result
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "set-schema.db")
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "set",
+		"migrate", "set",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "main",
 		"20240101000000",
 	})
 	if err != nil {
-		return atlasMetadataRuntimeExit("ptah atlas migrate set --revisions-schema", "execute", output, err)
+		return atlasMetadataRuntimeExit("atlas migrate set --revisions-schema", "execute", output, err)
 	}
-	return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate set --revisions-schema", "execute", OK,
-		"`ptah atlas migrate set --revisions-schema main` executed successfully", ""}
+	return Result{"atlas-cli-metadata-runtime", "atlas migrate set --revisions-schema", "execute", OK,
+		"`atlas migrate set --revisions-schema main` executed successfully", ""}
 }
 
 func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
@@ -192,28 +192,28 @@ func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
 		args    []string
 	}{
 		{
-			fixture: "ptah atlas migrate hash --dir-format goose",
-			args:    []string{"atlas", "migrate", "hash"},
+			fixture: "atlas migrate hash --dir-format goose",
+			args:    []string{"migrate", "hash"},
 		},
 		{
-			fixture: "ptah atlas migrate lint --dir-format goose",
-			args:    []string{"atlas", "migrate", "lint", "--latest", "1"},
+			fixture: "atlas migrate lint --dir-format goose",
+			args:    []string{"migrate", "lint", "--latest", "1"},
 		},
 		{
-			fixture: "ptah atlas migrate new --dir-format goose",
-			args:    []string{"atlas", "migrate", "new", "init"},
+			fixture: "atlas migrate new --dir-format goose",
+			args:    []string{"migrate", "new", "init"},
 		},
 		{
-			fixture: "ptah atlas migrate set --dir-format goose",
-			args:    []string{"atlas", "migrate", "set", "--url", "sqlite://ignored.db", "20240101000000"},
+			fixture: "atlas migrate set --dir-format goose",
+			args:    []string{"migrate", "set", "--url", "sqlite://ignored.db", "20240101000000"},
 		},
 		{
-			fixture: "ptah atlas migrate status --dir-format goose",
-			args:    []string{"atlas", "migrate", "status", "--url", "sqlite://ignored.db"},
+			fixture: "atlas migrate status --dir-format goose",
+			args:    []string{"migrate", "status", "--url", "sqlite://ignored.db"},
 		},
 		{
-			fixture: "ptah atlas migrate validate --dir-format goose",
-			args:    []string{"atlas", "migrate", "validate"},
+			fixture: "atlas migrate validate --dir-format goose",
+			args:    []string{"migrate", "validate"},
 		},
 	}
 
@@ -250,17 +250,17 @@ func atlasMigrateRejectsUnsupportedMetadataDirFormat(bin, fixture string, prefix
 }
 
 func atlasMigrateApplyRejectsDirFormat(bin string) Result {
-	output, err := commandOutput(bin, []string{"atlas", "migrate", "apply", "--dir-format", "atlas", "--help"})
+	output, err := commandOutput(bin, []string{"migrate", "apply", "--dir-format", "atlas", "--help"})
 	if err == nil {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate apply --dir-format", "flags", Gap,
-			"`ptah atlas migrate apply` accepts --dir-format, but Atlas OSS does not register that flag on apply",
+		return Result{"atlas-cli-metadata-runtime", "atlas migrate apply --dir-format", "flags", Gap,
+			"`atlas migrate apply` accepts --dir-format, but Atlas OSS does not register that flag on apply",
 			"stokaro/ptah#622"}
 	}
 	if strings.Contains(output, "unknown flag") {
-		return Result{"atlas-cli-metadata-runtime", "ptah atlas migrate apply --dir-format", "flags", OK,
-			"`ptah atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface", ""}
+		return Result{"atlas-cli-metadata-runtime", "atlas migrate apply --dir-format", "flags", OK,
+			"`atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface", ""}
 	}
-	return atlasMetadataRuntimeExit("ptah atlas migrate apply --dir-format", "flags", output, err)
+	return atlasMetadataRuntimeExit("atlas migrate apply --dir-format", "flags", output, err)
 }
 
 func atlasMetadataRuntimeDir() (string, string, func(), error) {
@@ -282,7 +282,7 @@ func prepareAtlasMetadataMigration(bin, migrations, fixture string) *Result {
 		result := atlasMetadataRuntimeFail(fixture, "setup", err)
 		return &result
 	}
-	output, err := commandOutput(bin, []string{"atlas", "migrate", "hash", "--dir", fileURL(migrations)})
+	output, err := commandOutput(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
 	if err != nil {
 		result := atlasMetadataRuntimeExit(fixture, "setup", output, err)
 		return &result
@@ -310,7 +310,7 @@ func atlasMigrationDirLooksNativeAtlas(root, migrations string) (bool, string) {
 		name := file.Name()
 		switch {
 		case strings.HasSuffix(name, ".up.sql") || strings.HasSuffix(name, ".down.sql"):
-			return false, "`ptah atlas migrate new` generated Ptah paired migration file " + name
+			return false, "`atlas migrate new` generated Ptah paired migration file " + name
 		case strings.HasSuffix(name, "_init.sql"):
 			sqlFiles++
 		case name == "atlas.sum":
@@ -318,10 +318,10 @@ func atlasMigrationDirLooksNativeAtlas(root, migrations string) (bool, string) {
 		}
 	}
 	if sqlFiles != 1 {
-		return false, "`ptah atlas migrate new` generated unexpected SQL files under " + root
+		return false, "`atlas migrate new` generated unexpected SQL files under " + root
 	}
 	if sumFiles != 1 {
-		return false, "`ptah atlas migrate new` did not generate atlas.sum under " + root
+		return false, "`atlas migrate new` did not generate atlas.sum under " + root
 	}
 	return true, ""
 }

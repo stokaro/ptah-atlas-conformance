@@ -14,7 +14,7 @@ const proPlanWorkflowSentinel = "_capability/pro-plan-workflow/SENTINEL"
 
 // ProPlanWorkflowProbe executes the local half of Atlas's Pro `schema plan`
 // workflow that Ptah implements as an open capability (stokaro/ptah#809)
-// through the real `ptah atlas ...` CLI: `schema plan --save` computes a
+// through the real `atlas ...` CLI: `schema plan --save` computes a
 // fingerprinted local plan file against a real SQLite target, `schema apply
 // --plan file://...` replays exactly that reviewed plan, and a target mutated
 // after planning is refused as stale without touching the database. Atlas
@@ -71,11 +71,11 @@ type proPlanDocument struct {
 
 func (p *proPlanWorkflow) planCreation() Result {
 	const (
-		fixture = "ptah atlas schema plan"
+		fixture = "atlas schema plan"
 		stage   = "plan creation"
 	)
 	result, harness := p.runCLI(stage,
-		"atlas", "schema", "plan",
+		"schema", "plan",
 		"--from", sqliteURL(filepath.Join(p.runRoot, "target.db")),
 		"--to", "file://schema.sql",
 		"--save",
@@ -120,11 +120,11 @@ func (p *proPlanWorkflow) planCreation() Result {
 
 func (p *proPlanWorkflow) planApplication() Result {
 	const (
-		fixture = "ptah atlas schema apply"
+		fixture = "atlas schema apply"
 		stage   = "plan application"
 	)
 	result, harness := p.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(filepath.Join(p.runRoot, "target.db")),
 		"--plan", "file://conformance.plan.json",
 		"--auto-approve",
@@ -149,12 +149,12 @@ func (p *proPlanWorkflow) planApplication() Result {
 
 func (p *proPlanWorkflow) stalePlanRefusal() Result {
 	const (
-		fixture = "ptah atlas schema apply"
+		fixture = "atlas schema apply"
 		stage   = "stale plan refusal"
 	)
 	staleDB := filepath.Join(p.runRoot, "stale-target.db")
 	planned, harness := p.runCLI(stage,
-		"atlas", "schema", "plan",
+		"schema", "plan",
 		"--from", sqliteURL(staleDB),
 		"--to", "file://schema.sql",
 		"--save",
@@ -173,7 +173,7 @@ func (p *proPlanWorkflow) stalePlanRefusal() Result {
 		return p.harnessFailure(stage, err)
 	}
 	result, harness := p.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(staleDB),
 		"--plan", "file://stale.plan.json",
 		"--auto-approve",

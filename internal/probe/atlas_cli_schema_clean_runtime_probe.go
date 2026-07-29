@@ -16,10 +16,10 @@ func (AtlasCLISchemaCleanRuntimeProbe) Run(fx Fixture) []Result {
 	if fx.Name != atlasCLISentinel {
 		return nil
 	}
-	bin, err := ptahBinary()
+	bin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		return []Result{{"atlas-cli-schema-clean-runtime", atlasCLISentinel, "build", Fail,
-			"could not build the Ptah CLI to probe schema clean runtime: " + oneLine(err.Error()), ""}}
+			"could not build the Ptah compatibility CLI to probe schema clean runtime: " + oneLine(err.Error()), ""}}
 	}
 	return []Result{
 		runAtlasSchemaCleanFormatDryRun(bin),
@@ -30,7 +30,7 @@ func (AtlasCLISchemaCleanRuntimeProbe) Run(fx Fixture) []Result {
 }
 
 func runAtlasSchemaCleanFormatDryRun(bin string) Result {
-	const fixture = "ptah atlas schema clean --dry-run --format"
+	const fixture = "atlas schema clean --dry-run --format"
 
 	dir, dbPath, setupErr := createAtlasSchemaCleanSQLiteFixture(bin, "format")
 	if setupErr != nil {
@@ -39,14 +39,14 @@ func runAtlasSchemaCleanFormatDryRun(bin string) Result {
 	defer os.RemoveAll(dir)
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "clean",
+		"schema", "clean",
 		"--url", "sqlite://" + dbPath + "?password=hidden",
 		"--dry-run",
 		"--format", "{{ json . }}",
 	}, dir)
 	if err != nil {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", Gap,
-			"`ptah atlas schema clean --dry-run --format` exited non-zero: " + oneLine(output), "stokaro/ptah#629"}
+			"`atlas schema clean --dry-run --format` exited non-zero: " + oneLine(output), "stokaro/ptah#629"}
 	}
 
 	required := []string{
@@ -63,31 +63,31 @@ func runAtlasSchemaCleanFormatDryRun(bin string) Result {
 	for _, want := range required {
 		if !strings.Contains(output, want) {
 			return Result{"atlas-cli-schema-clean-runtime", fixture, "format", Gap,
-				"`ptah atlas schema clean --dry-run --format '{{ json . }}'` output is missing " + want + ": " + oneLine(output),
+				"`atlas schema clean --dry-run --format '{{ json . }}'` output is missing " + want + ": " + oneLine(output),
 				"stokaro/ptah#629"}
 		}
 	}
 
 	inspectOutput, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ json . }}",
 	}, dir)
 	if err != nil {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "inspect", Gap,
-			"`ptah atlas schema inspect` failed after schema clean dry-run: " + oneLine(inspectOutput), "stokaro/ptah#629"}
+			"`atlas schema inspect` failed after schema clean dry-run: " + oneLine(inspectOutput), "stokaro/ptah#629"}
 	}
 	if !strings.Contains(inspectOutput, "users") {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "dry-run", Gap,
-			"`ptah atlas schema clean --dry-run --format` mutated the SQLite fixture; users table disappeared", "stokaro/ptah#629"}
+			"`atlas schema clean --dry-run --format` mutated the SQLite fixture; users table disappeared", "stokaro/ptah#629"}
 	}
 
 	return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", OK,
-		"`ptah atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite", ""}
+		"`atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite", ""}
 }
 
 func runAtlasSchemaCleanInvalidFormatBeforeConnect(bin string) Result {
-	const fixture = "ptah atlas schema clean invalid --format"
+	const fixture = "atlas schema clean invalid --format"
 
 	dir, err := os.MkdirTemp("", "atlas-schema-clean-invalid-format-*")
 	if err != nil {
@@ -98,30 +98,30 @@ func runAtlasSchemaCleanInvalidFormatBeforeConnect(bin string) Result {
 
 	dbPath := filepath.Join(dir, "should-not-exist.db")
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "clean",
+		"schema", "clean",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ .DoesNotExist }}",
 	}, dir)
 	if err == nil {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", Gap,
-			"`ptah atlas schema clean --format '{{ .DoesNotExist }}'` unexpectedly succeeded", "stokaro/ptah#629"}
+			"`atlas schema clean --format '{{ .DoesNotExist }}'` unexpectedly succeeded", "stokaro/ptah#629"}
 	}
 	if !strings.Contains(output, "execute --format template") {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", Gap,
-			"`ptah atlas schema clean --format '{{ .DoesNotExist }}'` failed for the wrong reason: " + oneLine(output),
+			"`atlas schema clean --format '{{ .DoesNotExist }}'` failed for the wrong reason: " + oneLine(output),
 			"stokaro/ptah#629"}
 	}
 	if _, statErr := os.Stat(dbPath); !os.IsNotExist(statErr) {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "connect", Gap,
-			"`ptah atlas schema clean` created or touched the SQLite database before rejecting the invalid format", "stokaro/ptah#629"}
+			"`atlas schema clean` created or touched the SQLite database before rejecting the invalid format", "stokaro/ptah#629"}
 	}
 
 	return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", OK,
-		"`ptah atlas schema clean` rejects invalid format templates before opening the database", ""}
+		"`atlas schema clean` rejects invalid format templates before opening the database", ""}
 }
 
 func runAtlasSchemaCleanFormatApply(bin string) Result {
-	const fixture = "ptah atlas schema clean --format --auto-approve"
+	const fixture = "atlas schema clean --format --auto-approve"
 
 	dir, dbPath, setupErr := createAtlasSchemaCleanSQLiteFixture(bin, "clean-apply")
 	if setupErr != nil {
@@ -130,14 +130,14 @@ func runAtlasSchemaCleanFormatApply(bin string) Result {
 	defer os.RemoveAll(dir)
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "clean",
+		"schema", "clean",
 		"--url", "sqlite://" + dbPath + "?password=hidden",
 		"--format", "{{ json . }}",
 		"--auto-approve",
 	}, dir)
 	if err != nil {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", Gap,
-			"`ptah atlas schema clean --format --auto-approve` exited non-zero: " + oneLine(output), "stokaro/ptah#629"}
+			"`atlas schema clean --format --auto-approve` exited non-zero: " + oneLine(output), "stokaro/ptah#629"}
 	}
 
 	required := []string{
@@ -152,31 +152,31 @@ func runAtlasSchemaCleanFormatApply(bin string) Result {
 	for _, want := range required {
 		if !strings.Contains(output, want) {
 			return Result{"atlas-cli-schema-clean-runtime", fixture, "format", Gap,
-				"`ptah atlas schema clean --format --auto-approve` output is missing " + want + ": " + oneLine(output),
+				"`atlas schema clean --format --auto-approve` output is missing " + want + ": " + oneLine(output),
 				"stokaro/ptah#629"}
 		}
 	}
 
 	inspectOutput, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ json . }}",
 	}, dir)
 	if err != nil {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "inspect", Gap,
-			"`ptah atlas schema inspect` failed after schema clean apply: " + oneLine(inspectOutput), "stokaro/ptah#629"}
+			"`atlas schema inspect` failed after schema clean apply: " + oneLine(inspectOutput), "stokaro/ptah#629"}
 	}
 	if strings.Contains(inspectOutput, "users") {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "apply", Gap,
-			"`ptah atlas schema clean --format --auto-approve` reported applied but left the users table behind", "stokaro/ptah#629"}
+			"`atlas schema clean --format --auto-approve` reported applied but left the users table behind", "stokaro/ptah#629"}
 	}
 
 	return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", OK,
-		"`ptah atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table", ""}
+		"`atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table", ""}
 }
 
 func runAtlasSchemaCleanActualInvalidFormatBeforeApply(bin string) Result {
-	const fixture = "ptah atlas schema clean actual invalid --format"
+	const fixture = "atlas schema clean actual invalid --format"
 
 	dir, dbPath, setupErr := createAtlasSchemaCleanSQLiteFixture(bin, "actual-invalid")
 	if setupErr != nil {
@@ -185,37 +185,37 @@ func runAtlasSchemaCleanActualInvalidFormatBeforeApply(bin string) Result {
 	defer os.RemoveAll(dir)
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "clean",
+		"schema", "clean",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ if .Applied }}{{ .DoesNotExist }}{{ end }}",
 		"--auto-approve",
 	}, dir)
 	if err == nil {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", Gap,
-			"`ptah atlas schema clean` unexpectedly accepted an applied-state invalid format", "stokaro/ptah#629"}
+			"`atlas schema clean` unexpectedly accepted an applied-state invalid format", "stokaro/ptah#629"}
 	}
 	if !strings.Contains(output, "execute --format template") {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", Gap,
-			"`ptah atlas schema clean` rejected the applied-state invalid format for the wrong reason: " + oneLine(output),
+			"`atlas schema clean` rejected the applied-state invalid format for the wrong reason: " + oneLine(output),
 			"stokaro/ptah#629"}
 	}
 
 	inspectOutput, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ json . }}",
 	}, dir)
 	if err != nil {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "inspect", Gap,
-			"`ptah atlas schema inspect` failed after rejected actual format: " + oneLine(inspectOutput), "stokaro/ptah#629"}
+			"`atlas schema inspect` failed after rejected actual format: " + oneLine(inspectOutput), "stokaro/ptah#629"}
 	}
 	if !strings.Contains(inspectOutput, "users") {
 		return Result{"atlas-cli-schema-clean-runtime", fixture, "apply", Gap,
-			"`ptah atlas schema clean` mutated the SQLite fixture before rejecting the applied-state invalid format", "stokaro/ptah#629"}
+			"`atlas schema clean` mutated the SQLite fixture before rejecting the applied-state invalid format", "stokaro/ptah#629"}
 	}
 
 	return Result{"atlas-cli-schema-clean-runtime", fixture, "execute", OK,
-		"`ptah atlas schema clean` rejects applied-state invalid format templates before mutating SQLite", ""}
+		"`atlas schema clean` rejects applied-state invalid format templates before mutating SQLite", ""}
 }
 
 type schemaCleanSetupError struct {
@@ -241,7 +241,7 @@ func createAtlasSchemaCleanSQLiteFixture(bin, name string) (string, string, *sch
 	}
 
 	applyOutput, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", "sqlite://" + dbPath,
 		"--to", "file://" + schemaPath,
 		"--auto-approve",
@@ -250,7 +250,7 @@ func createAtlasSchemaCleanSQLiteFixture(bin, name string) (string, string, *sch
 		os.RemoveAll(dir)
 		return "", "", &schemaCleanSetupError{
 			stage:  "setup",
-			detail: "`ptah atlas schema apply` could not create the SQLite fixture: " + oneLine(applyOutput),
+			detail: "`atlas schema apply` could not create the SQLite fixture: " + oneLine(applyOutput),
 		}
 	}
 	return dir, dbPath, nil

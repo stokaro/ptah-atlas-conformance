@@ -10,9 +10,10 @@ import (
 )
 
 // atlasVerbFlags is the set of essential Atlas flags each OSS verb accepts — the
-// flags a standard drop-in workflow relies on. A resolving `ptah atlas <verb>`
-// is not a drop-in until it also accepts these; the atlas-cli-surface probe only
-// proves the verb exists, so this probe measures the depth behind it. Source:
+// flags a standard drop-in workflow relies on. A resolving `atlas <verb>` on
+// the ptah-compat binary is not a drop-in until it also accepts these; the
+// compat surface probe only proves the verb exists, so this probe measures the
+// depth behind it. Source:
 // https://atlasgo.io/cli-reference. Cloud/enterprise-leaning flags (--web,
 // --plan, --export, --edit) are deliberately omitted to keep this OSS-scoped;
 // `schema fmt` (positional paths), `version` and `license` take no such flags.
@@ -29,56 +30,57 @@ type atlasFlagDefault struct {
 }
 
 var atlasVerbFlags = []atlasVerbFlagSpec{
-	{AtlasCmd: "atlas schema inspect", Path: []string{"atlas", "schema", "inspect"}, Flags: []string{"--url", "--dev-url", "--schema", "--exclude", "--format"}},
-	{AtlasCmd: "atlas schema apply", Path: []string{"atlas", "schema", "apply"}, Flags: []string{"--url", "--to", "--dev-url", "--dry-run", "--auto-approve", "--schema"}},
-	{AtlasCmd: "atlas schema diff", Path: []string{"atlas", "schema", "diff"}, Flags: []string{"--from", "--to", "--dev-url", "--format", "--schema"}},
-	{AtlasCmd: "atlas schema clean", Path: []string{"atlas", "schema", "clean"}, Flags: []string{"--url", "--dry-run", "--auto-approve", "--format"}},
-	{AtlasCmd: "atlas migrate diff", Path: []string{"atlas", "migrate", "diff"}, Flags: []string{"--to", "--dev-url", "--dir", "--format", "--schema"}},
-	{AtlasCmd: "atlas migrate apply", Path: []string{"atlas", "migrate", "apply"}, Flags: []string{"--url", "--dir", "--dry-run", "--tx-mode", "--revisions-schema"}},
-	{AtlasCmd: "atlas migrate down", Path: []string{"atlas", "migrate", "down"}, Flags: []string{"--url", "--dir", "--dev-url", "--to-version", "--to-tag", "--dry-run", "--format", "--revisions-schema", "--lock-timeout", "--skip-checks", "--plan"}},
+	{AtlasCmd: "atlas schema inspect", Path: []string{"schema", "inspect"}, Flags: []string{"--url", "--dev-url", "--schema", "--exclude", "--format"}},
+	{AtlasCmd: "atlas schema apply", Path: []string{"schema", "apply"}, Flags: []string{"--url", "--to", "--dev-url", "--dry-run", "--auto-approve", "--schema"}},
+	{AtlasCmd: "atlas schema diff", Path: []string{"schema", "diff"}, Flags: []string{"--from", "--to", "--dev-url", "--format", "--schema"}},
+	{AtlasCmd: "atlas schema clean", Path: []string{"schema", "clean"}, Flags: []string{"--url", "--dry-run", "--auto-approve", "--format"}},
+	{AtlasCmd: "atlas migrate diff", Path: []string{"migrate", "diff"}, Flags: []string{"--to", "--dev-url", "--dir", "--format", "--schema"}},
+	{AtlasCmd: "atlas migrate apply", Path: []string{"migrate", "apply"}, Flags: []string{"--url", "--dir", "--dry-run", "--tx-mode", "--revisions-schema"}},
+	{AtlasCmd: "atlas migrate down", Path: []string{"migrate", "down"}, Flags: []string{"--url", "--dir", "--dev-url", "--to-version", "--to-tag", "--dry-run", "--format", "--revisions-schema", "--lock-timeout", "--skip-checks", "--plan"}},
 	{
 		AtlasCmd: "atlas migrate lint",
-		Path:     []string{"atlas", "migrate", "lint"},
+		Path:     []string{"migrate", "lint"},
 		Flags:    []string{"--dev-url", "--dir", "--dir-format", "--latest"},
 		Defaults: []atlasFlagDefault{{Flag: "--dir-format", Value: "atlas"}},
 	},
 	{
 		AtlasCmd: "atlas migrate hash",
-		Path:     []string{"atlas", "migrate", "hash"},
+		Path:     []string{"migrate", "hash"},
 		Flags:    []string{"--dir", "--dir-format"},
 		Defaults: []atlasFlagDefault{{Flag: "--dir-format", Value: "atlas"}},
 	},
 	{
 		AtlasCmd: "atlas migrate status",
-		Path:     []string{"atlas", "migrate", "status"},
+		Path:     []string{"migrate", "status"},
 		Flags:    []string{"--url", "--dir", "--dir-format", "--revisions-schema"},
 		Defaults: []atlasFlagDefault{{Flag: "--dir-format", Value: "atlas"}},
 	},
 	{
 		AtlasCmd: "atlas migrate validate",
-		Path:     []string{"atlas", "migrate", "validate"},
+		Path:     []string{"migrate", "validate"},
 		Flags:    []string{"--dev-url", "--dir", "--dir-format"},
 		Defaults: []atlasFlagDefault{{Flag: "--dir-format", Value: "atlas"}},
 	},
 	{
 		AtlasCmd: "atlas migrate new",
-		Path:     []string{"atlas", "migrate", "new"},
+		Path:     []string{"migrate", "new"},
 		Flags:    []string{"--dir", "--dir-format"},
 		Defaults: []atlasFlagDefault{{Flag: "--dir-format", Value: "atlas"}},
 	},
 	{
 		AtlasCmd: "atlas migrate set",
-		Path:     []string{"atlas", "migrate", "set"},
+		Path:     []string{"migrate", "set"},
 		Flags:    []string{"--url", "--dir", "--dir-format", "--revisions-schema"},
 		Defaults: []atlasFlagDefault{{Flag: "--dir-format", Value: "atlas"}},
 	},
-	{AtlasCmd: "atlas migrate import", Path: []string{"atlas", "migrate", "import"}, Flags: []string{"--from", "--to"}},
+	{AtlasCmd: "atlas migrate import", Path: []string{"migrate", "import"}, Flags: []string{"--from", "--to"}},
 }
 
 // AtlasCLIFlagsProbe measures interface-parity depth: for each OSS verb that the
-// surface probe already reports as resolving, does `ptah atlas <verb>` accept the
-// Atlas flags a drop-in caller would pass? It builds the real Ptah CLI and reads
-// each command's `--help`, so it flips green on its own as Ptah wires the flags.
+// surface probe already reports as resolving, does `atlas <verb>` on the
+// ptah-compat binary accept the Atlas flags a drop-in caller would pass? It
+// builds the real ptah-compat CLI and reads each command's `--help`, so it
+// flips green on its own as Ptah wires the flags.
 type AtlasCLIFlagsProbe struct{}
 
 func (AtlasCLIFlagsProbe) Name() string { return "atlas-cli-flags" }
@@ -87,10 +89,10 @@ func (AtlasCLIFlagsProbe) Run(fx Fixture) []Result {
 	if fx.Name != atlasCLISentinel {
 		return nil
 	}
-	bin, err := ptahBinary()
+	bin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		return []Result{{"atlas-cli-flags", atlasCLISentinel, "build", Fail,
-			"could not build the Ptah CLI to probe its flags: " + oneLine(err.Error()), ""}}
+			"could not build the Ptah compatibility CLI to probe its flags: " + oneLine(err.Error()), ""}}
 	}
 
 	var out []Result
@@ -98,7 +100,7 @@ func (AtlasCLIFlagsProbe) Run(fx Fixture) []Result {
 		present, help, cerr := commandFlags(bin, v.Path)
 		if cerr != nil {
 			out = append(out, Result{"atlas-cli-flags", v.AtlasCmd, "flags", Fail,
-				"reading `ptah " + strings.Join(v.Path, " ") + " --help` failed: " + oneLine(cerr.Error()), ""})
+				"reading `atlas " + strings.Join(v.Path, " ") + " --help` failed: " + oneLine(cerr.Error()), ""})
 			continue
 		}
 		var missing []string
@@ -112,7 +114,7 @@ func (AtlasCLIFlagsProbe) Run(fx Fixture) []Result {
 		case 0:
 			if len(defaultMismatches) != 0 {
 				out = append(out, Result{"atlas-cli-flags", v.AtlasCmd, "flags", Gap,
-					"`ptah " + strings.Join(v.Path, " ") + "` does not advertise Atlas default(s): " +
+					"`atlas " + strings.Join(v.Path, " ") + "` does not advertise Atlas default(s): " +
 						strings.Join(defaultMismatches, ", "), "stokaro/ptah#622"})
 				continue
 			}
@@ -125,7 +127,7 @@ func (AtlasCLIFlagsProbe) Run(fx Fixture) []Result {
 		default:
 			sort.Strings(missing)
 			out = append(out, Result{"atlas-cli-flags", v.AtlasCmd, "flags", Gap,
-				"`ptah " + strings.Join(v.Path, " ") + "` does not accept " + strings.Join(missing, ", ") +
+				"`atlas " + strings.Join(v.Path, " ") + "` does not accept " + strings.Join(missing, ", ") +
 					" — the command resolves but is not yet flag-compatible with Atlas", "stokaro/ptah#510"})
 		}
 	}

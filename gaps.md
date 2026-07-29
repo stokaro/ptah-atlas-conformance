@@ -12,8 +12,8 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260729072403-f57a8536ce26`
-- Outcomes: **853 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260729121013-b2b9e49fd050`
+- Outcomes: **804 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -22,10 +22,10 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| — | ok | apply-simulation-workflow | `ptah atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target |  |
-| — | ok | apply-simulation-workflow | `ptah atlas schema apply --dev-url` | failed simulation refuses the target | a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table |  |
-| — | ok | apply-simulation-workflow | `ptah atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
-| — | ok | apply-simulation-workflow | `ptah atlas schema apply --lock-timeout` | lockless dialect note | `schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --lock-timeout` | lockless dialect note | `schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds |  |
 | — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode --revisions-schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate down` | flags | accepts all essential Atlas flags: --url --dir --dev-url --to-version --to-tag --dry-run --format --revisions-schema --lock-timeout --skip-checks --plan |  |
@@ -40,63 +40,34 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-flags | `atlas schema clean` | flags | accepts all essential Atlas flags: --url --dry-run --auto-approve --format |  |
 | — | ok | atlas-cli-flags | `atlas schema diff` | flags | accepts all essential Atlas flags: --from --to --dev-url --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas schema inspect` | flags | accepts all essential Atlas flags: --url --dev-url --schema --exclude --format |  |
-| — | ok | atlas-cli-hidden-runtime | `ptah atlas migrate diff --dry-run` | execute | `ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate apply --dir-format` | flags | `ptah atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate apply --revisions-schema` | execute | `ptah atlas migrate apply --revisions-schema main` executed successfully |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate hash` | execute | `ptah atlas migrate hash` defaults to Atlas directory format and writes atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate hash --dir-format goose` | execute | `ptah atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate lint --dir-format goose` | execute | `ptah atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate new` | execute | `ptah atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate new --dir-format goose` | execute | `ptah atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate set --dir-format goose` | execute | `ptah atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate set --revisions-schema` | execute | `ptah atlas migrate set --revisions-schema main` executed successfully |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status` | execute | `ptah atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --dir-format goose` | execute | `ptah atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate status --revisions-schema` | execute | `ptah atlas migrate status --revisions-schema main` executed successfully |  |
-| — | ok | atlas-cli-metadata-runtime | `ptah atlas migrate validate --dir-format goose` | execute | `ptah atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-report-format | `ptah atlas migrate apply --dry-run --format json` | format | `ptah atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
-| — | ok | atlas-cli-report-format | `ptah atlas migrate apply --format json` | format | `ptah atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
-| — | ok | atlas-cli-report-format | `ptah atlas migrate status --format json` | format | `ptah atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries |  |
-| — | ok | atlas-cli-report-format | `ptah atlas schema clean --dry-run --format json` | format | `ptah atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields |  |
-| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean --dry-run --format` | execute | `ptah atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite |  |
-| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean --format --auto-approve` | execute | `ptah atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table |  |
-| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean actual invalid --format` | execute | `ptah atlas schema clean` rejects applied-state invalid format templates before mutating SQLite |  |
-| — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean invalid --format` | execute | `ptah atlas schema clean` rejects invalid format templates before opening the database |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas migrate diff -s` | parse | `ptah atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas schema apply --file/-f` | execute | `ptah atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas schema apply -s` | execute | `ptah atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas schema diff -f` | execute | `ptah atlas schema diff -f` behaves like `--from` for local schema-file diffs |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas schema diff -s` | execute | `ptah atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas schema inspect -s` | parse | `ptah atlas schema inspect -s public` reached the expected command validation path |  |
-| — | ok | atlas-cli-surface | `atlas license` | resolve | `ptah atlas license` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate apply` | resolve | `ptah atlas migrate apply` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas migrate diff` | resolve | `ptah atlas migrate diff` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate down` | resolve | `ptah atlas migrate down` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate edit` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas migrate hash` | resolve | `ptah atlas migrate hash` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate import` | resolve | `ptah atlas migrate import` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate lint` | resolve | `ptah atlas migrate lint` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate new` | resolve | `ptah atlas migrate new` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas migrate rebase` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas migrate rm` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas migrate set` | resolve | `ptah atlas migrate set` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate status` | resolve | `ptah atlas migrate status` resolves |  |
-| — | ok | atlas-cli-surface | `atlas migrate test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas migrate validate` | resolve | `ptah atlas migrate validate` resolves |  |
-| — | ok | atlas-cli-surface | `atlas schema apply` | resolve | `ptah atlas schema apply` resolves |  |
-| — | ok | atlas-cli-surface | `atlas schema clean` | resolve | `ptah atlas schema clean` resolves |  |
-| — | ok | atlas-cli-surface | `atlas schema diff` | resolve | `ptah atlas schema diff` resolves |  |
-| — | ok | atlas-cli-surface | `atlas schema fmt` | resolve | `ptah atlas schema fmt` resolves |  |
-| — | ok | atlas-cli-surface | `atlas schema inspect` | resolve | `ptah atlas schema inspect` resolves |  |
-| — | ok | atlas-cli-surface | `atlas schema plan` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
-| — | ok | atlas-cli-surface | `atlas version` | resolve | `ptah atlas version` resolves |  |
-| — | ok | atlas-cli-utility-runtime | `ptah atlas license` | execute | `ptah atlas license` executes and prints Ptah-owned utility output |  |
-| — | ok | atlas-cli-utility-runtime | `ptah atlas schema fmt` | execute | `ptah atlas schema fmt` formats .hcl files recursively from the current directory and ignores non-HCL files |  |
-| — | ok | atlas-cli-utility-runtime | `ptah atlas version` | execute | `ptah atlas version` executes and prints Ptah-owned utility output |  |
+| — | ok | atlas-cli-hidden-runtime | `atlas migrate diff --dry-run` | execute | `atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate apply --dir-format` | flags | `atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate apply --revisions-schema` | execute | `atlas migrate apply --revisions-schema main` executed successfully |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate hash` | execute | `atlas migrate hash` defaults to Atlas directory format and writes atlas.sum |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate hash --dir-format goose` | execute | `atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate lint --dir-format goose` | execute | `atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate new` | execute | `atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate new --dir-format goose` | execute | `atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --revisions-schema` | execute | `atlas migrate set --revisions-schema main` executed successfully |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status` | execute | `atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --revisions-schema` | execute | `atlas migrate status --revisions-schema main` executed successfully |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate validate --dir-format goose` | execute | `atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | `atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
+| — | ok | atlas-cli-report-format | `atlas migrate apply --format json` | format | `atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
+| — | ok | atlas-cli-report-format | `atlas migrate status --format json` | format | `atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries |  |
+| — | ok | atlas-cli-report-format | `atlas schema clean --dry-run --format json` | format | `atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields |  |
+| — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean --dry-run --format` | execute | `atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite |  |
+| — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean --format --auto-approve` | execute | `atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table |  |
+| — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean actual invalid --format` | execute | `atlas schema clean` rejects applied-state invalid format templates before mutating SQLite |  |
+| — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean invalid --format` | execute | `atlas schema clean` rejects invalid format templates before opening the database |  |
+| — | ok | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
+| — | ok | atlas-cli-shorthands | `atlas schema apply --file/-f` | execute | `atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
+| — | ok | atlas-cli-shorthands | `atlas schema apply -s` | execute | `atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes |  |
+| — | ok | atlas-cli-shorthands | `atlas schema diff -f` | execute | `atlas schema diff -f` behaves like `--from` for local schema-file diffs |  |
+| — | ok | atlas-cli-shorthands | `atlas schema diff -s` | execute | `atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced |  |
+| — | ok | atlas-cli-shorthands | `atlas schema inspect -s` | parse | `atlas schema inspect -s public` reached the expected command validation path |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas license` | execute | `atlas license` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas schema fmt` | execute | `atlas schema fmt` formats .hcl files recursively through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas version` | execute | `atlas version` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
@@ -146,27 +117,6 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | checkpoint-workflow | `ptah migrations up` | post-checkpoint continuation | a fresh database bootstrapped from the checkpoint and applied only the post-checkpoint migration, recording revisions 4 and 5 |  |
 | — | ok | checkpoint-workflow | `ptah migrations validate` | checkpoint integrity | the directory including the fresh checkpoint pair validates against the rewritten ptah.sum |  |
 | — | ok | checkpoint-workflow | `ptah migrations validate` | tamper detection | a single tampered byte in the checkpoint file failed validation naming that file, and restoring the bytes validated cleanly again |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/accepted-but-unimplemented-flag` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/added-migration` | exit | exit 1, error → stdout and stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/clean-atlas.sum-succeeds-silently` | exit | exit 0, output → silent |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/completion-bash-generates-script` | exit | exit 0, output → stdout |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/completion-group-extra-token-shows-help` | exit | exit 0, output → stdout |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/completion-shell-extra-token-fails` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/directory-hash-mismatch` | exit | exit 1, error → stdout and stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/duplicate-atlas.sum-entry` | exit | exit 1, error → stdout and stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/edited-migration` | exit | exit 1, error → stdout and stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/help-succeeds` | exit | exit 0, output → stdout |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/invalid-database-URL` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/malformed-atlas.sum` | exit | exit 1, error → stdout and stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/migrate-group-extra-token-shows-help` | exit | exit 0, output → stdout |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/missing-atlas.sum` | exit | exit 1, error → stdout and stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/missing-migration-directory` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/missing-project-config` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/missing-required-flag` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/removed-migration` | exit | exit 1, error → stdout and stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/unknown-flag` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/unknown-subcommand` | exit | exit 1, error → stderr |  |
-| — | ok | cli-exit-behavior | `ptah-atlas/unknown-subcommand-suggests-close-verb` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/accepted-but-unimplemented-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/added-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/clean-atlas.sum-succeeds-silently` | exit | exit 0, output → silent |  |
@@ -188,6 +138,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand-suggests-close-verb` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-native/atlas-namespace-rejected` | exit | `ptah atlas` exits 2 with the unknown-command diagnostic on stderr; the Atlas surface lives exclusively in the ptah-compat binary |  |
 | — | ok | composite-schema-workflow | `SQLite schema facts` | live schema facts | SQLite contained both tables, every expected column attribute, the cross-source foreign key, and the index |  |
 | — | ok | composite-schema-workflow | `conflicting sources` | conflict detection | conflicting database identities failed before rendering |  |
 | — | ok | composite-schema-workflow | `hand-merged equivalence` | render equivalence | mixed and hand-merged desired schemas rendered identical SQLite SQL |  |
@@ -384,11 +335,11 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | dbtest-workflow | `ptah schema test/json` | JSON report | structured schema JSON report preserved exact summary, case, and step results |  |
 | — | ok | dbtest-workflow | `ptah schema test/setup failure` | setup exit contract | invalid schema-test input produced process exit code 2 and an actionable diagnostic |  |
 | — | ok | dbtest-workflow | `ptah schema test/text` | schema execution | desired-schema provisioning, seed, drift repair, assertions, and case filtering passed |  |
-| — | ok | desired-state-workflow | `ptah atlas schema apply` | database-url --to source | `schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema |  |
-| — | ok | desired-state-workflow | `ptah atlas schema apply` | migration-dir source replay | `schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target |  |
-| — | ok | desired-state-workflow | `ptah atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted |  |
-| — | ok | desired-state-workflow | `ptah atlas schema apply` | env:// source resolution | `schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target |  |
-| — | ok | desired-state-workflow | `ptah atlas schema diff` | database-url --from source | `schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | database-url --to source | `schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source replay | `schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | env:// source resolution | `schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target |  |
+| — | ok | desired-state-workflow | `atlas schema diff` | database-url --from source | `schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file |  |
 | — | ok | external-schema-workflow | `SQLite external schema facts` | live schema facts | SQLite preserved tables, columns, primary keys, unique/index facts, and the cascading foreign key |  |
 | — | ok | external-schema-workflow | `configured external schema` | allowed config render | desired schema rendered with all expected SQLite facts |  |
 | — | ok | external-schema-workflow | `external hcl schema` | explicit command render | desired schema rendered with all expected SQLite facts |  |
@@ -409,10 +360,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | external-schema-workflow | `schema drift config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
 | — | ok | external-schema-workflow | `schema render config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
 | — | ok | external-schema-workflow | `static SQL schema` | offline render | desired schema rendered with all expected SQLite facts |  |
-| — | ok | inspect-source-workflow | `ptah atlas schema inspect` | local schema file over dev database | `schema inspect --url file://schema.sql --dev-url ...` materialized the file on the dev database and rendered its HCL; a scheme-less path resolves to the identical local-file inspection |  |
-| — | ok | inspect-source-workflow | `ptah atlas schema inspect` | split export writes a deterministic tree | `{{ hcl . \| split \| write "exported" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout |  |
-| — | ok | inspect-source-workflow | `ptah atlas schema inspect` | written tree reloads to the same schema | the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema |  |
-| — | ok | inspect-source-workflow | `ptah atlas schema inspect --exclude` | resource and field selectors | --exclude filters resource selectors, accepts the documented [type=extension].version field selector, and refuses unsupported field-selector forms with a deterministic diagnostic |  |
+| — | ok | inspect-source-workflow | `atlas schema inspect` | local schema file over dev database | `schema inspect --url file://schema.sql --dev-url ...` materialized the file on the dev database and rendered its HCL; a scheme-less path resolves to the identical local-file inspection |  |
+| — | ok | inspect-source-workflow | `atlas schema inspect` | split export writes a deterministic tree | `{{ hcl . \| split \| write "exported" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout |  |
+| — | ok | inspect-source-workflow | `atlas schema inspect` | written tree reloads to the same schema | the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema |  |
+| — | ok | inspect-source-workflow | `atlas schema inspect --exclude` | resource and field selectors | --exclude filters resource selectors, accepts the documented [type=extension].version field selector, and refuses unsupported field-selector forms with a deterministic diagnostic |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/1.sql` | split | Ptah splits into the same 6 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
@@ -580,27 +531,27 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migdir-ingest | `sql/sqltool/testdata/liquibase` | recognize | all 2 files recognized |  |
 | — | ok | migdir-ingest | `txtar-down` | recognize | all 1 files recognized |  |
 | — | ok | migdir-ingest | `txtar-down-boundary` | recognize | all 1 files recognized |  |
-| — | ok | pro-down-workflow | `ptah atlas migrate apply` | atlas-format application | `atlas migrate apply` executed both txtar migrations and recorded Atlas-format revision rows in atlas_schema_revisions |  |
-| — | ok | pro-down-workflow | `ptah atlas migrate down` | bare rollback | bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op) |  |
-| — | ok | pro-maint-workflow | `ptah atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
-| — | ok | pro-maint-workflow | `ptah atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
-| — | ok | pro-maint-workflow | `ptah atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
-| — | ok | pro-plan-workflow | `ptah atlas schema apply` | plan application | `schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table |  |
-| — | ok | pro-plan-workflow | `ptah atlas schema apply` | stale plan refusal | a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
-| — | ok | pro-plan-workflow | `ptah atlas schema plan` | plan creation | `schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity |  |
-| — | ok | pro-test-workflow | `ptah atlas migrate test` | migration tests pass | the Atlas Pro test verb applied the Atlas-format migration directory to a real SQLite dev database and passed the committed case set: migrate_to latest, exec, and row-count/scalar assertions |  |
-| — | ok | pro-test-workflow | `ptah atlas migrate test` | migration test failure exit contract | a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1 |  |
-| — | ok | pro-test-workflow | `ptah atlas schema test` | schema tests pass | the Atlas Pro schema-test verb provisioned the desired schema from the local Go-annotation source on a real SQLite dev database and passed the committed case set |  |
-| — | ok | pro-test-workflow | `ptah atlas schema test` | schema test failure exit contract | a deliberately failing schema assertion produced a structured FAIL report and process exit code 1 |  |
-| — | ok | qualifier-txmode-workflow | `ptah atlas migrate apply` | concurrent-index artifact replays | the concurrent-index-policy artifact replays through `migrate apply`: the table exists and the Atlas revision row records the applied version |  |
-| — | ok | qualifier-txmode-workflow | `ptah atlas migrate apply` | txmode-none directive executes outside a transaction | a `-- atlas:txmode none` migration executes outside a transaction (the statement before the failure persisted) while the identical transactional control rolled back cleanly |  |
-| — | ok | qualifier-txmode-workflow | `ptah atlas migrate diff` | concurrent-index policy on sqlite plans one transactional file | with diff.concurrent_index.create enabled in atlas.hcl, the SQLite plan stays one plain transactional file — no txmode directive, no CONCURRENTLY — exactly the documented dialect scope |  |
-| — | ok | qualifier-txmode-workflow | `ptah atlas migrate diff --qualifier` | invalid qualifier fails before the dev database | an invalid --qualifier value is refused with the deterministic diagnostic before the dev database file exists and before any artifact is written |  |
-| — | ok | qualifier-txmode-workflow | `ptah atlas migrate diff --qualifier` | qualified artifacts are scoped to qualified dialects | a valid --qualifier on a dialect without schema-qualified DDL is refused pre-artifact with the documented scope diagnostic; qualified artifact content is measured on the database-backed tiers |  |
-| — | ok | schema-scope-workflow | `ptah atlas schema apply --include` | scoped apply leaves out-of-scope objects untouched | `schema apply --include scope_users` created only the selected table: the desired-but-unselected tables were not created and the pre-existing out-of-scope table survived |  |
-| — | ok | schema-scope-workflow | `ptah atlas schema apply --include` | repeated include values union | repeated --include values union: both selected tables were created while the unselected dependent table stayed out of the plan |  |
-| — | ok | schema-scope-workflow | `ptah atlas schema apply --include` | cross-scope foreign key refusal | selecting a table whose foreign key points at an unselected table is refused with the cross-scope dependency diagnostic and its remediation guidance |  |
-| — | ok | schema-scope-workflow | `ptah atlas schema diff --include` | malformed selector fails before the dev database | a malformed include selector fails with the deterministic diagnostic before any database work: the dev database file was never created |  |
+| — | ok | pro-down-workflow | `atlas migrate apply` | atlas-format application | `atlas migrate apply` executed both txtar migrations and recorded Atlas-format revision rows in atlas_schema_revisions |  |
+| — | ok | pro-down-workflow | `atlas migrate down` | bare rollback | bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op) |  |
+| — | ok | pro-maint-workflow | `atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
+| — | ok | pro-plan-workflow | `atlas schema apply` | plan application | `schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table |  |
+| — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
+| — | ok | pro-plan-workflow | `atlas schema plan` | plan creation | `schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity |  |
+| — | ok | pro-test-workflow | `atlas migrate test` | migration tests pass | the Atlas Pro test verb applied the Atlas-format migration directory to a real SQLite dev database and passed the committed case set: migrate_to latest, exec, and row-count/scalar assertions |  |
+| — | ok | pro-test-workflow | `atlas migrate test` | migration test failure exit contract | a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1 |  |
+| — | ok | pro-test-workflow | `atlas schema test` | schema tests pass | the Atlas Pro schema-test verb provisioned the desired schema from the local Go-annotation source on a real SQLite dev database and passed the committed case set |  |
+| — | ok | pro-test-workflow | `atlas schema test` | schema test failure exit contract | a deliberately failing schema assertion produced a structured FAIL report and process exit code 1 |  |
+| — | ok | qualifier-txmode-workflow | `atlas migrate apply` | concurrent-index artifact replays | the concurrent-index-policy artifact replays through `migrate apply`: the table exists and the Atlas revision row records the applied version |  |
+| — | ok | qualifier-txmode-workflow | `atlas migrate apply` | txmode-none directive executes outside a transaction | a `-- atlas:txmode none` migration executes outside a transaction (the statement before the failure persisted) while the identical transactional control rolled back cleanly |  |
+| — | ok | qualifier-txmode-workflow | `atlas migrate diff` | concurrent-index policy on sqlite plans one transactional file | with diff.concurrent_index.create enabled in atlas.hcl, the SQLite plan stays one plain transactional file — no txmode directive, no CONCURRENTLY — exactly the documented dialect scope |  |
+| — | ok | qualifier-txmode-workflow | `atlas migrate diff --qualifier` | invalid qualifier fails before the dev database | an invalid --qualifier value is refused with the deterministic diagnostic before the dev database file exists and before any artifact is written |  |
+| — | ok | qualifier-txmode-workflow | `atlas migrate diff --qualifier` | qualified artifacts are scoped to qualified dialects | a valid --qualifier on a dialect without schema-qualified DDL is refused pre-artifact with the documented scope diagnostic; qualified artifact content is measured on the database-backed tiers |  |
+| — | ok | schema-scope-workflow | `atlas schema apply --include` | scoped apply leaves out-of-scope objects untouched | `schema apply --include scope_users` created only the selected table: the desired-but-unselected tables were not created and the pre-existing out-of-scope table survived |  |
+| — | ok | schema-scope-workflow | `atlas schema apply --include` | repeated include values union | repeated --include values union: both selected tables were created while the unselected dependent table stayed out of the plan |  |
+| — | ok | schema-scope-workflow | `atlas schema apply --include` | cross-scope foreign key refusal | selecting a table whose foreign key points at an unselected table is refused with the cross-scope dependency diagnostic and its remediation guidance |  |
+| — | ok | schema-scope-workflow | `atlas schema diff --include` | malformed selector fails before the dev database | a malformed include selector fails with the deterministic diagnostic before any database work: the dev database file was never created |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240116003831.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/versioned-basic/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |

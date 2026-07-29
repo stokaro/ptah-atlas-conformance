@@ -133,7 +133,7 @@ jobs:
 
   # The migrate-runtime full-parity signal. This is separate from
   # conformance-migrate-runtime, which enforces only the committed regression
-  # budget. It must stay red while any supported `ptah atlas migrate ...`
+  # budget. It must stay red while any supported ptah-compat `atlas migrate ...`
   # workflow has a state-level divergence from Atlas-compatible behavior.
   migrate-runtime-gate:
     runs-on: ubuntu-latest

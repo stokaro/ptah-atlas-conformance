@@ -21,7 +21,7 @@ const (
 // ProMaintWorkflowProbe executes the Atlas Pro directory-maintenance verbs
 // Ptah implements as open capabilities — `atlas migrate edit`, `atlas migrate
 // rebase`, and `atlas migrate rm` (stokaro/ptah#807) — end to end through the
-// real `ptah atlas ...` CLI. The workflow is fully offline: it mutates a
+// real `atlas ...` CLI. The workflow is fully offline: it mutates a
 // scratch copy of a committed Atlas-format directory with a hermetic scripted
 // $EDITOR and proves each verb leaves the directory in a state that still
 // passes `ptah migrations validate` against the rewritten atlas.sum.
@@ -60,7 +60,7 @@ type proMaintWorkflow struct {
 
 func (m *proMaintWorkflow) editorRoundTrip() Result {
 	const (
-		fixture = "ptah atlas migrate edit"
+		fixture = "atlas migrate edit"
 		stage   = "editor round-trip"
 	)
 	if harness := m.hashAtlasMigrations(stage); harness != nil {
@@ -76,7 +76,7 @@ func (m *proMaintWorkflow) editorRoundTrip() Result {
 	}
 	result, harness := m.runCLIWithEnv(stage,
 		[]string{"EDITOR=" + editor, "VISUAL=" + editor},
-		"atlas", "migrate", "edit", "--dir", "file://migrations", proMaintEditTarget,
+		"migrate", "edit", "--dir", "file://migrations", proMaintEditTarget,
 	)
 	if harness != nil {
 		return *harness
@@ -106,11 +106,11 @@ func (m *proMaintWorkflow) editorRoundTrip() Result {
 
 func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 	const (
-		fixture = "ptah atlas migrate rebase"
+		fixture = "atlas migrate rebase"
 		stage   = "rebase to end of history"
 	)
 	result, harness := m.runCLI(stage,
-		"atlas", "migrate", "rebase", "--dir", "file://migrations", proMaintEditTarget,
+		"migrate", "rebase", "--dir", "file://migrations", proMaintEditTarget,
 	)
 	if harness != nil {
 		return *harness
@@ -145,11 +145,11 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 
 func (m *proMaintWorkflow) removeMigration() Result {
 	const (
-		fixture = "ptah atlas migrate rm"
+		fixture = "atlas migrate rm"
 		stage   = "remove migration"
 	)
 	result, harness := m.runCLI(stage,
-		"atlas", "migrate", "rm", "--dir", "file://migrations", proMaintRemoveTarget,
+		"migrate", "rm", "--dir", "file://migrations", proMaintRemoveTarget,
 	)
 	if harness != nil {
 		return *harness
@@ -181,9 +181,11 @@ func (m *proMaintWorkflow) removeMigration() Result {
 }
 
 // expectValidate asserts the scratch directory passes the native integrity
-// check against the rewritten atlas.sum after each maintenance verb.
+// check against the rewritten atlas.sum after each maintenance verb. It runs
+// the native `ptah` binary: `migrations validate` is a Ptah-owned harness
+// verification, not part of the measured Atlas drop-in surface.
 func (m *proMaintWorkflow) expectValidate(fixture, stage string) *Result {
-	result, harness := m.runCLI(stage,
+	result, harness := m.runNativeCLI(stage,
 		"migrations", "validate", "--dir", "migrations", "--dir-format", "atlas",
 	)
 	if harness != nil {

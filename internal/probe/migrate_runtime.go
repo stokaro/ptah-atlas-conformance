@@ -36,11 +36,19 @@ type migrateRuntimeTarget struct {
 
 // RunMigrateRuntime runs live migration-runtime conformance checks against
 // deterministic local databases. These checks inspect database state directly,
-// rather than treating successful CLI exit as sufficient evidence.
+// rather than treating successful CLI exit as sufficient evidence. Atlas-form
+// commands run on the ptah-compat binary (the only Atlas-shaped surface since
+// stokaro/ptah#850); Ptah-native `migrations ...` checks run on the main
+// `ptah` binary.
 func RunMigrateRuntime() []Result {
-	bin, err := ptahBinary()
+	compatBin, err := ptahCompatAtlasBinary()
 	if err != nil {
-		return []Result{{migrateRuntimeProbeName, "ptah atlas migrate", "build", Fail,
+		return []Result{{migrateRuntimeProbeName, "atlas migrate", "build", Fail,
+			"could not build the Ptah compatibility CLI to probe migrate runtime behavior: " + oneLine(err.Error()), ""}}
+	}
+	nativeBin, err := ptahBinary()
+	if err != nil {
+		return []Result{{migrateRuntimeProbeName, "ptah migrations", "build", Fail,
 			"could not build the Ptah CLI to probe migrate runtime behavior: " + oneLine(err.Error()), ""}}
 	}
 
@@ -53,11 +61,11 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxModeAllRollsBack,
 		sqliteMigrateApplyTxModeFileKeepsPriorFiles,
 		sqliteMigrateApplyTxModeNoneKeepsPartialStatement,
-		migrationsImportGolangMigrate,
-		migrationsImportGoose,
-		migrationsImportFlyway,
-		migrationsImportLiquibase,
-		lintSarifShape,
+		func(string) Result { return migrationsImportGolangMigrate(nativeBin) },
+		func(string) Result { return migrationsImportGoose(nativeBin) },
+		func(string) Result { return migrationsImportFlyway(nativeBin) },
+		func(string) Result { return migrationsImportLiquibase(nativeBin) },
+		func(string) Result { return lintSarifShape(nativeBin) },
 	}
 	for _, target := range configuredMigrateRuntimeTargets(os.Getenv) {
 		switch target.Label {
@@ -65,7 +73,7 @@ func RunMigrateRuntime() []Result {
 			checks = append(checks,
 				func(bin string) Result { return postgresMigrateApplyCustomRevisionsSchema(bin, target.URL) },
 				func(bin string) Result { return postgresMigrateNoTransactionConcurrentIndex(bin, target.URL) },
-				func(bin string) Result { return postgresGenerateDiffSkipDropTable(bin, target.URL) },
+				func(string) Result { return postgresGenerateDiffSkipDropTable(nativeBin, target.URL) },
 			)
 			pgURL := target.URL
 			for i := range planningCatalog {
@@ -78,7 +86,7 @@ func RunMigrateRuntime() []Result {
 	}
 	out := make([]Result, 0, len(checks))
 	for _, check := range checks {
-		out = append(out, check(bin))
+		out = append(out, check(compatBin))
 	}
 	return out
 }
@@ -113,7 +121,7 @@ func sqliteMigrateApplyRecordsState(bin string) Result {
 
 	dbPath := filepath.Join(root, "apply.db")
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "main",
@@ -138,7 +146,7 @@ func sqliteMigrateApplyRecordsState(bin string) Result {
 	}
 
 	status, err := commandOutput(bin, []string{
-		"atlas", "migrate", "status",
+		"migrate", "status",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "main",
@@ -169,7 +177,7 @@ func sqliteMigrateSetRepairsRevisionState(bin string) Result {
 
 	dbPath := filepath.Join(root, "set.db")
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "set", "1",
+		"migrate", "set", "1",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "main",
@@ -190,7 +198,7 @@ func sqliteMigrateSetRepairsRevisionState(bin string) Result {
 	}
 
 	output, err = commandOutput(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", "main",
@@ -239,7 +247,7 @@ func sqliteMigrateApplyTxMode(bin, fixture, mode string, wantTables []string) Re
 
 	dbPath := filepath.Join(root, mode+".db")
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--tx-mode", mode,
@@ -282,7 +290,7 @@ func postgresMigrateApplyCustomRevisionsSchema(bin, dbURL string) Result {
 	defer cleanupPostgresRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
@@ -329,7 +337,7 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, dbURL string) Result {
 	defer cleanupPostgresRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
@@ -513,7 +521,7 @@ func mysqlMigrateApplyRecordsState(bin, dbURL string) Result {
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
@@ -665,7 +673,7 @@ func migrateRuntimeDir(files map[string]string) (string, string, func(), error) 
 }
 
 func migrateRuntimeHash(bin, migrations, fixture string) *Result {
-	output, err := commandOutput(bin, []string{"atlas", "migrate", "hash", "--dir", fileURL(migrations)})
+	output, err := commandOutput(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
 	if err != nil {
 		result := migrateRuntimeExit(fixture, "hash", output, err)
 		return &result

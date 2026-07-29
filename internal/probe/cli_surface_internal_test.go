@@ -108,15 +108,15 @@ func TestUsageMatchesPrefix(t *testing.T) {
 	}{
 		{
 			name:   "exact command with args",
-			usage:  "ptah atlas migrate set [flags] [version]",
-			prefix: "ptah atlas",
+			usage:  "atlas migrate set [flags] [version]",
+			prefix: "atlas",
 			path:   []string{"migrate", "set"},
 			want:   true,
 		},
 		{
 			name:   "falls back to parent",
-			usage:  "ptah atlas migrate [command]",
-			prefix: "ptah atlas",
+			usage:  "atlas migrate [command]",
+			prefix: "atlas",
 			path:   []string{"migrate", "set"},
 			want:   false,
 		},
@@ -257,41 +257,6 @@ esac
 	c.Check(got[0].Detail, qt.Contains, "open Ptah capability")
 	c.Check(got[1].Detail, qt.Contains, "atlas migrate edit [flags] {name | version}")
 	c.Check(got[2].Detail, qt.Contains, "--dir --dir-format")
-}
-
-func TestCompareImplementedProCommand_RemapsNamespaceUsage(t *testing.T) {
-	c := qt.New(t)
-
-	// The `ptah atlas ...` namespace reports its own binary prefix in usage;
-	// the comparison must remap it onto the Atlas-shaped contract.
-	bin := writeExecutable(t, `#!/bin/sh
-case "$*" in
-  *--help*)
-    printf "Usage:\n  ptah atlas migrate rm [flags] {name | version}\n\nFlags:\n      --dir string          Migration directory\n      --dir-format string   Migration directory format\n"
-    exit 0
-    ;;
-  *)
-    printf "error: atlas migrate rm requires version argument\n"
-    exit 1
-    ;;
-esac
-`)
-	cmd := CLISurfaceCommand{Path: []string{"migrate", "rm"}}
-
-	got := compareImplementedProCommand(
-		"atlas-cli-surface-ptah-namespace",
-		"ptah atlas migrate rm",
-		bin,
-		[]string{"migrate", "rm"},
-		cmd,
-		implementedProVerbSurfaces()["migrate rm"],
-		"stokaro/ptah#510",
-	)
-
-	c.Assert(got, qt.HasLen, 3)
-	for _, result := range got {
-		c.Check(result.Outcome, qt.Equals, OK, qt.Commentf("%s: %s", result.Stage, result.Detail))
-	}
 }
 
 func TestCompareImplementedProCommand_StubRegressionShortCircuits(t *testing.T) {

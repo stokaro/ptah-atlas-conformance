@@ -19,25 +19,25 @@ func (AtlasCLIHiddenRuntimeProbe) Run(fx Fixture) []Result {
 	if fx.Name != atlasCLISentinel {
 		return nil
 	}
-	bin, err := ptahBinary()
+	bin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		return []Result{{"atlas-cli-hidden-runtime", atlasCLISentinel, "build", Fail,
-			"could not build the Ptah CLI to probe hidden Atlas runtime flags: " + oneLine(err.Error()), ""}}
+			"could not build the Ptah compatibility CLI to probe hidden Atlas runtime flags: " + oneLine(err.Error()), ""}}
 	}
 	return []Result{runAtlasMigrateDiffHiddenDryRun(bin)}
 }
 
 func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
-	const fixture = "ptah atlas migrate diff --dry-run"
+	const fixture = "atlas migrate diff --dry-run"
 
-	present, _, err := commandFlags(bin, []string{"atlas", "migrate", "diff"})
+	present, _, err := commandFlags(bin, []string{"migrate", "diff"})
 	if err != nil {
 		return Result{"atlas-cli-hidden-runtime", fixture, "help", Fail,
-			"reading `ptah atlas migrate diff --help` failed: " + oneLine(err.Error()), ""}
+			"reading `atlas migrate diff --help` failed: " + oneLine(err.Error()), ""}
 	}
 	if present["--dry-run"] {
 		return Result{"atlas-cli-hidden-runtime", fixture, "help", Gap,
-			"`ptah atlas migrate diff --dry-run` is visible in help, but Atlas OSS registers it as hidden", "stokaro/ptah#618"}
+			"`atlas migrate diff --dry-run` is visible in help, but Atlas OSS registers it as hidden", "stokaro/ptah#618"}
 	}
 
 	dir, err := os.MkdirTemp("", "atlas-migrate-diff-dry-run-*")
@@ -75,7 +75,7 @@ func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 	}
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "migrate", "diff",
+		"migrate", "diff",
 		"--dev-url", "sqlite://" + filepath.Join(dir, "dev.db"),
 		"--dir", "file://" + migrationsDir,
 		"--to", "file://" + schemaPath,
@@ -84,23 +84,23 @@ func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 	}, dir)
 	if err != nil {
 		return Result{"atlas-cli-hidden-runtime", fixture, "execute", Gap,
-			"`ptah atlas migrate diff --dry-run` exited non-zero: " + oneLine(output), "stokaro/ptah#618"}
+			"`atlas migrate diff --dry-run` exited non-zero: " + oneLine(output), "stokaro/ptah#618"}
 	}
 
 	if !strings.Contains(output, "ALTER TABLE") || !strings.Contains(output, "email") {
 		return Result{"atlas-cli-hidden-runtime", fixture, "execute", Gap,
-			"`ptah atlas migrate diff --dry-run` did not print generated SQL: " + oneLine(output), "stokaro/ptah#618"}
+			"`atlas migrate diff --dry-run` did not print generated SQL: " + oneLine(output), "stokaro/ptah#618"}
 	}
 	if strings.Contains(output, "Created migration file:") {
 		return Result{"atlas-cli-hidden-runtime", fixture, "execute", Gap,
-			"`ptah atlas migrate diff --dry-run` printed file-write status: " + oneLine(output), "stokaro/ptah#618"}
+			"`atlas migrate diff --dry-run` printed file-write status: " + oneLine(output), "stokaro/ptah#618"}
 	}
 	if migrationCount, err := atlasDryRunMigrationFileCount(migrationsDir); err != nil {
 		return Result{"atlas-cli-hidden-runtime", fixture, "files", Fail,
 			"reading migration directory after dry-run failed: " + oneLine(err.Error()), ""}
 	} else if migrationCount != 1 {
 		return Result{"atlas-cli-hidden-runtime", fixture, "files", Gap,
-			"`ptah atlas migrate diff --dry-run` wrote a migration file", "stokaro/ptah#618"}
+			"`atlas migrate diff --dry-run` wrote a migration file", "stokaro/ptah#618"}
 	}
 	afterSum, err := os.ReadFile(sumPath)
 	if err != nil {
@@ -109,14 +109,14 @@ func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 	}
 	if string(afterSum) != string(beforeSum) {
 		return Result{"atlas-cli-hidden-runtime", fixture, "files", Gap,
-			"`ptah atlas migrate diff --dry-run` rewrote atlas.sum", "stokaro/ptah#618"}
+			"`atlas migrate diff --dry-run` rewrote atlas.sum", "stokaro/ptah#618"}
 	}
 	if _, err := os.Stat(filepath.Join(migrationsDir, ".ptah-migrate-diff.lock")); !os.IsNotExist(err) {
 		return Result{"atlas-cli-hidden-runtime", fixture, "files", Gap,
-			"`ptah atlas migrate diff --dry-run` left the migration directory lock behind", "stokaro/ptah#618"}
+			"`atlas migrate diff --dry-run` left the migration directory lock behind", "stokaro/ptah#618"}
 	}
 	return Result{"atlas-cli-hidden-runtime", fixture, "execute", OK,
-		"`ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum", ""}
+		"`atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum", ""}
 }
 
 func atlasDryRunMigrationFileCount(dir string) (int, error) {

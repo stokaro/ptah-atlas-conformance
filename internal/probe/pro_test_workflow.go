@@ -9,7 +9,7 @@ const proTestWorkflowSentinel = "_capability/pro-test-workflow/SENTINEL"
 
 // ProTestWorkflowProbe executes the Atlas Pro test verbs Ptah implements as
 // open capabilities — `atlas migrate test` and `atlas schema test`
-// (stokaro/ptah#805) — end to end through the real `ptah atlas ...` CLI
+// (stokaro/ptah#805) — end to end through the real `atlas ...` CLI
 // against real SQLite dev databases. Atlas keeps both verbs in its
 // proprietary Pro/Cloud build, so this is a first-party capability probe
 // rather than an Atlas-corpus round-trip fixture: a passing committed case
@@ -52,7 +52,7 @@ type proTestWorkflow struct {
 
 func (t *proTestWorkflow) migrationTestsPass() Result {
 	const (
-		fixture = "ptah atlas migrate test"
+		fixture = "atlas migrate test"
 		stage   = "migration tests pass"
 	)
 	if harness := t.hashAtlasMigrations(stage); harness != nil {
@@ -60,7 +60,7 @@ func (t *proTestWorkflow) migrationTestsPass() Result {
 	}
 	devDB := filepath.Join(t.runRoot, "migrate-dev.db")
 	result, harness := t.runCLI(stage,
-		"atlas", "migrate", "test",
+		"migrate", "test",
 		"--dir", "file://migrations",
 		"--dev-url", sqliteURL(devDB),
 		"tests-pass",
@@ -89,11 +89,11 @@ func (t *proTestWorkflow) migrationTestsPass() Result {
 
 func (t *proTestWorkflow) migrationTestFailure() Result {
 	const (
-		fixture = "ptah atlas migrate test"
+		fixture = "atlas migrate test"
 		stage   = "migration test failure exit contract"
 	)
 	result, harness := t.runCLI(stage,
-		"atlas", "migrate", "test",
+		"migrate", "test",
 		"--dir", "file://migrations",
 		"--dev-url", sqliteURL(filepath.Join(t.runRoot, "migrate-dev-fail.db")),
 		"tests-fail",
@@ -117,12 +117,12 @@ func (t *proTestWorkflow) migrationTestFailure() Result {
 
 func (t *proTestWorkflow) schemaTestsPass() Result {
 	const (
-		fixture = "ptah atlas schema test"
+		fixture = "atlas schema test"
 		stage   = "schema tests pass"
 	)
 	devDB := filepath.Join(t.runRoot, "schema-dev.db")
 	result, harness := t.runCLI(stage,
-		"atlas", "schema", "test",
+		"schema", "test",
 		"--url", "file://models",
 		"--dev-url", sqliteURL(devDB),
 		"schema-pass",
@@ -148,11 +148,11 @@ func (t *proTestWorkflow) schemaTestsPass() Result {
 
 func (t *proTestWorkflow) schemaTestFailure() Result {
 	const (
-		fixture = "ptah atlas schema test"
+		fixture = "atlas schema test"
 		stage   = "schema test failure exit contract"
 	)
 	result, harness := t.runCLI(stage,
-		"atlas", "schema", "test",
+		"schema", "test",
 		"--url", "file://models",
 		"--dev-url", sqliteURL(filepath.Join(t.runRoot, "schema-dev-fail.db")),
 		"schema-fail",

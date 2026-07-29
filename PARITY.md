@@ -75,7 +75,7 @@ is **"unknown — not measured"**, not "works".
 | **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on live Postgres, MySQL, and SQLite targets, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
 | **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **Partially** — the migrate-runtime tier checks real SQLite/PostgreSQL/MySQL apply/status/set state and `all`/`file`/`none` transaction behavior | broader baseline, lock-contention, failure-recovery, and multi-process contours |
-| Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against both `ptah atlas ...` and `ptah-compat`; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
+| Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against the `ptah-compat` binary named `atlas`, Ptah's single Atlas-shaped surface since stokaro/ptah#850; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
 | **sqlcheck analyzers**, rule by rule | **Yes** — the `lint-analyzer-catalog` fidelity matrix maps every default-firing Atlas concern to the covering Ptah rule, severity, and line, classified covered/mapped/unsupported/missing, and enforces suppression, config disable/severity-override, attribution, and SARIF-shape fidelity | `lint-analyzer-catalog` rows in `gaps.md` + `fidelity: sarif output shape` in `gaps-migrate-runtime.md` |
 | **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI; Atlas CE differential runs on Postgres, MySQL, and SQLite | deeper dialect runtime probes |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
@@ -152,13 +152,16 @@ The following probes measure bounded dimensions. CLI help/flag inventory and the
 default analyzer catalog are exhaustive within their pinned scopes; lexer and
 workflow probes are fixture-driven and make only the claims listed below.
 
-- **`atlas-cli-surface`** in the offline fixture report checks, against the real
-  Ptah binary, whether important OSS Atlas command paths resolve.
+- **`atlas-compat-binary-surface`** in the offline fixture report checks,
+  against the real ptah-compat binary (built as `atlas`), whether important OSS
+  Atlas command paths resolve. Since stokaro/ptah#850 removed the
+  `ptah atlas ...` namespace, this is Ptah's only Atlas-shaped surface; the
+  offline `cli-exit-behavior` probe pins that the main `ptah` binary keeps
+  rejecting the `atlas` namespace with exit 2.
 - **`cli-surface.md`** is the stricter dedicated CLI-surface yardstick. It builds
   or reads the pinned Atlas CE binary, discovers the current `atlas schema ...`
   and `atlas migrate ...` command tree from Cobra help, records usage lines and
-  long flags, and compares both Ptah surfaces separately: `ptah atlas ...` and a
-  `ptah-compat` binary named `atlas`. This report also lists Cloud/commercial
+  long flags, and compares them against the `ptah-compat` binary named `atlas`. This report also lists Cloud/commercial
   commands explicitly with **per-verb expectations**: verbs Ptah has implemented
   as open capabilities (`migrate test`, `schema test`, `migrate
   edit`/`rebase`/`rm`, `schema plan`, `migrate checkpoint`) must resolve with a
@@ -284,8 +287,8 @@ workflow probes are fixture-driven and make only the claims listed below.
   edit`/`rebase`/`rm` forwards from ptah#807, the local `schema plan` /
   `schema apply --plan file://` workflow from ptah#809, and the bare
   `migrate down` Atlas revision-format default from ptah#810). Each builds the
-  go.mod-pinned `ptah` binary and drives the real `ptah atlas ...` CLI over
-  committed fixtures under `testdata/workflows/pro-*`: the test probe runs
+  go.mod-pinned ptah-compat binary and drives the real drop-in `atlas ...`
+  CLI over committed fixtures under `testdata/workflows/pro-*`: the test probe runs
   passing and deliberately failing case sets against real SQLite dev
   databases and enforces the exit-0/exit-1 report contract; the maintenance
   probe edits (via a hermetic scripted `$EDITOR`), rebases, and removes
@@ -307,8 +310,8 @@ workflow probes are fixture-driven and make only the claims listed below.
   ptah#813 `--schema`/`--include` scoping, ptah#814 inspect sources and
   split/write exports with exclude field selectors, ptah#815 `migrate diff
   --qualifier` and concurrent-index txmode metadata). Each builds the
-  go.mod-pinned `ptah` binary and drives the real `ptah atlas ...` CLI over
-  committed fixtures under `testdata/workflows/`, asserting database and
+  go.mod-pinned ptah-compat binary and drives the real drop-in `atlas ...`
+  CLI over committed fixtures under `testdata/workflows/`, asserting database and
   filesystem end states directly (tables read straight from SQLite, exported
   trees walked on disk) rather than trusting command output. Failure-order
   contracts are pinned as sharply as the happy paths: refusals must happen
@@ -325,8 +328,10 @@ workflow probes are fixture-driven and make only the claims listed below.
   migration directory, missing/malformed/duplicate `atlas.sum`, clean checksum
   success, valid edited/added/removed migration drift, directory-hash-only
   drift, unknown flag, unknown subcommand, accepted-but-unimplemented flag,
-  missing project config, plus `--help`), run against both the `ptah-compat`
-  drop-in `atlas` binary and the `ptah atlas` namespace. It enforces the drop-in
+  missing project config, plus `--help`), run against the `ptah-compat`
+  drop-in `atlas` binary. It also pins the stokaro/ptah#850 namespace removal:
+  the main `ptah` binary must keep rejecting `ptah atlas` with exit 2 and the
+  exact unknown-command diagnostic. It enforces the drop-in
   exit **contract** — success exits 0, a failure exits 1, and each case uses
   Atlas CE's verified stdout/stderr pattern. Stable checksum guidance and the
   unknown-command diagnostic are byte-checked. A wrong exit code, moved output,
@@ -342,7 +347,7 @@ workflow probes are fixture-driven and make only the claims listed below.
 - **`schema-planning`** is a **paired-schema planning matrix** (PostgreSQL, in the
   `migrate-runtime` tier). Correct introspection does not guarantee a correct
   *plan*: for each paired desired schema (A, B) it applies A then B to one reset
-  database — exercising the A→B plan produced by `ptah atlas schema apply` — and B
+  database — exercising the A→B plan produced by ptah-compat `atlas schema apply` — and B
   alone to another, then asserts the two introspect to the **same canonical
   schema**. This proves the generated plan reaches the intended end state, and a
   plan that drops an add/drop/modify operation turns the row red. Covered and
@@ -410,7 +415,7 @@ To earn the phrase "feature-set parity test", this repo would need, at minimum:
 1. Deeper runtime probes for the imported Atlas `.txtar` integration fixtures,
    beyond the current virtual command runner and fixture-level script-surface
    inventory. *In progress:* the sqlite `cli-migrate-lint-*` fixtures are now
-   executed end to end by the real `ptah atlas migrate lint` CLI against an
+   executed end to end by the real `atlas migrate lint` CLI (ptah-compat) against an
    ephemeral SQLite dev database — default analysis text report,
    destructive/data-dependent diagnostics, `-- atlas:nolint` suppression, the
    exit-1 failure threshold, and atlas.hcl `--env`/`lint.log` project-config

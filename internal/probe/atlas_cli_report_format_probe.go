@@ -19,10 +19,10 @@ func (AtlasCLIReportFormatProbe) Run(fx Fixture) []Result {
 	if fx.Name != atlasCLISentinel {
 		return nil
 	}
-	bin, err := ptahBinary()
+	bin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		return []Result{{"atlas-cli-report-format", atlasCLISentinel, "build", Fail,
-			"could not build the Ptah CLI to probe Atlas report formats: " + oneLine(err.Error()), ""}}
+			"could not build the Ptah compatibility CLI to probe Atlas report formats: " + oneLine(err.Error()), ""}}
 	}
 
 	fixture, cleanup, setupErr := createAtlasReportFormatFixture(bin)
@@ -47,28 +47,28 @@ type atlasReportFormatFixture struct {
 func createAtlasReportFormatFixture(bin string) (atlasReportFormatFixture, func(), *Result) {
 	dir, err := os.MkdirTemp("", "atlas-report-format-*")
 	if err != nil {
-		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "ptah atlas --format", "setup", Fail,
+		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "atlas --format", "setup", Fail,
 			"creating temp report-format directory failed: " + oneLine(err.Error()), ""}
 	}
 	cleanup := func() { _ = os.RemoveAll(dir) }
 	migrations := filepath.Join(dir, "migrations")
 	if err := os.MkdirAll(migrations, 0o755); err != nil {
 		cleanup()
-		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "ptah atlas --format", "setup", Fail,
+		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "atlas --format", "setup", Fail,
 			"creating migration directory failed: " + oneLine(err.Error()), ""}
 	}
 	migrationPath := filepath.Join(migrations, "20240101000000_create_users.sql")
 	if err := os.WriteFile(migrationPath, []byte("CREATE TABLE users (id INTEGER PRIMARY KEY);\n"), 0o600); err != nil {
 		cleanup()
-		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "ptah atlas --format", "setup", Fail,
+		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "atlas --format", "setup", Fail,
 			"writing Atlas migration fixture failed: " + oneLine(err.Error()), ""}
 	}
 	dirURL := fileURL(migrations)
-	output, err := commandOutputDir(bin, []string{"atlas", "migrate", "hash", "--dir", dirURL}, dir)
+	output, err := commandOutputDir(bin, []string{"migrate", "hash", "--dir", dirURL}, dir)
 	if err != nil {
 		cleanup()
-		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "ptah atlas migrate hash", "setup", Gap,
-			"`ptah atlas migrate hash` could not prepare atlas.sum for report-format probe: " + oneLine(output), "stokaro/ptah#631"}
+		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "atlas migrate hash", "setup", Gap,
+			"`atlas migrate hash` could not prepare atlas.sum for report-format probe: " + oneLine(output), "stokaro/ptah#631"}
 	}
 	return atlasReportFormatFixture{
 		dir:    dir,
@@ -78,10 +78,10 @@ func createAtlasReportFormatFixture(bin string) (atlasReportFormatFixture, func(
 }
 
 func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormatFixture) Result {
-	const name = "ptah atlas migrate apply --dry-run --format json"
+	const name = "atlas migrate apply --dry-run --format json"
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
 		"--dry-run",
@@ -111,14 +111,14 @@ func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormat
 		return atlasReportFormatGap(name, "format", "dry-run apply emitted a non-empty Message for pending migrations")
 	}
 	return Result{"atlas-cli-report-format", name, "format", OK,
-		"`ptah atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields", ""}
+		"`atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields", ""}
 }
 
 func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {
-	const name = "ptah atlas migrate apply --format json"
+	const name = "atlas migrate apply --format json"
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
 		"--format", "{{ json . }}",
@@ -164,14 +164,14 @@ func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportForma
 		return atlasReportFormatGap(name, "format", "apply Message does not describe the applied target: "+oneLine(report.Message))
 	}
 	return Result{"atlas-cli-report-format", name, "format", OK,
-		"`ptah atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values", ""}
+		"`atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values", ""}
 }
 
 func runAtlasMigrateStatusAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {
-	const name = "ptah atlas migrate status --format json"
+	const name = "atlas migrate status --format json"
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "migrate", "status",
+		"migrate", "status",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
 		"--format", "{{ json . }}",
@@ -220,11 +220,11 @@ func runAtlasMigrateStatusAppliedReportShape(bin string, fixture atlasReportForm
 		return atlasReportFormatGap(name, "format", "status report Current mismatch: "+report.Current)
 	}
 	return Result{"atlas-cli-report-format", name, "format", OK,
-		"`ptah atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries", ""}
+		"`atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries", ""}
 }
 
 func runAtlasSchemaCleanDryRunReportShape(bin string) Result {
-	const name = "ptah atlas schema clean --dry-run --format json"
+	const name = "atlas schema clean --dry-run --format json"
 
 	dir, dbPath, setupErr := createAtlasReportFormatSchemaCleanFixture(bin)
 	if setupErr != nil {
@@ -233,7 +233,7 @@ func runAtlasSchemaCleanDryRunReportShape(bin string) Result {
 	defer os.RemoveAll(dir)
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "clean",
+		"schema", "clean",
 		"--url", "sqlite://" + dbPath + "?password=hidden",
 		"--dry-run",
 		"--format", "{{ json . }}",
@@ -264,13 +264,13 @@ func runAtlasSchemaCleanDryRunReportShape(bin string) Result {
 		return atlasReportFormatGap(name, "format", "schema clean Changes is empty")
 	}
 	return Result{"atlas-cli-report-format", name, "format", OK,
-		"`ptah atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields", ""}
+		"`atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields", ""}
 }
 
 func createAtlasReportFormatSchemaCleanFixture(bin string) (string, string, *Result) {
 	dir, err := os.MkdirTemp("", "atlas-report-format-clean-*")
 	if err != nil {
-		return "", "", &Result{"atlas-cli-report-format", "ptah atlas schema clean --format", "setup", Fail,
+		return "", "", &Result{"atlas-cli-report-format", "atlas schema clean --format", "setup", Fail,
 			"creating temp schema clean directory failed: " + oneLine(err.Error()), ""}
 	}
 
@@ -278,20 +278,20 @@ func createAtlasReportFormatSchemaCleanFixture(bin string) (string, string, *Res
 	schemaPath := filepath.Join(dir, "schema.sql")
 	if err := os.WriteFile(schemaPath, []byte("CREATE TABLE users (id INTEGER PRIMARY KEY);\n"), 0o600); err != nil {
 		_ = os.RemoveAll(dir)
-		return "", "", &Result{"atlas-cli-report-format", "ptah atlas schema clean --format", "setup", Fail,
+		return "", "", &Result{"atlas-cli-report-format", "atlas schema clean --format", "setup", Fail,
 			"writing schema clean fixture failed: " + oneLine(err.Error()), ""}
 	}
 
 	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", "sqlite://" + dbPath,
 		"--to", "file://" + schemaPath,
 		"--auto-approve",
 	}, dir)
 	if err != nil {
 		_ = os.RemoveAll(dir)
-		return "", "", &Result{"atlas-cli-report-format", "ptah atlas schema clean --format", "setup", Gap,
-			"`ptah atlas schema apply` could not create the schema clean fixture: " + oneLine(output), "stokaro/ptah#631"}
+		return "", "", &Result{"atlas-cli-report-format", "atlas schema clean --format", "setup", Gap,
+			"`atlas schema apply` could not create the schema clean fixture: " + oneLine(output), "stokaro/ptah#631"}
 	}
 	return dir, dbPath, nil
 }

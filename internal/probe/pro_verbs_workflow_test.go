@@ -27,10 +27,10 @@ func TestProTestWorkflowProbe_HappyPath(t *testing.T) {
 		c.Check(result.Issue, qt.Equals, "")
 	}
 	c.Assert(gotContours, qt.DeepEquals, []string{
-		"ptah atlas migrate test|migration tests pass",
-		"ptah atlas migrate test|migration test failure exit contract",
-		"ptah atlas schema test|schema tests pass",
-		"ptah atlas schema test|schema test failure exit contract",
+		"atlas migrate test|migration tests pass",
+		"atlas migrate test|migration test failure exit contract",
+		"atlas schema test|schema tests pass",
+		"atlas schema test|schema test failure exit contract",
 	})
 }
 
@@ -55,9 +55,9 @@ func TestProMaintWorkflowProbe_HappyPath(t *testing.T) {
 		c.Check(result.Issue, qt.Equals, "")
 	}
 	c.Assert(gotContours, qt.DeepEquals, []string{
-		"ptah atlas migrate edit|editor round-trip",
-		"ptah atlas migrate rebase|rebase to end of history",
-		"ptah atlas migrate rm|remove migration",
+		"atlas migrate edit|editor round-trip",
+		"atlas migrate rebase|rebase to end of history",
+		"atlas migrate rm|remove migration",
 	})
 }
 
@@ -78,9 +78,9 @@ func TestProPlanWorkflowProbe_HappyPath(t *testing.T) {
 		c.Check(result.Issue, qt.Equals, "")
 	}
 	c.Assert(gotContours, qt.DeepEquals, []string{
-		"ptah atlas schema plan|plan creation",
-		"ptah atlas schema apply|plan application",
-		"ptah atlas schema apply|stale plan refusal",
+		"atlas schema plan|plan creation",
+		"atlas schema apply|plan application",
+		"atlas schema apply|stale plan refusal",
 	})
 }
 
@@ -102,8 +102,8 @@ func TestProDownWorkflowProbe_HappyPath(t *testing.T) {
 		c.Check(result.Issue, qt.Equals, "")
 	}
 	c.Assert(gotContours, qt.DeepEquals, []string{
-		"ptah atlas migrate apply|atlas-format application",
-		"ptah atlas migrate down|bare rollback",
+		"atlas migrate apply|atlas-format application",
+		"atlas migrate down|bare rollback",
 	})
 }
 

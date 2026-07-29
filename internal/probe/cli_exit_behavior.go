@@ -47,8 +47,8 @@ const (
 )
 
 // cliExitCase is one CLI invocation exercised for exit and stream behavior,
-// expressed in Atlas argument form. ptah-compat (the drop-in `atlas` binary) runs
-// the args verbatim; `ptah atlas ...` runs them under the native namespace.
+// expressed in Atlas argument form. ptah-compat (the drop-in `atlas` binary)
+// runs the args verbatim.
 type cliExitCase struct {
 	// Name is the fixture label.
 	Name string
@@ -367,17 +367,31 @@ type cliExitSurface struct {
 }
 
 func cliExitSurfaces() []cliExitSurface {
+	// Since stokaro/ptah#850 the ptah-compat binary is the only Atlas-shaped
+	// surface; the main `ptah` binary rejects the `atlas` namespace, which the
+	// namespace-removal check below pins.
 	return []cliExitSurface{
 		{label: "ptah-compat", binary: ptahCompatAtlasBinary, prefix: nil},
-		{label: "ptah-atlas", binary: ptahBinary, prefix: []string{"atlas"}},
 	}
 }
 
-// AtlasCLIExitBehaviorProbe exercises Atlas OSS success and failure paths across
-// the ptah-compat drop-in and the `ptah atlas` namespace, asserting the drop-in
-// exit contract (success → 0, failure → 1 on stderr) and recording the stream
-// the output went to and the error class. A wrong exit code, output stream, or
-// error class turns the probe red.
+// nativeAtlasNamespaceRejection is the exact contract the main `ptah` binary
+// must keep after stokaro/ptah#850 removed the `ptah atlas ...` command tree:
+// the `atlas` token is an unknown command that exits 2 with a one-line stderr
+// diagnostic and nothing on stdout. A binary that resolves the namespace again
+// (or reports it differently) regresses the single-surface design.
+const (
+	nativeAtlasNamespaceFixture = "ptah-native/atlas-namespace-rejected"
+	nativeAtlasNamespaceStderr  = "error: unknown command \"atlas\" for \"ptah\"\n"
+	nativeAtlasNamespaceExit    = 2
+)
+
+// AtlasCLIExitBehaviorProbe exercises Atlas OSS success and failure paths on
+// the ptah-compat drop-in binary, asserting the drop-in exit contract
+// (success → 0, failure → 1 on stderr) and recording the stream the output
+// went to and the error class. It also pins the stokaro/ptah#850 removal: the
+// main `ptah` binary must keep rejecting the `atlas` namespace with exit 2. A
+// wrong exit code, output stream, or error class turns the probe red.
 type AtlasCLIExitBehaviorProbe struct{}
 
 func (AtlasCLIExitBehaviorProbe) Name() string { return cliExitProbeName }
@@ -396,7 +410,51 @@ func (AtlasCLIExitBehaviorProbe) Run(fx Fixture) []Result {
 		}
 		out = append(out, runCLIExitCatalog(bin, surface)...)
 	}
+	out = append(out, runNativeAtlasNamespaceRemovedCheck())
 	return out
+}
+
+// runNativeAtlasNamespaceRemovedCheck asserts the main `ptah` binary rejects
+// the `atlas` namespace exactly as stokaro/ptah#850 left it. This is not a
+// cliExitCatalog case on purpose: the catalog is oracle-checked against Atlas
+// CE, while this contract exists only on the native Ptah surface.
+func runNativeAtlasNamespaceRemovedCheck() Result {
+	bin, err := ptahBinary()
+	if err != nil {
+		return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "build", Fail,
+			"could not build the Ptah CLI: " + oneLine(err.Error()), "stokaro/ptah#270"}
+	}
+	tmp, err := os.MkdirTemp("", "cli-exit-native-*")
+	if err != nil {
+		return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "setup", Fail, err.Error(), ""}
+	}
+	defer func() { _ = os.RemoveAll(tmp) }()
+
+	res := runCLIExit(bin, []string{"atlas"}, tmp)
+	switch {
+	case res.timedOut:
+		return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "run", Fail,
+			"the command timed out", "stokaro/ptah#270"}
+	case res.runErr != "":
+		return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "run", Fail,
+			"could not start command: " + oneLine(res.runErr), ""}
+	case res.exit != nativeAtlasNamespaceExit:
+		return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "exit", Gap,
+			fmt.Sprintf("`ptah atlas` must stay removed and exit %d as an unknown command, got exit %d (%s); "+
+				"re-adding the namespace regresses the ptah-compat single-surface design",
+				nativeAtlasNamespaceExit, res.exit, streamChoice(res.stdout, res.stderr)), "stokaro/ptah#850"}
+	case res.stdout > 0:
+		return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "stream", Gap,
+			"`ptah atlas` must print its unknown-command diagnostic on stderr only, but wrote to stdout",
+			"stokaro/ptah#850"}
+	case res.stderr != nativeAtlasNamespaceStderr:
+		return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "content", Gap,
+			"`ptah atlas` stderr diverged from the pinned unknown-command diagnostic: " + oneLine(res.stderr),
+			"stokaro/ptah#850"}
+	}
+	return Result{cliExitProbeName, nativeAtlasNamespaceFixture, "exit", OK,
+		"`ptah atlas` exits 2 with the unknown-command diagnostic on stderr; " +
+			"the Atlas surface lives exclusively in the ptah-compat binary", ""}
 }
 
 func runCLIExitCatalog(bin string, surface cliExitSurface) []Result {

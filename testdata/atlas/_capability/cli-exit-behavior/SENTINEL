@@ -1,5 +1,7 @@
 Capability sentinel for the cli-exit-behavior probe (AtlasCLIExitBehaviorProbe).
 
 This file carries no schema/migration surface. It exists so the offline probe
-runner invokes the CLI exit/error-behavior matrix once, comparing ptah-compat and
-`ptah atlas` success/failure paths against the Atlas drop-in exit contract.
+runner invokes the CLI exit/error-behavior matrix once, comparing ptah-compat
+success/failure paths against the Atlas drop-in exit contract and pinning that
+the main `ptah` binary keeps rejecting the removed `atlas` namespace
+(stokaro/ptah#850).
