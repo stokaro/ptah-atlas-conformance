@@ -13,7 +13,7 @@ status also uses pinned Atlas CE as an independent runtime oracle.
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE status oracle pinned by atlas.version
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260729121013-b2b9e49fd050`
+- Ptah at `github.com/stokaro/ptah v0.1.2-0.20260729212524-83ff0ac6a163`
 - Outcomes: **26 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
