@@ -30,6 +30,6 @@ type Invoice struct {
 	UserID int64
 	//migrator:schema:field name="number" type="VARCHAR(32)" not_null="true"
 	Number string
+	//migrator:schema:index table="billing.invoices" name="idx_invoices_user_number" fields="user_id,number" unique="true"
+	_ struct{}
 }
-
-//migrator:schema:index table="billing.invoices" name="idx_invoices_user_number" columns="user_id,number" unique="true"

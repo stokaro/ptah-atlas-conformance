@@ -68,8 +68,46 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 			"desired schema does not survive apply -> introspect: " + describeDiff(diff), liveRoundTripIssue(name)}}
 	}
 	return []Result{{"roundtrip-consistency", name, "roundtrip", OK,
-		fmt.Sprintf("clean round-trip: %d table(s), %d view(s), %d enum(s)",
-			len(desired.Tables), len(desired.Views), len(desired.Enums)), ""}}
+		"clean round-trip: " + roundTripObjectSummary(desired), ""}}
+}
+
+func roundTripObjectSummary(db *goschema.Database) string {
+	// Keep this list aligned with the object families compared by
+	// schemadiff.CompareWithDialect. A count in a successful report row is
+	// evidence only when the clean diff proves that object family survived.
+	objects := []struct {
+		name  string
+		count int
+	}{
+		{"tables", len(db.Tables)},
+		{"fields", len(db.Fields)},
+		{"indexes", len(db.Indexes)},
+		{"constraints", len(db.Constraints)},
+		{"enums", len(db.Enums)},
+		{"extensions", len(db.Extensions)},
+		{"functions", len(db.Functions)},
+		{"sequences", len(db.Sequences)},
+		{"domains", len(db.Domains)},
+		{"composite_types", len(db.CompositeTypes)},
+		{"ranges", len(db.Ranges)},
+		{"views", len(db.Views)},
+		{"materialized_views", len(db.MaterializedViews)},
+		{"triggers", len(db.Triggers)},
+		{"rls_policies", len(db.RLSPolicies)},
+		{"rls_enabled_tables", len(db.RLSEnabledTables)},
+		{"roles", len(db.Roles)},
+		{"grants", len(db.Grants)},
+	}
+	parts := make([]string, 0, len(objects))
+	for _, object := range objects {
+		if object.count > 0 {
+			parts = append(parts, fmt.Sprintf("%s=%d", object.name, object.count))
+		}
+	}
+	if len(parts) == 0 {
+		return "no objects"
+	}
+	return strings.Join(parts, ", ")
 }
 
 func liveRoundTripIssue(name string) string {
