@@ -17,7 +17,7 @@ const (
 )
 
 // ManagedDataWorkflowProbe exercises Ptah's declarative reference/seed data
-// capability (`//migrator:schema:data` annotations plus `ptah migrations data`)
+// capability (`//ptah:schema:data` annotations plus `ptah migrations data`)
 // end to end through the real CLI. Atlas CE cannot declaratively manage or
 // inspect reference data, so this is a first-party capability sentinel measured
 // against the built Ptah binary rather than an Atlas-corpus round-trip fixture.
