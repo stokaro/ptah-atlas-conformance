@@ -16,6 +16,6 @@ type Book struct {
 	Title string
 	//migrator:schema:field name="author_id" type="INTEGER" not_null="true" foreign="authors(id)"
 	AuthorID int64
+	//migrator:schema:index table="books" name="idx_books_title" fields="title"
+	_ struct{}
 }
-
-//migrator:schema:index table="books" name="idx_books_title" columns="title"

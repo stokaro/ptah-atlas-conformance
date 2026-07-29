@@ -8,6 +8,6 @@ type Contact struct {
 	Email string
 	//migrator:schema:field name="email_normalized" type="VARCHAR(255)" generated="lower(email)" generated_kind="stored"
 	EmailNormalized string
+	//migrator:schema:index table="contacts" name="idx_contacts_email_normalized" fields="email_normalized"
+	_ struct{}
 }
-
-//migrator:schema:index table="contacts" name="idx_contacts_email_normalized" columns="email_normalized"

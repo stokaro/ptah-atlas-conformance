@@ -11,7 +11,7 @@ Atlas CE binary, then compares them with both Ptah compatibility surfaces:
 Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 - Atlas CE binary: `atlas community version v1.2.0`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260728235041-b2c91815c537`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260729022139-3170efd61f06`
 - Outcomes: **177 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived

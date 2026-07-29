@@ -11,7 +11,7 @@ behavioral self-consistency probe, not an Atlas-authored fixture coverage score.
 Every fixture is covered. The conformance gate is green.
 
 - Live fixtures: `testdata/live` first-party Ptah schema fixtures
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260728235041-b2c91815c537`
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260729022139-3170efd61f06`
 - Outcomes: **39 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -20,42 +20,42 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| — | ok | roundtrip-consistency | `mariadb/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/04-index-fk` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/06-constraints-actions` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/07-generated-column` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/08-self-reference` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mariadb/09-defaults-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/04-index-fk` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/06-constraints-actions` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/07-generated-column` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/08-self-reference` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `mysql/09-defaults-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/04-index-fk` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/06-constraints-actions` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/07-generated-column` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/08-self-reference` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/09-defaults-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/10-schema-qualified` | roundtrip | clean round-trip: 3 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/11-sequences` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `postgres/12-user-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/01-basic-table` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/02-enum` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 1 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/03-view` | roundtrip | clean round-trip: 1 table(s), 1 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/04-index-fk` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/05-composite` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/06-constraints-actions` | roundtrip | clean round-trip: 2 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/07-generated-column` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/08-self-reference` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
-| — | ok | roundtrip-consistency | `sqlite/09-defaults-types` | roundtrip | clean round-trip: 1 table(s), 0 view(s), 0 enum(s) |  |
+| — | ok | roundtrip-consistency | `mariadb/01-basic-table` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `mariadb/02-enum` | roundtrip | clean round-trip: tables=1, fields=2, enums=1 |  |
+| — | ok | roundtrip-consistency | `mariadb/03-view` | roundtrip | clean round-trip: tables=1, fields=3, views=1 |  |
+| — | ok | roundtrip-consistency | `mariadb/04-index-fk` | roundtrip | clean round-trip: tables=2, fields=5, indexes=1 |  |
+| — | ok | roundtrip-consistency | `mariadb/05-composite` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `mariadb/06-constraints-actions` | roundtrip | clean round-trip: tables=2, fields=7, constraints=2 |  |
+| — | ok | roundtrip-consistency | `mariadb/07-generated-column` | roundtrip | clean round-trip: tables=1, fields=3, indexes=1 |  |
+| — | ok | roundtrip-consistency | `mariadb/08-self-reference` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `mariadb/09-defaults-types` | roundtrip | clean round-trip: tables=1, fields=6 |  |
+| — | ok | roundtrip-consistency | `mysql/01-basic-table` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `mysql/02-enum` | roundtrip | clean round-trip: tables=1, fields=2, enums=1 |  |
+| — | ok | roundtrip-consistency | `mysql/03-view` | roundtrip | clean round-trip: tables=1, fields=3, views=1 |  |
+| — | ok | roundtrip-consistency | `mysql/04-index-fk` | roundtrip | clean round-trip: tables=2, fields=5, indexes=1 |  |
+| — | ok | roundtrip-consistency | `mysql/05-composite` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `mysql/06-constraints-actions` | roundtrip | clean round-trip: tables=2, fields=7, constraints=2 |  |
+| — | ok | roundtrip-consistency | `mysql/07-generated-column` | roundtrip | clean round-trip: tables=1, fields=3, indexes=1 |  |
+| — | ok | roundtrip-consistency | `mysql/08-self-reference` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `mysql/09-defaults-types` | roundtrip | clean round-trip: tables=1, fields=6 |  |
+| — | ok | roundtrip-consistency | `postgres/01-basic-table` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `postgres/02-enum` | roundtrip | clean round-trip: tables=1, fields=2, enums=1 |  |
+| — | ok | roundtrip-consistency | `postgres/03-view` | roundtrip | clean round-trip: tables=1, fields=3, views=1 |  |
+| — | ok | roundtrip-consistency | `postgres/04-index-fk` | roundtrip | clean round-trip: tables=2, fields=5, indexes=1 |  |
+| — | ok | roundtrip-consistency | `postgres/05-composite` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `postgres/06-constraints-actions` | roundtrip | clean round-trip: tables=2, fields=7, constraints=2 |  |
+| — | ok | roundtrip-consistency | `postgres/07-generated-column` | roundtrip | clean round-trip: tables=1, fields=3, indexes=1 |  |
+| — | ok | roundtrip-consistency | `postgres/08-self-reference` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `postgres/09-defaults-types` | roundtrip | clean round-trip: tables=1, fields=6 |  |
+| — | ok | roundtrip-consistency | `postgres/10-schema-qualified` | roundtrip | clean round-trip: tables=3, fields=7, indexes=1 |  |
+| — | ok | roundtrip-consistency | `postgres/11-sequences` | roundtrip | clean round-trip: tables=1, fields=3, sequences=1 |  |
+| — | ok | roundtrip-consistency | `postgres/12-user-types` | roundtrip | clean round-trip: tables=1, fields=2, domains=2, composite_types=1, ranges=1 |  |
+| — | ok | roundtrip-consistency | `sqlite/01-basic-table` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `sqlite/02-enum` | roundtrip | clean round-trip: tables=1, fields=2, enums=1 |  |
+| — | ok | roundtrip-consistency | `sqlite/03-view` | roundtrip | clean round-trip: tables=1, fields=3, views=1 |  |
+| — | ok | roundtrip-consistency | `sqlite/04-index-fk` | roundtrip | clean round-trip: tables=2, fields=5, indexes=1 |  |
+| — | ok | roundtrip-consistency | `sqlite/05-composite` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `sqlite/06-constraints-actions` | roundtrip | clean round-trip: tables=2, fields=7, constraints=2 |  |
+| — | ok | roundtrip-consistency | `sqlite/07-generated-column` | roundtrip | clean round-trip: tables=1, fields=3, indexes=1 |  |
+| — | ok | roundtrip-consistency | `sqlite/08-self-reference` | roundtrip | clean round-trip: tables=1, fields=3 |  |
+| — | ok | roundtrip-consistency | `sqlite/09-defaults-types` | roundtrip | clean round-trip: tables=1, fields=6 |  |

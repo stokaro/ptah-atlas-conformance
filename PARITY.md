@@ -367,9 +367,13 @@ dialect-specific rendering defects Postgres alone missed, including
 enum-ordering, generated-column, default/type, and constraint/action bugs that
 are now closed. The current committed live corpus is green on Postgres, MySQL,
 MariaDB, and SQLite. It is Ptah-vs-Ptah, so it carries no Pro/OSS ambiguity
-about which objects Atlas itself inspects. The deeper differential correctness
-of each declarative command (does `schema inspect` emit equivalent HCL) remains
-the domain of the end-state conformance in ptah#285.
+about which objects Atlas itself inspects. PostgreSQL-only fixtures also prove
+clean round-trips for schema-qualified objects, standalone sequences, domains,
+composite types, and range types. Each successful report row enumerates every
+non-empty object family checked by the round-trip diff, so support beyond Atlas
+CE is visible rather than hidden behind a table count. The deeper differential
+correctness of each declarative command (does `schema inspect` emit equivalent
+HCL) remains the domain of the end-state conformance in ptah#285.
 
 A sixth, **differential** tier (`conformance-diff` workflow) closes part of that
 end-state question against a **real Atlas CE binary**. It applies a first-party
