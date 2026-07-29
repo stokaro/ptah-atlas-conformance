@@ -13,25 +13,28 @@ import (
 // `migrate down` Atlas revision-format default.
 const proVerbsIssue = "stokaro/ptah#758"
 
-// proWorkflowRuntime bundles what every Atlas Pro-verb workflow stage needs:
-// the built Ptah binary, the committed fixture root, and a scratch run
-// directory the fixture tree has been copied into. Stages run the real
-// `ptah atlas ...` CLI from the run directory so committed fixtures stay
-// pristine while the measured commands read and write relative paths exactly
-// the way an Atlas caller would.
+// proWorkflowRuntime bundles what every CLI workflow stage needs: the built
+// Ptah binary, the committed fixture root, and a scratch run directory the
+// fixture tree has been copied into. Stages run the real `ptah atlas ...` CLI
+// from the run directory so committed fixtures stay pristine while the
+// measured commands read and write relative paths exactly the way an Atlas
+// caller would.
 type proWorkflowRuntime struct {
 	probe    string
 	sentinel string
 	bin      string
 	root     string
 	runRoot  string
+	// issue owns every gap the workflow reports.
+	issue string
 }
 
 // newProWorkflowRuntime resolves the fixture root, builds (or accepts) the
 // pinned Ptah binary, creates the scratch run directory, and copies the
-// committed fixture tree into it. On error it returns a harness Fail result
-// and a nil runtime; the caller must invoke cleanup on a non-nil runtime.
-func newProWorkflowRuntime(probeName, sentinel, fixtureRoot, binaryOverride string) (*proWorkflowRuntime, *Result) {
+// committed fixture tree into it. Gaps reported through the runtime carry
+// issue. On error it returns a harness Fail result and a nil runtime; the
+// caller must invoke cleanup on a non-nil runtime.
+func newProWorkflowRuntime(probeName, sentinel, fixtureRoot, binaryOverride, issue string) (*proWorkflowRuntime, *Result) {
 	root := strings.TrimSpace(fixtureRoot)
 	if root == "" {
 		failure := proWorkflowHarnessFailure(probeName, sentinel, "fixture setup", fmt.Errorf("fixture root is empty"))
@@ -67,7 +70,7 @@ func newProWorkflowRuntime(probeName, sentinel, fixtureRoot, binaryOverride stri
 		failure := proWorkflowHarnessFailure(probeName, sentinel, "runtime setup", err)
 		return nil, &failure
 	}
-	w := &proWorkflowRuntime{probe: probeName, sentinel: sentinel, bin: bin, root: absolute, runRoot: runRoot}
+	w := &proWorkflowRuntime{probe: probeName, sentinel: sentinel, bin: bin, root: absolute, runRoot: runRoot, issue: issue}
 	// The measured commands rewrite checksum files and migration directories in
 	// place, so they always run against a scratch copy of the committed tree.
 	if err := os.CopyFS(runRoot, os.DirFS(absolute)); err != nil {
@@ -136,7 +139,7 @@ func (w *proWorkflowRuntime) ok(fixture, stage, detail string) Result {
 }
 
 func (w *proWorkflowRuntime) gap(fixture, stage, detail string) Result {
-	return Result{Probe: w.probe, Fixture: fixture, Stage: stage, Outcome: Gap, Detail: detail, Issue: proVerbsIssue}
+	return Result{Probe: w.probe, Fixture: fixture, Stage: stage, Outcome: Gap, Detail: detail, Issue: w.issue}
 }
 
 func (w *proWorkflowRuntime) harnessFailure(stage string, err error) Result {

@@ -1,0 +1,12 @@
+Capability sentinel for the schema-scope-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/schema-scope
+through the real Ptah CLI. It exercises the `--schema`/`--include` scoping
+model from stokaro/ptah#813 end to end on ephemeral SQLite: a scoped
+`schema apply` creates only the selected objects and leaves out-of-scope
+objects — both desired-but-unselected and pre-existing — untouched, repeated
+`--include` values union, selecting a table whose foreign key points at an
+unselected table is refused with the cross-scope dependency diagnostic, and
+a malformed selector fails before the dev database file is created. The
+`-s` shorthand parity for the same scoping lives in the atlas-cli-shorthands
+probe.

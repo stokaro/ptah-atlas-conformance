@@ -1,0 +1,15 @@
+Capability sentinel for the qualifier-txmode-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/qualifier-txmode
+through the real Ptah CLI. It exercises the `migrate diff` qualifier and
+txmode-metadata contracts from stokaro/ptah#815 on ephemeral SQLite: an
+invalid `--qualifier` fails before the dev database exists and before any
+artifact is written, a valid qualifier is scoped to dialects with
+schema-qualified DDL (refused pre-artifact on SQLite; qualified artifact
+content needs a live PostgreSQL/MySQL dev database and belongs to the
+database-backed tiers), the atlas.hcl `diff { concurrent_index { create =
+true } }` policy plans the documented single plain transactional file on
+SQLite and that artifact replays through `migrate apply`, and a generated
+style `-- atlas:txmode none` migration executes outside a transaction (the
+statement before a failure persists) while an identical transactional
+control rolls back.

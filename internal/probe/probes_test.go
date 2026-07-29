@@ -558,16 +558,20 @@ case "$*" in
     printf 'error: --url is required\n' >&2
     exit 1
     ;;
-  "atlas schema apply --url sqlite://schema.db --to file://schema.sql -s public --dry-run")
-    printf 'error: atlas schema apply accepts --schema, but Ptah only supports local schema files for this command yet\n' >&2
-    exit 1
+  "atlas schema apply --url sqlite://"*" --to file://"*" -s main --dry-run"|"atlas schema apply --url sqlite://"*" --to file://"*" --schema main --dry-run")
+    printf 'Planned schema changes:\nCREATE TABLE "users" (\n  "id" INTEGER PRIMARY KEY\n);\n'
+    ;;
+  "atlas schema apply --url sqlite://"*" --to file://"*" -s "*" --dry-run")
+    printf 'Schema is synced, no changes to be made.\n'
     ;;
   "atlas schema apply --url sqlite://"*)
     printf 'Planned schema changes:\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n'
     ;;
-  "atlas schema diff -f file://from.sql --to file://schema.sql --dev-url sqlite://dev.db -s public")
-    printf 'error: atlas schema diff accepts --schema, but Ptah only supports local schema files for this command yet\n' >&2
-    exit 1
+  "atlas schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" -s main"|"atlas schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" --schema main")
+    printf 'ALTER TABLE "users" ADD COLUMN "email" TEXT;\n'
+    ;;
+  "atlas schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" -s "*)
+    printf 'Schemas are synced, no changes to be made.\n'
     ;;
   "atlas schema diff -f file://"*)
     printf 'ALTER TABLE users ADD COLUMN email TEXT;\n'

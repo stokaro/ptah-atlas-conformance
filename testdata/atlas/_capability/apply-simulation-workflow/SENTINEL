@@ -1,0 +1,11 @@
+Capability sentinel for the apply-simulation-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/apply-simulation
+through the real Ptah CLI. It exercises the `schema apply` guard rails from
+stokaro/ptah#812: `--lock-timeout` is accepted (an explicit noted no-op on
+lockless SQLite), `--dev-url` resets the dev database and rehearses the exact
+plan there before the target is touched, a plan whose rehearsal fails is
+refused with exit 1 and the target left unchanged (the failing plan is
+engineered with a hermetic scripted $EDITOR through --edit, the same
+technique Ptah's own tests use), and pointing --dev-url at the target itself
+is refused before the destructive dev reset.

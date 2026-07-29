@@ -9,7 +9,9 @@ workflow fixtures, run through Ptah's public API and real CLI. Most observations
 are structural and database-free; the `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
 `external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
-`pro-plan-workflow`, and `pro-down-workflow`
+`pro-plan-workflow`, `pro-down-workflow`, `desired-state-workflow`,
+`apply-simulation-workflow`, `schema-scope-workflow`,
+`inspect-source-workflow`, and `qualifier-txmode-workflow`
 capability probes use fresh local SQLite databases (or no database at all) and
 no external service. It
 exists to turn "are we there yet" from an opinion
@@ -18,7 +20,7 @@ to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files plus first-party
 regression and capability fixtures, grouped into 158 imported Atlas fixtures,
-12 first-party capability sentinels, and 826 deterministic observations, with
+17 first-party capability sentinels, and 853 deterministic observations, with
 **0 unwaived non-OK observations**. Every imported fixture and capability
 sentinel is measured by at least one current probe. This means the
 deterministic report is green; it does **not** mean full Atlas OSS runtime
@@ -29,13 +31,15 @@ parity, because several runtime dimensions remain unmeasured.
 Corpus probes are offline and structural. The `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
 `external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
-`pro-plan-workflow`, and `pro-down-workflow`
+`pro-plan-workflow`, `pro-down-workflow`, `desired-state-workflow`,
+`apply-simulation-workflow`, `schema-scope-workflow`,
+`inspect-source-workflow`, and `qualifier-txmode-workflow`
 probes also execute committed first-party fixtures through the real Ptah CLI
 against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 
 | Probe | What it checks | Result |
 | --- | --- | --- |
-| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 12 first-party capability sentinels are reported separately. |
+| `corpus-inventory` | Is every imported Atlas test artifact visible in the report? | All 158 imported Atlas fixtures are measured by at least one current probe; 17 first-party capability sentinels are reported separately. |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas SQL in its AST (the `read-db` / `compare` round-trip path — **not** apply)? | Runs over all vendored `.sql` files covered by the offline probe set and is currently green on the imported corpus. |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | Current measured Atlas migration directories are recognized. |
 | `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
@@ -50,6 +54,11 @@ against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 | `pro-maint-workflow` | Do the forwarded Atlas Pro directory-maintenance verbs keep the directory valid? | `atlas migrate edit` applies a hermetic scripted `$EDITOR` change and rewrites `atlas.sum`; `atlas migrate rebase` moves a migration to the end of history under the deterministic next version; `atlas migrate rm` removes a migration and its checksum entry; `ptah migrations validate` passes after every verb. |
 | `pro-plan-workflow` | Does the local `schema plan` → `schema apply --plan` workflow bind plans to fingerprints? | `atlas schema plan --save` writes a format_version-1 plan file with sha256 source/target fingerprints and per-statement severities against a real SQLite target; `atlas schema apply --plan file://...` replays the reviewed plan; a target mutated after planning is refused as stale (exit 1) with the database untouched. |
 | `pro-down-workflow` | Does bare `atlas migrate down` revert Atlas-format revisions by default? | `atlas migrate apply` records Atlas-format revision rows; a bare `atlas migrate down` — no `--revision-format` flag — reads exactly those rows, executes the embedded txtar down bodies, and clears the revision history (the stokaro/ptah#810 default; previously a silent no-op). |
+| `desired-state-workflow` | Do the Atlas desired-state source URLs drive `schema diff`/`schema apply`? | A live SQLite URL works as the `--from` diff source (only the missing table is planned) and as the `--to` apply source (the target mirrors the source database); an atlas.sum-covered migration directory replays on a dev database into the target, and without `--dev-url` it is refused with a deterministic diagnostic before the target file is created; `--to env://src` resolves through the evaluated atlas.hcl environment (stokaro/ptah#811). |
+| `apply-simulation-workflow` | Do the `schema apply` locking and dev-simulation guard rails hold? | `--lock-timeout` on lockless SQLite is an explicit no-op with a deterministic stderr note and the apply proceeds; `--dev-url` resets a pre-littered dev database and rehearses the exact plan there before the target is touched; a rehearsal made to fail (via a hermetic scripted `$EDITOR` and `--edit`) refuses the apply with exit 1 and zero user tables on the target; `--dev-url` pointing at the target is refused before the destructive dev reset (stokaro/ptah#812). |
+| `schema-scope-workflow` | Does `--schema`/`--include` scoping hold end to end? | A scoped apply creates only the selected table while desired-but-unselected tables stay uncreated and a pre-existing out-of-scope table survives; repeated `--include` values union; selecting a table whose foreign key points at an unselected table is refused with the cross-scope dependency diagnostic and remediation guidance; a malformed selector fails before the dev database file exists (stokaro/ptah#813). |
+| `inspect-source-workflow` | Does the `schema inspect` source and export model hold? | A local schema file is materialized on a dev database and introspected to HCL, with a scheme-less path classifying as the identical local-file source; `{{ hcl . \| split \| write "dir" }}` exports the deterministic per-object tree whose written files reload as a multi-file desired state diffing as synced; `--exclude` filters resource selectors, accepts the documented `[type=extension].version` field selector, and refuses unsupported field-selector forms (stokaro/ptah#814). |
+| `qualifier-txmode-workflow` | Do the `migrate diff` qualifier and txmode-metadata contracts hold? | An invalid `--qualifier` is refused before the dev database file exists and before any artifact is written; a valid qualifier on SQLite is refused pre-artifact with the documented dialect-scope diagnostic (qualified artifact content needs a live PostgreSQL/MySQL dev database and belongs to the database-backed tiers); the atlas.hcl concurrent-index diff policy plans the documented single plain transactional file on SQLite and that artifact replays through `migrate apply`; a `-- atlas:txmode none` migration executes outside a transaction (the statement before a failure persists) while an identical transactional control rolls back (stokaro/ptah#815). |
 
 Each probe recovers from panics; none panicked on this corpus.
 
@@ -290,6 +299,27 @@ workflow probes are fixture-driven and make only the claims listed below.
   stays owned by Ptah's own command tests, and the CLI-surface tier owns the
   usage/flag contracts. Atlas keeps every one of these verbs outside CE, so
   there is no CE oracle.
+- **`desired-state-workflow`**, **`apply-simulation-workflow`**,
+  **`schema-scope-workflow`**, **`inspect-source-workflow`**, and
+  **`qualifier-txmode-workflow`** are end-to-end capability probes over the
+  Atlas-compatible `schema`/`migrate` surface batch (ptah#811 desired-state
+  source URLs, ptah#812 apply locking and dev-database plan simulation,
+  ptah#813 `--schema`/`--include` scoping, ptah#814 inspect sources and
+  split/write exports with exclude field selectors, ptah#815 `migrate diff
+  --qualifier` and concurrent-index txmode metadata). Each builds the
+  go.mod-pinned `ptah` binary and drives the real `ptah atlas ...` CLI over
+  committed fixtures under `testdata/workflows/`, asserting database and
+  filesystem end states directly (tables read straight from SQLite, exported
+  trees walked on disk) rather than trusting command output. Failure-order
+  contracts are pinned as sharply as the happy paths: refusals must happen
+  before the target or dev database file exists where the CLI documents
+  pre-target validation. Qualified `migrate diff --qualifier` artifact
+  content requires a live PostgreSQL/MySQL dev database, so the offline tier
+  pins the validation-order and dialect-scope contracts and leaves artifact
+  content to the database-backed tiers. The `-s` shorthand parity for the
+  #813 scoping is asserted by the `atlas-cli-shorthands` probe, which now
+  requires the shorthand to scope identically to the long flag instead of
+  merely parsing.
 - **`cli-exit-behavior`** is an **exit and error-behavior matrix** over
   representative Atlas OSS success and failure paths (invalid URL, missing
   migration directory, missing/malformed/duplicate `atlas.sum`, clean checksum

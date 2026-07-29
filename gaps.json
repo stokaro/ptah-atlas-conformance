@@ -1093,6 +1093,13 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/apply-simulation-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "_capability/atlas-cli/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
@@ -1128,7 +1135,21 @@
   },
   {
     "probe": "corpus-inventory",
+    "fixture": "_capability/desired-state-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
     "fixture": "_capability/external-schema-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "_capability/inspect-source-workflow/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
     "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
@@ -1171,6 +1192,20 @@
   {
     "probe": "corpus-inventory",
     "fixture": "_capability/pro-test-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "_capability/qualifier-txmode-workflow/SENTINEL",
+    "stage": "capability",
+    "outcome": "ok",
+    "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
+  },
+  {
+    "probe": "corpus-inventory",
+    "fixture": "_capability/schema-scope-workflow/SENTINEL",
     "stage": "capability",
     "outcome": "ok",
     "detail": "first-party capability sentinel; its reds are owned by the matching capability probe"
@@ -4434,9 +4469,9 @@
   {
     "probe": "atlas-cli-shorthands",
     "fixture": "ptah atlas schema apply -s",
-    "stage": "parse",
+    "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema apply -s` reaches the same --schema validation path as the long flag"
+    "detail": "`ptah atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes"
   },
   {
     "probe": "atlas-cli-shorthands",
@@ -4455,9 +4490,9 @@
   {
     "probe": "atlas-cli-shorthands",
     "fixture": "ptah atlas schema diff -s",
-    "stage": "parse",
+    "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema diff -s` reaches the same --schema validation path as the long flag"
+    "detail": "`ptah atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced"
   },
   {
     "probe": "atlas-cli-shorthands",
@@ -5802,5 +5837,159 @@
     "stage": "converged generate",
     "outcome": "ok",
     "detail": "generate wrote no migration files after applying the external schema"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas schema diff",
+    "stage": "database-url --from source",
+    "outcome": "ok",
+    "detail": "`schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas schema apply",
+    "stage": "database-url --to source",
+    "outcome": "ok",
+    "detail": "`schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas schema apply",
+    "stage": "migration-dir source replay",
+    "outcome": "ok",
+    "detail": "`schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas schema apply",
+    "stage": "migration-dir source without dev database",
+    "outcome": "ok",
+    "detail": "a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas schema apply",
+    "stage": "env:// source resolution",
+    "outcome": "ok",
+    "detail": "`schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target"
+  },
+  {
+    "probe": "apply-simulation-workflow",
+    "fixture": "ptah atlas schema apply --lock-timeout",
+    "stage": "lockless dialect note",
+    "outcome": "ok",
+    "detail": "`schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds"
+  },
+  {
+    "probe": "apply-simulation-workflow",
+    "fixture": "ptah atlas schema apply --dev-url",
+    "stage": "plan simulation success",
+    "outcome": "ok",
+    "detail": "`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target"
+  },
+  {
+    "probe": "apply-simulation-workflow",
+    "fixture": "ptah atlas schema apply --dev-url",
+    "stage": "failed simulation refuses the target",
+    "outcome": "ok",
+    "detail": "a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table"
+  },
+  {
+    "probe": "apply-simulation-workflow",
+    "fixture": "ptah atlas schema apply --dev-url",
+    "stage": "dev database must differ from target",
+    "outcome": "ok",
+    "detail": "pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched"
+  },
+  {
+    "probe": "schema-scope-workflow",
+    "fixture": "ptah atlas schema apply --include",
+    "stage": "scoped apply leaves out-of-scope objects untouched",
+    "outcome": "ok",
+    "detail": "`schema apply --include scope_users` created only the selected table: the desired-but-unselected tables were not created and the pre-existing out-of-scope table survived"
+  },
+  {
+    "probe": "schema-scope-workflow",
+    "fixture": "ptah atlas schema apply --include",
+    "stage": "repeated include values union",
+    "outcome": "ok",
+    "detail": "repeated --include values union: both selected tables were created while the unselected dependent table stayed out of the plan"
+  },
+  {
+    "probe": "schema-scope-workflow",
+    "fixture": "ptah atlas schema apply --include",
+    "stage": "cross-scope foreign key refusal",
+    "outcome": "ok",
+    "detail": "selecting a table whose foreign key points at an unselected table is refused with the cross-scope dependency diagnostic and its remediation guidance"
+  },
+  {
+    "probe": "schema-scope-workflow",
+    "fixture": "ptah atlas schema diff --include",
+    "stage": "malformed selector fails before the dev database",
+    "outcome": "ok",
+    "detail": "a malformed include selector fails with the deterministic diagnostic before any database work: the dev database file was never created"
+  },
+  {
+    "probe": "inspect-source-workflow",
+    "fixture": "ptah atlas schema inspect",
+    "stage": "local schema file over dev database",
+    "outcome": "ok",
+    "detail": "`schema inspect --url file://schema.sql --dev-url ...` materialized the file on the dev database and rendered its HCL; a scheme-less path resolves to the identical local-file inspection"
+  },
+  {
+    "probe": "inspect-source-workflow",
+    "fixture": "ptah atlas schema inspect",
+    "stage": "split export writes a deterministic tree",
+    "outcome": "ok",
+    "detail": "`{{ hcl . | split | write \"exported\" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout"
+  },
+  {
+    "probe": "inspect-source-workflow",
+    "fixture": "ptah atlas schema inspect",
+    "stage": "written tree reloads to the same schema",
+    "outcome": "ok",
+    "detail": "the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema"
+  },
+  {
+    "probe": "inspect-source-workflow",
+    "fixture": "ptah atlas schema inspect --exclude",
+    "stage": "resource and field selectors",
+    "outcome": "ok",
+    "detail": "--exclude filters resource selectors, accepts the documented [type=extension].version field selector, and refuses unsupported field-selector forms with a deterministic diagnostic"
+  },
+  {
+    "probe": "qualifier-txmode-workflow",
+    "fixture": "ptah atlas migrate diff --qualifier",
+    "stage": "invalid qualifier fails before the dev database",
+    "outcome": "ok",
+    "detail": "an invalid --qualifier value is refused with the deterministic diagnostic before the dev database file exists and before any artifact is written"
+  },
+  {
+    "probe": "qualifier-txmode-workflow",
+    "fixture": "ptah atlas migrate diff --qualifier",
+    "stage": "qualified artifacts are scoped to qualified dialects",
+    "outcome": "ok",
+    "detail": "a valid --qualifier on a dialect without schema-qualified DDL is refused pre-artifact with the documented scope diagnostic; qualified artifact content is measured on the database-backed tiers"
+  },
+  {
+    "probe": "qualifier-txmode-workflow",
+    "fixture": "ptah atlas migrate diff",
+    "stage": "concurrent-index policy on sqlite plans one transactional file",
+    "outcome": "ok",
+    "detail": "with diff.concurrent_index.create enabled in atlas.hcl, the SQLite plan stays one plain transactional file — no txmode directive, no CONCURRENTLY — exactly the documented dialect scope"
+  },
+  {
+    "probe": "qualifier-txmode-workflow",
+    "fixture": "ptah atlas migrate apply",
+    "stage": "concurrent-index artifact replays",
+    "outcome": "ok",
+    "detail": "the concurrent-index-policy artifact replays through `migrate apply`: the table exists and the Atlas revision row records the applied version"
+  },
+  {
+    "probe": "qualifier-txmode-workflow",
+    "fixture": "ptah atlas migrate apply",
+    "stage": "txmode-none directive executes outside a transaction",
+    "outcome": "ok",
+    "detail": "a `-- atlas:txmode none` migration executes outside a transaction (the statement before the failure persisted) while the identical transactional control rolled back cleanly"
   }
 ]

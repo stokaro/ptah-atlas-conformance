@@ -1,0 +1,1 @@
+CREATE TABLE replayed_users (id INTEGER PRIMARY KEY);

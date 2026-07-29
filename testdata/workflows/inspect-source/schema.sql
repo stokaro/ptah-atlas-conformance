@@ -1,0 +1,8 @@
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  email TEXT NOT NULL
+);
+CREATE TABLE posts (
+  id INTEGER PRIMARY KEY,
+  author_id INTEGER REFERENCES users(id)
+);

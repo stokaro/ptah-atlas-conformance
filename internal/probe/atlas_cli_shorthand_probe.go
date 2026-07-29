@@ -50,21 +50,70 @@ func runAtlasVisibleShorthand(bin, fixture string, args []string, want string) R
 		"`" + strings.Join(append([]string{"ptah"}, args...), " ") + "` did not reach the expected validation path: " + oneLine(output), "stokaro/ptah#621"}
 }
 
+// runAtlasSchemaApplySchemaShorthand proves `-s` is a working `--schema` alias
+// on `schema apply` now that stokaro/ptah#813 implements schema scoping for
+// local desired-state sources: an in-scope SQLite schema name plans the desired
+// table, the shorthand output is byte-identical to the long flag's, and an
+// out-of-scope schema name scopes the same desired state down to no changes.
 func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 	const fixture = "ptah atlas schema apply -s"
-	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "apply",
-		"--url", "sqlite://schema.db",
-		"--to", "file://schema.sql",
-		"-s", "public",
-		"--dry-run",
-	}, "")
-	if err == nil || strings.Contains(output, "accepts --schema") {
-		return Result{"atlas-cli-shorthands", fixture, "parse", OK,
-			"`ptah atlas schema apply -s` reaches the same --schema validation path as the long flag", ""}
+
+	dir, err := os.MkdirTemp("", "atlas-schema-apply-schema-shorthand-*")
+	if err != nil {
+		return Result{"atlas-cli-shorthands", fixture, "setup", Fail,
+			"creating temp schema-apply directory failed: " + oneLine(err.Error()), ""}
 	}
-	return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
-		"`ptah atlas schema apply -s` did not reach the expected --schema validation path: " + oneLine(output), "stokaro/ptah#621"}
+	defer os.RemoveAll(dir)
+
+	schemaPath := filepath.Join(dir, "schema.sql")
+	if err := os.WriteFile(schemaPath, []byte("CREATE TABLE users (id INTEGER PRIMARY KEY);\n"), 0o600); err != nil {
+		return Result{"atlas-cli-shorthands", fixture, "setup", Fail,
+			"writing desired schema failed: " + oneLine(err.Error()), ""}
+	}
+	targetURL := "sqlite://" + filepath.Join(dir, "apply.db")
+
+	shortOut, err := commandOutputDir(bin, []string{
+		"atlas", "schema", "apply",
+		"--url", targetURL,
+		"--to", "file://" + schemaPath,
+		"-s", "main",
+		"--dry-run",
+	}, dir)
+	if err != nil {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema apply -s main` exited non-zero: " + oneLine(shortOut), "stokaro/ptah#813"}
+	}
+	if !strings.Contains(shortOut, "Planned schema changes:") || !strings.Contains(shortOut, "CREATE TABLE") {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema apply -s main` did not plan the in-scope table: " + oneLine(shortOut), "stokaro/ptah#813"}
+	}
+
+	longOut, err := commandOutputDir(bin, []string{
+		"atlas", "schema", "apply",
+		"--url", targetURL,
+		"--to", "file://" + schemaPath,
+		"--schema", "main",
+		"--dry-run",
+	}, dir)
+	if err != nil || longOut != shortOut {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema apply -s` output diverges from `--schema`: " + oneLine(longOut), "stokaro/ptah#813"}
+	}
+
+	scopedOut, err := commandOutputDir(bin, []string{
+		"atlas", "schema", "apply",
+		"--url", targetURL,
+		"--to", "file://" + schemaPath,
+		"-s", "out_of_scope",
+		"--dry-run",
+	}, dir)
+	if err != nil || !strings.Contains(scopedOut, "Schema is synced, no changes to be made.") {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: " + oneLine(scopedOut), "stokaro/ptah#813"}
+	}
+
+	return Result{"atlas-cli-shorthands", fixture, "execute", OK,
+		"`ptah atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes", ""}
 }
 
 func runAtlasSchemaApplyHiddenFileShorthand(bin string) Result {
@@ -150,19 +199,63 @@ func runAtlasSchemaDiffFromShorthand(bin string) Result {
 		"`ptah atlas schema diff -f` behaves like `--from` for local schema-file diffs", ""}
 }
 
+// runAtlasSchemaDiffSchemaShorthand proves `-s` is a working `--schema` alias
+// on `schema diff` now that stokaro/ptah#813 implements schema scoping for
+// local desired-state sources: the in-scope SQLite schema name diffs to the
+// expected ALTER, the shorthand output is byte-identical to the long flag's,
+// and an out-of-scope schema name reports the sources as synced.
 func runAtlasSchemaDiffSchemaShorthand(bin string) Result {
 	const fixture = "ptah atlas schema diff -s"
-	output, err := commandOutputDir(bin, []string{
-		"atlas", "schema", "diff",
-		"-f", "file://from.sql",
-		"--to", "file://schema.sql",
-		"--dev-url", "sqlite://dev.db",
-		"-s", "public",
-	}, "")
-	if err == nil || strings.Contains(output, "accepts --schema") {
-		return Result{"atlas-cli-shorthands", fixture, "parse", OK,
-			"`ptah atlas schema diff -s` reaches the same --schema validation path as the long flag", ""}
+
+	dir, err := os.MkdirTemp("", "atlas-schema-diff-schema-shorthand-*")
+	if err != nil {
+		return Result{"atlas-cli-shorthands", fixture, "setup", Fail,
+			"creating temp schema-diff directory failed: " + oneLine(err.Error()), ""}
 	}
-	return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
-		"`ptah atlas schema diff -s` did not reach the expected --schema validation path: " + oneLine(output), "stokaro/ptah#621"}
+	defer os.RemoveAll(dir)
+
+	fromPath := filepath.Join(dir, "from.sql")
+	toPath := filepath.Join(dir, "to.sql")
+	if err := os.WriteFile(fromPath, []byte("CREATE TABLE users (id INTEGER PRIMARY KEY);\n"), 0o600); err != nil {
+		return Result{"atlas-cli-shorthands", fixture, "setup", Fail,
+			"writing current schema failed: " + oneLine(err.Error()), ""}
+	}
+	if err := os.WriteFile(toPath, []byte("CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT NOT NULL DEFAULT '');\n"), 0o600); err != nil {
+		return Result{"atlas-cli-shorthands", fixture, "setup", Fail,
+			"writing desired schema failed: " + oneLine(err.Error()), ""}
+	}
+	diffArgs := func(schemaFlag, schemaName, devName string) []string {
+		return []string{
+			"atlas", "schema", "diff",
+			"-f", "file://" + fromPath,
+			"--to", "file://" + toPath,
+			"--dev-url", "sqlite://" + filepath.Join(dir, devName),
+			schemaFlag, schemaName,
+		}
+	}
+
+	shortOut, err := commandOutputDir(bin, diffArgs("-s", "main", "dev-short.db"), dir)
+	if err != nil {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema diff -s main` exited non-zero: " + oneLine(shortOut), "stokaro/ptah#813"}
+	}
+	if !strings.Contains(shortOut, "ALTER TABLE") || !strings.Contains(shortOut, "email") {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema diff -s main` did not produce the in-scope migration SQL: " + oneLine(shortOut), "stokaro/ptah#813"}
+	}
+
+	longOut, err := commandOutputDir(bin, diffArgs("--schema", "main", "dev-long.db"), dir)
+	if err != nil || longOut != shortOut {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema diff -s` output diverges from `--schema`: " + oneLine(longOut), "stokaro/ptah#813"}
+	}
+
+	scopedOut, err := commandOutputDir(bin, diffArgs("-s", "out_of_scope", "dev-scoped.db"), dir)
+	if err != nil || !strings.Contains(scopedOut, "Schemas are synced, no changes to be made.") {
+		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
+			"`ptah atlas schema diff -s` with an out-of-scope schema name did not scope the diff away: " + oneLine(scopedOut), "stokaro/ptah#813"}
+	}
+
+	return Result{"atlas-cli-shorthands", fixture, "execute", OK,
+		"`ptah atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced", ""}
 }

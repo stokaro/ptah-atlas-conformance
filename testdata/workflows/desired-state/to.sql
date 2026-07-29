@@ -1,0 +1,6 @@
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY
+);
+CREATE TABLE audit_logs (
+  id INTEGER PRIMARY KEY
+);

@@ -12,16 +12,20 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260728202323-8fefa9a306e2`
-- Outcomes: **826 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260728235041-b2c91815c537`
+- Outcomes: **853 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
-- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **12 first-party capability sentinel(s)**
+- Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| — | ok | apply-simulation-workflow | `ptah atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target |  |
+| — | ok | apply-simulation-workflow | `ptah atlas schema apply --dev-url` | failed simulation refuses the target | a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table |  |
+| — | ok | apply-simulation-workflow | `ptah atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
+| — | ok | apply-simulation-workflow | `ptah atlas schema apply --lock-timeout` | lockless dialect note | `schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds |  |
 | — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode --revisions-schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format --schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate down` | flags | accepts all essential Atlas flags: --url --dir --dev-url --to-version --to-tag --dry-run --format --revisions-schema --lock-timeout --skip-checks --plan |  |
@@ -60,9 +64,9 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-schema-clean-runtime | `ptah atlas schema clean invalid --format` | execute | `ptah atlas schema clean` rejects invalid format templates before opening the database |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas migrate diff -s` | parse | `ptah atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas schema apply --file/-f` | execute | `ptah atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas schema apply -s` | parse | `ptah atlas schema apply -s` reaches the same --schema validation path as the long flag |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas schema apply -s` | execute | `ptah atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas schema diff -f` | execute | `ptah atlas schema diff -f` behaves like `--from` for local schema-file diffs |  |
-| — | ok | atlas-cli-shorthands | `ptah atlas schema diff -s` | parse | `ptah atlas schema diff -s` reaches the same --schema validation path as the long flag |  |
+| — | ok | atlas-cli-shorthands | `ptah atlas schema diff -s` | execute | `ptah atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced |  |
 | — | ok | atlas-cli-shorthands | `ptah atlas schema inspect -s` | parse | `ptah atlas schema inspect -s public` reached the expected command validation path |  |
 | — | ok | atlas-cli-surface | `atlas license` | resolve | `ptah atlas license` resolves |  |
 | — | ok | atlas-cli-surface | `atlas migrate apply` | resolve | `ptah atlas migrate apply` resolves |  |
@@ -192,18 +196,23 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | composite-schema-workflow | `mixed render` | render | Go and YAML sources rendered users and orders exactly once |  |
 | — | ok | composite-schema-workflow | `ptah migrations generate` | migration generation | the mixed desired schema generated a Ptah migration pair against an empty SQLite database |  |
 | — | ok | composite-schema-workflow | `ptah migrations up` | migration application | the generated composite-schema migration applied to SQLite |  |
+| — | ok | corpus-inventory | `_capability/apply-simulation-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/atlas-cli/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/checkpoint-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/cli-exit-behavior/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/composite-schema/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/dbtest-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/desired-state-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/external-schema-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/inspect-source-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/lint-analyzers/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/managed-data-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/pro-down-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/pro-maint-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/pro-plan-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/pro-test-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/qualifier-txmode-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
+| — | ok | corpus-inventory | `_capability/schema-scope-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
@@ -375,6 +384,11 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | dbtest-workflow | `ptah schema test/json` | JSON report | structured schema JSON report preserved exact summary, case, and step results |  |
 | — | ok | dbtest-workflow | `ptah schema test/setup failure` | setup exit contract | invalid schema-test input produced process exit code 2 and an actionable diagnostic |  |
 | — | ok | dbtest-workflow | `ptah schema test/text` | schema execution | desired-schema provisioning, seed, drift repair, assertions, and case filtering passed |  |
+| — | ok | desired-state-workflow | `ptah atlas schema apply` | database-url --to source | `schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema |  |
+| — | ok | desired-state-workflow | `ptah atlas schema apply` | migration-dir source replay | `schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target |  |
+| — | ok | desired-state-workflow | `ptah atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted |  |
+| — | ok | desired-state-workflow | `ptah atlas schema apply` | env:// source resolution | `schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target |  |
+| — | ok | desired-state-workflow | `ptah atlas schema diff` | database-url --from source | `schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file |  |
 | — | ok | external-schema-workflow | `SQLite external schema facts` | live schema facts | SQLite preserved tables, columns, primary keys, unique/index facts, and the cascading foreign key |  |
 | — | ok | external-schema-workflow | `configured external schema` | allowed config render | desired schema rendered with all expected SQLite facts |  |
 | — | ok | external-schema-workflow | `external hcl schema` | explicit command render | desired schema rendered with all expected SQLite facts |  |
@@ -395,6 +409,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | external-schema-workflow | `schema drift config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
 | — | ok | external-schema-workflow | `schema render config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
 | — | ok | external-schema-workflow | `static SQL schema` | offline render | desired schema rendered with all expected SQLite facts |  |
+| — | ok | inspect-source-workflow | `ptah atlas schema inspect` | local schema file over dev database | `schema inspect --url file://schema.sql --dev-url ...` materialized the file on the dev database and rendered its HCL; a scheme-less path resolves to the identical local-file inspection |  |
+| — | ok | inspect-source-workflow | `ptah atlas schema inspect` | split export writes a deterministic tree | `{{ hcl . \| split \| write "exported" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout |  |
+| — | ok | inspect-source-workflow | `ptah atlas schema inspect` | written tree reloads to the same schema | the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema |  |
+| — | ok | inspect-source-workflow | `ptah atlas schema inspect --exclude` | resource and field selectors | --exclude filters resource selectors, accepts the documented [type=extension].version field selector, and refuses unsupported field-selector forms with a deterministic diagnostic |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/1.sql` | split | Ptah splits into the same 6 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/11_delimiter_mysql_command.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
@@ -574,6 +592,15 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | pro-test-workflow | `ptah atlas migrate test` | migration test failure exit contract | a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1 |  |
 | — | ok | pro-test-workflow | `ptah atlas schema test` | schema tests pass | the Atlas Pro schema-test verb provisioned the desired schema from the local Go-annotation source on a real SQLite dev database and passed the committed case set |  |
 | — | ok | pro-test-workflow | `ptah atlas schema test` | schema test failure exit contract | a deliberately failing schema assertion produced a structured FAIL report and process exit code 1 |  |
+| — | ok | qualifier-txmode-workflow | `ptah atlas migrate apply` | concurrent-index artifact replays | the concurrent-index-policy artifact replays through `migrate apply`: the table exists and the Atlas revision row records the applied version |  |
+| — | ok | qualifier-txmode-workflow | `ptah atlas migrate apply` | txmode-none directive executes outside a transaction | a `-- atlas:txmode none` migration executes outside a transaction (the statement before the failure persisted) while the identical transactional control rolled back cleanly |  |
+| — | ok | qualifier-txmode-workflow | `ptah atlas migrate diff` | concurrent-index policy on sqlite plans one transactional file | with diff.concurrent_index.create enabled in atlas.hcl, the SQLite plan stays one plain transactional file — no txmode directive, no CONCURRENTLY — exactly the documented dialect scope |  |
+| — | ok | qualifier-txmode-workflow | `ptah atlas migrate diff --qualifier` | invalid qualifier fails before the dev database | an invalid --qualifier value is refused with the deterministic diagnostic before the dev database file exists and before any artifact is written |  |
+| — | ok | qualifier-txmode-workflow | `ptah atlas migrate diff --qualifier` | qualified artifacts are scoped to qualified dialects | a valid --qualifier on a dialect without schema-qualified DDL is refused pre-artifact with the documented scope diagnostic; qualified artifact content is measured on the database-backed tiers |  |
+| — | ok | schema-scope-workflow | `ptah atlas schema apply --include` | scoped apply leaves out-of-scope objects untouched | `schema apply --include scope_users` created only the selected table: the desired-but-unselected tables were not created and the pre-existing out-of-scope table survived |  |
+| — | ok | schema-scope-workflow | `ptah atlas schema apply --include` | repeated include values union | repeated --include values union: both selected tables were created while the unselected dependent table stayed out of the plan |  |
+| — | ok | schema-scope-workflow | `ptah atlas schema apply --include` | cross-scope foreign key refusal | selecting a table whose foreign key points at an unselected table is refused with the cross-scope dependency diagnostic and its remediation guidance |  |
+| — | ok | schema-scope-workflow | `ptah atlas schema diff --include` | malformed selector fails before the dev database | a malformed include selector fails with the deterministic diagnostic before any database work: the dev database file was never created |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240116003831.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/versioned-basic/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
