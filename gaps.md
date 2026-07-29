@@ -12,8 +12,8 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.0.0-20260729022139-3170efd61f06`
-- Outcomes: **853 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.0.0-20260729045357-7eb391e96551`
+- Outcomes: **856 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -384,6 +384,9 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | dbtest-workflow | `ptah schema test/json` | JSON report | structured schema JSON report preserved exact summary, case, and step results |  |
 | — | ok | dbtest-workflow | `ptah schema test/setup failure` | setup exit contract | invalid schema-test input produced process exit code 2 and an actionable diagnostic |  |
 | — | ok | dbtest-workflow | `ptah schema test/text` | schema execution | desired-schema provisioning, seed, drift repair, assertions, and case filtering passed |  |
+| — | ok | desired-state-workflow | `ptah atlas migrate diff` | database-url --to source converges | `migrate diff --to sqlite://...` introspected the live desired database, wrote one integrity-covered migration, converged on replay, and left the source database unchanged |  |
+| — | ok | desired-state-workflow | `ptah atlas migrate diff` | env://url source with project defaults | `migrate diff --to env://url` resolved the live desired database and took dev/migration defaults from the evaluated atlas.hcl environment without mutating the source |  |
+| — | ok | desired-state-workflow | `ptah atlas migrate diff` | desired and dev database alias rejected | a desired database aliased to --dev-url was rejected before destructive replay; the source table survived and no migration directory was created |  |
 | — | ok | desired-state-workflow | `ptah atlas schema apply` | database-url --to source | `schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema |  |
 | — | ok | desired-state-workflow | `ptah atlas schema apply` | migration-dir source replay | `schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target |  |
 | — | ok | desired-state-workflow | `ptah atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted |  |

@@ -3,6 +3,7 @@ package probe
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -13,13 +14,16 @@ const desiredStateWorkflowSentinel = "_capability/desired-state-workflow/SENTINE
 // references as `schema diff`/`schema apply` desired-state sources.
 const desiredStateIssue = "stokaro/ptah#811"
 
+// migrateDiffDesiredStateIssue tracks the follow-up that extended the same
+// source model to `migrate diff`.
+const migrateDiffDesiredStateIssue = "stokaro/ptah#842"
+
 // DesiredStateWorkflowProbe executes the Atlas desired-state source model
-// Ptah implements for `schema diff` and `schema apply` (stokaro/ptah#811)
-// through the real `ptah atlas ...` CLI on ephemeral SQLite: a database URL
-// as the `--from` diff source and as the `--to` apply source, a migration
-// directory replayed on a dev database (and refused deterministically before
-// the target is contacted when no dev database is configured), and an env://
-// reference resolved through an evaluated atlas.hcl environment.
+// Ptah implements for `schema diff`, `schema apply`, and `migrate diff`
+// (stokaro/ptah#811, stokaro/ptah#842) through the real `ptah atlas ...` CLI on
+// ephemeral SQLite: database URLs, migration directories, and env://
+// references; migrate-diff convergence; and desired/dev alias rejection before
+// source mutation or artifact creation.
 type DesiredStateWorkflowProbe struct {
 	// FixtureRoot contains the committed desired-schema sources. Relative
 	// paths are resolved from the probe process directory.
@@ -42,12 +46,18 @@ func (p DesiredStateWorkflowProbe) Run(fx Fixture) []Result {
 	defer w.cleanup()
 
 	d := &desiredStateWorkflow{proWorkflowRuntime: w}
+	migrateDiffRuntime := *w
+	migrateDiffRuntime.issue = migrateDiffDesiredStateIssue
+	m := &desiredStateWorkflow{proWorkflowRuntime: &migrateDiffRuntime}
 	return w.runSteps([]func() Result{
 		d.databaseURLDiffSource,
 		d.databaseURLApplySource,
 		d.migrationDirReplay,
 		d.migrationDirWithoutDevDatabase,
 		d.envSourceResolution,
+		m.migrateDiffDatabaseURLSource,
+		m.migrateDiffEnvURLSource,
+		m.migrateDiffRejectsDesiredDevAlias,
 	})
 }
 
@@ -223,4 +233,176 @@ func (d *desiredStateWorkflow) envSourceResolution() Result {
 	}
 	return d.ok(fixture, stage,
 		"`schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target")
+}
+
+func (d *desiredStateWorkflow) migrateDiffDatabaseURLSource() Result {
+	const (
+		fixture = "ptah atlas migrate diff"
+		stage   = "database-url --to source converges"
+		dirName = "migrate-database"
+	)
+	sourceDB, harness := d.seedSourceDatabase(stage)
+	if harness != nil {
+		return *harness
+	}
+	devURL := sqliteURL(filepath.Join(d.runRoot, "migrate-database-dev.db"))
+	runDiff := func(name string) (ptahCommandResult, *Result) {
+		return d.runCLI(stage,
+			"atlas", "migrate", "diff", name,
+			"--to", sqliteURL(sourceDB),
+			"--dev-url", devURL,
+			"--dir", "file://"+dirName,
+		)
+	}
+	result, failure := runDiff("add_users")
+	if failure != nil {
+		return *failure
+	}
+	if gap := d.expectExit(fixture, stage, result, 0); gap != nil {
+		return *gap
+	}
+	if gap := d.expectFragments(fixture, stage, "stdout", result.stdout, []string{
+		"Created migration file:",
+	}); gap != nil {
+		return *gap
+	}
+	if gap := d.expectMigrateDiffArtifacts(fixture, stage, dirName, "users"); gap != nil {
+		return *gap
+	}
+
+	result, failure = runDiff("noop")
+	if failure != nil {
+		return *failure
+	}
+	if gap := d.expectExit(fixture, stage, result, 0); gap != nil {
+		return *gap
+	}
+	if gap := d.expectFragments(fixture, stage, "stdout", result.stdout, []string{
+		"The migration directory is synced with the desired state",
+	}); gap != nil {
+		return *gap
+	}
+	if gap := d.expectMigrateDiffArtifacts(fixture, stage, dirName, "users"); gap != nil {
+		return *gap
+	}
+	if gap := d.expectSQLiteTablesAt(fixture, stage, sourceDB, []string{"users"}); gap != nil {
+		return *gap
+	}
+	return d.ok(fixture, stage,
+		"`migrate diff --to sqlite://...` introspected the live desired database, wrote one integrity-covered migration, converged on replay, and left the source database unchanged")
+}
+
+func (d *desiredStateWorkflow) migrateDiffEnvURLSource() Result {
+	const (
+		fixture = "ptah atlas migrate diff"
+		stage   = "env://url source with project defaults"
+		dirName = "migrate-env"
+	)
+	sourceDB, harness := d.seedSourceDatabase(stage)
+	if harness != nil {
+		return *harness
+	}
+	result, failure := d.runCLI(stage,
+		"atlas", "migrate", "diff", "add_env_users",
+		"--config", "file://migrate.hcl",
+		"--env", "dev",
+		"--to", "env://url",
+	)
+	if failure != nil {
+		return *failure
+	}
+	if gap := d.expectExit(fixture, stage, result, 0); gap != nil {
+		return *gap
+	}
+	if gap := d.expectFragments(fixture, stage, "stdout", result.stdout, []string{
+		"Created migration file:",
+	}); gap != nil {
+		return *gap
+	}
+	if gap := d.expectMigrateDiffArtifacts(fixture, stage, dirName, "users"); gap != nil {
+		return *gap
+	}
+	if gap := d.expectSQLiteTablesAt(fixture, stage, sourceDB, []string{"users"}); gap != nil {
+		return *gap
+	}
+	return d.ok(fixture, stage,
+		"`migrate diff --to env://url` resolved the live desired database and took dev/migration defaults from the evaluated atlas.hcl environment without mutating the source")
+}
+
+func (d *desiredStateWorkflow) migrateDiffRejectsDesiredDevAlias() Result {
+	const (
+		fixture = "ptah atlas migrate diff"
+		stage   = "desired and dev database alias rejected"
+		dirName = "migrate-alias"
+	)
+	sourceDB, harness := d.seedSourceDatabase(stage)
+	if harness != nil {
+		return *harness
+	}
+	sourceURL := sqliteURL(sourceDB)
+	result, failure := d.runCLI(stage,
+		"atlas", "migrate", "diff", "unsafe",
+		"--to", sourceURL,
+		"--dev-url", sourceURL,
+		"--dir", "file://"+dirName,
+	)
+	if failure != nil {
+		return *failure
+	}
+	if gap := d.expectExit(fixture, stage, result, 1); gap != nil {
+		return *gap
+	}
+	if gap := d.expectFragments(fixture, stage, "stderr", result.stderr, []string{
+		"--to database must differ from --dev-url because the dev database is reset during planning",
+	}); gap != nil {
+		return *gap
+	}
+	if gap := d.expectSQLiteTablesAt(fixture, stage, sourceDB, []string{"users"}); gap != nil {
+		return *gap
+	}
+	if gap := d.expectFileNeverCreated(
+		fixture,
+		stage,
+		filepath.Join(d.runRoot, dirName),
+		"migration directory",
+	); gap != nil {
+		return *gap
+	}
+	return d.ok(fixture, stage,
+		"a desired database aliased to --dev-url was rejected before destructive replay; the source table survived and no migration directory was created")
+}
+
+func (d *desiredStateWorkflow) expectMigrateDiffArtifacts(
+	fixture string,
+	stage string,
+	dirName string,
+	table string,
+) *Result {
+	files, err := relativeFilesUnder(filepath.Join(d.runRoot, dirName))
+	if err != nil {
+		failure := d.harnessFailure(stage, err)
+		return &failure
+	}
+	var sqlFiles []string
+	for _, file := range files {
+		if strings.HasSuffix(file, ".sql") {
+			sqlFiles = append(sqlFiles, file)
+		}
+	}
+	if len(files) != 2 || len(sqlFiles) != 1 || !slices.Contains(files, "atlas.sum") {
+		gap := d.gap(fixture, stage,
+			"migrate diff artifacts are not one SQL migration plus atlas.sum: "+strings.Join(files, ", "))
+		return &gap
+	}
+	content, err := readRunFile(d.runRoot, filepath.Join(dirName, sqlFiles[0]))
+	if err != nil {
+		failure := d.harnessFailure(stage, err)
+		return &failure
+	}
+	if !strings.Contains(content, "CREATE TABLE") || !strings.Contains(content, table) {
+		gap := d.gap(fixture, stage,
+			"generated migration does not create the desired table: "+oneLine(content))
+		return &gap
+	}
+	return nil
 }

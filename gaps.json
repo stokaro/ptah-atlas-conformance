@@ -5874,6 +5874,27 @@
     "detail": "`schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target"
   },
   {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas migrate diff",
+    "stage": "database-url --to source converges",
+    "outcome": "ok",
+    "detail": "`migrate diff --to sqlite://...` introspected the live desired database, wrote one integrity-covered migration, converged on replay, and left the source database unchanged"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas migrate diff",
+    "stage": "env://url source with project defaults",
+    "outcome": "ok",
+    "detail": "`migrate diff --to env://url` resolved the live desired database and took dev/migration defaults from the evaluated atlas.hcl environment without mutating the source"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "ptah atlas migrate diff",
+    "stage": "desired and dev database alias rejected",
+    "outcome": "ok",
+    "detail": "a desired database aliased to --dev-url was rejected before destructive replay; the source table survived and no migration directory was created"
+  },
+  {
     "probe": "apply-simulation-workflow",
     "fixture": "ptah atlas schema apply --lock-timeout",
     "stage": "lockless dialect note",
