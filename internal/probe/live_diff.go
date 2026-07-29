@@ -29,7 +29,8 @@ import (
 //
 // A row is OK when Ptah reports the same column facts Atlas does. A Gap means the
 // two tools disagree about a construct Atlas CE can see — exactly the kind of
-// drift that would make `ptah atlas schema inspect` a non-faithful drop-in. It is
+// drift that would make ptah-compat's `atlas schema inspect` a non-faithful
+// drop-in. It is
 // scoped to CE-visible object kinds (tables/columns/constraints); Ptah objects
 // Atlas CE omits (views, triggers, functions — Pro-gated) are not penalized here,
 // they are covered by the Ptah-vs-Ptah round-trip tier instead.

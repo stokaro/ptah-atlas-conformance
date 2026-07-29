@@ -112,11 +112,11 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 	return renderMarkdownWithOptions(results, &Waivers{}, markdownReportOptions{
 		Title:   "# Ptah Atlas migrate runtime conformance report",
 		Command: command,
-		Intro: "It records whether `ptah atlas migrate ...` commands preserve Atlas-compatible\n" +
-			"runtime behavior against real databases. Unlike the offline txtar-script\n" +
-			"simulator, this tier executes Ptah's CLI and inspects revision rows and end\n" +
-			"database state directly. Project configuration status also uses pinned Atlas\n" +
-			"CE as an independent runtime oracle.\n\n",
+		Intro: "It records whether Atlas-form `migrate ...` commands on the ptah-compat binary\n" +
+			"preserve Atlas-compatible runtime behavior against real databases. Unlike the\n" +
+			"offline txtar-script simulator, this tier executes the real drop-in CLI and\n" +
+			"inspects revision rows and end database state directly. Project configuration\n" +
+			"status also uses pinned Atlas CE as an independent runtime oracle.\n\n",
 		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE status oracle pinned by atlas.version",
 		PtahVersion: ptahVersion,
 		FactCategories: []string{

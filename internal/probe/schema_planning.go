@@ -22,7 +22,7 @@ type planningCase struct {
 }
 
 // planningCatalog is the paired-schema planning matrix. Schemas are PostgreSQL
-// DDL applied through `ptah atlas schema apply --to file://...`.
+// DDL applied through `atlas schema apply --to file://...` (ptah-compat).
 var planningCatalog = []planningCase{
 	{
 		Name: "add table",
@@ -127,7 +127,7 @@ func (c planningCase) runPostgres(bin, dbURL string) Result {
 }
 
 // applySchema applies a desired-state SQL schema to dbURL via
-// `ptah atlas schema apply --to file://... --auto-approve`, returning "" on
+// `atlas schema apply --to file://... --auto-approve` (ptah-compat), returning "" on
 // success or a one-line error detail.
 func applySchema(bin, dbURL, schema string) string {
 	path, cleanup, err := writeSchemaFile(schema)
@@ -136,7 +136,7 @@ func applySchema(bin, dbURL, schema string) string {
 	}
 	defer cleanup()
 	output, err := commandOutput(bin, []string{
-		"atlas", "schema", "apply", "--url", dbURL, "--to", "file://" + path, "--auto-approve",
+		"schema", "apply", "--url", dbURL, "--to", "file://" + path, "--auto-approve",
 	})
 	if err != nil {
 		return oneLine(output)
@@ -163,9 +163,9 @@ func writeSchemaFile(schema string) (path string, cleanup func(), err error) {
 }
 
 // inspectSchema returns the canonical schema of dbURL via
-// `ptah atlas schema inspect --format sql`.
+// `atlas schema inspect --format sql` (ptah-compat).
 func inspectSchema(bin, dbURL string) (canonical, detail string) {
-	output, err := commandOutput(bin, []string{"atlas", "schema", "inspect", "--url", dbURL, "--format", "sql"})
+	output, err := commandOutput(bin, []string{"schema", "inspect", "--url", dbURL, "--format", "sql"})
 	if err != nil {
 		return "", "inspect failed: " + oneLine(output)
 	}

@@ -211,8 +211,8 @@ func TestAtlasCLIUtilityRuntimeProbeAcceptsExecutableUtilities(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 6 {
-		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d: %#v", len(results), results)
 	}
 	for _, r := range results {
 		if r.Probe != "atlas-cli-utility-runtime" {
@@ -232,7 +232,7 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsPlaceholders(t *testing.T) {
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "ptah")
 	writeTestFile(t, bin, fakeUtilityRuntimeScript(`
-  "atlas version")
+  "version")
     printf 'atlas version is not implemented yet\n'
     ;;
 `))
@@ -242,12 +242,12 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsPlaceholders(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 6 {
-		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d: %#v", len(results), results)
 	}
 	var foundGap bool
 	for _, r := range results {
-		if r.Fixture == "ptah atlas version" && r.Stage == "execute" && r.Outcome == Gap &&
+		if r.Fixture == "ptah-compat atlas version" && r.Stage == "execute" && r.Outcome == Gap &&
 			strings.Contains(r.Detail, "unimplemented placeholder") {
 			foundGap = true
 		}
@@ -276,8 +276,8 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIUtilityRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 6 {
-		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d: %#v", len(results), results)
 	}
 	var foundGap bool
 	for _, r := range results {
@@ -524,7 +524,7 @@ func TestAtlasCLIShorthandProbeRejectsVisibleSchemaApplyFileHelp(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIShorthandProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	assertResultDetailContains(t, results, "`ptah atlas schema apply --file` is visible in help")
+	assertResultDetailContains(t, results, "`atlas schema apply --file` is visible in help")
 }
 
 func setFakePtahCLIBinaries(t *testing.T, bin string) {
@@ -551,32 +551,32 @@ func fakeShorthandRuntimeScript(visibleFileHelp bool) string {
 	}
 	return `#!/bin/sh
 case "$*" in
-  "atlas schema apply --help")
+  "schema apply --help")
     printf 'Flags:\n      ` + applyHelpFlags + `'
     ;;
-  "atlas schema inspect -s public")
+  "schema inspect -s public")
     printf 'error: --url is required\n' >&2
     exit 1
     ;;
-  "atlas schema apply --url sqlite://"*" --to file://"*" -s main --dry-run"|"atlas schema apply --url sqlite://"*" --to file://"*" --schema main --dry-run")
+  "schema apply --url sqlite://"*" --to file://"*" -s main --dry-run"|"schema apply --url sqlite://"*" --to file://"*" --schema main --dry-run")
     printf 'Planned schema changes:\nCREATE TABLE "users" (\n  "id" INTEGER PRIMARY KEY\n);\n'
     ;;
-  "atlas schema apply --url sqlite://"*" --to file://"*" -s "*" --dry-run")
+  "schema apply --url sqlite://"*" --to file://"*" -s "*" --dry-run")
     printf 'Schema is synced, no changes to be made.\n'
     ;;
-  "atlas schema apply --url sqlite://"*)
+  "schema apply --url sqlite://"*)
     printf 'Planned schema changes:\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n'
     ;;
-  "atlas schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" -s main"|"atlas schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" --schema main")
+  "schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" -s main"|"schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" --schema main")
     printf 'ALTER TABLE "users" ADD COLUMN "email" TEXT;\n'
     ;;
-  "atlas schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" -s "*)
+  "schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" -s "*)
     printf 'Schemas are synced, no changes to be made.\n'
     ;;
-  "atlas schema diff -f file://"*)
+  "schema diff -f file://"*)
     printf 'ALTER TABLE users ADD COLUMN email TEXT;\n'
     ;;
-  "atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev")
+  "migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev")
     printf 'error: atlas migrate diff accepts docker --dev-url values, but Ptah requires a directly connectable dev database URL\n' >&2
     exit 1
     ;;
@@ -592,13 +592,13 @@ func fakeUtilityRuntimeScript(overrides ...string) string {
 	customCases := strings.Join(overrides, "")
 	return `#!/bin/sh
 case "$*" in
-` + customCases + `  "atlas version"|"version")
+` + customCases + `  "version")
     printf 'Version: test\nCommit: deadbeef\n'
     ;;
-  "atlas license"|"license")
+  "license")
     printf 'License: MIT\nAtlas compatibility: independent implementation; Ptah does not use Atlas source code.\n'
     ;;
-  "atlas schema fmt"|"schema fmt")
+  "schema fmt")
     printf 'schema "main" {}\n' > a_schema.hcl
     printf 'schema "nested" {}\n' > nested/z_schema.hcl
     printf 'a_schema.hcl\nnested/z_schema.hcl\n'
@@ -614,35 +614,35 @@ esac
 func fakeMetadataRuntimeScript() string {
 	return `#!/bin/sh
 case "$*" in
-  "atlas migrate hash --dir file://"*" --dir-format goose"|"atlas migrate lint --latest 1 --dir file://"*" --dir-format goose"|"atlas migrate new init --dir file://"*" --dir-format goose"|"atlas migrate set --url sqlite://ignored.db 20240101000000 --dir file://"*" --dir-format goose"|"atlas migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"atlas migrate validate --dir file://"*" --dir-format goose")
+  "migrate hash --dir file://"*" --dir-format goose"|"migrate lint --latest 1 --dir file://"*" --dir-format goose"|"migrate new init --dir file://"*" --dir-format goose"|"migrate set --url sqlite://ignored.db 20240101000000 --dir file://"*" --dir-format goose"|"migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"migrate validate --dir file://"*" --dir-format goose")
     printf 'error: Atlas accepts --dir-format=goose, but Ptah does not implement that directory format yet\n' >&2
     exit 2
     ;;
-  "atlas migrate new init --dir file://"*)
-    dir=${6#file://}
+  "migrate new init --dir file://"*)
+    dir=${5#file://}
     mkdir -p "$dir"
     printf 'CREATE TABLE users (id INTEGER PRIMARY KEY);\n' > "$dir/20240101000000_init.sql"
     printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
     printf 'Generated empty migration file:\nSQL:  %s/20240101000000_init.sql\n' "$dir"
     ;;
-  "atlas migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema main")
+  "migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema main")
     printf 'Migrating to version 20240101000000 from 1 pending migrations.\nMigration complete. Current version: 20240101000000\n'
     ;;
-  "atlas migrate set --url sqlite://"*" --dir file://"*" --revisions-schema main 20240101000000")
+  "migrate set --url sqlite://"*" --dir file://"*" --revisions-schema main 20240101000000")
     printf 'Repaired migration 20240101000000\n'
     ;;
-  "atlas migrate status --url sqlite://"*" --dir file://"*" --revisions-schema main")
+  "migrate status --url sqlite://"*" --dir file://"*" --revisions-schema main")
     printf 'Total Migrations: 1\nPending Migrations: 1\n'
     ;;
-  "atlas migrate hash --dir file://"*)
-    dir=${5#file://}
+  "migrate hash --dir file://"*)
+    dir=${4#file://}
     printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
     printf 'Wrote %s/atlas.sum\n1 migration file(s) hashed\n' "$dir"
     ;;
-  "atlas migrate status --url sqlite://"*" --dir file://"*)
+  "migrate status --url sqlite://"*" --dir file://"*)
     printf 'Total Migrations: 1\nPending Migrations: 1\n'
     ;;
-  "atlas migrate apply --dir-format atlas --help")
+  "migrate apply --dir-format atlas --help")
     printf 'Error: unknown flag: --dir-format\n' >&2
     exit 1
     ;;
@@ -669,10 +669,10 @@ func fakeHiddenDryRunRuntimeScript(visibleHelp, writesMigration, rewritesSum boo
 	}
 	return `#!/bin/sh
 case "$*" in
-  "atlas migrate diff --help")
+  "migrate diff --help")
     printf 'Flags:\n      ` + helpFlags + `'
     ;;
-  "atlas migrate diff --dev-url "*)
+  "migrate diff --dev-url "*)
     dir=""
     while [ "$#" -gt 0 ]; do
       if [ "$1" = "--dir" ]; then
@@ -708,13 +708,13 @@ JSON`
 		actualInvalidMutation = "rm -f .users-exists\n"
 	}
 	return `#!/bin/sh
-if [ "$1 $2 $3" = "atlas schema apply" ]; then
+if [ "$1 $2" = "schema apply" ]; then
   touch .users-exists
   printf 'Schema applied successfully.\n'
   exit 0
 fi
 
-if [ "$1 $2 $3" = "atlas schema inspect" ]; then
+if [ "$1 $2" = "schema inspect" ]; then
   if [ -f .users-exists ]; then
     printf '{"schemas":[{"tables":[{"name":"users"}]}]}\n'
   else
@@ -723,7 +723,7 @@ if [ "$1 $2 $3" = "atlas schema inspect" ]; then
   exit 0
 fi
 
-if [ "$1 $2 $3" = "atlas schema clean" ]; then
+if [ "$1 $2" = "schema clean" ]; then
   all="$*"
   url=""
   dry_run=0
@@ -7312,7 +7312,7 @@ const sqliteMigrateLintFixtureDir = "../../third_party/atlas/upstream/internal/i
 
 // TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures drives every imported
 // sqlite cli-migrate-lint-* fixture through the harness. Each command is
-// executed by Ptah's real `ptah atlas migrate lint` CLI against an ephemeral
+// executed by the real `atlas migrate lint` CLI (ptah-compat) against an ephemeral
 // SQLite dev database, so a green result proves Ptah's own Atlas migrate-lint
 // report (ptah#747) — default text output, destructive/data-dependent
 // diagnostics, `-- atlas:nolint` suppression, exit-1 threshold, and atlas.hcl

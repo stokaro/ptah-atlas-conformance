@@ -125,7 +125,7 @@ func atlasProjectConfigStatusOracle(ptahBin, atlasBin string) Result {
 		)
 	}
 
-	ptahOutput, err := projectConfigCommand(ptahBin, append([]string{"atlas"}, statusArgs...), root, env)
+	ptahOutput, err := projectConfigCommand(ptahBin, statusArgs, root, env)
 	if err != nil {
 		return projectConfigStatusGap(
 			"ptah-status",

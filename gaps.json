@@ -3809,188 +3809,6 @@
     "detail": "DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected"
   },
   {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas version",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas version` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas license",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas license` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema inspect",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas schema inspect` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema apply",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas schema apply` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema diff",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas schema diff` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema fmt",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas schema fmt` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema clean",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas schema clean` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate apply",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate apply` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate diff",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate diff` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate down",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate down` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate hash",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate hash` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate import",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate import` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate lint",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate lint` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate new",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate new` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate set",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate set` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate status",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate status` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate validate",
-    "stage": "resolve",
-    "outcome": "ok",
-    "detail": "`ptah atlas migrate validate` resolves"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema test",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema plan",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas schema push",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate checkpoint",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate rebase",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate rm",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate edit",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate push",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
-    "probe": "atlas-cli-surface",
-    "fixture": "atlas migrate test",
-    "stage": "out-of-scope",
-    "outcome": "ok",
-    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
-  },
-  {
     "probe": "atlas-compat-binary-surface",
     "fixture": "atlas version",
     "stage": "resolve",
@@ -4174,20 +3992,6 @@
   },
   {
     "probe": "atlas-cli-utility-runtime",
-    "fixture": "ptah atlas version",
-    "stage": "execute",
-    "outcome": "ok",
-    "detail": "`ptah atlas version` executes and prints Ptah-owned utility output"
-  },
-  {
-    "probe": "atlas-cli-utility-runtime",
-    "fixture": "ptah atlas license",
-    "stage": "execute",
-    "outcome": "ok",
-    "detail": "`ptah atlas license` executes and prints Ptah-owned utility output"
-  },
-  {
-    "probe": "atlas-cli-utility-runtime",
     "fixture": "ptah-compat atlas version",
     "stage": "execute",
     "outcome": "ok",
@@ -4199,13 +4003,6 @@
     "stage": "execute",
     "outcome": "ok",
     "detail": "`atlas license` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output"
-  },
-  {
-    "probe": "atlas-cli-utility-runtime",
-    "fixture": "ptah atlas schema fmt",
-    "stage": "execute",
-    "outcome": "ok",
-    "detail": "`ptah atlas schema fmt` formats .hcl files recursively from the current directory and ignores non-HCL files"
   },
   {
     "probe": "atlas-cli-utility-runtime",
@@ -4314,199 +4111,199 @@
   },
   {
     "probe": "atlas-cli-schema-clean-runtime",
-    "fixture": "ptah atlas schema clean --dry-run --format",
+    "fixture": "atlas schema clean --dry-run --format",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite"
+    "detail": "`atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite"
   },
   {
     "probe": "atlas-cli-schema-clean-runtime",
-    "fixture": "ptah atlas schema clean --format --auto-approve",
+    "fixture": "atlas schema clean --format --auto-approve",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table"
+    "detail": "`atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table"
   },
   {
     "probe": "atlas-cli-schema-clean-runtime",
-    "fixture": "ptah atlas schema clean invalid --format",
+    "fixture": "atlas schema clean invalid --format",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema clean` rejects invalid format templates before opening the database"
+    "detail": "`atlas schema clean` rejects invalid format templates before opening the database"
   },
   {
     "probe": "atlas-cli-schema-clean-runtime",
-    "fixture": "ptah atlas schema clean actual invalid --format",
+    "fixture": "atlas schema clean actual invalid --format",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema clean` rejects applied-state invalid format templates before mutating SQLite"
+    "detail": "`atlas schema clean` rejects applied-state invalid format templates before mutating SQLite"
   },
   {
     "probe": "atlas-cli-report-format",
-    "fixture": "ptah atlas migrate apply --dry-run --format json",
+    "fixture": "atlas migrate apply --dry-run --format json",
     "stage": "format",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields"
+    "detail": "`atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields"
   },
   {
     "probe": "atlas-cli-report-format",
-    "fixture": "ptah atlas migrate apply --format json",
+    "fixture": "atlas migrate apply --format json",
     "stage": "format",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values"
+    "detail": "`atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values"
   },
   {
     "probe": "atlas-cli-report-format",
-    "fixture": "ptah atlas migrate status --format json",
+    "fixture": "atlas migrate status --format json",
     "stage": "format",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries"
+    "detail": "`atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries"
   },
   {
     "probe": "atlas-cli-report-format",
-    "fixture": "ptah atlas schema clean --dry-run --format json",
+    "fixture": "atlas schema clean --dry-run --format json",
     "stage": "format",
     "outcome": "ok",
-    "detail": "`ptah atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields"
+    "detail": "`atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate new",
+    "fixture": "atlas migrate new",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum"
+    "detail": "`atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate hash",
+    "fixture": "atlas migrate hash",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate hash` defaults to Atlas directory format and writes atlas.sum"
+    "detail": "`atlas migrate hash` defaults to Atlas directory format and writes atlas.sum"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate status",
+    "fixture": "atlas migrate status",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations"
+    "detail": "`atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate apply --revisions-schema",
+    "fixture": "atlas migrate apply --revisions-schema",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate apply --revisions-schema main` executed successfully"
+    "detail": "`atlas migrate apply --revisions-schema main` executed successfully"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate status --revisions-schema",
+    "fixture": "atlas migrate status --revisions-schema",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate status --revisions-schema main` executed successfully"
+    "detail": "`atlas migrate status --revisions-schema main` executed successfully"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate set --revisions-schema",
+    "fixture": "atlas migrate set --revisions-schema",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate set --revisions-schema main` executed successfully"
+    "detail": "`atlas migrate set --revisions-schema main` executed successfully"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate apply --dir-format",
+    "fixture": "atlas migrate apply --dir-format",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface"
+    "detail": "`atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate hash --dir-format goose",
+    "fixture": "atlas migrate hash --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate lint --dir-format goose",
+    "fixture": "atlas migrate lint --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate new --dir-format goose",
+    "fixture": "atlas migrate new --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate set --dir-format goose",
+    "fixture": "atlas migrate set --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate status --dir-format goose",
+    "fixture": "atlas migrate status --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "ptah atlas migrate validate --dir-format goose",
+    "fixture": "atlas migrate validate --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-shorthands",
-    "fixture": "ptah atlas schema inspect -s",
+    "fixture": "atlas schema inspect -s",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "`ptah atlas schema inspect -s public` reached the expected command validation path"
+    "detail": "`atlas schema inspect -s public` reached the expected command validation path"
   },
   {
     "probe": "atlas-cli-shorthands",
-    "fixture": "ptah atlas schema apply -s",
+    "fixture": "atlas schema apply -s",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes"
+    "detail": "`atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes"
   },
   {
     "probe": "atlas-cli-shorthands",
-    "fixture": "ptah atlas schema apply --file/-f",
+    "fixture": "atlas schema apply --file/-f",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path"
+    "detail": "`atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path"
   },
   {
     "probe": "atlas-cli-shorthands",
-    "fixture": "ptah atlas schema diff -f",
+    "fixture": "atlas schema diff -f",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema diff -f` behaves like `--from` for local schema-file diffs"
+    "detail": "`atlas schema diff -f` behaves like `--from` for local schema-file diffs"
   },
   {
     "probe": "atlas-cli-shorthands",
-    "fixture": "ptah atlas schema diff -s",
+    "fixture": "atlas schema diff -s",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced"
+    "detail": "`atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced"
   },
   {
     "probe": "atlas-cli-shorthands",
-    "fixture": "ptah atlas migrate diff -s",
+    "fixture": "atlas migrate diff -s",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path"
+    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path"
   },
   {
     "probe": "atlas-cli-hidden-runtime",
-    "fixture": "ptah atlas migrate diff --dry-run",
+    "fixture": "atlas migrate diff --dry-run",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`ptah atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum"
+    "detail": "`atlas migrate diff --dry-run` is hidden from help, prints SQL, and does not write a migration file or rewrite atlas.sum"
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4986,150 +4783,10 @@
   },
   {
     "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/help-succeeds",
+    "fixture": "ptah-native/atlas-namespace-rejected",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 0, output → stdout"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/clean-atlas.sum-succeeds-silently",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 0, output → silent"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/invalid-database-URL",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/missing-required-flag",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/missing-migration-directory",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/malformed-atlas.sum",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/missing-atlas.sum",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/edited-migration",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/added-migration",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/removed-migration",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/duplicate-atlas.sum-entry",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/directory-hash-mismatch",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/unknown-flag",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/unknown-subcommand",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/unknown-subcommand-suggests-close-verb",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/migrate-group-extra-token-shows-help",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 0, output → stdout"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/completion-group-extra-token-shows-help",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 0, output → stdout"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/completion-bash-generates-script",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 0, output → stdout"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/completion-shell-extra-token-fails",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/accepted-but-unimplemented-flag",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
-    "fixture": "ptah-atlas/missing-project-config",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "`ptah atlas` exits 2 with the unknown-command diagnostic on stderr; the Atlas surface lives exclusively in the ptah-compat binary"
   },
   {
     "probe": "lex-split-parity",
@@ -5616,84 +5273,84 @@
   },
   {
     "probe": "pro-test-workflow",
-    "fixture": "ptah atlas migrate test",
+    "fixture": "atlas migrate test",
     "stage": "migration tests pass",
     "outcome": "ok",
     "detail": "the Atlas Pro test verb applied the Atlas-format migration directory to a real SQLite dev database and passed the committed case set: migrate_to latest, exec, and row-count/scalar assertions"
   },
   {
     "probe": "pro-test-workflow",
-    "fixture": "ptah atlas migrate test",
+    "fixture": "atlas migrate test",
     "stage": "migration test failure exit contract",
     "outcome": "ok",
     "detail": "a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1"
   },
   {
     "probe": "pro-test-workflow",
-    "fixture": "ptah atlas schema test",
+    "fixture": "atlas schema test",
     "stage": "schema tests pass",
     "outcome": "ok",
     "detail": "the Atlas Pro schema-test verb provisioned the desired schema from the local Go-annotation source on a real SQLite dev database and passed the committed case set"
   },
   {
     "probe": "pro-test-workflow",
-    "fixture": "ptah atlas schema test",
+    "fixture": "atlas schema test",
     "stage": "schema test failure exit contract",
     "outcome": "ok",
     "detail": "a deliberately failing schema assertion produced a structured FAIL report and process exit code 1"
   },
   {
     "probe": "pro-maint-workflow",
-    "fixture": "ptah atlas migrate edit",
+    "fixture": "atlas migrate edit",
     "stage": "editor round-trip",
     "outcome": "ok",
     "detail": "the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate`"
   },
   {
     "probe": "pro-maint-workflow",
-    "fixture": "ptah atlas migrate rebase",
+    "fixture": "atlas migrate rebase",
     "stage": "rebase to end of history",
     "outcome": "ok",
     "detail": "the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`"
   },
   {
     "probe": "pro-maint-workflow",
-    "fixture": "ptah atlas migrate rm",
+    "fixture": "atlas migrate rm",
     "stage": "remove migration",
     "outcome": "ok",
     "detail": "the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate`"
   },
   {
     "probe": "pro-plan-workflow",
-    "fixture": "ptah atlas schema plan",
+    "fixture": "atlas schema plan",
     "stage": "plan creation",
     "outcome": "ok",
     "detail": "`schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
   },
   {
     "probe": "pro-plan-workflow",
-    "fixture": "ptah atlas schema apply",
+    "fixture": "atlas schema apply",
     "stage": "plan application",
     "outcome": "ok",
     "detail": "`schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table"
   },
   {
     "probe": "pro-plan-workflow",
-    "fixture": "ptah atlas schema apply",
+    "fixture": "atlas schema apply",
     "stage": "stale plan refusal",
     "outcome": "ok",
     "detail": "a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched"
   },
   {
     "probe": "pro-down-workflow",
-    "fixture": "ptah atlas migrate apply",
+    "fixture": "atlas migrate apply",
     "stage": "atlas-format application",
     "outcome": "ok",
     "detail": "`atlas migrate apply` executed both txtar migrations and recorded Atlas-format revision rows in atlas_schema_revisions"
   },
   {
     "probe": "pro-down-workflow",
-    "fixture": "ptah atlas migrate down",
+    "fixture": "atlas migrate down",
     "stage": "bare rollback",
     "outcome": "ok",
     "detail": "bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)"
@@ -5840,154 +5497,154 @@
   },
   {
     "probe": "desired-state-workflow",
-    "fixture": "ptah atlas schema diff",
+    "fixture": "atlas schema diff",
     "stage": "database-url --from source",
     "outcome": "ok",
     "detail": "`schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file"
   },
   {
     "probe": "desired-state-workflow",
-    "fixture": "ptah atlas schema apply",
+    "fixture": "atlas schema apply",
     "stage": "database-url --to source",
     "outcome": "ok",
     "detail": "`schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema"
   },
   {
     "probe": "desired-state-workflow",
-    "fixture": "ptah atlas schema apply",
+    "fixture": "atlas schema apply",
     "stage": "migration-dir source replay",
     "outcome": "ok",
     "detail": "`schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target"
   },
   {
     "probe": "desired-state-workflow",
-    "fixture": "ptah atlas schema apply",
+    "fixture": "atlas schema apply",
     "stage": "migration-dir source without dev database",
     "outcome": "ok",
     "detail": "a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted"
   },
   {
     "probe": "desired-state-workflow",
-    "fixture": "ptah atlas schema apply",
+    "fixture": "atlas schema apply",
     "stage": "env:// source resolution",
     "outcome": "ok",
     "detail": "`schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target"
   },
   {
     "probe": "apply-simulation-workflow",
-    "fixture": "ptah atlas schema apply --lock-timeout",
+    "fixture": "atlas schema apply --lock-timeout",
     "stage": "lockless dialect note",
     "outcome": "ok",
     "detail": "`schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds"
   },
   {
     "probe": "apply-simulation-workflow",
-    "fixture": "ptah atlas schema apply --dev-url",
+    "fixture": "atlas schema apply --dev-url",
     "stage": "plan simulation success",
     "outcome": "ok",
     "detail": "`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target"
   },
   {
     "probe": "apply-simulation-workflow",
-    "fixture": "ptah atlas schema apply --dev-url",
+    "fixture": "atlas schema apply --dev-url",
     "stage": "failed simulation refuses the target",
     "outcome": "ok",
     "detail": "a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table"
   },
   {
     "probe": "apply-simulation-workflow",
-    "fixture": "ptah atlas schema apply --dev-url",
+    "fixture": "atlas schema apply --dev-url",
     "stage": "dev database must differ from target",
     "outcome": "ok",
     "detail": "pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched"
   },
   {
     "probe": "schema-scope-workflow",
-    "fixture": "ptah atlas schema apply --include",
+    "fixture": "atlas schema apply --include",
     "stage": "scoped apply leaves out-of-scope objects untouched",
     "outcome": "ok",
     "detail": "`schema apply --include scope_users` created only the selected table: the desired-but-unselected tables were not created and the pre-existing out-of-scope table survived"
   },
   {
     "probe": "schema-scope-workflow",
-    "fixture": "ptah atlas schema apply --include",
+    "fixture": "atlas schema apply --include",
     "stage": "repeated include values union",
     "outcome": "ok",
     "detail": "repeated --include values union: both selected tables were created while the unselected dependent table stayed out of the plan"
   },
   {
     "probe": "schema-scope-workflow",
-    "fixture": "ptah atlas schema apply --include",
+    "fixture": "atlas schema apply --include",
     "stage": "cross-scope foreign key refusal",
     "outcome": "ok",
     "detail": "selecting a table whose foreign key points at an unselected table is refused with the cross-scope dependency diagnostic and its remediation guidance"
   },
   {
     "probe": "schema-scope-workflow",
-    "fixture": "ptah atlas schema diff --include",
+    "fixture": "atlas schema diff --include",
     "stage": "malformed selector fails before the dev database",
     "outcome": "ok",
     "detail": "a malformed include selector fails with the deterministic diagnostic before any database work: the dev database file was never created"
   },
   {
     "probe": "inspect-source-workflow",
-    "fixture": "ptah atlas schema inspect",
+    "fixture": "atlas schema inspect",
     "stage": "local schema file over dev database",
     "outcome": "ok",
     "detail": "`schema inspect --url file://schema.sql --dev-url ...` materialized the file on the dev database and rendered its HCL; a scheme-less path resolves to the identical local-file inspection"
   },
   {
     "probe": "inspect-source-workflow",
-    "fixture": "ptah atlas schema inspect",
+    "fixture": "atlas schema inspect",
     "stage": "split export writes a deterministic tree",
     "outcome": "ok",
     "detail": "`{{ hcl . | split | write \"exported\" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout"
   },
   {
     "probe": "inspect-source-workflow",
-    "fixture": "ptah atlas schema inspect",
+    "fixture": "atlas schema inspect",
     "stage": "written tree reloads to the same schema",
     "outcome": "ok",
     "detail": "the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema"
   },
   {
     "probe": "inspect-source-workflow",
-    "fixture": "ptah atlas schema inspect --exclude",
+    "fixture": "atlas schema inspect --exclude",
     "stage": "resource and field selectors",
     "outcome": "ok",
     "detail": "--exclude filters resource selectors, accepts the documented [type=extension].version field selector, and refuses unsupported field-selector forms with a deterministic diagnostic"
   },
   {
     "probe": "qualifier-txmode-workflow",
-    "fixture": "ptah atlas migrate diff --qualifier",
+    "fixture": "atlas migrate diff --qualifier",
     "stage": "invalid qualifier fails before the dev database",
     "outcome": "ok",
     "detail": "an invalid --qualifier value is refused with the deterministic diagnostic before the dev database file exists and before any artifact is written"
   },
   {
     "probe": "qualifier-txmode-workflow",
-    "fixture": "ptah atlas migrate diff --qualifier",
+    "fixture": "atlas migrate diff --qualifier",
     "stage": "qualified artifacts are scoped to qualified dialects",
     "outcome": "ok",
     "detail": "a valid --qualifier on a dialect without schema-qualified DDL is refused pre-artifact with the documented scope diagnostic; qualified artifact content is measured on the database-backed tiers"
   },
   {
     "probe": "qualifier-txmode-workflow",
-    "fixture": "ptah atlas migrate diff",
+    "fixture": "atlas migrate diff",
     "stage": "concurrent-index policy on sqlite plans one transactional file",
     "outcome": "ok",
     "detail": "with diff.concurrent_index.create enabled in atlas.hcl, the SQLite plan stays one plain transactional file — no txmode directive, no CONCURRENTLY — exactly the documented dialect scope"
   },
   {
     "probe": "qualifier-txmode-workflow",
-    "fixture": "ptah atlas migrate apply",
+    "fixture": "atlas migrate apply",
     "stage": "concurrent-index artifact replays",
     "outcome": "ok",
     "detail": "the concurrent-index-policy artifact replays through `migrate apply`: the table exists and the Atlas revision row records the applied version"
   },
   {
     "probe": "qualifier-txmode-workflow",
-    "fixture": "ptah atlas migrate apply",
+    "fixture": "atlas migrate apply",
     "stage": "txmode-none directive executes outside a transaction",
     "outcome": "ok",
     "detail": "a `-- atlas:txmode none` migration executes outside a transaction (the statement before the failure persisted) while the identical transactional control rolled back cleanly"

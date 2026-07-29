@@ -14,7 +14,7 @@ const qualifierTxModeIssue = "stokaro/ptah#815"
 
 // QualifierTxModeWorkflowProbe executes the `migrate diff` qualifier and
 // txmode-metadata contracts from stokaro/ptah#815 through the real
-// `ptah atlas ...` CLI on ephemeral SQLite: an invalid `--qualifier` fails
+// `atlas ...` CLI on ephemeral SQLite: an invalid `--qualifier` fails
 // before the dev database exists, a valid qualifier is scoped to dialects
 // with schema-qualified DDL (refused pre-artifact on SQLite — qualified
 // artifact content itself needs a live PostgreSQL/MySQL dev database and is
@@ -88,7 +88,7 @@ func (q *qualifierTxModeWorkflow) expectNoArtifacts(fixture, stage, dir string) 
 
 func (q *qualifierTxModeWorkflow) invalidQualifierFailsBeforeDevDatabase() Result {
 	const (
-		fixture = "ptah atlas migrate diff --qualifier"
+		fixture = "atlas migrate diff --qualifier"
 		stage   = "invalid qualifier fails before the dev database"
 	)
 	dir, harness := q.emptyMigrationsDir(stage)
@@ -97,7 +97,7 @@ func (q *qualifierTxModeWorkflow) invalidQualifierFailsBeforeDevDatabase() Resul
 	}
 	devDB := filepath.Join(q.runRoot, "qualifier-never-dev.db")
 	result, failure := q.runCLI(stage,
-		"atlas", "migrate", "diff", "add_users",
+		"migrate", "diff", "add_users",
 		"--dir", "file://qualifier-migrations",
 		"--to", "file://schema.sql",
 		"--dev-url", sqliteURL(devDB),
@@ -126,7 +126,7 @@ func (q *qualifierTxModeWorkflow) invalidQualifierFailsBeforeDevDatabase() Resul
 
 func (q *qualifierTxModeWorkflow) qualifierScopedToQualifiedDialects() Result {
 	const (
-		fixture = "ptah atlas migrate diff --qualifier"
+		fixture = "atlas migrate diff --qualifier"
 		stage   = "qualified artifacts are scoped to qualified dialects"
 	)
 	dir, harness := q.emptyMigrationsDir(stage)
@@ -134,7 +134,7 @@ func (q *qualifierTxModeWorkflow) qualifierScopedToQualifiedDialects() Result {
 		return *harness
 	}
 	result, failure := q.runCLI(stage,
-		"atlas", "migrate", "diff", "add_users",
+		"migrate", "diff", "add_users",
 		"--dir", "file://qualifier-migrations",
 		"--to", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(q.runRoot, "qualifier-dev.db")),
@@ -160,14 +160,14 @@ func (q *qualifierTxModeWorkflow) qualifierScopedToQualifiedDialects() Result {
 
 func (q *qualifierTxModeWorkflow) concurrentIndexPolicyPlansSingleTransactionalFile() Result {
 	const (
-		fixture = "ptah atlas migrate diff"
+		fixture = "atlas migrate diff"
 		stage   = "concurrent-index policy on sqlite plans one transactional file"
 	)
 	if err := os.MkdirAll(filepath.Join(q.runRoot, "generated"), 0o750); err != nil {
 		return q.harnessFailure(stage, err)
 	}
 	result, failure := q.runCLI(stage,
-		"atlas", "migrate", "diff", "add_users",
+		"migrate", "diff", "add_users",
 		"--env", "local",
 	)
 	if failure != nil {
@@ -212,12 +212,12 @@ func (q *qualifierTxModeWorkflow) concurrentIndexPolicyPlansSingleTransactionalF
 
 func (q *qualifierTxModeWorkflow) concurrentIndexArtifactReplays() Result {
 	const (
-		fixture = "ptah atlas migrate apply"
+		fixture = "atlas migrate apply"
 		stage   = "concurrent-index artifact replays"
 	)
 	targetDB := filepath.Join(q.runRoot, "ci-target.db")
 	result, failure := q.runCLI(stage,
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", sqliteURL(targetDB),
 		"--dir", "file://generated",
 	)
@@ -241,14 +241,14 @@ func (q *qualifierTxModeWorkflow) concurrentIndexArtifactReplays() Result {
 
 func (q *qualifierTxModeWorkflow) txModeNoneDirectiveSemantics() Result {
 	const (
-		fixture = "ptah atlas migrate apply"
+		fixture = "atlas migrate apply"
 		stage   = "txmode-none directive executes outside a transaction"
 	)
 	// Both fixture directories hold a failing second migration whose first
 	// statement succeeds; only the txmode-none variant may keep that
 	// statement's table.
 	for _, dir := range []string{"txmode", "txmode-control"} {
-		hash, failure := q.runCLI(stage, "atlas", "migrate", "hash", "--dir", "file://"+dir)
+		hash, failure := q.runCLI(stage, "migrate", "hash", "--dir", "file://"+dir)
 		if failure != nil {
 			return *failure
 		}
@@ -259,7 +259,7 @@ func (q *qualifierTxModeWorkflow) txModeNoneDirectiveSemantics() Result {
 
 	noneDB := filepath.Join(q.runRoot, "txmode-none.db")
 	noneResult, failure := q.runCLI(stage,
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", sqliteURL(noneDB),
 		"--dir", "file://txmode",
 	)
@@ -277,7 +277,7 @@ func (q *qualifierTxModeWorkflow) txModeNoneDirectiveSemantics() Result {
 
 	controlDB := filepath.Join(q.runRoot, "txmode-control.db")
 	controlResult, failure := q.runCLI(stage,
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", sqliteURL(controlDB),
 		"--dir", "file://txmode-control",
 	)

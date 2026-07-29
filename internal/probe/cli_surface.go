@@ -13,7 +13,6 @@ import (
 
 const (
 	cliSurfaceIssue       = "stokaro/ptah#632"
-	cliSurfaceGapIssue    = "stokaro/ptah#510"
 	cliSurfaceCompatIssue = "stokaro/ptah#514"
 )
 
@@ -55,8 +54,9 @@ type helpDetails struct {
 }
 
 // ProbeCLISurface discovers the command tree from atlasBin and compares every
-// OSS command against both Ptah's namespaced CLI and the ptah-compat binary
-// named atlas.
+// OSS command against the ptah-compat binary named atlas — the single
+// Atlas-shaped surface Ptah ships since stokaro/ptah#850 removed the `ptah
+// atlas ...` namespace (the cli-exit-behavior probe pins that removal).
 func ProbeCLISurface(atlasBin string) ([]Result, CLISurfaceInventory, error) {
 	atlasBin = strings.TrimSpace(atlasBin)
 	if atlasBin == "" {
@@ -68,12 +68,10 @@ func ProbeCLISurface(atlasBin string) ([]Result, CLISurfaceInventory, error) {
 		return nil, CLISurfaceInventory{}, err
 	}
 
-	nativeBin, nativeErr := ptahBinary()
 	compatBin, compatErr := ptahCompatAtlasBinary()
 
 	results := inventoryResults(inventory)
-	results = append(results, buildComparisonResults("atlas-cli-surface-ptah-namespace", inventory, nativeBin, nativeErr, true)...)
-	results = append(results, buildComparisonResults("atlas-cli-surface-ptah-compat", inventory, compatBin, compatErr, false)...)
+	results = append(results, buildComparisonResults("atlas-cli-surface-ptah-compat", inventory, compatBin, compatErr)...)
 	return results, inventory, nil
 }
 
@@ -164,7 +162,7 @@ func inventoryResults(inventory CLISurfaceInventory) []Result {
 	return out
 }
 
-func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin string, buildErr error, native bool) []Result {
+func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin string, buildErr error) []Result {
 	var out []Result
 	if buildErr != nil {
 		return []Result{{probeName, "atlas", "build", Fail, "could not build Ptah CLI: " + oneLine(buildErr.Error()), ""}}
@@ -172,14 +170,8 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 
 	for _, atlasCmd := range inventory.Commands {
 		path := atlasCmd.Path
-		prefix := "ptah atlas"
-		issue := cliSurfaceGapIssue
-		if !native {
-			prefix = "atlas"
-			issue = cliSurfaceCompatIssue
-		} else {
-			path = append([]string{"atlas"}, atlasCmd.Path...)
-		}
+		const prefix = "atlas"
+		issue := cliSurfaceCompatIssue
 		display := displayCommand(prefix, atlasCmd.Path)
 		if atlasCmd.Classification == CLISurfaceOutOfScope {
 			if surface, ok := implementedProVerbSurfaces()[strings.Join(atlasCmd.Path, " ")]; ok {

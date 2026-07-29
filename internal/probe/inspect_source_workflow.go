@@ -14,7 +14,7 @@ const inspectSourceWorkflowSentinel = "_capability/inspect-source-workflow/SENTI
 const inspectSourceIssue = "stokaro/ptah#814"
 
 // InspectSourceWorkflowProbe executes the `schema inspect` source model from
-// stokaro/ptah#814 through the real `ptah atlas ...` CLI on ephemeral SQLite:
+// stokaro/ptah#814 through the real `atlas ...` CLI on ephemeral SQLite:
 // a local schema file is materialized on a dev database and introspected back
 // (with a scheme-less path classified as the same local-file source), the
 // split/write template exports a deterministic per-object tree whose files
@@ -57,11 +57,11 @@ type inspectSourceWorkflow struct {
 
 func (i *inspectSourceWorkflow) localFileOverDevDatabase() Result {
 	const (
-		fixture = "ptah atlas schema inspect"
+		fixture = "atlas schema inspect"
 		stage   = "local schema file over dev database"
 	)
 	result, failure := i.runCLI(stage,
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(i.runRoot, "insp-dev.db")),
 	)
@@ -81,7 +81,7 @@ func (i *inspectSourceWorkflow) localFileOverDevDatabase() Result {
 	// A scheme-less token is classified as the same local-file source — the
 	// #811/#814 source model that replaced the old missing-scheme rejection.
 	schemeless, failure := i.runCLI(stage,
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(i.runRoot, "insp-dev-schemeless.db")),
 	)
@@ -101,11 +101,11 @@ func (i *inspectSourceWorkflow) localFileOverDevDatabase() Result {
 
 func (i *inspectSourceWorkflow) splitWriteDeterministicTree() Result {
 	const (
-		fixture = "ptah atlas schema inspect"
+		fixture = "atlas schema inspect"
 		stage   = "split export writes a deterministic tree"
 	)
 	result, failure := i.runCLI(stage,
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(i.runRoot, "split-dev.db")),
 		"--format", `{{ hcl . | split | write "exported" }}`,
@@ -146,11 +146,11 @@ func (i *inspectSourceWorkflow) splitWriteDeterministicTree() Result {
 
 func (i *inspectSourceWorkflow) writtenTreeReloads() Result {
 	const (
-		fixture = "ptah atlas schema inspect"
+		fixture = "atlas schema inspect"
 		stage   = "written tree reloads to the same schema"
 	)
 	result, failure := i.runCLI(stage,
-		"atlas", "schema", "diff",
+		"schema", "diff",
 		"--from", "file://exported/tables/users.hcl",
 		"--from", "file://exported/tables/posts.hcl",
 		"--to", "file://schema.sql",
@@ -173,11 +173,11 @@ func (i *inspectSourceWorkflow) writtenTreeReloads() Result {
 
 func (i *inspectSourceWorkflow) excludeSelectors() Result {
 	const (
-		fixture = "ptah atlas schema inspect --exclude"
+		fixture = "atlas schema inspect --exclude"
 		stage   = "resource and field selectors"
 	)
 	excluded, failure := i.runCLI(stage,
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(i.runRoot, "excl-dev.db")),
 		"--exclude", "posts",
@@ -193,7 +193,7 @@ func (i *inspectSourceWorkflow) excludeSelectors() Result {
 	}
 	// The documented extension field selector parses and no-ops on SQLite.
 	fieldSelector, failure := i.runCLI(stage,
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(i.runRoot, "excl-field-dev.db")),
 		"--exclude", "[type=extension].version",
@@ -206,7 +206,7 @@ func (i *inspectSourceWorkflow) excludeSelectors() Result {
 	}
 	// An unsupported field-selector form is refused deterministically.
 	unsupported, failure := i.runCLI(stage,
-		"atlas", "schema", "inspect",
+		"schema", "inspect",
 		"--url", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(i.runRoot, "excl-bad-dev.db")),
 		"--exclude", "[type=table].version",

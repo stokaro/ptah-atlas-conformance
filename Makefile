@@ -67,11 +67,12 @@ budget-diff: probe-diff
 gate-diff:
 	$(GO_OFF) run ./cmd/gap-probe-diff -gate
 
-# The Atlas migrate runtime tier: run selected `ptah atlas migrate ...`
-# workflows against real local databases and inspect the resulting schema and
-# Atlas revision rows. Kept separate from offline txtar simulation so runtime
-# parity cannot be hidden by fixture parsing success. Regenerates
-# gaps-migrate-runtime.md / gaps-migrate-runtime.json and always exits 0.
+# The Atlas migrate runtime tier: run selected Atlas-form `migrate ...`
+# workflows on the ptah-compat binary against real local databases and inspect
+# the resulting schema and Atlas revision rows. Kept separate from offline
+# txtar simulation so runtime parity cannot be hidden by fixture parsing
+# success. Regenerates gaps-migrate-runtime.md / gaps-migrate-runtime.json and
+# always exits 0.
 probe-migrate-runtime:
 	$(GO_OFF) run ./cmd/gap-probe-migrate-runtime
 
@@ -105,8 +106,9 @@ gate-orm-providers:
 	$(GO_OFF) run ./cmd/gap-probe-orm-providers -gate
 
 # The CLI surface tier: build/read the pinned Atlas CE binary and compare its
-# command help/usage/flag inventory to both `ptah atlas ...` and a ptah-compat
-# binary named `atlas`. Regenerates cli-surface.md / cli-surface.json and
+# command help/usage/flag inventory to the ptah-compat binary named `atlas` —
+# the single Atlas-shaped surface since stokaro/ptah#850 removed the
+# `ptah atlas ...` namespace. Regenerates cli-surface.md / cli-surface.json and
 # always exits 0.
 probe-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe
@@ -118,7 +120,7 @@ budget-cli-surface: probe-cli-surface
 	$(GO_OFF) run ./cmd/gap-budget -report cli-surface.json -budget cli-surface-budget.txt
 
 # The full CLI surface gate: fail while any committed Atlas CE OSS command,
-# usage string, or long flag is not mirrored by both Ptah compatibility surfaces.
+# usage string, or long flag is not mirrored by the ptah-compat binary.
 gate-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe -gate
 

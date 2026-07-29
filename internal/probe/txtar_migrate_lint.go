@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// runTxtarMigrateLint drives Ptah's real `ptah atlas migrate lint` CLI over a
+// runTxtarMigrateLint drives the real `atlas migrate lint` CLI (ptah-compat) over a
 // txtar fixture's materialized migration directory. It proves Ptah's own Atlas
 // migrate-lint behavior end to end — the default analysis text report, the
 // destructive/data-dependent diagnostics, `-- atlas:nolint` suppression, the
@@ -38,11 +38,11 @@ func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
 	}
 
-	bin, err := ptahBinary()
+	bin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		// A build failure here is environmental (the go build ./... gate catches
 		// genuine breakage); degrade to unsupported rather than a false red.
-		return txtarCommandResult{unsupported: "atlas migrate lint (ptah CLI unavailable: " + oneLine(err.Error()) + ")"}, true
+		return txtarCommandResult{unsupported: "atlas migrate lint (ptah-compat CLI unavailable: " + oneLine(err.Error()) + ")"}, true
 	}
 
 	run, err := txtarExecMigrateLint(runtime, bin, plan)
@@ -114,8 +114,8 @@ func txtarPlanMigrateLint(fields []string) (txtarMigrateLintPlan, bool) {
 	return plan, true
 }
 
-// txtarMigrateLintRun is the outcome of one real `ptah atlas migrate lint`
-// invocation.
+// txtarMigrateLintRun is the outcome of one real `atlas migrate lint`
+// invocation on the ptah-compat binary.
 type txtarMigrateLintRun struct {
 	stdout string
 	stderr string
@@ -137,7 +137,7 @@ func txtarExecMigrateLint(runtime *txtarRuntime, bin string, plan txtarMigrateLi
 		return txtarMigrateLintRun{}, err
 	}
 
-	args := append([]string{"atlas", "migrate", "lint"}, txtarSubstituteDevURL(plan.cliArgs, devURL)...)
+	args := append([]string{"migrate", "lint"}, txtarSubstituteDevURL(plan.cliArgs, devURL)...)
 	stdout, stderr, runErr := commandStreams(bin, args, workdir)
 	run := txtarMigrateLintRun{stdout: stdout, stderr: stderr}
 	if runErr == nil {
@@ -149,7 +149,7 @@ func txtarExecMigrateLint(runtime *txtarRuntime, bin string, plan txtarMigrateLi
 		// error: surface it as a failed command so `! atlas migrate lint` matches
 		// and a bare command records the finding detail.
 		run.failed = true
-		run.err = fmt.Errorf("ptah atlas migrate lint exited %d: %s", exitErr.ExitCode(), oneLine(firstNonEmpty(stderr, stdout)))
+		run.err = fmt.Errorf("atlas migrate lint exited %d: %s", exitErr.ExitCode(), oneLine(firstNonEmpty(stderr, stdout)))
 		return run, nil
 	}
 	return txtarMigrateLintRun{}, runErr

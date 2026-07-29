@@ -18,7 +18,7 @@ const applySimulationIssue = "stokaro/ptah#812"
 const schemaApplyLockUnsupportedNote = `note: schema apply locking is not supported for dialect "sqlite"; --lock-timeout is ignored and the apply proceeds without a database lock`
 
 // ApplySimulationWorkflowProbe executes the `schema apply` guard rails from
-// stokaro/ptah#812 through the real `ptah atlas ...` CLI on ephemeral SQLite:
+// stokaro/ptah#812 through the real `atlas ...` CLI on ephemeral SQLite:
 // `--lock-timeout` is accepted (an explicit noted no-op on lockless SQLite),
 // `--dev-url` rehearses the exact plan on a reset dev database before the
 // target is touched, a failing rehearsal refuses the apply with the target
@@ -60,12 +60,12 @@ type applySimulationWorkflow struct {
 
 func (s *applySimulationWorkflow) lockTimeoutNotedNoOp() Result {
 	const (
-		fixture = "ptah atlas schema apply --lock-timeout"
+		fixture = "atlas schema apply --lock-timeout"
 		stage   = "lockless dialect note"
 	)
 	targetDB := filepath.Join(s.runRoot, "lock-target.db")
 	result, failure := s.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
 		"--lock-timeout", "10s",
@@ -98,7 +98,7 @@ func (s *applySimulationWorkflow) lockTimeoutNotedNoOp() Result {
 
 func (s *applySimulationWorkflow) simulationSuccess() Result {
 	const (
-		fixture = "ptah atlas schema apply --dev-url"
+		fixture = "atlas schema apply --dev-url"
 		stage   = "plan simulation success"
 	)
 	targetDB := filepath.Join(s.runRoot, "sim-target.db")
@@ -108,7 +108,7 @@ func (s *applySimulationWorkflow) simulationSuccess() Result {
 		return s.harnessFailure(stage, err)
 	}
 	result, failure := s.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
 		"--dev-url", sqliteURL(devDB),
@@ -139,7 +139,7 @@ func (s *applySimulationWorkflow) simulationSuccess() Result {
 
 func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
 	const (
-		fixture = "ptah atlas schema apply --dev-url"
+		fixture = "atlas schema apply --dev-url"
 		stage   = "failed simulation refuses the target"
 	)
 	// A hermetic scripted $EDITOR appends a statement that collides with the
@@ -152,7 +152,7 @@ func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
 	}
 	targetDB := filepath.Join(s.runRoot, "sim-fail-target.db")
 	result, failure := s.runCLIWithEnv(stage, []string{"EDITOR=" + editorPath, "VISUAL="},
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(s.runRoot, "sim-fail-dev.db")),
@@ -180,7 +180,7 @@ func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
 
 func (s *applySimulationWorkflow) devURLMustDifferFromTarget() Result {
 	const (
-		fixture = "ptah atlas schema apply --dev-url"
+		fixture = "atlas schema apply --dev-url"
 		stage   = "dev database must differ from target"
 	)
 	targetDB := filepath.Join(s.runRoot, "sim-same.db")
@@ -189,7 +189,7 @@ func (s *applySimulationWorkflow) devURLMustDifferFromTarget() Result {
 		return s.harnessFailure(stage, err)
 	}
 	result, failure := s.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
 		"--dev-url", sqliteURL(targetDB),

@@ -11,7 +11,7 @@ const schemaScopeWorkflowSentinel = "_capability/schema-scope-workflow/SENTINEL"
 const schemaScopeIssue = "stokaro/ptah#813"
 
 // SchemaScopeWorkflowProbe executes the `--schema`/`--include` scoping model
-// from stokaro/ptah#813 through the real `ptah atlas ...` CLI on ephemeral
+// from stokaro/ptah#813 through the real `atlas ...` CLI on ephemeral
 // SQLite: a scoped `schema apply` creates only the selected objects and
 // leaves out-of-scope objects (desired and pre-existing) untouched, repeated
 // `--include` values union, a selection whose objects depend on unselected
@@ -53,7 +53,7 @@ type schemaScopeWorkflow struct {
 
 func (s *schemaScopeWorkflow) scopedApplyLeavesOutOfScopeUntouched() Result {
 	const (
-		fixture = "ptah atlas schema apply --include"
+		fixture = "atlas schema apply --include"
 		stage   = "scoped apply leaves out-of-scope objects untouched"
 	)
 	targetDB := filepath.Join(s.runRoot, "scope-target.db")
@@ -63,7 +63,7 @@ func (s *schemaScopeWorkflow) scopedApplyLeavesOutOfScopeUntouched() Result {
 		return s.harnessFailure(stage, err)
 	}
 	result, failure := s.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
 		"--include", "scope_users",
@@ -89,12 +89,12 @@ func (s *schemaScopeWorkflow) scopedApplyLeavesOutOfScopeUntouched() Result {
 
 func (s *schemaScopeWorkflow) includeValuesUnion() Result {
 	const (
-		fixture = "ptah atlas schema apply --include"
+		fixture = "atlas schema apply --include"
 		stage   = "repeated include values union"
 	)
 	targetDB := filepath.Join(s.runRoot, "union-target.db")
 	result, failure := s.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
 		"--include", "scope_users",
@@ -116,12 +116,12 @@ func (s *schemaScopeWorkflow) includeValuesUnion() Result {
 
 func (s *schemaScopeWorkflow) crossScopeForeignKeyRefusal() Result {
 	const (
-		fixture = "ptah atlas schema apply --include"
+		fixture = "atlas schema apply --include"
 		stage   = "cross-scope foreign key refusal"
 	)
 	targetDB := filepath.Join(s.runRoot, "fk-target.db")
 	result, failure := s.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
 		"--include", "scope_groups",
@@ -145,12 +145,12 @@ func (s *schemaScopeWorkflow) crossScopeForeignKeyRefusal() Result {
 
 func (s *schemaScopeWorkflow) malformedSelectorFailsBeforeDevDatabase() Result {
 	const (
-		fixture = "ptah atlas schema diff --include"
+		fixture = "atlas schema diff --include"
 		stage   = "malformed selector fails before the dev database"
 	)
 	devDB := filepath.Join(s.runRoot, "never-dev.db")
 	result, failure := s.runCLI(stage,
-		"atlas", "schema", "diff",
+		"schema", "diff",
 		"--from", "file://empty.sql",
 		"--to", "file://schema.sql",
 		"--dev-url", sqliteURL(devDB),

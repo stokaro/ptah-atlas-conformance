@@ -15,7 +15,7 @@ const proDownWorkflowSentinel = "_capability/pro-down-workflow/SENTINEL"
 // and actually revert. Before #810 the bare verb defaulted to Ptah's native
 // revision table and silently rolled back nothing. Atlas keeps `migrate down`
 // in its Pro build, so this is a first-party capability probe on a real
-// SQLite database through the real `ptah atlas ...` CLI. The only extra flag
+// SQLite database through the real `atlas ...` CLI. The only extra flag
 // passed is `--confirm`, the non-interactive stand-in for the interactive
 // rollback confirmation; it does not touch revision-format resolution.
 type ProDownWorkflowProbe struct {
@@ -53,14 +53,14 @@ type proDownWorkflow struct {
 
 func (d *proDownWorkflow) atlasFormatApplication() Result {
 	const (
-		fixture = "ptah atlas migrate apply"
+		fixture = "atlas migrate apply"
 		stage   = "atlas-format application"
 	)
 	if harness := d.hashAtlasMigrations(stage); harness != nil {
 		return *harness
 	}
 	result, harness := d.runCLI(stage,
-		"atlas", "migrate", "apply",
+		"migrate", "apply",
 		"--url", d.appURL(),
 		"--dir", "file://migrations",
 	)
@@ -87,11 +87,11 @@ func (d *proDownWorkflow) atlasFormatApplication() Result {
 
 func (d *proDownWorkflow) bareRollback() Result {
 	const (
-		fixture = "ptah atlas migrate down"
+		fixture = "atlas migrate down"
 		stage   = "bare rollback"
 	)
 	result, harness := d.runCLI(stage,
-		"atlas", "migrate", "down",
+		"migrate", "down",
 		"--url", d.appURL(),
 		"--dir", "file://migrations",
 		"--confirm",

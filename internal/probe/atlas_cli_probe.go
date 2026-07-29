@@ -15,102 +15,63 @@ import (
 // probe's single emission. See testdata/atlas/_capability/atlas-cli/SENTINEL.
 const atlasCLISentinel = "_capability/atlas-cli/SENTINEL"
 
-// CLIVerb is one Atlas CLI command and the `ptah atlas ...` command that must
-// exist for Ptah to be a drop-in replacement for it.
+// CLIVerb is one Atlas CLI command and the command token path that must
+// resolve on the ptah-compat binary for Ptah to be a drop-in replacement.
 type CLIVerb struct {
 	// AtlasCmd is the upstream command, e.g. "atlas migrate diff".
 	AtlasCmd string
-	// Path is the ptah command token path that must resolve, e.g.
-	// {"atlas","migrate","diff"} for `ptah atlas migrate diff`.
+	// Path is the compat command token path that must resolve, e.g.
+	// {"migrate","diff"} for `atlas migrate diff` on the ptah-compat binary.
 	Path []string
 	// OSS is true for Apache-2.0 Atlas commands (parity targets). Cloud/registry
 	// and Pro-only commands are recorded but never gate.
 	OSS bool
 }
 
-// atlasCLIVerbs is the full Atlas CLI surface. OSS verbs must eventually resolve
-// under `ptah atlas ...`; cloud/registry/Pro verbs are out of OSS scope and only
-// recorded. The split is grounded in Atlas's documented open CLI feature
-// surface and current CLI reference. In particular, `atlas migrate down` is an
-// OSS versioned-migration command even though Ptah still has behavior and flag
-// gaps behind its resolving command path.
+// atlasCLIVerbs is the full Atlas CLI surface. OSS verbs must resolve on the
+// ptah-compat binary (built as `atlas`); cloud/registry/Pro verbs are out of
+// OSS scope and only recorded. The split is grounded in Atlas's documented
+// open CLI feature surface and current CLI reference. In particular, `atlas
+// migrate down` is an OSS versioned-migration command even though Ptah still
+// has behavior and flag gaps behind its resolving command path. Since
+// stokaro/ptah#850 the ptah-compat binary is the only Atlas-shaped surface:
+// the main `ptah` binary rejects the `atlas` namespace outright (pinned by the
+// cli-exit-behavior probe).
 var atlasCLIVerbs = []CLIVerb{
-	{"atlas version", []string{"atlas", "version"}, true},
-	{"atlas license", []string{"atlas", "license"}, true},
-	{"atlas schema inspect", []string{"atlas", "schema", "inspect"}, true},
-	{"atlas schema apply", []string{"atlas", "schema", "apply"}, true},
-	{"atlas schema diff", []string{"atlas", "schema", "diff"}, true},
-	{"atlas schema fmt", []string{"atlas", "schema", "fmt"}, true},
-	{"atlas schema clean", []string{"atlas", "schema", "clean"}, true},
-	{"atlas migrate apply", []string{"atlas", "migrate", "apply"}, true},
-	{"atlas migrate diff", []string{"atlas", "migrate", "diff"}, true},
-	{"atlas migrate down", []string{"atlas", "migrate", "down"}, true},
-	{"atlas migrate hash", []string{"atlas", "migrate", "hash"}, true},
-	{"atlas migrate import", []string{"atlas", "migrate", "import"}, true},
-	{"atlas migrate lint", []string{"atlas", "migrate", "lint"}, true},
-	{"atlas migrate new", []string{"atlas", "migrate", "new"}, true},
-	{"atlas migrate set", []string{"atlas", "migrate", "set"}, true},
-	{"atlas migrate status", []string{"atlas", "migrate", "status"}, true},
-	{"atlas migrate validate", []string{"atlas", "migrate", "validate"}, true},
+	{"atlas version", []string{"version"}, true},
+	{"atlas license", []string{"license"}, true},
+	{"atlas schema inspect", []string{"schema", "inspect"}, true},
+	{"atlas schema apply", []string{"schema", "apply"}, true},
+	{"atlas schema diff", []string{"schema", "diff"}, true},
+	{"atlas schema fmt", []string{"schema", "fmt"}, true},
+	{"atlas schema clean", []string{"schema", "clean"}, true},
+	{"atlas migrate apply", []string{"migrate", "apply"}, true},
+	{"atlas migrate diff", []string{"migrate", "diff"}, true},
+	{"atlas migrate down", []string{"migrate", "down"}, true},
+	{"atlas migrate hash", []string{"migrate", "hash"}, true},
+	{"atlas migrate import", []string{"migrate", "import"}, true},
+	{"atlas migrate lint", []string{"migrate", "lint"}, true},
+	{"atlas migrate new", []string{"migrate", "new"}, true},
+	{"atlas migrate set", []string{"migrate", "set"}, true},
+	{"atlas migrate status", []string{"migrate", "status"}, true},
+	{"atlas migrate validate", []string{"migrate", "validate"}, true},
 	// Cloud registry / Pro-only — recorded out of scope, never gated.
-	{"atlas schema test", []string{"atlas", "schema", "test"}, false},
-	{"atlas schema plan", []string{"atlas", "schema", "plan"}, false},
-	{"atlas schema push", []string{"atlas", "schema", "push"}, false},
-	{"atlas migrate checkpoint", []string{"atlas", "migrate", "checkpoint"}, false},
-	{"atlas migrate rebase", []string{"atlas", "migrate", "rebase"}, false},
-	{"atlas migrate rm", []string{"atlas", "migrate", "rm"}, false},
-	{"atlas migrate edit", []string{"atlas", "migrate", "edit"}, false},
-	{"atlas migrate push", []string{"atlas", "migrate", "push"}, false},
-	{"atlas migrate test", []string{"atlas", "migrate", "test"}, false},
-}
-
-// AtlasCLISurfaceProbe measures the `ptah atlas ...` drop-in CLI surface. For
-// each OSS Atlas verb it builds the real Ptah binary and asks whether the
-// matching `ptah atlas <verb>` command resolves. It is behavioral, not a static
-// assertion: the day Ptah registers an `atlas` namespace, the matching verbs
-// flip from gap to ok on their own.
-type AtlasCLISurfaceProbe struct{}
-
-func (AtlasCLISurfaceProbe) Name() string { return "atlas-cli-surface" }
-
-func (AtlasCLISurfaceProbe) Run(fx Fixture) []Result {
-	if fx.Name != atlasCLISentinel {
-		return nil
-	}
-	bin, err := ptahBinary()
-	if err != nil {
-		return []Result{{"atlas-cli-surface", atlasCLISentinel, "build", Fail,
-			"could not build the Ptah CLI to probe its command surface: " + oneLine(err.Error()), ""}}
-	}
-
-	var out []Result
-	for _, v := range atlasCLIVerbs {
-		if !v.OSS {
-			out = append(out, Result{"atlas-cli-surface", v.AtlasCmd, "out-of-scope", OK,
-				"cloud/registry or Pro-only Atlas command; not an OSS drop-in target", ""})
-			continue
-		}
-		wantUsage := "ptah " + strings.Join(v.Path, " ")
-		exists, cerr := commandResolves(bin, v.Path, wantUsage)
-		switch {
-		case cerr != nil:
-			out = append(out, Result{"atlas-cli-surface", v.AtlasCmd, "resolve", Fail,
-				"probing `ptah " + strings.Join(v.Path, " ") + "` failed: " + oneLine(cerr.Error()), ""})
-		case exists:
-			out = append(out, Result{"atlas-cli-surface", v.AtlasCmd, "resolve", OK,
-				"`ptah " + strings.Join(v.Path, " ") + "` resolves", ""})
-		default:
-			out = append(out, Result{"atlas-cli-surface", v.AtlasCmd, "resolve", Gap,
-				"Ptah has no `" + strings.Join(v.Path, " ") + "` command; the `ptah atlas ...` " +
-					"drop-in namespace is unimplemented", "stokaro/ptah#510"})
-		}
-	}
-	return out
+	{"atlas schema test", []string{"schema", "test"}, false},
+	{"atlas schema plan", []string{"schema", "plan"}, false},
+	{"atlas schema push", []string{"schema", "push"}, false},
+	{"atlas migrate checkpoint", []string{"migrate", "checkpoint"}, false},
+	{"atlas migrate rebase", []string{"migrate", "rebase"}, false},
+	{"atlas migrate rm", []string{"migrate", "rm"}, false},
+	{"atlas migrate edit", []string{"migrate", "edit"}, false},
+	{"atlas migrate push", []string{"migrate", "push"}, false},
+	{"atlas migrate test", []string{"migrate", "test"}, false},
 }
 
 // AtlasCompatBinarySurfaceProbe measures the binary-level drop-in surface. It
 // builds Ptah's compatibility binary under the executable name `atlas`, then
-// verifies the same OSS command paths without the native `ptah atlas` prefix.
+// verifies the OSS command paths in the exact shape Atlas callers use. Since
+// stokaro/ptah#850 removed the `ptah atlas ...` namespace, this is the only
+// Atlas-shaped command surface Ptah ships.
 type AtlasCompatBinarySurfaceProbe struct{}
 
 func (AtlasCompatBinarySurfaceProbe) Name() string { return "atlas-compat-binary-surface" }
@@ -132,8 +93,7 @@ func (AtlasCompatBinarySurfaceProbe) Run(fx Fixture) []Result {
 				"cloud/registry or Pro-only Atlas command; not an OSS drop-in target", ""})
 			continue
 		}
-		path := v.Path[1:]
-		exists, cerr := commandResolves(bin, path, v.AtlasCmd)
+		exists, cerr := commandResolves(bin, v.Path, v.AtlasCmd)
 		switch {
 		case cerr != nil:
 			out = append(out, Result{"atlas-compat-binary-surface", v.AtlasCmd, "resolve", Fail,
@@ -143,7 +103,7 @@ func (AtlasCompatBinarySurfaceProbe) Run(fx Fixture) []Result {
 				"`" + v.AtlasCmd + "` resolves through a ptah-compat binary named `atlas`", ""})
 		default:
 			out = append(out, Result{"atlas-compat-binary-surface", v.AtlasCmd, "resolve", Gap,
-				"Ptah compatibility binary named `atlas` has no `" + strings.Join(path, " ") + "` command",
+				"Ptah compatibility binary named `atlas` has no `" + strings.Join(v.Path, " ") + "` command",
 				"stokaro/ptah#514"})
 		}
 	}
@@ -162,11 +122,6 @@ func (AtlasCLIUtilityRuntimeProbe) Run(fx Fixture) []Result {
 		return nil
 	}
 
-	nativeBin, err := ptahBinary()
-	if err != nil {
-		return []Result{{"atlas-cli-utility-runtime", atlasCLISentinel, "build", Fail,
-			"could not build the Ptah CLI to probe Atlas utility runtime: " + oneLine(err.Error()), ""}}
-	}
 	compatBin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		return []Result{{"atlas-cli-utility-runtime", atlasCLISentinel, "build", Fail,
@@ -174,20 +129,6 @@ func (AtlasCLIUtilityRuntimeProbe) Run(fx Fixture) []Result {
 	}
 
 	checks := []atlasUtilityRuntimeCheck{
-		{
-			fixture:  "ptah atlas version",
-			bin:      nativeBin,
-			path:     []string{"atlas", "version"},
-			display:  "ptah atlas version",
-			contains: []string{"Version:", "Commit:"},
-		},
-		{
-			fixture:  "ptah atlas license",
-			bin:      nativeBin,
-			path:     []string{"atlas", "license"},
-			display:  "ptah atlas license",
-			contains: []string{"License: MIT", "does not use Atlas source code"},
-		},
 		{
 			fixture:  "ptah-compat atlas version",
 			bin:      compatBin,
@@ -207,12 +148,6 @@ func (AtlasCLIUtilityRuntimeProbe) Run(fx Fixture) []Result {
 	}
 
 	schemaFmtChecks := []atlasSchemaFmtRuntimeCheck{
-		{
-			fixture: "ptah atlas schema fmt",
-			bin:     nativeBin,
-			path:    []string{"atlas", "schema", "fmt"},
-			display: "ptah atlas schema fmt",
-		},
 		{
 			fixture: "ptah-compat atlas schema fmt",
 			bin:     compatBin,

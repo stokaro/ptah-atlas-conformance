@@ -1,5 +1,5 @@
 // Command cli-surface-probe compares the pinned Atlas CE help surface against
-// Ptah's Atlas compatibility command surfaces.
+// the ptah-compat binary, Ptah's single Atlas-shaped command surface.
 package main
 
 import (

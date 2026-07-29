@@ -1,2 +1,3 @@
-Capability sentinel for the atlas-cli-surface probe.
-This marker owns that probe's single per-verb emission; see internal/probe/atlas_cli_probe.go.
+Capability sentinel for the Atlas CLI-surface probes (atlas-compat-binary-surface
+and the other atlas-cli-* capability probes).
+This marker owns those probes' per-verb emissions; see internal/probe/atlas_cli_probe.go.

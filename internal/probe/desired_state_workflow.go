@@ -15,7 +15,7 @@ const desiredStateIssue = "stokaro/ptah#811"
 
 // DesiredStateWorkflowProbe executes the Atlas desired-state source model
 // Ptah implements for `schema diff` and `schema apply` (stokaro/ptah#811)
-// through the real `ptah atlas ...` CLI on ephemeral SQLite: a database URL
+// through the real `atlas ...` CLI on ephemeral SQLite: a database URL
 // as the `--from` diff source and as the `--to` apply source, a migration
 // directory replayed on a dev database (and refused deterministically before
 // the target is contacted when no dev database is configured), and an env://
@@ -71,7 +71,7 @@ func (d *desiredStateWorkflow) seedSourceDatabase(stage string) (string, *Result
 
 func (d *desiredStateWorkflow) databaseURLDiffSource() Result {
 	const (
-		fixture = "ptah atlas schema diff"
+		fixture = "atlas schema diff"
 		stage   = "database-url --from source"
 	)
 	sourceDB, harness := d.seedSourceDatabase(stage)
@@ -79,7 +79,7 @@ func (d *desiredStateWorkflow) databaseURLDiffSource() Result {
 		return *harness
 	}
 	result, failure := d.runCLI(stage,
-		"atlas", "schema", "diff",
+		"schema", "diff",
 		"--from", sqliteURL(sourceDB),
 		"--to", "file://to.sql",
 	)
@@ -103,7 +103,7 @@ func (d *desiredStateWorkflow) databaseURLDiffSource() Result {
 
 func (d *desiredStateWorkflow) databaseURLApplySource() Result {
 	const (
-		fixture = "ptah atlas schema apply"
+		fixture = "atlas schema apply"
 		stage   = "database-url --to source"
 	)
 	sourceDB, harness := d.seedSourceDatabase(stage)
@@ -112,7 +112,7 @@ func (d *desiredStateWorkflow) databaseURLApplySource() Result {
 	}
 	targetDB := filepath.Join(d.runRoot, "target-db.db")
 	result, failure := d.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", sqliteURL(sourceDB),
 		"--auto-approve",
@@ -137,7 +137,7 @@ func (d *desiredStateWorkflow) databaseURLApplySource() Result {
 
 func (d *desiredStateWorkflow) migrationDirReplay() Result {
 	const (
-		fixture = "ptah atlas schema apply"
+		fixture = "atlas schema apply"
 		stage   = "migration-dir source replay"
 	)
 	if failure := d.hashAtlasMigrations(stage); failure != nil {
@@ -145,7 +145,7 @@ func (d *desiredStateWorkflow) migrationDirReplay() Result {
 	}
 	targetDB := filepath.Join(d.runRoot, "target-mig.db")
 	result, failure := d.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://migrations",
 		"--dev-url", sqliteURL(filepath.Join(d.runRoot, "dev-mig.db")),
@@ -171,12 +171,12 @@ func (d *desiredStateWorkflow) migrationDirReplay() Result {
 
 func (d *desiredStateWorkflow) migrationDirWithoutDevDatabase() Result {
 	const (
-		fixture = "ptah atlas schema apply"
+		fixture = "atlas schema apply"
 		stage   = "migration-dir source without dev database"
 	)
 	targetDB := filepath.Join(d.runRoot, "target-nodev.db")
 	result, failure := d.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://migrations",
 		"--auto-approve",
@@ -201,12 +201,12 @@ func (d *desiredStateWorkflow) migrationDirWithoutDevDatabase() Result {
 
 func (d *desiredStateWorkflow) envSourceResolution() Result {
 	const (
-		fixture = "ptah atlas schema apply"
+		fixture = "atlas schema apply"
 		stage   = "env:// source resolution"
 	)
 	targetDB := filepath.Join(d.runRoot, "target-env.db")
 	result, failure := d.runCLI(stage,
-		"atlas", "schema", "apply",
+		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "env://src",
 		"--env", "dev",
