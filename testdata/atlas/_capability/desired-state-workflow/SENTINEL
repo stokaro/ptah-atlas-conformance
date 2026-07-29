@@ -1,0 +1,11 @@
+Capability sentinel for the desired-state-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/desired-state
+through the real Ptah CLI. It exercises the Atlas desired-state source model
+Ptah implements for `schema diff` and `schema apply` (stokaro/ptah#811):
+a live database URL as the `--from` diff source and as the `--to` apply
+source, an atlas.sum-covered migration directory replayed on a dev database
+(and refused with a deterministic diagnostic before the target database is
+contacted when no --dev-url is configured), and an env://src reference
+resolved through an evaluated atlas.hcl environment. All databases are
+ephemeral SQLite files in the scratch run directory.

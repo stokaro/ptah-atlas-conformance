@@ -98,11 +98,16 @@ var cliExitCatalog = []cliExitCase{
 		Issue:      "stokaro/ptah#727",
 	},
 	{
+		// Since stokaro/ptah#811/#814 a scheme-less token is a valid Ptah
+		// desired-state source (a local schema file), so the invalid-URL
+		// case pins an unsupported scheme instead. Atlas CE reports
+		// `unknown driver "bogus"` and Ptah `unsupported desired-state URL
+		// scheme "bogus"`: both name the quoted offending scheme on stderr.
 		Name: "invalid database URL",
 		Build: func(string) ([]string, error) {
-			return []string{"schema", "inspect", "--url", "not-a-valid-url"}, nil
+			return []string{"schema", "inspect", "--url", "bogus://foo"}, nil
 		},
-		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "missing scheme",
+		Want: exitFail, WantStream: exitStreamStderr, StderrClass: `"bogus"`,
 		Issue: "stokaro/ptah#688",
 	},
 	{

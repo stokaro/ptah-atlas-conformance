@@ -31,7 +31,7 @@ func (p ProTestWorkflowProbe) Run(fx Fixture) []Result {
 	if fx.Name != proTestWorkflowSentinel {
 		return nil
 	}
-	w, failure := newProWorkflowRuntime("pro-test-workflow", proTestWorkflowSentinel, p.FixtureRoot, p.Binary)
+	w, failure := newProWorkflowRuntime("pro-test-workflow", proTestWorkflowSentinel, p.FixtureRoot, p.Binary, proVerbsIssue)
 	if failure != nil {
 		return []Result{*failure}
 	}

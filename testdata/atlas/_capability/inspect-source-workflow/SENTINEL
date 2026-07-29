@@ -1,0 +1,12 @@
+Capability sentinel for the inspect-source-workflow probe.
+
+The probe executes committed fixtures under testdata/workflows/inspect-source
+through the real Ptah CLI. It exercises the `schema inspect` source and
+export model from stokaro/ptah#814: a local schema file is materialized on a
+dev database and introspected back (a scheme-less path is classified as the
+same local-file source — the model that replaced the old missing-scheme
+rejection), the `{{ hcl . | split | write "dir" }}` template exports the
+deterministic per-object tree whose written files reload as a multi-file
+desired state diffing as synced, and `--exclude` supports resource selectors
+plus the documented `[type=extension].version` field selector while refusing
+unsupported field-selector forms deterministically.
