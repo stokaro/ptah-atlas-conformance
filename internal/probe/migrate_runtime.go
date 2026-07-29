@@ -452,11 +452,11 @@ func diffSkipWorkdir(schema string) (string, func(), error) {
 		return "", nil, err
 	}
 	model := "package models\n\n" +
-		"//migrator:schema:table name=\"keep\" schema=\"" + schema + "\"\n" +
+		"//ptah:schema:table name=\"keep\" schema=\"" + schema + "\"\n" +
 		"type Keep struct {\n" +
-		"\t//migrator:schema:field name=\"id\" type=\"INTEGER\" primary=\"true\"\n" +
+		"\t//ptah:schema:field name=\"id\" type=\"INTEGER\" primary=\"true\"\n" +
 		"\tID int\n" +
-		"\t//migrator:schema:field name=\"note\" type=\"TEXT\"\n" +
+		"\t//ptah:schema:field name=\"note\" type=\"TEXT\"\n" +
 		"\tNote string\n" +
 		"}\n"
 	if err := os.WriteFile(filepath.Join(models, "models.go"), []byte(model), 0o600); err != nil {
