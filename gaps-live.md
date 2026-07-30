@@ -11,7 +11,7 @@ behavioral self-consistency probe, not an Atlas-authored fixture coverage score.
 Every fixture is covered. The conformance gate is green.
 
 - Live fixtures: `testdata/live` first-party Ptah schema fixtures
-- Ptah at `github.com/stokaro/ptah v0.1.2-0.20260729212524-83ff0ac6a163`
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260730164312-44563e575545`
 - Outcomes: **39 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
