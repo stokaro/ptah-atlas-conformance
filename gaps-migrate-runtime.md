@@ -13,7 +13,7 @@ apply uses pinned Atlas CE as an independent runtime oracle.
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE apply oracle pinned by atlas.version
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260730155909-668a0380b23e`
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260730162046-3d37ae3355e0`
 - Outcomes: **26 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
