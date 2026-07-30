@@ -54,7 +54,7 @@ func RunMigrateRuntime() []Result {
 
 	checks := []migrateRuntimeCheck{
 		func(bin string) Result {
-			return atlasProjectConfigStatusOracle(bin, DefaultAtlasBinary())
+			return atlasProjectConfigApplyOracle(bin, DefaultAtlasBinary())
 		},
 		sqliteMigrateApplyRecordsState,
 		sqliteMigrateSetRepairsRevisionState,
@@ -139,8 +139,8 @@ func sqliteMigrateApplyRecordsState(bin string) Result {
 		return migrateRuntimeGap(fixture, "inspect", detail)
 	}
 	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
-		{Version: "1", Description: "First", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
-		{Version: "2", Description: "Second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return migrateRuntimeGap(fixture, "revisions", detail)
 	}
@@ -211,7 +211,7 @@ func sqliteMigrateSetRepairsRevisionState(bin string) Result {
 	}
 	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
 		{Version: "1", Description: "first", Applied: 0, Total: 0, OperatorVersion: "Ptah"},
-		{Version: "2", Description: "Second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return migrateRuntimeGap(fixture, "revisions", detail)
 	}
@@ -308,7 +308,7 @@ func postgresMigrateApplyCustomRevisionsSchema(bin, dbURL string) Result {
 		return migrateRuntimeGap(fixture, "inspect", detail)
 	}
 	if detail := comparePostgresRevisions(conn, schema, []sqliteRevisionFact{
-		{Version: "1", Description: "First", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return migrateRuntimeGap(fixture, "revisions", detail)
 	}
@@ -355,8 +355,8 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, dbURL string) Result {
 		return migrateRuntimeGap(fixture, "inspect", detail)
 	}
 	if detail := comparePostgresRevisions(conn, schema, []sqliteRevisionFact{
-		{Version: "1", Description: "First", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
-		{Version: "2", Description: "Index", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "index", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return migrateRuntimeGap(fixture, "revisions", detail)
 	}
@@ -539,8 +539,8 @@ func mysqlMigrateApplyRecordsState(bin, dbURL string) Result {
 		return migrateRuntimeGap(fixture, "inspect", detail)
 	}
 	if detail := compareMySQLRevisions(conn, schema, []sqliteRevisionFact{
-		{Version: "1", Description: "First", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
-		{Version: "2", Description: "Second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return migrateRuntimeGap(fixture, "revisions", detail)
 	}

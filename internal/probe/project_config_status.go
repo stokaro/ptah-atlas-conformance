@@ -1,48 +1,24 @@
 package probe
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
-	"time"
 )
 
 const (
-	projectConfigStatusFixture = "sqlite/project-config-status-oracle"
-	projectConfigDatabaseEnv   = "PTAH_ATLAS_PROJECT_CONFIG_E2E_URL"
-	projectConfigStatusFormat  = "{{ json . }}"
+	projectConfigStatusFixture   = "sqlite/project-config-apply-oracle"
+	projectConfigDatabaseEnv     = "PTAH_ATLAS_PROJECT_CONFIG_E2E_URL"
+	projectConfigStatusFormat    = "{{ json . }}"
+	projectConfigAtlasProducer   = "atlas"
+	projectConfigPtahProducer    = "ptah"
+	projectConfigTimestampLayout = "2006-01-02 15:04:05.999999999Z07:00"
 )
 
-type projectConfigStatusFile struct {
-	Name        string
-	Version     string
-	Description string
-	Type        string
-}
-
-type projectConfigStatusFacts struct {
-	Available []projectConfigStatusFile
-	Applied   []projectConfigStatusFile
-	Pending   []projectConfigStatusFile
-	Current   string
-	Next      string
-	Status    string
-}
-
-type projectConfigCommandResult struct {
-	stdout string
-	stderr string
-}
-
-// atlasProjectConfigStatusOracle has Atlas CE create the revision state, then
-// compares Atlas and Ptah status facts from the same untouched Atlas project.
-func atlasProjectConfigStatusOracle(ptahBin, atlasBin string) Result {
+// atlasProjectConfigApplyOracle uses Atlas CE to create and finish a
+// brownfield migration, then compares Ptah against an Atlas-controlled clone.
+func atlasProjectConfigApplyOracle(ptahBin, atlasBin string) Result {
 	root, err := filepath.Abs(filepath.Join("testdata", "workflows", "project-config"))
 	if err != nil {
 		return migrateRuntimeFail(projectConfigStatusFixture, "setup", err)
@@ -53,105 +29,127 @@ func atlasProjectConfigStatusOracle(ptahBin, atlasBin string) Result {
 	}
 	defer func() { _ = os.RemoveAll(workDir) }()
 
-	dbPath := filepath.Join(workDir, "project-config.db")
-	dbURL := sqliteURL(dbPath)
-	configURL := fileURL(filepath.Join(root, "atlas.hcl"))
-	env := []string{
-		projectConfigDatabaseEnv + "=" + dbURL,
-		"ATLAS_NO_UPDATE_NOTIFIER=1",
+	startPath := filepath.Join(workDir, "brownfield-start.db")
+	controlPath := filepath.Join(workDir, "atlas-control.db")
+	candidatePath := filepath.Join(workDir, "ptah-candidate.db")
+
+	if _, err := projectConfigApply(atlasBin, root, startPath, "1"); err != nil {
+		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-bootstrap", err)
 	}
-	atlasSetOutput, err := projectConfigCommand(
-		atlasBin,
-		[]string{"migrate", "set", "20260719010000", "--env", "local", "--config", configURL},
-		root,
-		env,
-	)
+	bootstrapStatus, err := projectConfigStatus(atlasBin, root, startPath)
 	if err != nil {
-		return migrateRuntimeFail(
-			projectConfigStatusFixture,
-			"atlas-set",
-			fmt.Errorf(
-				"Atlas CE could not create the project revision state: %w: stdout=%s stderr=%s",
-				err,
-				oneLine(atlasSetOutput.stdout),
-				oneLine(atlasSetOutput.stderr),
-			),
-		)
+		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-bootstrap-status", err)
 	}
-	if strings.TrimSpace(atlasSetOutput.stderr) != "" {
+	bootstrapDatabase, err := inspectProjectConfigDatabase(startPath)
+	if err != nil {
+		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-bootstrap-inspect", err)
+	}
+	if problems := validateProjectConfigAtlasObservation(
+		bootstrapStatus,
+		bootstrapDatabase,
+		projectConfigExpectedBootstrapStatusFacts(),
+		projectConfigExpectedBootstrapDatabaseFacts(),
+		[]string{projectConfigAtlasProducer},
+	); len(problems) != 0 {
 		return migrateRuntimeFail(
 			projectConfigStatusFixture,
-			"atlas-set",
-			fmt.Errorf("Atlas CE migrate set wrote unexpected stderr: %s", oneLine(atlasSetOutput.stderr)),
+			"atlas-bootstrap-guard",
+			fmt.Errorf("atlas CE did not create the expected brownfield start: %s", strings.Join(problems, "; ")),
 		)
 	}
 
-	statusArgs := []string{
-		"migrate", "status",
-		"--env", "local",
-		"--config", configURL,
-		"--format", projectConfigStatusFormat,
+	if err := cloneProjectConfigDatabase(startPath, controlPath); err != nil {
+		return migrateRuntimeFail(projectConfigStatusFixture, "clone-control", err)
 	}
-	atlasOutput, err := projectConfigCommand(atlasBin, statusArgs, root, env)
+	if err := cloneProjectConfigDatabase(startPath, candidatePath); err != nil {
+		return migrateRuntimeFail(projectConfigStatusFixture, "clone-candidate", err)
+	}
+
+	if _, err := projectConfigApply(atlasBin, root, controlPath, ""); err != nil {
+		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-control-apply", err)
+	}
+	if _, err := projectConfigApply(ptahBin, root, candidatePath, ""); err != nil {
+		return projectConfigStatusGap("ptah-apply", err.Error())
+	}
+
+	controlStatus, err := projectConfigStatus(atlasBin, root, controlPath)
 	if err != nil {
-		return migrateRuntimeFail(
-			projectConfigStatusFixture,
-			"atlas-status",
-			fmt.Errorf(
-				"Atlas CE status oracle failed: %w: stdout=%s stderr=%s",
-				err,
-				oneLine(atlasOutput.stdout),
-				oneLine(atlasOutput.stderr),
-			),
-		)
+		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-control-status", err)
 	}
-	if strings.TrimSpace(atlasOutput.stderr) != "" {
-		return migrateRuntimeFail(
-			projectConfigStatusFixture,
-			"atlas-status",
-			fmt.Errorf("Atlas CE migrate status wrote unexpected stderr: %s", oneLine(atlasOutput.stderr)),
-		)
-	}
-	atlasFacts, err := parseProjectConfigStatusFacts(atlasOutput.stdout)
+	controlDatabase, err := inspectProjectConfigDatabase(controlPath)
 	if err != nil {
-		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-status", err)
+		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-control-inspect", err)
 	}
-	expected := projectConfigExpectedStatusFacts()
-	if !reflect.DeepEqual(atlasFacts, expected) {
+	if problems := validateProjectConfigAtlasObservation(
+		controlStatus,
+		controlDatabase,
+		projectConfigExpectedFinalStatusFacts(),
+		projectConfigExpectedFinalDatabaseFacts(),
+		[]string{projectConfigAtlasProducer, projectConfigAtlasProducer},
+	); len(problems) != 0 {
 		return migrateRuntimeFail(
 			projectConfigStatusFixture,
-			"atlas-status",
-			fmt.Errorf("Atlas CE fixture facts = %#v, want %#v", atlasFacts, expected),
+			"atlas-control-guard",
+			fmt.Errorf("atlas CE control did not produce the expected final state: %s", strings.Join(problems, "; ")),
 		)
 	}
 
-	ptahOutput, err := projectConfigCommand(ptahBin, statusArgs, root, env)
-	if err != nil {
-		return projectConfigStatusGap(
-			"ptah-status",
-			fmt.Sprintf(
-				"Ptah status failed: %v: stdout=%s stderr=%s",
-				err,
-				oneLine(ptahOutput.stdout),
-				oneLine(ptahOutput.stderr),
-			),
+	problems := make([]string, 0, 8)
+	ptahStatus, ptahStatusErr := projectConfigStatus(ptahBin, root, candidatePath)
+	if ptahStatusErr != nil {
+		problems = append(problems, "Ptah candidate status: "+ptahStatusErr.Error())
+	}
+	atlasCandidateStatus, atlasCandidateStatusErr := projectConfigStatus(atlasBin, root, candidatePath)
+	if atlasCandidateStatusErr != nil {
+		problems = append(problems, "Atlas CE reading Ptah candidate status: "+atlasCandidateStatusErr.Error())
+	}
+	candidateDatabase, candidateDatabaseErr := inspectProjectConfigDatabase(candidatePath)
+	if candidateDatabaseErr != nil {
+		problems = append(problems, "inspect Ptah candidate database: "+candidateDatabaseErr.Error())
+	}
+	if candidateDatabaseErr == nil {
+		problems = append(problems, compareProjectConfigDatabaseFacts(controlDatabase, candidateDatabase)...)
+		if ptahStatusErr == nil {
+			problems = append(
+				problems,
+				compareProjectConfigStatusFacts("Ptah", controlStatus, ptahStatus)...,
+			)
+			problems = append(
+				problems,
+				projectConfigStatusMetadataProblems(
+					"Ptah",
+					ptahStatus,
+					candidateDatabase.Revisions,
+					[]string{projectConfigAtlasProducer, projectConfigPtahProducer},
+				)...,
+			)
+		}
+		if atlasCandidateStatusErr == nil {
+			problems = append(
+				problems,
+				compareProjectConfigStatusFacts("Atlas CE reading Ptah", controlStatus, atlasCandidateStatus)...,
+			)
+			problems = append(
+				problems,
+				projectConfigStatusMetadataProblems(
+					"Atlas CE reading Ptah",
+					atlasCandidateStatus,
+					candidateDatabase.Revisions,
+					[]string{projectConfigAtlasProducer, projectConfigPtahProducer},
+				)...,
+			)
+		}
+		problems = append(
+			problems,
+			projectConfigRevisionMetadataProblems(
+				"Ptah candidate",
+				candidateDatabase.Revisions,
+				[]string{projectConfigAtlasProducer, projectConfigPtahProducer},
+			)...,
 		)
 	}
-	if strings.TrimSpace(ptahOutput.stderr) != "" {
-		return projectConfigStatusGap(
-			"ptah-status",
-			"Ptah migrate status wrote unexpected stderr: "+oneLine(ptahOutput.stderr),
-		)
-	}
-	ptahFacts, err := parseProjectConfigStatusFacts(ptahOutput.stdout)
-	if err != nil {
-		return projectConfigStatusGap("ptah-status", err.Error())
-	}
-	if !reflect.DeepEqual(ptahFacts, atlasFacts) {
-		return projectConfigStatusGap(
-			"compare",
-			fmt.Sprintf("Ptah facts = %#v, Atlas CE facts = %#v", ptahFacts, atlasFacts),
-		)
+	if len(problems) != 0 {
+		return projectConfigStatusGap("compare", strings.Join(problems, "; "))
 	}
 
 	return Result{
@@ -159,79 +157,10 @@ func atlasProjectConfigStatusOracle(ptahBin, atlasBin string) Result {
 		Fixture: projectConfigStatusFixture,
 		Stage:   "compare",
 		Outcome: OK,
-		Detail: "Atlas CE created the brownfield revision state, and Atlas CE and Ptah reported identical " +
-			"project-config available, applied, pending, current, next, and status facts",
+		Detail: "Atlas CE created a one-migration brownfield database, Atlas CE and Ptah independently applied " +
+			"the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision " +
+			"metadata, semantic dynamic metadata, and Atlas CE reading Ptah timestamps all matched the Atlas control",
 	}
-}
-
-func projectConfigExpectedStatusFacts() projectConfigStatusFacts {
-	return projectConfigStatusFacts{
-		Available: []projectConfigStatusFile{
-			{
-				Name:        "20260719010000_create_users.sql",
-				Version:     "20260719010000",
-				Description: "create_users",
-			},
-			{
-				Name:        "20260719010101_add_email.sql",
-				Version:     "20260719010101",
-				Description: "add_email",
-			},
-		},
-		Applied: []projectConfigStatusFile{
-			{
-				Version:     "20260719010000",
-				Description: "create_users",
-				Type:        "manually set",
-			},
-		},
-		Pending: []projectConfigStatusFile{
-			{
-				Name:        "20260719010101_add_email.sql",
-				Version:     "20260719010101",
-				Description: "add_email",
-			},
-		},
-		Current: "20260719010000",
-		Next:    "20260719010101",
-		Status:  "PENDING",
-	}
-}
-
-func parseProjectConfigStatusFacts(output string) (projectConfigStatusFacts, error) {
-	var document struct {
-		Available []projectConfigStatusFile
-		Applied   []projectConfigStatusFile
-		Pending   []projectConfigStatusFile
-		Current   string
-		Next      string
-		Status    string
-	}
-	if err := json.Unmarshal([]byte(output), &document); err != nil {
-		return projectConfigStatusFacts{}, fmt.Errorf("decode migrate status JSON: %w: %s", err, oneLine(output))
-	}
-	return projectConfigStatusFacts(document), nil
-}
-
-func projectConfigCommand(
-	bin string,
-	args []string,
-	dir string,
-	extraEnv []string,
-) (projectConfigCommandResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, bin, args...)
-	cmd.Dir = dir
-	cmd.Env = append(ptahCommandEnvironment(), extraEnv...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return projectConfigCommandResult{
-		stdout: stdout.String(),
-		stderr: stderr.String(),
-	}, err
 }
 
 func projectConfigStatusGap(stage, detail string) Result {
