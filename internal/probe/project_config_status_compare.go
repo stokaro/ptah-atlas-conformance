@@ -3,17 +3,29 @@ package probe
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
 )
+
+var projectConfigAtlasProducerPattern = regexp.MustCompile(
+	`^Atlas CLI v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$`,
+)
+
+type projectConfigRevisionRuntimeExpectation struct {
+	producer             string
+	window               projectConfigApplyWindow
+	minimumExecutionTime time.Duration
+	validateTimeline     bool
+}
 
 func validateProjectConfigAtlasObservation(
 	status projectConfigStatusFacts,
 	database projectConfigDatabaseFacts,
 	expectedStatus projectConfigStableStatusFacts,
 	expectedDatabase projectConfigDatabaseFacts,
-	expectedProducers []string,
+	expectedRuntime []projectConfigRevisionRuntimeExpectation,
 ) []string {
 	var problems []string
 	if got := stableProjectConfigStatusFacts(status); !equalProjectConfigStableStatus(got, expectedStatus) {
@@ -30,11 +42,11 @@ func validateProjectConfigAtlasObservation(
 	problems = append(problems, projectConfigRevisionDifferences("stable revision metadata", wantRevisions, gotRevisions)...)
 	problems = append(
 		problems,
-		projectConfigStatusMetadataProblems("Atlas CE", status, database.Revisions, expectedProducers)...,
+		projectConfigStatusMetadataProblems("Atlas CE", status, database.Revisions, expectedRuntime)...,
 	)
 	problems = append(
 		problems,
-		projectConfigRevisionMetadataProblems("Atlas CE", database.Revisions, expectedProducers)...,
+		projectConfigRevisionMetadataProblems("Atlas CE", database.Revisions, expectedRuntime)...,
 	)
 	return problems
 }
@@ -229,7 +241,7 @@ func projectConfigStatusMetadataProblems(
 	reader string,
 	status projectConfigStatusFacts,
 	revisions []projectConfigRevisionMetadata,
-	expectedProducers []string,
+	expectedRuntime []projectConfigRevisionRuntimeExpectation,
 ) []string {
 	var problems []string
 	if len(status.Applied) != len(revisions) {
@@ -238,17 +250,18 @@ func projectConfigStatusMetadataProblems(
 			fmt.Sprintf("%s status applied revision count = %d, database count = %d", reader, len(status.Applied), len(revisions)),
 		)
 	}
-	count := min(len(status.Applied), len(revisions), len(expectedProducers))
+	count := min(len(status.Applied), len(revisions), len(expectedRuntime))
 	for i := range count {
 		statusRevision := status.Applied[i]
 		databaseRevision := revisions[i]
+		expectation := expectedRuntime[i]
 		prefix := fmt.Sprintf("%s revision %s", reader, databaseRevision.Version)
 		statusTime, statusTimeErr := parseProjectConfigRevisionTime(statusRevision.ExecutedAt)
 		databaseTime, databaseTimeErr := parseProjectConfigRevisionTime(databaseRevision.ExecutedAt)
 		if statusTimeErr != nil {
 			problems = append(problems, prefix+" status timestamp: "+statusTimeErr.Error())
-		} else if !projectConfigTimestampIsPlausible(statusTime) {
-			problems = append(problems, prefix+" status timestamp is outside the plausible runtime range")
+		} else if !projectConfigTimestampIsInApplyWindow(statusTime, expectation.window) {
+			problems = append(problems, prefix+" status timestamp is outside its measured apply window")
 		}
 		if statusTimeErr == nil && databaseTimeErr == nil && !statusTime.Equal(databaseTime) {
 			problems = append(
@@ -259,8 +272,21 @@ func projectConfigStatusMetadataProblems(
 		if statusRevision.ExecutionTime == nil {
 			problems = append(problems, prefix+" status execution time is missing")
 		} else {
-			if *statusRevision.ExecutionTime < 0 {
-				problems = append(problems, prefix+" status execution time is negative")
+			executionTime := time.Duration(*statusRevision.ExecutionTime)
+			problems = append(
+				problems,
+				projectConfigExecutionTimeProblems(prefix+" status", *statusRevision.ExecutionTime, expectation)...,
+			)
+			if statusTimeErr == nil && expectation.validateTimeline {
+				problems = append(
+					problems,
+					projectConfigExecutionTimelineProblems(
+						prefix+" status",
+						statusTime,
+						executionTime,
+						expectation,
+					)...,
+				)
 			}
 			if *statusRevision.ExecutionTime != databaseRevision.ExecutionTime {
 				problems = append(
@@ -285,10 +311,10 @@ func projectConfigStatusMetadataProblems(
 				),
 			)
 		}
-		if got := projectConfigProducer(statusRevision.OperatorVersion); got != expectedProducers[i] {
+		if got := projectConfigProducer(statusRevision.OperatorVersion); got != expectation.producer {
 			problems = append(
 				problems,
-				fmt.Sprintf("%s status producer class = %q, want %q", prefix, got, expectedProducers[i]),
+				fmt.Sprintf("%s status producer class = %q, want %q", prefix, got, expectation.producer),
 			)
 		}
 	}
@@ -298,31 +324,40 @@ func projectConfigStatusMetadataProblems(
 func projectConfigRevisionMetadataProblems(
 	reader string,
 	revisions []projectConfigRevisionMetadata,
-	expectedProducers []string,
+	expectedRuntime []projectConfigRevisionRuntimeExpectation,
 ) []string {
 	var problems []string
-	if len(revisions) != len(expectedProducers) {
+	if len(revisions) != len(expectedRuntime) {
 		problems = append(
 			problems,
-			fmt.Sprintf("%s revision count = %d, producer expectation count = %d", reader, len(revisions), len(expectedProducers)),
+			fmt.Sprintf("%s revision count = %d, runtime expectation count = %d", reader, len(revisions), len(expectedRuntime)),
 		)
 	}
-	for i := range min(len(revisions), len(expectedProducers)) {
+	for i := range min(len(revisions), len(expectedRuntime)) {
 		revision := revisions[i]
+		expectation := expectedRuntime[i]
 		prefix := fmt.Sprintf("%s revision %s", reader, revision.Version)
 		executedAt, err := parseProjectConfigRevisionTime(revision.ExecutedAt)
 		if err != nil {
 			problems = append(problems, prefix+" timestamp: "+err.Error())
-		} else if !projectConfigTimestampIsPlausible(executedAt) {
-			problems = append(problems, prefix+" timestamp is outside the plausible runtime range")
-		}
-		if revision.ExecutionTime < 0 {
-			problems = append(problems, prefix+" execution time is negative")
-		}
-		if got := projectConfigProducer(revision.OperatorVersion); got != expectedProducers[i] {
+		} else if !projectConfigTimestampIsInApplyWindow(executedAt, expectation.window) {
+			problems = append(problems, prefix+" timestamp is outside its measured apply window")
+		} else if expectation.validateTimeline {
 			problems = append(
 				problems,
-				fmt.Sprintf("%s producer class = %q, want %q", prefix, got, expectedProducers[i]),
+				projectConfigExecutionTimelineProblems(
+					prefix,
+					executedAt,
+					time.Duration(revision.ExecutionTime),
+					expectation,
+				)...,
+			)
+		}
+		problems = append(problems, projectConfigExecutionTimeProblems(prefix, revision.ExecutionTime, expectation)...)
+		if got := projectConfigProducer(revision.OperatorVersion); got != expectation.producer {
+			problems = append(
+				problems,
+				fmt.Sprintf("%s producer class = %q, want %q", prefix, got, expectation.producer),
 			)
 		}
 	}
@@ -331,9 +366,9 @@ func projectConfigRevisionMetadataProblems(
 
 func projectConfigProducer(value string) string {
 	switch {
-	case strings.HasPrefix(value, "Atlas CLI "):
+	case projectConfigAtlasProducerPattern.MatchString(value):
 		return projectConfigAtlasProducer
-	case strings.HasPrefix(value, "Ptah"):
+	case value == "Ptah":
 		return projectConfigPtahProducer
 	default:
 		return ""
@@ -351,6 +386,57 @@ func parseProjectConfigRevisionTime(value string) (time.Time, error) {
 	return time.Time{}, errors.New("not an Atlas-readable timestamp")
 }
 
-func projectConfigTimestampIsPlausible(value time.Time) bool {
-	return value.After(time.Unix(0, 0)) && value.Before(time.Now().Add(5*time.Minute))
+func projectConfigTimestampIsInApplyWindow(value time.Time, window projectConfigApplyWindow) bool {
+	return !value.Before(window.startedAt.Add(-projectConfigDynamicMetadataTimeLag)) &&
+		!value.After(window.finishedAt.Add(projectConfigDynamicMetadataTimeLag))
+}
+
+func projectConfigExecutionTimeProblems(
+	prefix string,
+	value int64,
+	expectation projectConfigRevisionRuntimeExpectation,
+) []string {
+	var problems []string
+	executionTime := time.Duration(value)
+	if executionTime < expectation.minimumExecutionTime {
+		problems = append(
+			problems,
+			fmt.Sprintf(
+				"%s execution time = %s, want at least %s",
+				prefix,
+				executionTime,
+				expectation.minimumExecutionTime,
+			),
+		)
+	}
+	maximum := expectation.window.finishedAt.Sub(expectation.window.startedAt) +
+		projectConfigDynamicMetadataTimeLag
+	if executionTime > maximum {
+		problems = append(
+			problems,
+			fmt.Sprintf("%s execution time = %s, exceeds measured apply window %s", prefix, executionTime, maximum),
+		)
+	}
+	return problems
+}
+
+func projectConfigExecutionTimelineProblems(
+	prefix string,
+	executedAt time.Time,
+	executionTime time.Duration,
+	expectation projectConfigRevisionRuntimeExpectation,
+) []string {
+	latestFinish := expectation.window.finishedAt.Add(projectConfigDynamicMetadataTimeLag)
+	impliedFinish := executedAt.Add(executionTime)
+	if !impliedFinish.After(latestFinish) {
+		return nil
+	}
+	return []string{
+		fmt.Sprintf(
+			"%s implied finish %s exceeds measured apply finish %s",
+			prefix,
+			impliedFinish.Format(time.RFC3339Nano),
+			latestFinish.Format(time.RFC3339Nano),
+		),
+	}
 }

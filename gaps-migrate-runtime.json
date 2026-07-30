@@ -4,7 +4,7 @@
     "fixture": "sqlite/project-config-apply-oracle",
     "stage": "compare",
     "outcome": "ok",
-    "detail": "Atlas CE created a one-migration brownfield database, Atlas CE and Ptah independently applied the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision metadata, semantic dynamic metadata, and Atlas CE reading Ptah timestamps all matched the Atlas control"
+    "detail": "atlas community version v1.2.0 created a one-migration brownfield database, Atlas CE and Ptah independently applied the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision metadata, and storage classes matched the Atlas control; measured timing invariants, Ptah full-duration nanosecond units, producer identity, and Atlas CE reading Ptah state all passed"
   },
   {
     "probe": "migrate-runtime",

@@ -176,8 +176,8 @@ func projectConfigExpectedFinalStatusFacts() projectConfigStableStatusFacts {
 				Version:     "20260719010101",
 				Description: "add_email",
 				Type:        "applied",
-				Applied:     1,
-				Total:       1,
+				Applied:     3,
+				Total:       3,
 			},
 		},
 		Pending: []projectConfigStatusFile{},
@@ -206,6 +206,7 @@ func projectConfigExpectedBootstrapDatabaseFacts() projectConfigDatabaseFacts {
 				"20260719010000",
 				"create_users",
 				"xANbVwwQ0lhvq3faTPPDXbRZ+jffdTnZzv2IgEiH00Q=",
+				1,
 			),
 		},
 	}
@@ -237,23 +238,25 @@ func projectConfigExpectedFinalDatabaseFacts() projectConfigDatabaseFacts {
 				"20260719010000",
 				"create_users",
 				"xANbVwwQ0lhvq3faTPPDXbRZ+jffdTnZzv2IgEiH00Q=",
+				1,
 			),
 			projectConfigExpectedRevision(
 				"20260719010101",
 				"add_email",
-				"J0WFjRTPauaczMsgfgJ8YJFSypNN4RJIHCXBxSsm4mU=",
+				"u25T9Ckm3YWsejluAv488jadAP98IruCAi50hGWmuPo=",
+				3,
 			),
 		},
 	}
 }
 
-func projectConfigExpectedRevision(version, description, hash string) projectConfigRevisionMetadata {
+func projectConfigExpectedRevision(version, description, hash string, statements int64) projectConfigRevisionMetadata {
 	return projectConfigRevisionMetadata{
 		Version:                    version,
 		Description:                description,
 		Type:                       2,
-		Applied:                    1,
-		Total:                      1,
+		Applied:                    statements,
+		Total:                      statements,
 		ExecutedAtStorageClass:     "text",
 		ErrorStorageClass:          "text",
 		ErrorStatementStorageClass: "text",
