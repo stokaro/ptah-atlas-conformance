@@ -8,20 +8,22 @@ offline txtar-script simulator, this tier executes the real drop-in CLI and
 inspects revision rows and end database state directly. Project configuration
 apply uses pinned Atlas CE as an independent runtime oracle.
 
-## Status: PARITY on the current corpus
+## Status: NOT DONE — 1 non-OK observation(s)
 
-Every fixture is covered. The conformance gate is green.
+The conformance gate is **red** and stays red until these close. This is by
+design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE apply oracle pinned by atlas.version
 - Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801143612-01a39d5e8d96`
-- Outcomes: **37 ok**, **0 gap**, **0 fail**, **0 panic**
-- Full gate: **0 non-OK** (passes CI)
-- Regression budget input: **0 unwaived non-OK**, 0 waived
+- Outcomes: **38 ok**, **1 gap**, **0 fail**, **0 panic**
+- Full gate: **1 non-OK** (fails CI)
+- Regression budget input: **1 unwaived non-OK**, 0 waived
 
 ## Compared Schema Fact Categories
 
 - Migration apply: applied schema objects, Atlas revision rows, and post-apply status.
-- Checkpoints and apply-time integrity: `-- atlas:checkpoint` bootstrap-or-skip semantics and the atlas.sum checksum refusal on tampered hashed directories.
+- Checkpoints: `-- atlas:checkpoint` bootstrap-or-skip semantics on first-party fixtures and on Atlas's own vendored multi-checkpoint directory, including latest-checkpoint selection and post-checkpoint continuation.
+- Apply-time integrity: the atlas.sum checksum refusal on a *hashed* directory edited after hashing. The second Atlas branch — refusing a directory with no atlas.sum at all — is measured and currently red, tracked as stokaro/ptah#970.
 - Migration set: repair-state rows and subsequent application of only remaining migrations.
 - Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.
 - Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.
@@ -32,6 +34,7 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **gap** | migrate-runtime | `sqlite/unhashed-dir-apply-refusal` | apply | apply on an unhashed directory succeeded (exit 0) instead of refusing with the Atlas checksum-file-not-found shape: Migrating to version 20260801100335 from 1 pending migrations. Migration complete. Current version: 20260801100335 | #970 |
 | — | ok | migrate-runtime | `fidelity: sarif output shape` | shape | lint --format sarif emits SARIF 2.1.0 with a named driver and a result carrying ruleId, level, and a file:line location |  |
 | — | ok | migrate-runtime | `flyway/import-roundtrip` | import | flyway import mapped dotted versions, paired the undo as a down, and imported the repeatable as a one-time migration that validate accepts |  |
 | — | ok | migrate-runtime | `golang-migrate/import-roundtrip` | import | golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts |  |
@@ -58,6 +61,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `sqlite/tx-mode-all-diagnostic` | diagnostic | tx-mode all rejected a pre-migration check with exit 1 and the diagnostic on stderr without suggesting unavailable compat flag --skip-checks |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-file` | inspect | `--tx-mode file` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-none` | inspect | `--tx-mode none` leaves the expected SQLite state after a failed migration |  |
+| — | ok | migrate-runtime | `sqlite/upstream-partial-checkpoint` | inspect | Atlas's own partial-checkpoint fixture applied only the latest checkpoint plus the migration after it, matching the measured Atlas CE end schema and revision rows |  |
 | — | ok | schema-planning | `postgres/add-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/add-table` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/drop-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
@@ -69,3 +73,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | schema-planning | `postgres/modify-column-type-width` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/modify-column-varchar-length` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/modify-column-varchar-unbounded` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
+
+## Gaps by related issue
+
+- **stokaro/ptah#970** — 1 finding(s)

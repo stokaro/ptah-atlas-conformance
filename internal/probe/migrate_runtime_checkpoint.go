@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -18,6 +18,12 @@ import (
 // silently skipped on a database that already applied pre-checkpoint history;
 // `migrate apply` on a hashed directory whose files were edited after hashing
 // refuses with a checksum mismatch before executing anything.
+//
+// Apply-time integrity has two branches and Ptah currently implements one.
+// stokaro/ptah#955 scoped its fix to *hashed* directories, so the post-hash
+// edit branch is enforced while the missing-atlas.sum branch is not:
+// sqliteMigrateApplyUnhashedDirRefuses measures that divergence and is expected
+// red until stokaro/ptah#970 closes.
 
 const (
 	checkpointRuntimeVersion   = "20260801100335"
@@ -25,7 +31,14 @@ const (
 	checkpointRuntimePreTwo    = "20250801000002"
 	atlasRevisionTypeExecuted  = 2
 	checksumMismatchNeedle     = "checksum mismatch"
+	checksumNotFoundNeedle     = "checksum file not found"
 	checkpointRuntimeTamperSQL = "\n-- tampered comment, sum not rehashed\n"
+
+	// upstreamPartialCheckpointDir is Atlas's own multi-checkpoint fixture,
+	// vendored verbatim under third_party/. Using it for execution semantics —
+	// not just parsing — is what makes this family pin Atlas rather than pin
+	// Ptah: the files, their versions, and atlas.sum are all upstream-authored.
+	upstreamPartialCheckpointDir = "third_party/atlas/upstream/sql/migrate/testdata/partial-checkpoint"
 )
 
 func checkpointRuntimePreFiles() map[string]string {
@@ -92,7 +105,7 @@ func sqliteMigrateApplyCheckpointFreshBootstrap(bin string) Result {
 	if err != nil {
 		return migrateRuntimeExit(fixture, "status", status, err)
 	}
-	if !strings.Contains(status, "Pending Migrations: 0") {
+	if !migrateStatusReportsNoPending(status) {
 		return migrateRuntimeGap(fixture, "status", "status did not report 0 pending migrations after checkpoint bootstrap: "+oneLine(status))
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
@@ -164,7 +177,7 @@ func sqliteMigrateApplyCheckpointPreExistingSkips(bin string) Result {
 	if err != nil {
 		return migrateRuntimeExit(fixture, "status", status, err)
 	}
-	if !strings.Contains(status, "Pending Migrations: 0") {
+	if !migrateStatusReportsNoPending(status) {
 		return migrateRuntimeGap(fixture, "status", "status still reports the skipped checkpoint as pending: "+oneLine(status))
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
@@ -203,9 +216,8 @@ func sqliteMigrateApplyTamperedSumRefuses(bin string) Result {
 	if err == nil {
 		return migrateRuntimeGap(fixture, "apply", "apply on a tampered hashed directory succeeded without checksum verification: "+oneLine(output))
 	}
-	var exitErr *exec.ExitError
-	if !errors.As(err, &exitErr) {
-		return migrateRuntimeFail(fixture, "apply", err)
+	if detail := compareProcessExitCode(err, 1); detail != "" {
+		return migrateRuntimeGap(fixture, "apply", "tampered-directory refusal: "+detail)
 	}
 	if !strings.Contains(output, checksumMismatchNeedle) || !strings.Contains(output, "was edited") {
 		return migrateRuntimeGap(fixture, "apply", "tampered-directory refusal did not use the Atlas checksum-mismatch shape: "+oneLine(output))
@@ -215,6 +227,167 @@ func sqliteMigrateApplyTamperedSumRefuses(bin string) Result {
 	}
 	return Result{migrateRuntimeProbeName, fixture, "apply", OK,
 		"apply refused the tampered hashed directory with the Atlas checksum-mismatch shape before creating or touching the target database", ""}
+}
+
+// sqliteMigrateApplyUnhashedDirRefuses measures the second branch of Atlas's
+// apply-time integrity contract: a directory with no atlas.sum at all.
+//
+// Measured on pinned Atlas CE v1.2.0, apply refuses an unhashed directory with
+// exit 1 and "Error: checksum file not found", and never creates the target
+// database. ptah-compat instead applies it and exits 0, because
+// stokaro/ptah#955 scoped its fix to hashed directories and gated only the
+// mismatch branch.
+//
+// This check is expected RED until stokaro/ptah#970 closes. It is deliberately
+// not waived: the migrate-runtime budget carries the one observation instead,
+// so the divergence stays visible in the report rather than being suppressed.
+// It cites #970 directly rather than going through migrateRuntimeGap, whose
+// hardcoded umbrella issue would misattribute it.
+func sqliteMigrateApplyUnhashedDirRefuses(bin string) Result {
+	const fixture = "sqlite/unhashed-dir-apply-refusal"
+	gap := func(stage, detail string) Result {
+		return Result{migrateRuntimeProbeName, fixture, stage, Gap, detail, "stokaro/ptah#970"}
+	}
+
+	// Deliberately NOT hashed: no migrateRuntimeHash call, so the directory has
+	// no atlas.sum. That absence is the whole fixture.
+	root, migrations, cleanup, err := migrateRuntimeDir(checkpointRuntimeFiles())
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if _, statErr := os.Stat(filepath.Join(migrations, "atlas.sum")); !errors.Is(statErr, os.ErrNotExist) {
+		return migrateRuntimeFail(fixture, "setup", errors.New("fixture directory unexpectedly contains atlas.sum"))
+	}
+
+	dbPath := filepath.Join(root, "unhashed.db")
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err == nil {
+		return gap("apply", "apply on an unhashed directory succeeded (exit 0) instead of refusing with the Atlas checksum-file-not-found shape: "+oneLine(output))
+	}
+	if detail := compareProcessExitCode(err, 1); detail != "" {
+		return gap("apply", "unhashed-directory refusal: "+detail)
+	}
+	if !strings.Contains(output, checksumNotFoundNeedle) {
+		return gap("apply", "unhashed-directory refusal did not use the Atlas checksum-file-not-found shape: "+oneLine(output))
+	}
+	if _, statErr := os.Stat(dbPath); !errors.Is(statErr, os.ErrNotExist) {
+		return gap("inspect", "apply created the target database before refusing the unhashed directory")
+	}
+	return Result{migrateRuntimeProbeName, fixture, "apply", OK,
+		"apply refused the unhashed directory with the Atlas checksum-file-not-found shape before creating or touching the target database", ""}
+}
+
+// sqliteMigrateApplyUpstreamPartialCheckpoint runs Atlas's own vendored
+// multi-checkpoint fixture, pre-hashed upstream, through a real apply.
+//
+// It covers what the hand-written fixtures cannot: two checkpoints in one
+// directory plus a post-checkpoint migration. Measured Atlas CE v1.2.0 applies
+// only the LATEST checkpoint (version 5, three statements) and the migration
+// after it (version 6), leaving tbl_1..tbl_4 and exactly two revision rows.
+// Ptah matches that end state, so this pins Atlas-authored semantics rather
+// than a first-party restatement of them.
+func sqliteMigrateApplyUpstreamPartialCheckpoint(bin string) Result {
+	const fixture = "sqlite/upstream-partial-checkpoint"
+	files, err := upstreamPartialCheckpointFiles()
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	// Copied into a temp directory, atlas.sum included and never re-hashed, so
+	// the upstream checksums are what gate the apply.
+	root, migrations, cleanup, err := migrateRuntimeDir(files)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+
+	dbPath := filepath.Join(root, "upstream.db")
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "apply", output, err)
+	}
+
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = db.Close() }()
+	if detail := compareSQLiteTables(db, []string{"atlas_schema_revisions", "tbl_1", "tbl_2", "tbl_3", "tbl_4"}); detail != "" {
+		return migrateRuntimeGap(fixture, "inspect", detail)
+	}
+	// Only the latest checkpoint and what follows it: versions 1-4 are squashed
+	// by version 5 and must never appear as revision rows.
+	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
+		{Version: "5", Description: "checkpoint", Applied: 3, Total: 3, OperatorVersion: "Ptah"},
+		{Version: "6", Description: "sixth", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return migrateRuntimeGap(fixture, "revisions", detail)
+	}
+	if detail := compareSQLiteRevisionType(db, "5", atlasRevisionTypeExecuted); detail != "" {
+		return migrateRuntimeGap(fixture, "revisions", detail)
+	}
+
+	status, err := commandOutput(bin, []string{
+		"migrate", "status",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "status", status, err)
+	}
+	if !migrateStatusReportsNoPending(status) {
+		return migrateRuntimeGap(fixture, "status", "status did not report 0 pending migrations after the upstream partial-checkpoint apply: "+oneLine(status))
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		"Atlas's own partial-checkpoint fixture applied only the latest checkpoint plus the migration after it, matching the measured Atlas CE end schema and revision rows", ""}
+}
+
+// upstreamPartialCheckpointFiles reads Atlas's vendored partial-checkpoint
+// fixture, atlas.sum included, so the copy stays byte-identical to upstream.
+func upstreamPartialCheckpointFiles() (map[string]string, error) {
+	entries, err := os.ReadDir(upstreamPartialCheckpointDir)
+	if err != nil {
+		return nil, fmt.Errorf("reading vendored Atlas partial-checkpoint fixture: %w", err)
+	}
+	files := make(map[string]string, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(upstreamPartialCheckpointDir, entry.Name()))
+		if err != nil {
+			return nil, fmt.Errorf("reading %s: %w", entry.Name(), err)
+		}
+		files[entry.Name()] = string(content)
+	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("vendored Atlas partial-checkpoint fixture %s is empty", upstreamPartialCheckpointDir)
+	}
+	return files, nil
+}
+
+// atlasPendingFilesZero matches Atlas CE's status wording for "nothing pending"
+// ("-- Pending Files:   0"), which the repo also models in txtar_script.go.
+var atlasPendingFilesZero = regexp.MustCompile(`Pending Files:\s+0\b`)
+
+// migrateStatusReportsNoPending reports whether `migrate status` says nothing
+// is pending, accepting either tool's spelling.
+//
+// Ptah currently prints "Pending Migrations: 0"; Atlas CE v1.2.0 prints
+// "-- Pending Files:   0". Accepting both keeps these fixtures from turning red
+// for a *parity improvement* — if Ptah ever aligns its status wording with
+// Atlas, the checkpoint family must not be what blocks it. The revision-row
+// assertions beside this one carry the fixtures' real weight.
+func migrateStatusReportsNoPending(status string) bool {
+	return strings.Contains(status, "Pending Migrations: 0") || atlasPendingFilesZero.MatchString(status)
 }
 
 // compareSQLiteRevisionType checks the Atlas revision `type` bit flag of one

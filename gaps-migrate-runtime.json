@@ -71,10 +71,25 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/upstream-partial-checkpoint",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "Atlas's own partial-checkpoint fixture applied only the latest checkpoint plus the migration after it, matching the measured Atlas CE end schema and revision rows"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/tampered-sum-apply-refusal",
     "stage": "apply",
     "outcome": "ok",
     "detail": "apply refused the tampered hashed directory with the Atlas checksum-mismatch shape before creating or touching the target database"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/unhashed-dir-apply-refusal",
+    "stage": "apply",
+    "outcome": "gap",
+    "detail": "apply on an unhashed directory succeeded (exit 0) instead of refusing with the Atlas checksum-file-not-found shape: Migrating to version 20260801100335 from 1 pending migrations. Migration complete. Current version: 20260801100335",
+    "issue": "stokaro/ptah#970"
   },
   {
     "probe": "migrate-runtime",
