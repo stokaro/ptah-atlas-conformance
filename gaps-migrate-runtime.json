@@ -15,6 +15,48 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/apply-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply dry-run read stored revisions without mutation, planned only version 3 when pending, and planned nothing once fully applied"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/native-up-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "native ptah migrations up dry-run read version 1, planned only version 2, and preserved the complete SQLite schema and revision state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/apply-dry-run-fresh-target",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply dry-run planned version 1 on a fresh target without creating schema objects or revision metadata"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/down-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "formatted and default-output down dry-runs read stored version 2, honored --to-version, and preserved the complete SQLite schema and revision state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/down-missing-body-atomicity",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "dry-run and real down exited 1 with the diagnostic on stderr and rejected the incomplete rollback set before any SQLite schema or revision mutation"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/tx-mode-all-diagnostic",
+    "stage": "diagnostic",
+    "outcome": "ok",
+    "detail": "tx-mode all rejected a pre-migration check with exit 1 and the diagnostic on stderr without suggesting unavailable compat flag --skip-checks"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/checkpoint-fresh-bootstrap",
     "stage": "inspect",
     "outcome": "ok",
@@ -103,6 +145,13 @@
     "stage": "inspect",
     "outcome": "ok",
     "detail": "apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/apply-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "PostgreSQL apply dry-run read the custom-schema stored revision, planned only version 2, and left relations and revision identity state unchanged"
   },
   {
     "probe": "migrate-runtime",
@@ -201,5 +250,12 @@
     "stage": "inspect",
     "outcome": "ok",
     "detail": "apply created expected MySQL tables and Atlas revision rows"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/apply-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
   }
 ]
