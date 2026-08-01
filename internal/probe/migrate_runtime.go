@@ -75,6 +75,13 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxModeNoneKeepsPartialStatement,
 		sqliteMigrateApplyTxtarChecksGate,
 		sqliteMigrateApplyTxtarChecksErrorGate,
+		sqliteMigrateApplyTxtarNamedChecksOneOf,
+		sqliteMigrateApplyTxtarNamedChecksArchiveOrder,
+		sqliteMigrateApplyTxtarOneOfFailure,
+		sqliteMigrateApplyTxtarEmptyOneOfFailure,
+		sqliteMigrateApplyTxtarMultiRowFailure,
+		sqliteMigrateApplyTxtarMultiColumnFailure,
+		sqliteMigrateApplyTxtarZeroRowFailure,
 		sqliteMigrateStatusToleratesRevisionMetadataRow,
 		sqliteMigrateDownFailureLeavesRevisionsIntact,
 		func(string) Result { return migrationsImportGolangMigrate(nativeBin) },
@@ -90,6 +97,8 @@ func RunMigrateRuntime() []Result {
 				func(bin string) Result { return postgresMigrateApplyCustomRevisionsSchema(bin, target.URL) },
 				func(bin string) Result { return postgresMigrateApplyDryRunReadsStoredState(bin, target.URL) },
 				func(bin string) Result { return postgresMigrateNoTransactionConcurrentIndex(bin, target.URL) },
+				func(bin string) Result { return postgresMigrateTxtarCheckEscapeString(bin, target.URL) },
+				func(bin string) Result { return postgresMigrateTxtarCheckSessionIsolation(bin, target.URL) },
 				func(string) Result { return postgresGenerateDiffSkipDropTable(nativeBin, target.URL) },
 			)
 			pgURL := target.URL
@@ -97,10 +106,14 @@ func RunMigrateRuntime() []Result {
 				c := planningCatalog[i]
 				checks = append(checks, func(bin string) Result { return c.runPostgres(bin, pgURL) })
 			}
-		case "mysql":
+		case "mysql", "mariadb":
+			label := target.Label
 			checks = append(checks,
-				func(bin string) Result { return mysqlMigrateApplyRecordsState(bin, target.URL) },
-				func(bin string) Result { return mysqlMigrateApplyDryRunReadsStoredState(bin, target.URL) },
+				func(bin string) Result { return mysqlMigrateApplyRecordsState(bin, target.URL, label) },
+				func(bin string) Result { return mysqlMigrateApplyDryRunReadsStoredState(bin, target.URL, label) },
+				func(bin string) Result { return mysqlMigrateTxtarCheckCommentSemantics(bin, target.URL, label) },
+				func(bin string) Result { return mysqlMigrateTxtarCheckHiddenStatements(bin, target.URL, label) },
+				func(bin string) Result { return mysqlMigrateTxtarCheckNumericBody(bin, target.URL, label) },
 			)
 		}
 	}
@@ -115,6 +128,7 @@ func configuredMigrateRuntimeTargets(getenv func(string) string) []migrateRuntim
 	targets := []struct{ label, env string }{
 		{"postgres", "CONFORMANCE_POSTGRES_URL"},
 		{"mysql", "CONFORMANCE_MYSQL_URL"},
+		{"mariadb", "CONFORMANCE_MARIADB_URL"},
 	}
 	configured := make([]migrateRuntimeTarget, 0, len(targets))
 	for _, target := range targets {
@@ -532,6 +546,201 @@ func sqliteMigrateApplyTxtarChecksErrorGate(bin string) Result {
 		"an erroring checks.sql assertion failed closed: exit 1, the body did not run, and no revision row was recorded", ""}
 }
 
+func sqliteMigrateApplyTxtarNamedChecksOneOf(bin string) Result {
+	const fixture = "sqlite/txtar-named-checks-oneof"
+	root, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_first.sql": "CREATE TABLE users (id INTEGER PRIMARY KEY);\n",
+		"2_second.sql": `-- atlas:txtar
+
+-- checks/base.sql --
+SELECT 1;
+
+-- checks/alternatives.sql --
+-- atlas:assert oneof
+SELECT 0;
+SELECT 1;
+
+-- migration.sql --
+ALTER TABLE users ADD COLUMN email TEXT;
+`,
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+
+	dbPath := filepath.Join(root, "named-oneof.db")
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "apply", output, err)
+	}
+
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = db.Close() }()
+	var emailColumns int
+	if err := db.QueryRowContext(context.Background(),
+		`SELECT count(*) FROM pragma_table_info('users') WHERE name = 'email'`).Scan(&emailColumns); err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	if emailColumns != 1 {
+		return migrateRuntimeGap(fixture, "inspect", "named checks passed but migration.sql did not add users.email")
+	}
+	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "second", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return migrateRuntimeGap(fixture, "revisions", detail)
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		"ordered checks/*.sql sections ran before migration.sql and the oneof group passed when one of two assertions succeeded", ""}
+}
+
+type sqliteTxtarCheckFailureScenario struct {
+	fixture     string
+	checks      string
+	outputParts []string
+	detail      string
+}
+
+func sqliteMigrateApplyTxtarNamedChecksArchiveOrder(bin string) Result {
+	return runSQLiteTxtarCheckFailure(bin, sqliteTxtarCheckFailureScenario{
+		fixture: "sqlite/txtar-named-checks-archive-order",
+		checks: `-- checks/first.sql --
+SELECT 0;
+
+-- checks/second.sql --
+SELECT NULL;
+`,
+		outputParts: []string{"checks/first.sql#1", "was not satisfied"},
+		detail:      "named check files ran in archive order and the first failure blocked migration.sql without recording the migration",
+	})
+}
+
+func sqliteMigrateApplyTxtarOneOfFailure(bin string) Result {
+	return runSQLiteTxtarCheckFailure(bin, sqliteTxtarCheckFailureScenario{
+		fixture: "sqlite/txtar-oneof-all-false",
+		checks: `-- checks/alternatives.sql --
+-- atlas:assert oneof
+SELECT 0;
+SELECT NULL;
+`,
+		outputParts: []string{"checks/alternatives.sql", "none of 2 assertions passed"},
+		detail:      "a oneof group with no successful assertion failed closed before migration.sql and wrote no revision row",
+	})
+}
+
+func sqliteMigrateApplyTxtarEmptyOneOfFailure(bin string) Result {
+	return runSQLiteTxtarCheckFailure(bin, sqliteTxtarCheckFailureScenario{
+		fixture: "sqlite/txtar-oneof-empty",
+		checks: `-- checks/empty.sql --
+-- atlas:assert oneof
+`,
+		outputParts: []string{"checks/empty.sql", "none of 0 assertions passed"},
+		detail:      "an empty oneof group failed closed before migration.sql and wrote no revision row",
+	})
+}
+
+func sqliteMigrateApplyTxtarMultiRowFailure(bin string) Result {
+	return runSQLiteTxtarCheckFailure(bin, sqliteTxtarCheckFailureScenario{
+		fixture: "sqlite/txtar-check-multiple-rows",
+		checks: `-- checks/cardinality.sql --
+SELECT 1 UNION ALL SELECT 1;
+`,
+		outputParts: []string{"exactly one row", "got more than 1"},
+		detail:      "a multi-row assertion failed closed before migration.sql and wrote no revision row",
+	})
+}
+
+func sqliteMigrateApplyTxtarMultiColumnFailure(bin string) Result {
+	return runSQLiteTxtarCheckFailure(bin, sqliteTxtarCheckFailureScenario{
+		fixture: "sqlite/txtar-check-multiple-columns",
+		checks: `-- checks/cardinality.sql --
+SELECT 1, 1;
+`,
+		outputParts: []string{"exactly one column", "got 2"},
+		detail:      "a multi-column assertion failed closed before migration.sql and wrote no revision row",
+	})
+}
+
+func sqliteMigrateApplyTxtarZeroRowFailure(bin string) Result {
+	return runSQLiteTxtarCheckFailure(bin, sqliteTxtarCheckFailureScenario{
+		fixture: "sqlite/txtar-check-zero-rows",
+		checks: `-- checks/cardinality.sql --
+SELECT 1 WHERE 0;
+`,
+		outputParts: []string{"exactly one row", "got 0"},
+		detail:      "a zero-row assertion failed closed before migration.sql and wrote no revision row",
+	})
+}
+
+func runSQLiteTxtarCheckFailure(bin string, scenario sqliteTxtarCheckFailureScenario) Result {
+	const issue = "stokaro/ptah#964"
+	root, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_first.sql": "CREATE TABLE users (id INTEGER PRIMARY KEY);\n",
+		"2_second.sql": "-- atlas:txtar\n\n" + scenario.checks +
+			"\n-- migration.sql --\nALTER TABLE users ADD COLUMN email TEXT;\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(scenario.fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, scenario.fixture); result != nil {
+		return *result
+	}
+
+	dbPath := filepath.Join(root, "checks.db")
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err == nil {
+		return Result{migrateRuntimeProbeName, scenario.fixture, "apply", Gap,
+			"invalid txtar check unexpectedly applied: " + oneLine(output), issue}
+	}
+	if detail := compareProcessExitCode(err, 1); detail != "" {
+		return Result{migrateRuntimeProbeName, scenario.fixture, "apply", Gap,
+			detail + ": " + oneLine(output), issue}
+	}
+	for _, part := range scenario.outputParts {
+		if !strings.Contains(output, part) {
+			return Result{migrateRuntimeProbeName, scenario.fixture, "diagnostic", Gap,
+				fmt.Sprintf("apply output did not contain %q: %s", part, oneLine(output)), issue}
+		}
+	}
+
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		return migrateRuntimeFail(scenario.fixture, "inspect", err)
+	}
+	defer func() { _ = db.Close() }()
+	var emailColumns int
+	if err := db.QueryRowContext(context.Background(),
+		`SELECT count(*) FROM pragma_table_info('users') WHERE name = 'email'`).Scan(&emailColumns); err != nil {
+		return migrateRuntimeFail(scenario.fixture, "inspect", err)
+	}
+	if emailColumns != 0 {
+		return Result{migrateRuntimeProbeName, scenario.fixture, "inspect", Gap,
+			"migration.sql body ran despite the invalid txtar check", issue}
+	}
+	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return Result{migrateRuntimeProbeName, scenario.fixture, "revisions", Gap, detail, issue}
+	}
+	return Result{migrateRuntimeProbeName, scenario.fixture, "inspect", OK, scenario.detail, ""}
+}
+
 // migrateRuntimeRollbackConfirmation is what `ptah-compat migrate down` reads
 // from stdin at its confirmation prompt. Atlas's own `migrate down` has no
 // prompt at all, which is tracked as a drop-in divergence in
@@ -931,6 +1140,113 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, dbURL string) Result {
 		"`-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction", ""}
 }
 
+func postgresMigrateTxtarCheckEscapeString(bin, dbURL string) Result {
+	const fixture = "postgres/txtar-check-escape-string"
+	schema := migrateRuntimeIdentifier("ptah_rt_pg_check_escape")
+	_, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_escape.sql": "-- atlas:txtar\n\n" +
+			"-- checks/escape.sql --\n" +
+			"SELECT E'it\\'s; one literal' = E'it\\'s; one literal';\n\n" +
+			"-- migration.sql --\n" +
+			"CREATE TABLE " + quotePostgresIdentifier(schema) + ".escape_ok (id integer PRIMARY KEY);\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+	if result := cleanupPostgresRuntimeSchema(dbURL, schema, fixture); result != nil {
+		return *result
+	}
+	defer cleanupPostgresRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", dbURL,
+		"--dir", fileURL(migrations),
+		"--revisions-schema", schema,
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "apply", output, err)
+	}
+
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = conn.Close() }()
+	if detail := comparePostgresRelations(conn, schema, []string{"atlas_schema_revisions", "escape_ok"}); detail != "" {
+		return migrateRuntimeGap(fixture, "inspect", detail)
+	}
+	if detail := comparePostgresRevisions(conn, schema, []sqliteRevisionFact{
+		{Version: "1", Description: "escape", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return migrateRuntimeGap(fixture, "revisions", detail)
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		"PostgreSQL E-string semicolons remained inside one assertion and the guarded migration applied", ""}
+}
+
+func postgresMigrateTxtarCheckSessionIsolation(bin, dbURL string) Result {
+	const fixture = "postgres/txtar-check-session-isolation"
+	schema := migrateRuntimeIdentifier("ptah_rt_pg_check_session")
+	lockID := time.Now().UnixNano()
+	_, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_lock.sql": "-- atlas:txtar\n\n" +
+			"-- checks/session.sql --\n" +
+			fmt.Sprintf("SELECT pg_try_advisory_lock(%d);\n\n", lockID) +
+			"-- migration.sql --\n" +
+			"CREATE TABLE " + quotePostgresIdentifier(schema) + ".lock_ok (id integer PRIMARY KEY);\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+	if result := cleanupPostgresRuntimeSchema(dbURL, schema, fixture); result != nil {
+		return *result
+	}
+	defer cleanupPostgresRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", dbURL,
+		"--dir", fileURL(migrations),
+		"--revisions-schema", schema,
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "apply", output, err)
+	}
+
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = conn.Close() }()
+	if detail := comparePostgresRelations(conn, schema, []string{"atlas_schema_revisions", "lock_ok"}); detail != "" {
+		return migrateRuntimeGap(fixture, "inspect", detail)
+	}
+	if detail := comparePostgresRevisions(conn, schema, []sqliteRevisionFact{
+		{Version: "1", Description: "lock", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return migrateRuntimeGap(fixture, "revisions", detail)
+	}
+	var acquired bool
+	if err := conn.QueryRowContext(context.Background(), "SELECT pg_try_advisory_lock($1)", lockID).Scan(&acquired); err != nil {
+		return migrateRuntimeFail(fixture, "inspect-lock", err)
+	}
+	if !acquired {
+		return Result{migrateRuntimeProbeName, fixture, "inspect-lock", Gap,
+			"the pre-migration check leaked its PostgreSQL advisory lock into a live session", "stokaro/ptah#964"}
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		"the check ran on a disposable PostgreSQL session: migration.sql applied and its advisory lock was available afterward", ""}
+}
+
 // postgresGenerateDiffSkipDropTable exercises the ptah.yaml diff policy end to
 // end: given a database that still has a table the desired schema drops, plus a
 // `diff.skip: [drop_table]` policy, `ptah migrations generate` must omit the
@@ -1068,9 +1384,9 @@ func readGeneratedUpSQL(outDir string) (string, error) {
 	return sql.String(), nil
 }
 
-func mysqlMigrateApplyRecordsState(bin, dbURL string) Result {
-	const fixture = "mysql/apply-state"
-	schema := migrateRuntimeIdentifier("ptah_rt_mysql")
+func mysqlMigrateApplyRecordsState(bin, dbURL, label string) Result {
+	fixture := label + "/apply-state"
+	schema := migrateRuntimeIdentifier("ptah_rt_" + label)
 	_, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
 		"1_first.sql":  "CREATE TABLE " + quoteMySQLIdentifier(schema) + "." + quoteMySQLIdentifier("users") + " (id integer PRIMARY KEY);\n",
 		"2_second.sql": "CREATE TABLE " + quoteMySQLIdentifier(schema) + "." + quoteMySQLIdentifier("pets") + " (id integer PRIMARY KEY);\n",
@@ -1112,7 +1428,149 @@ func mysqlMigrateApplyRecordsState(bin, dbURL string) Result {
 		return migrateRuntimeGap(fixture, "revisions", detail)
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
-		"apply created expected MySQL tables and Atlas revision rows", ""}
+		"apply created expected " + mysqlFamilyDisplayName(label) + " tables and Atlas revision rows", ""}
+}
+
+func mysqlMigrateTxtarCheckCommentSemantics(bin, dbURL, label string) Result {
+	fixture := label + "/txtar-check-comment-semantics"
+	schema := migrateRuntimeIdentifier("ptah_rt_" + label + "_check_comments")
+	commentOpen := mysqlExecutableCommentOpen(label)
+	_, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_base.sql": "CREATE TABLE " + quoteMySQLIdentifier(schema) + ".base (id integer PRIMARY KEY);\n",
+		"2_checks.sql": "-- atlas:txtar\n\n" +
+			"-- checks/whole.sql --\n" + commentOpen + " SELECT 1 */;\n\n" +
+			"-- checks/expression.sql --\nSELECT 0 " + commentOpen + " + 1 */;\n\n" +
+			"-- checks/numeric.sql --\nSELECT " + commentOpen + "1234 + 1 */ = 1235;\n\n" +
+			"-- migration.sql --\nCREATE TABLE " + quoteMySQLIdentifier(schema) + ".checked (id integer PRIMARY KEY);\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+		return *result
+	}
+	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", dbURL,
+		"--dir", fileURL(migrations),
+		"--revisions-schema", schema,
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "apply", output, err)
+	}
+
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = conn.Close() }()
+	if detail := compareMySQLTables(conn, schema, []string{"atlas_schema_revisions", "base", "checked"}); detail != "" {
+		return migrateRuntimeGap(fixture, "inspect", detail)
+	}
+	if detail := compareMySQLRevisions(conn, schema, []sqliteRevisionFact{
+		{Version: "1", Description: "base", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "checks", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return migrateRuntimeGap(fixture, "revisions", detail)
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		mysqlFamilyDisplayName(label) + " executable comments and short numeric comment bodies retained their SQL semantics in named checks", ""}
+}
+
+type mysqlTxtarCheckFailureScenario struct {
+	fixtureSuffix string
+	check         string
+	outputParts   []string
+	detail        string
+}
+
+func mysqlMigrateTxtarCheckHiddenStatements(bin, dbURL, label string) Result {
+	schema := migrateRuntimeIdentifier("ptah_rt_" + label + "_check_hidden")
+	return runMySQLTxtarCheckFailure(bin, dbURL, label, schema, mysqlTxtarCheckFailureScenario{
+		fixtureSuffix: "txtar-check-hidden-statements",
+		check: mysqlExecutableCommentOpen(label) + " SELECT 1; COMMIT; CREATE TABLE " +
+			quoteMySQLIdentifier(schema) + ".hidden_must_not_run (id integer) */;",
+		outputParts: []string{"one read-only SELECT statement", "got 3 statements"},
+		detail:      "rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run",
+	})
+}
+
+func mysqlMigrateTxtarCheckNumericBody(bin, dbURL, label string) Result {
+	schema := migrateRuntimeIdentifier("ptah_rt_" + label + "_check_numeric")
+	return runMySQLTxtarCheckFailure(bin, dbURL, label, schema, mysqlTxtarCheckFailureScenario{
+		fixtureSuffix: "txtar-check-short-numeric-body",
+		check:         mysqlExecutableCommentOpen(label) + "1234 SELECT 1 */;",
+		outputParts:   []string{"check assertion must be a read-only SELECT statement"},
+		detail:        "treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed",
+	})
+}
+
+func runMySQLTxtarCheckFailure(
+	bin, dbURL, label, schema string,
+	scenario mysqlTxtarCheckFailureScenario,
+) Result {
+	fixture := label + "/" + scenario.fixtureSuffix
+	const issue = "stokaro/ptah#964"
+	_, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_base.sql": "CREATE TABLE " + quoteMySQLIdentifier(schema) + ".base (id integer PRIMARY KEY);\n",
+		"2_checks.sql": "-- atlas:txtar\n\n" +
+			"-- checks/executable.sql --\n" + scenario.check + "\n\n" +
+			"-- migration.sql --\nCREATE TABLE " + quoteMySQLIdentifier(schema) + ".body_must_not_run (id integer);\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+		return *result
+	}
+	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", dbURL,
+		"--dir", fileURL(migrations),
+		"--revisions-schema", schema,
+	})
+	if err == nil {
+		return Result{migrateRuntimeProbeName, fixture, "apply", Gap,
+			"invalid executable-comment check unexpectedly applied: " + oneLine(output), issue}
+	}
+	if detail := compareProcessExitCode(err, 1); detail != "" {
+		return Result{migrateRuntimeProbeName, fixture, "apply", Gap,
+			detail + ": " + oneLine(output), issue}
+	}
+	for _, part := range scenario.outputParts {
+		if !strings.Contains(output, part) {
+			return Result{migrateRuntimeProbeName, fixture, "diagnostic", Gap,
+				fmt.Sprintf("apply output did not contain %q: %s", part, oneLine(output)), issue}
+		}
+	}
+
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = conn.Close() }()
+	if detail := compareMySQLTables(conn, schema, []string{"atlas_schema_revisions", "base"}); detail != "" {
+		return Result{migrateRuntimeProbeName, fixture, "inspect", Gap, detail, issue}
+	}
+	if detail := compareMySQLRevisions(conn, schema, []sqliteRevisionFact{
+		{Version: "1", Description: "base", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return Result{migrateRuntimeProbeName, fixture, "revisions", Gap, detail, issue}
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		mysqlFamilyDisplayName(label) + " " + scenario.detail, ""}
 }
 
 // migrationsImportGolangMigrate exercises `ptah migrations import` end to end:
@@ -1528,6 +1986,20 @@ func quotePostgresIdentifier(identifier string) string {
 
 func quoteMySQLIdentifier(identifier string) string {
 	return "`" + strings.ReplaceAll(identifier, "`", "``") + "`"
+}
+
+func mysqlFamilyDisplayName(label string) string {
+	if label == "mariadb" {
+		return "MariaDB"
+	}
+	return "MySQL"
+}
+
+func mysqlExecutableCommentOpen(label string) string {
+	if label == "mariadb" {
+		return "/*M!"
+	}
+	return "/*!"
 }
 
 func cleanupPostgresRuntimeSchema(dbURL, schema, fixture string) *Result {
