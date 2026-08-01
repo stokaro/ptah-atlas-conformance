@@ -124,6 +124,8 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",
+			"Pre-migration checks: a failing txtar checks.sql assertion aborts the apply before any migration.sql statement, with the abort naming the failing check.",
+			"Revision metadata rows: dot-prefixed Atlas Pro rows (`.atlas_cloud_identifier`) are skipped by status math and preserved byte-identically.",
 			"PostgreSQL runtime behavior: custom revision schemas and `atlas:txmode none` for `CREATE INDEX CONCURRENTLY`.",
 			"MySQL runtime behavior: applied schema objects and Atlas revision rows.",
 		},

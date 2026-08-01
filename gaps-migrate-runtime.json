@@ -43,6 +43,20 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-checks-gate",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "failing txtar checks.sql aborted the apply before the body: exit 1, error names checks.sql#1, no schema change"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/revision-metadata-row",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "status stays clean with the `.atlas_cloud_identifier` metadata row present and the row survives byte-identically"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "golang-migrate/import-roundtrip",
     "stage": "import",
     "outcome": "ok",

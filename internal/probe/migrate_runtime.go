@@ -61,6 +61,8 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxModeAllRollsBack,
 		sqliteMigrateApplyTxModeFileKeepsPriorFiles,
 		sqliteMigrateApplyTxModeNoneKeepsPartialStatement,
+		sqliteMigrateApplyTxtarChecksGate,
+		sqliteMigrateStatusToleratesRevisionMetadataRow,
 		func(string) Result { return migrationsImportGolangMigrate(nativeBin) },
 		func(string) Result { return migrationsImportGoose(nativeBin) },
 		func(string) Result { return migrationsImportFlyway(nativeBin) },
@@ -269,6 +271,162 @@ func sqliteMigrateApplyTxMode(bin, fixture, mode string, wantTables []string) Re
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
 		"`--tx-mode " + mode + "` leaves the expected SQLite state after a failed migration", ""}
+}
+
+// sqliteMigrateApplyTxtarChecksGate proves an Atlas txtar checks.sql section is
+// enforced as a pre-migration gate on the compat surface (stokaro/ptah#956): a
+// failing assertion must abort the apply with a nonzero exit before any
+// migration.sql statement runs, matching the measured licensed Atlas build
+// (v1.2.4 trial) rather than CE, which executes the section as plain SQL.
+func sqliteMigrateApplyTxtarChecksGate(bin string) Result {
+	const fixture = "sqlite/txtar-checks-gate"
+	const issue = "stokaro/ptah#956"
+	root, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_first.sql": "CREATE TABLE users (id INTEGER PRIMARY KEY);\nINSERT INTO users (id) VALUES (1);\n",
+		"2_second.sql": "-- atlas:txtar\n\n" +
+			"-- checks.sql --\n" +
+			"SELECT NOT EXISTS (SELECT * FROM users);\n\n" +
+			"-- migration.sql --\n" +
+			"ALTER TABLE users ADD COLUMN email TEXT;\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+
+	dbPath := filepath.Join(root, "checks.db")
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err == nil {
+		return Result{migrateRuntimeProbeName, fixture, "apply", Gap,
+			"failing txtar checks.sql unexpectedly applied: " + oneLine(output), issue}
+	}
+	var exitErr *exec.ExitError
+	if !errors.As(err, &exitErr) {
+		return migrateRuntimeFail(fixture, "apply", err)
+	}
+	if !strings.Contains(output, "checks.sql#1") || !strings.Contains(output, "was not satisfied") {
+		return Result{migrateRuntimeProbeName, fixture, "apply", Gap,
+			"abort did not name the failing checks.sql assertion: " + oneLine(output), issue}
+	}
+
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = db.Close() }()
+	var emailColumns int
+	if err := db.QueryRowContext(context.Background(),
+		`SELECT count(*) FROM pragma_table_info('users') WHERE name = 'email'`).Scan(&emailColumns); err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	if emailColumns != 0 {
+		return Result{migrateRuntimeProbeName, fixture, "inspect", Gap,
+			"migration.sql body ran despite the failing checks.sql gate: users.email exists", issue}
+	}
+	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
+		{Version: "1", Description: "first", Applied: 2, Total: 2, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "second", Applied: 0, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return Result{migrateRuntimeProbeName, fixture, "revisions", Gap, detail, issue}
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		"failing txtar checks.sql aborted the apply before the body: exit 1, error names checks.sql#1, no schema change", ""}
+}
+
+// sqliteMigrateStatusToleratesRevisionMetadataRow proves the dot-prefixed
+// metadata row Atlas Pro `migrate down` writes (`.atlas_cloud_identifier`,
+// inserted even in purely local mode) does not break Ptah's revision readers
+// (stokaro/ptah#957): status stays clean, version math skips the row, and the
+// row survives byte-identically.
+func sqliteMigrateStatusToleratesRevisionMetadataRow(bin string) Result {
+	const fixture = "sqlite/revision-metadata-row"
+	const issue = "stokaro/ptah#957"
+	root, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_first.sql":  "CREATE TABLE users (id INTEGER PRIMARY KEY);\n",
+		"2_second.sql": "CREATE TABLE pets (id INTEGER PRIMARY KEY);\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+
+	dbPath := filepath.Join(root, "metadata.db")
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "apply", output, err)
+	}
+
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = db.Close() }()
+	// The measured Atlas Pro row shape: UUID description, applied=0, total=0,
+	// hash='', NULL error/error_stmt/partial_hashes.
+	if _, err := db.ExecContext(context.Background(),
+		`INSERT INTO atlas_schema_revisions
+(version, description, type, applied, total, executed_at, execution_time, error, error_stmt, hash, partial_hashes, operator_version)
+VALUES ('.atlas_cloud_identifier', '472fecf4-5a9c-431f-8ff1-8e1facd1d50b', 2, 0, 0, '2026-08-01 12:04:21.291103+02:00', 0, NULL, NULL, '', NULL, 'Atlas CLI v1.2.4-e282f76-canary')`); err != nil {
+		return migrateRuntimeFail(fixture, "seed-metadata-row", err)
+	}
+	rowBefore, err := sqliteMetadataRowLiteral(db)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "seed-metadata-row", err)
+	}
+
+	status, err := commandOutput(bin, []string{
+		"migrate", "status",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return Result{migrateRuntimeProbeName, fixture, "status", Gap,
+			"status aborted on the metadata row: " + oneLine(status), issue}
+	}
+	if !strings.Contains(status, "Current Version: 2") ||
+		!strings.Contains(status, "Applied Migrations: 2") ||
+		!strings.Contains(status, "Pending Migrations: 0") {
+		return Result{migrateRuntimeProbeName, fixture, "status", Gap,
+			"status math did not skip the metadata row: " + oneLine(status), issue}
+	}
+
+	rowAfter, err := sqliteMetadataRowLiteral(db)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	if rowAfter != rowBefore {
+		return Result{migrateRuntimeProbeName, fixture, "inspect", Gap,
+			fmt.Sprintf("metadata row changed: before %q, after %q", rowBefore, rowAfter), issue}
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		"status stays clean with the `.atlas_cloud_identifier` metadata row present and the row survives byte-identically", ""}
+}
+
+// sqliteMetadataRowLiteral renders the metadata row as one quote()-rendered
+// tuple so survival comparisons are byte-precise, including NULL vs ''.
+func sqliteMetadataRowLiteral(db *sql.DB) (string, error) {
+	var literal string
+	err := db.QueryRowContext(context.Background(),
+		`SELECT quote(version) || '|' || quote(description) || '|' || quote(type) || '|' ||
+quote(applied) || '|' || quote(total) || '|' || quote(executed_at) || '|' ||
+quote(execution_time) || '|' || quote(error) || '|' || quote(error_stmt) || '|' ||
+quote(hash) || '|' || quote(partial_hashes) || '|' || quote(operator_version)
+FROM atlas_schema_revisions WHERE version LIKE '.%'`).Scan(&literal)
+	return literal, err
 }
 
 func postgresMigrateApplyCustomRevisionsSchema(bin, dbURL string) Result {
