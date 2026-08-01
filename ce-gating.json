@@ -1,0 +1,184 @@
+[
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate hash",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate lint (destructive latest)",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 1; output contains \"destructive changes detected\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema diff",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"ALTER TABLE\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate diff",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate apply",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"2 migrations in total\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate status",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"Migration Status: OK\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema apply (declarative)",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"Planned Changes\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema push",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema push' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan --env",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema test",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema test' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate push",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate push' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate test",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate test' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate checkpoint",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate checkpoint' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate edit",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate edit' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate rebase",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate rebase' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate rm",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate rm' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate down (bare)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate down' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema apply --include",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema apply --include' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate ls",
+    "stage": "absent",
+    "outcome": "ok",
+    "detail": "class: absent — exit 0; the parent group help was printed instead of running the named subcommand"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate show",
+    "stage": "absent",
+    "outcome": "ok",
+    "detail": "class: absent — exit 0; the parent group help was printed instead of running the named subcommand"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema validate",
+    "stage": "absent",
+    "outcome": "ok",
+    "detail": "class: absent — exit 0; the parent group help was printed instead of running the named subcommand"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema stats",
+    "stage": "absent",
+    "outcome": "ok",
+    "detail": "class: absent — exit 0; the parent group help was printed instead of running the named subcommand"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema apply (role block)",
+    "stage": "silent-unenforced",
+    "outcome": "ok",
+    "detail": "class: silent-unenforced — exit 0; output contains \"Schema is synced\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate apply (failing txtar checks)",
+    "stage": "silent-unenforced",
+    "outcome": "ok",
+    "detail": "class: silent-unenforced — exit 0; output contains \"Migrating to version 20260101000002\", \"SELECT NOT EXISTS\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema inspect --env (composite_schema)",
+    "stage": "named-error",
+    "outcome": "ok",
+    "detail": "class: named-error — Error: missing data source handler for \"composite_schema\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema inspect --web",
+    "stage": "unknown-flag",
+    "outcome": "ok",
+    "detail": "class: unknown-flag — Error: unknown flag: --web"
+  }
+]
