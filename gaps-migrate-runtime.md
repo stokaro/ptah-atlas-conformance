@@ -13,8 +13,8 @@ apply uses pinned Atlas CE as an independent runtime oracle.
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE apply oracle pinned by atlas.version
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801122623-820bc1209f97`
-- Outcomes: **28 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801133616-bc27704d22e7`
+- Outcomes: **29 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -24,7 +24,8 @@ Every fixture is covered. The conformance gate is green.
 - Migration set: repair-state rows and subsequent application of only remaining migrations.
 - Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.
 - Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.
-- Pre-migration checks: a failing txtar checks.sql assertion aborts the apply before any migration.sql statement, with the abort naming the failing check.
+- Pre-migration checks: a failing txtar checks.sql assertion aborts the apply before any migration.sql statement, names the failing check, writes no revision row, and the retry after fixing the data succeeds.
+- Failed rollback bookkeeping: a down whose statement fails leaves the Atlas revision rows byte-identical and status still reporting the version applied, matching Atlas.
 - Revision metadata rows: dot-prefixed Atlas Pro rows (`.atlas_cloud_identifier`) are skipped by status math and preserved byte-identically.
 - PostgreSQL runtime behavior: custom revision schemas and `atlas:txmode none` for `CREATE INDEX CONCURRENTLY`.
 - MySQL runtime behavior: applied schema objects and Atlas revision rows.
@@ -43,13 +44,14 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `postgres/generate-diff-skip-drop-table` | generate | `diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change |  |
 | — | ok | migrate-runtime | `postgres/no-transaction-concurrent-index` | inspect | `-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction |  |
 | — | ok | migrate-runtime | `sqlite/apply-state` | inspect | apply created expected SQLite tables, Atlas revision rows, and applied status |  |
+| — | ok | migrate-runtime | `sqlite/down-failure-revisions` | inspect | a failed down left the Atlas revision rows byte-identical and status still reports the version applied, matching Atlas |  |
 | — | ok | migrate-runtime | `sqlite/project-config-apply-oracle` | compare | atlas community version v1.2.0 created a one-migration brownfield database, Atlas CE and Ptah independently applied the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision metadata, and storage classes matched the Atlas control; measured timing invariants, Ptah full-duration nanosecond units, producer identity, and Atlas CE reading Ptah state all passed |  |
 | — | ok | migrate-runtime | `sqlite/revision-metadata-row` | inspect | status stays clean with the `.atlas_cloud_identifier` metadata row present and the row survives byte-identically |  |
 | — | ok | migrate-runtime | `sqlite/set-repair-state` | inspect | set recorded repair state and apply executed only the remaining migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-all` | inspect | `--tx-mode all` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-file` | inspect | `--tx-mode file` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-none` | inspect | `--tx-mode none` leaves the expected SQLite state after a failed migration |  |
-| — | ok | migrate-runtime | `sqlite/txtar-checks-gate` | inspect | failing txtar checks.sql aborted the apply before the body: exit 1, error names checks.sql#1, no schema change |  |
+| — | ok | migrate-runtime | `sqlite/txtar-checks-gate` | inspect | failing txtar checks.sql aborted the apply before the body (exit 1, names checks.sql#1, no schema change, no revision row) and the retry after fixing the data succeeded |  |
 | — | ok | schema-planning | `postgres/add-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/add-table` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/drop-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |

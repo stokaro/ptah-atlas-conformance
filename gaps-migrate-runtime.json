@@ -46,7 +46,7 @@
     "fixture": "sqlite/txtar-checks-gate",
     "stage": "inspect",
     "outcome": "ok",
-    "detail": "failing txtar checks.sql aborted the apply before the body: exit 1, error names checks.sql#1, no schema change"
+    "detail": "failing txtar checks.sql aborted the apply before the body (exit 1, names checks.sql#1, no schema change, no revision row) and the retry after fixing the data succeeded"
   },
   {
     "probe": "migrate-runtime",
@@ -54,6 +54,13 @@
     "stage": "inspect",
     "outcome": "ok",
     "detail": "status stays clean with the `.atlas_cloud_identifier` metadata row present and the row survives byte-identically"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/down-failure-revisions",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "a failed down left the Atlas revision rows byte-identical and status still reports the version applied, matching Atlas"
   },
   {
     "probe": "migrate-runtime",

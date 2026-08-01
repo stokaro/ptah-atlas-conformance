@@ -63,6 +63,7 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxModeNoneKeepsPartialStatement,
 		sqliteMigrateApplyTxtarChecksGate,
 		sqliteMigrateStatusToleratesRevisionMetadataRow,
+		sqliteMigrateDownFailureLeavesRevisionsIntact,
 		func(string) Result { return migrationsImportGolangMigrate(nativeBin) },
 		func(string) Result { return migrationsImportGoose(nativeBin) },
 		func(string) Result { return migrationsImportFlyway(nativeBin) },
@@ -330,14 +331,144 @@ func sqliteMigrateApplyTxtarChecksGate(bin string) Result {
 		return Result{migrateRuntimeProbeName, fixture, "inspect", Gap,
 			"migration.sql body ran despite the failing checks.sql gate: users.email exists", issue}
 	}
+	// The blocked migration must leave no revision row at all: checks run before
+	// any bookkeeping write, so the apply is recorded as never started. Atlas
+	// behaves the same way, and it is what lets the retry below work without
+	// --allow-dirty, which the compat surface does not have.
 	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
 		{Version: "1", Description: "first", Applied: 2, Total: 2, OperatorVersion: "Ptah"},
-		{Version: "2", Description: "second", Applied: 0, Total: 1, OperatorVersion: "Ptah"},
 	}); detail != "" {
 		return Result{migrateRuntimeProbeName, fixture, "revisions", Gap, detail, issue}
 	}
+
+	// Recovery half: once the guarded data is fixed, the retry succeeds with no
+	// flags and no revision repair.
+	if _, err := db.ExecContext(context.Background(), "DELETE FROM users"); err != nil {
+		return migrateRuntimeFail(fixture, "fix-data", err)
+	}
+	retry, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return Result{migrateRuntimeProbeName, fixture, "retry", Gap,
+			"retry after fixing the checked data did not apply: " + oneLine(retry), issue}
+	}
+	if err := db.QueryRowContext(context.Background(),
+		`SELECT count(*) FROM pragma_table_info('users') WHERE name = 'email'`).Scan(&emailColumns); err != nil {
+		return migrateRuntimeFail(fixture, "retry", err)
+	}
+	if emailColumns != 1 {
+		return Result{migrateRuntimeProbeName, fixture, "retry", Gap,
+			"retry reported success but did not add users.email", issue}
+	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
-		"failing txtar checks.sql aborted the apply before the body: exit 1, error names checks.sql#1, no schema change", ""}
+		"failing txtar checks.sql aborted the apply before the body (exit 1, names checks.sql#1, no schema change, no revision row) and the retry after fixing the data succeeded", ""}
+}
+
+// sqliteMigrateDownFailureLeavesRevisionsIntact pins the Atlas-shaped surface's
+// failed-down bookkeeping (stokaro/ptah#957): measured against Atlas CLI v1.2.4,
+// a down whose statement fails rolls the body back and leaves the revision row
+// byte-identical, so `atlas migrate status` and `ptah-compat migrate status`
+// agree that the version is still applied.
+func sqliteMigrateDownFailureLeavesRevisionsIntact(bin string) Result {
+	const fixture = "sqlite/down-failure-revisions"
+	const issue = "stokaro/ptah#957"
+	root, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
+		"1_first.sql": "CREATE TABLE users (id INTEGER PRIMARY KEY);\n",
+		"2_second.sql": "-- atlas:txtar\n\n" +
+			"-- migration.sql --\n" +
+			"CREATE TABLE pets (id INTEGER PRIMARY KEY);\n\n" +
+			"-- down.sql --\n" +
+			"DROP TABLE pets;\n" +
+			"THIS IS A FAILING STATEMENT;\n",
+	})
+	if err != nil {
+		return migrateRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
+		return *result
+	}
+
+	dbPath := filepath.Join(root, "down.db")
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "apply", output, err)
+	}
+
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	defer func() { _ = db.Close() }()
+	before, err := sqliteRevisionTupleList(db)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+
+	down, err := commandOutput(bin, []string{
+		"migrate", "down",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+		"--to-version", "1",
+	})
+	if err == nil {
+		return Result{migrateRuntimeProbeName, fixture, "down", Gap,
+			"the broken down migration unexpectedly succeeded: " + oneLine(down), issue}
+	}
+
+	after, err := sqliteRevisionTupleList(db)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "inspect", err)
+	}
+	if !slices.Equal(before, after) {
+		return Result{migrateRuntimeProbeName, fixture, "revisions", Gap,
+			fmt.Sprintf("failed down rewrote revision rows: before %v, after %v", before, after), issue}
+	}
+
+	status, err := commandOutput(bin, []string{
+		"migrate", "status",
+		"--url", sqliteURL(dbPath),
+		"--dir", fileURL(migrations),
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "status", status, err)
+	}
+	if !strings.Contains(status, "Current Version: 2") {
+		return Result{migrateRuntimeProbeName, fixture, "status", Gap,
+			"status did not still report version 2 applied after the failed down: " + oneLine(status), issue}
+	}
+	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
+		"a failed down left the Atlas revision rows byte-identical and status still reports the version applied, matching Atlas", ""}
+}
+
+// sqliteRevisionTupleList renders each revision row as one quote()-based tuple
+// so a comparison is byte-precise, including NULL versus the empty string.
+func sqliteRevisionTupleList(db *sql.DB) ([]string, error) {
+	rows, err := db.QueryContext(context.Background(),
+		`SELECT quote(version) || '|' || quote(description) || '|' || quote(applied) || '|' ||
+quote(total) || '|' || quote(executed_at) || '|' || quote(execution_time) || '|' ||
+quote(error) || '|' || quote(error_stmt) || '|' || quote(hash) || '|' || quote(operator_version)
+FROM atlas_schema_revisions ORDER BY version`)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var tuples []string
+	for rows.Next() {
+		var tuple string
+		if err := rows.Scan(&tuple); err != nil {
+			return nil, err
+		}
+		tuples = append(tuples, tuple)
+	}
+	return tuples, rows.Err()
 }
 
 // sqliteMigrateStatusToleratesRevisionMetadataRow proves the dot-prefixed
