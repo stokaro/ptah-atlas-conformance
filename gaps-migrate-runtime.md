@@ -12,9 +12,9 @@ apply uses pinned Atlas CE as an independent runtime oracle.
 
 Every fixture is covered. The conformance gate is green.
 
-- Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE apply oracle pinned by atlas.version
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801183059-56c9d8fd2502`
-- Outcomes: **43 ok**, **0 gap**, **0 fail**, **0 panic**
+- Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply oracle pinned by atlas.version
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801191234-40f7d034b5ec`
+- Outcomes: **60 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -26,11 +26,12 @@ Every fixture is covered. The conformance gate is green.
 - Migration set: repair-state rows and subsequent application of only remaining migrations.
 - Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.
 - Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.
-- Pre-migration checks: a failing txtar checks.sql assertion aborts the apply before any migration.sql statement, names the failing check, writes no revision row, and the retry after fixing the data succeeds.
+- Pre-migration checks: checks.sql and ordered checks/*.sql groups run before migration.sql; oneof groups, including empty groups, fail closed; every assertion must return exactly one row and one column; blocked migrations write no revision row.
+- Check isolation and dialect semantics: PostgreSQL E-strings and advisory-lock release; MySQL and MariaDB executable comments, short numeric comment bodies, and hidden-statement rejection before query execution.
 - Failed rollback bookkeeping: a down whose statement fails leaves the Atlas revision rows byte-identical and status still reporting the version applied, matching Atlas.
 - Revision metadata rows: dot-prefixed Atlas Pro rows (`.atlas_cloud_identifier`) are skipped by status math and preserved byte-identically.
 - PostgreSQL runtime behavior: custom revision schemas and `atlas:txmode none` for `CREATE INDEX CONCURRENTLY`.
-- MySQL runtime behavior: applied schema objects and Atlas revision rows.
+- MySQL and MariaDB runtime behavior: applied schema objects, Atlas revision rows, stored-state dry-runs, and dialect-specific pre-migration checks.
 
 ## Findings
 
@@ -41,12 +42,22 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `golang-migrate/import-roundtrip` | import | golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts |  |
 | — | ok | migrate-runtime | `goose/import-roundtrip` | import | goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts |  |
 | — | ok | migrate-runtime | `liquibase/import-roundtrip` | import | liquibase import split formatted-SQL changesets into Ptah up/down pairs (rollback as down) that validate accepts |  |
+| — | ok | migrate-runtime | `mariadb/apply-dry-run-stored-state` | inspect | MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged |  |
+| — | ok | migrate-runtime | `mariadb/apply-state` | inspect | apply created expected MariaDB tables and Atlas revision rows |  |
+| — | ok | migrate-runtime | `mariadb/txtar-check-comment-semantics` | inspect | MariaDB executable comments and short numeric comment bodies retained their SQL semantics in named checks |  |
+| — | ok | migrate-runtime | `mariadb/txtar-check-hidden-statements` | inspect | MariaDB rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run |  |
+| — | ok | migrate-runtime | `mariadb/txtar-check-short-numeric-body` | inspect | MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed |  |
 | — | ok | migrate-runtime | `mysql/apply-dry-run-stored-state` | inspect | MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged |  |
 | — | ok | migrate-runtime | `mysql/apply-state` | inspect | apply created expected MySQL tables and Atlas revision rows |  |
+| — | ok | migrate-runtime | `mysql/txtar-check-comment-semantics` | inspect | MySQL executable comments and short numeric comment bodies retained their SQL semantics in named checks |  |
+| — | ok | migrate-runtime | `mysql/txtar-check-hidden-statements` | inspect | MySQL rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run |  |
+| — | ok | migrate-runtime | `mysql/txtar-check-short-numeric-body` | inspect | MySQL treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed |  |
 | — | ok | migrate-runtime | `postgres/apply-dry-run-stored-state` | inspect | PostgreSQL apply dry-run read the custom-schema stored revision, planned only version 2, and left relations and revision identity state unchanged |  |
 | — | ok | migrate-runtime | `postgres/custom-revisions-schema` | inspect | apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema |  |
 | — | ok | migrate-runtime | `postgres/generate-diff-skip-drop-table` | generate | `diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change |  |
 | — | ok | migrate-runtime | `postgres/no-transaction-concurrent-index` | inspect | `-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction |  |
+| — | ok | migrate-runtime | `postgres/txtar-check-escape-string` | inspect | PostgreSQL E-string semicolons remained inside one assertion and the guarded migration applied |  |
+| — | ok | migrate-runtime | `postgres/txtar-check-session-isolation` | inspect | the check ran on a disposable PostgreSQL session: migration.sql applied and its advisory lock was available afterward |  |
 | — | ok | migrate-runtime | `sqlite/apply-dry-run-fresh-target` | inspect | apply dry-run planned version 1 on a fresh target without creating schema objects or revision metadata |  |
 | — | ok | migrate-runtime | `sqlite/apply-dry-run-stored-state` | inspect | apply dry-run read stored revisions without mutation, planned only version 3 when pending, and planned nothing once fully applied |  |
 | — | ok | migrate-runtime | `sqlite/apply-state` | inspect | apply created expected SQLite tables, Atlas revision rows, and applied status |  |
@@ -64,8 +75,15 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `sqlite/tx-mode-all-diagnostic` | diagnostic | tx-mode all rejected a pre-migration check with exit 1 and the diagnostic on stderr without suggesting unavailable compat flag --skip-checks |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-file` | inspect | `--tx-mode file` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-none` | inspect | `--tx-mode none` leaves the expected SQLite state after a failed migration |  |
+| — | ok | migrate-runtime | `sqlite/txtar-check-multiple-columns` | inspect | a multi-column assertion failed closed before migration.sql and wrote no revision row |  |
+| — | ok | migrate-runtime | `sqlite/txtar-check-multiple-rows` | inspect | a multi-row assertion failed closed before migration.sql and wrote no revision row |  |
+| — | ok | migrate-runtime | `sqlite/txtar-check-zero-rows` | inspect | a zero-row assertion failed closed before migration.sql and wrote no revision row |  |
 | — | ok | migrate-runtime | `sqlite/txtar-checks-error-gate` | inspect | an erroring checks.sql assertion failed closed: exit 1, the body did not run, and no revision row was recorded |  |
 | — | ok | migrate-runtime | `sqlite/txtar-checks-gate` | inspect | failing txtar checks.sql aborted the apply before the body (exit 1, names checks.sql#1, no schema change, no revision row) and the retry after fixing the data succeeded |  |
+| — | ok | migrate-runtime | `sqlite/txtar-named-checks-archive-order` | inspect | named check files ran in archive order and the first failure blocked migration.sql without recording the migration |  |
+| — | ok | migrate-runtime | `sqlite/txtar-named-checks-oneof` | inspect | ordered checks/*.sql sections ran before migration.sql and the oneof group passed when one of two assertions succeeded |  |
+| — | ok | migrate-runtime | `sqlite/txtar-oneof-all-false` | inspect | a oneof group with no successful assertion failed closed before migration.sql and wrote no revision row |  |
+| — | ok | migrate-runtime | `sqlite/txtar-oneof-empty` | inspect | an empty oneof group failed closed before migration.sql and wrote no revision row |  |
 | — | ok | migrate-runtime | `sqlite/unhashed-dir-apply-refusal` | apply | apply refused the unhashed directory with the Atlas checksum-file-not-found shape before creating or touching the target database |  |
 | — | ok | migrate-runtime | `sqlite/upstream-partial-checkpoint` | inspect | Atlas's own partial-checkpoint fixture applied only the latest checkpoint plus the migration after it, matching the measured Atlas CE end schema and revision rows |  |
 | — | ok | schema-planning | `postgres/add-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |

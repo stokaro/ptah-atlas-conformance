@@ -117,7 +117,7 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"offline txtar-script simulator, this tier executes the real drop-in CLI and\n" +
 			"inspects revision rows and end database state directly. Project configuration\n" +
 			"apply uses pinned Atlas CE as an independent runtime oracle.\n\n",
-		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE apply oracle pinned by atlas.version",
+		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply oracle pinned by atlas.version",
 		PtahVersion: ptahVersion,
 		FactCategories: []string{
 			"Migration apply: applied schema objects, Atlas revision rows, and post-apply status.",
@@ -126,11 +126,12 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",
-			"Pre-migration checks: a failing txtar checks.sql assertion aborts the apply before any migration.sql statement, names the failing check, writes no revision row, and the retry after fixing the data succeeds.",
+			"Pre-migration checks: checks.sql and ordered checks/*.sql groups run before migration.sql; oneof groups, including empty groups, fail closed; every assertion must return exactly one row and one column; blocked migrations write no revision row.",
+			"Check isolation and dialect semantics: PostgreSQL E-strings and advisory-lock release; MySQL and MariaDB executable comments, short numeric comment bodies, and hidden-statement rejection before query execution.",
 			"Failed rollback bookkeeping: a down whose statement fails leaves the Atlas revision rows byte-identical and status still reporting the version applied, matching Atlas.",
 			"Revision metadata rows: dot-prefixed Atlas Pro rows (`.atlas_cloud_identifier`) are skipped by status math and preserved byte-identically.",
 			"PostgreSQL runtime behavior: custom revision schemas and `atlas:txmode none` for `CREATE INDEX CONCURRENTLY`.",
-			"MySQL runtime behavior: applied schema objects and Atlas revision rows.",
+			"MySQL and MariaDB runtime behavior: applied schema objects, Atlas revision rows, stored-state dry-runs, and dialect-specific pre-migration checks.",
 		},
 	})
 }

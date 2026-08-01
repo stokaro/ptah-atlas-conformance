@@ -9,11 +9,11 @@ on:
 jobs:
   # The migrate runtime tier runs real ptah-compat `atlas migrate ...` workflows
   # against real databases and inspects both end schema state and Atlas revision
-  # rows. PostgreSQL and MySQL use service containers; SQLite uses fresh local
-  # databases created by the probe. This PR workflow is a regression check: the
-  # committed report must be fresh, and the unwaived migrate-runtime gap count
-  # must not exceed the committed budget. Full migrate runtime parity remains
-  # `make gate-migrate-runtime` and is intentionally separate.
+  # rows. PostgreSQL, MySQL, and MariaDB use service containers; SQLite uses
+  # fresh local databases created by the probe. This PR workflow is a regression
+  # check: the committed report must be fresh, and the unwaived migrate-runtime
+  # gap count must not exceed the committed budget. Full migrate runtime parity
+  # remains `make gate-migrate-runtime` and is intentionally separate.
   migrate-runtime:
     runs-on: ubuntu-latest
     services:
@@ -42,9 +42,22 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 15
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: pw
+          MARIADB_DATABASE: conf
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "mariadb-admin ping -h 127.0.0.1 -uroot -ppw"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
     env:
       CONFORMANCE_POSTGRES_URL: postgres://postgres:pw@localhost:5432/conf?sslmode=disable
       CONFORMANCE_MYSQL_URL: mysql://root:pw@tcp(localhost:3306)/conf
+      CONFORMANCE_MARIADB_URL: mariadb://root:pw@tcp(localhost:3307)/conf
       ATLAS_BIN: ${{ github.workspace }}/bin/atlas
     steps:
       - uses: actions/checkout@v7

@@ -134,6 +134,55 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-named-checks-oneof",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "ordered checks/*.sql sections ran before migration.sql and the oneof group passed when one of two assertions succeeded"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-named-checks-archive-order",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "named check files ran in archive order and the first failure blocked migration.sql without recording the migration"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-oneof-all-false",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "a oneof group with no successful assertion failed closed before migration.sql and wrote no revision row"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-oneof-empty",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "an empty oneof group failed closed before migration.sql and wrote no revision row"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-check-multiple-rows",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "a multi-row assertion failed closed before migration.sql and wrote no revision row"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-check-multiple-columns",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "a multi-column assertion failed closed before migration.sql and wrote no revision row"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-check-zero-rows",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "a zero-row assertion failed closed before migration.sql and wrote no revision row"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/revision-metadata-row",
     "stage": "inspect",
     "outcome": "ok",
@@ -201,6 +250,20 @@
     "stage": "inspect",
     "outcome": "ok",
     "detail": "`-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/txtar-check-escape-string",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "PostgreSQL E-string semicolons remained inside one assertion and the guarded migration applied"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/txtar-check-session-isolation",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "the check ran on a disposable PostgreSQL session: migration.sql applied and its advisory lock was available afterward"
   },
   {
     "probe": "migrate-runtime",
@@ -299,5 +362,61 @@
     "stage": "inspect",
     "outcome": "ok",
     "detail": "MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/txtar-check-comment-semantics",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL executable comments and short numeric comment bodies retained their SQL semantics in named checks"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/txtar-check-hidden-statements",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/txtar-check-short-numeric-body",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/apply-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply created expected MariaDB tables and Atlas revision rows"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/apply-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/txtar-check-comment-semantics",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB executable comments and short numeric comment bodies retained their SQL semantics in named checks"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/txtar-check-hidden-statements",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/txtar-check-short-numeric-body",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
   }
 ]

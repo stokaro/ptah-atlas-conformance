@@ -591,9 +591,9 @@ func postgresMigrateApplyDryRunReadsStoredState(bin, dbURL string) Result {
 		"PostgreSQL apply dry-run read the custom-schema stored revision, planned only version 2, and left relations and revision identity state unchanged", ""}
 }
 
-func mysqlMigrateApplyDryRunReadsStoredState(bin, dbURL string) Result {
-	const fixture = "mysql/apply-dry-run-stored-state"
-	schema := migrateRuntimeIdentifier("ptah_rt_mysql_dry_run")
+func mysqlMigrateApplyDryRunReadsStoredState(bin, dbURL, label string) Result {
+	fixture := label + "/apply-dry-run-stored-state"
+	schema := migrateRuntimeIdentifier("ptah_rt_" + label + "_dry_run")
 	_, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
 		"1_users.sql": "CREATE TABLE " + quoteMySQLIdentifier(schema) + "." + quoteMySQLIdentifier("users") + " (id integer PRIMARY KEY);\n",
 		"2_pets.sql":  "CREATE TABLE " + quoteMySQLIdentifier(schema) + "." + quoteMySQLIdentifier("pets") + " (id integer PRIMARY KEY);\n",
@@ -688,13 +688,14 @@ func mysqlMigrateApplyDryRunReadsStoredState(bin, dbURL string) Result {
 		afterSchema != beforeSchema ||
 		!slices.Equal(afterFullRevisions, beforeFullRevisions) {
 		return migrateRuntimeGap(fixture, "mutation", fmt.Sprintf(
-			"MySQL state changed during dry-run: tables %v -> %v, revisions %v -> %v, typed schema equal=%t, complete revisions %v -> %v",
+			"%s state changed during dry-run: tables %v -> %v, revisions %v -> %v, typed schema equal=%t, complete revisions %v -> %v",
+			mysqlFamilyDisplayName(label),
 			beforeTables, afterTables, beforeRevisions, afterRevisions, beforeSchema == afterSchema,
 			beforeFullRevisions, afterFullRevisions,
 		))
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
-		"MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged", ""}
+		mysqlFamilyDisplayName(label) + " apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged", ""}
 }
 
 type atlasMigrateDownRevisionStateReport struct {
