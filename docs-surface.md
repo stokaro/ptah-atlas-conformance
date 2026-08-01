@@ -14,7 +14,7 @@ The full docs-surface gate is red until every atlasgo.io docs page is triaged
 and the registry matches the sitemap universe.
 
 - Docs universe: **351 page(s)** from the atlasgo.io sitemap (committed snapshot `docs-surface-snapshot.txt`)
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801143852-44636c3fd990`
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801150040-2cb6b3a3f4e2`
 - Outcomes: **29 ok**, **322 gap**, **0 fail**, **0 panic**
 - Full gate: **322 non-OK** (fails CI)
 - Regression budget input: **322 unwaived non-OK**, 0 waived

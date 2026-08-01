@@ -80,7 +80,7 @@ func createAtlasReportFormatFixture(bin string) (atlasReportFormatFixture, func(
 func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormatFixture) Result {
 	const name = "atlas migrate apply --dry-run --format json"
 
-	output, err := commandOutputDir(bin, []string{
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "apply",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
@@ -88,11 +88,14 @@ func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormat
 		"--format", "{{ json . }}",
 	}, fixture.dir)
 	if err != nil {
-		return atlasReportFormatExit(name, output, err)
+		return atlasReportFormatExit(name, stdout+stderr, err)
+	}
+	if detail := inspectInfoOnlyStderr(stderr, compatInfoLog, "password=hidden"); detail != "" {
+		return atlasReportFormatGap(name, "stderr", detail)
 	}
 
 	var report atlasMigrateApplyReport
-	if err := json.Unmarshal([]byte(output), &report); err != nil {
+	if err := json.Unmarshal([]byte(stdout), &report); err != nil {
 		return atlasReportFormatGap(name, "format", "dry-run apply did not emit valid JSON: "+oneLine(err.Error()))
 	}
 	if detail := requireAtlasReportURL(report.Driver, report.URL); detail != "" {
@@ -117,18 +120,21 @@ func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormat
 func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {
 	const name = "atlas migrate apply --format json"
 
-	output, err := commandOutputDir(bin, []string{
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "apply",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
 		"--format", "{{ json . }}",
 	}, fixture.dir)
 	if err != nil {
-		return atlasReportFormatExit(name, output, err)
+		return atlasReportFormatExit(name, stdout+stderr, err)
+	}
+	if detail := inspectInfoOnlyStderr(stderr, compatInfoLog, "password=hidden"); detail != "" {
+		return atlasReportFormatGap(name, "stderr", detail)
 	}
 
 	var report atlasMigrateApplyReport
-	if err := json.Unmarshal([]byte(output), &report); err != nil {
+	if err := json.Unmarshal([]byte(stdout), &report); err != nil {
 		return atlasReportFormatGap(name, "format", "apply did not emit valid JSON: "+oneLine(err.Error()))
 	}
 	if detail := requireAtlasReportURL(report.Driver, report.URL); detail != "" {
@@ -170,18 +176,21 @@ func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportForma
 func runAtlasMigrateStatusAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {
 	const name = "atlas migrate status --format json"
 
-	output, err := commandOutputDir(bin, []string{
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "status",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
 		"--format", "{{ json . }}",
 	}, fixture.dir)
 	if err != nil {
-		return atlasReportFormatExit(name, output, err)
+		return atlasReportFormatExit(name, stdout+stderr, err)
+	}
+	if detail := inspectInfoOnlyStderr(stderr, compatInfoLog, "password=hidden"); detail != "" {
+		return atlasReportFormatGap(name, "stderr", detail)
 	}
 
 	var report atlasMigrateStatusReport
-	if err := json.Unmarshal([]byte(output), &report); err != nil {
+	if err := json.Unmarshal([]byte(stdout), &report); err != nil {
 		return atlasReportFormatGap(name, "format", "status did not emit valid JSON: "+oneLine(err.Error()))
 	}
 	if detail := requireAtlasReportURL(report.Env.Driver, report.Env.URL); detail != "" {
@@ -230,20 +239,23 @@ func runAtlasSchemaCleanDryRunReportShape(bin string) Result {
 	if setupErr != nil {
 		return *setupErr
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
-	output, err := commandOutputDir(bin, []string{
+	stdout, stderr, err := commandStreams(bin, []string{
 		"schema", "clean",
 		"--url", "sqlite://" + dbPath + "?password=hidden",
 		"--dry-run",
 		"--format", "{{ json . }}",
 	}, dir)
 	if err != nil {
-		return atlasReportFormatExit(name, output, err)
+		return atlasReportFormatExit(name, stdout+stderr, err)
+	}
+	if detail := inspectInfoOnlyStderr(stderr, compatInfoLog, "password=hidden"); detail != "" {
+		return atlasReportFormatGap(name, "stderr", detail)
 	}
 
 	var report atlasSchemaCleanReport
-	if err := json.Unmarshal([]byte(output), &report); err != nil {
+	if err := json.Unmarshal([]byte(stdout), &report); err != nil {
 		return atlasReportFormatGap(name, "format", "schema clean did not emit valid JSON: "+oneLine(err.Error()))
 	}
 	if detail := requireAtlasReportURL(report.Env.Driver, report.Env.URL); detail != "" {

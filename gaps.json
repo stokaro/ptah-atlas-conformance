@@ -4141,9 +4141,8 @@
     "probe": "atlas-cli-report-format",
     "fixture": "atlas migrate apply --dry-run --format json",
     "stage": "format",
-    "outcome": "gap",
-    "detail": "dry-run apply did not emit valid JSON: invalid character '/' after top-level value",
-    "issue": "stokaro/ptah#631"
+    "outcome": "ok",
+    "detail": "`atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields"
   },
   {
     "probe": "atlas-cli-report-format",

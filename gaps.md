@@ -7,23 +7,21 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801143852-44636c3fd990`
-- Outcomes: **803 ok**, **1 gap**, **0 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **1 unwaived non-OK**, 0 waived
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801150040-2cb6b3a3f4e2`
+- Outcomes: **804 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | dry-run apply did not emit valid JSON: invalid character '/' after top-level value | #631 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
@@ -56,6 +54,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --revisions-schema` | execute | `atlas migrate status --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate validate --dir-format goose` | execute | `atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | `atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
 | — | ok | atlas-cli-report-format | `atlas migrate apply --format json` | format | `atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
 | — | ok | atlas-cli-report-format | `atlas migrate status --format json` | format | `atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries |  |
 | — | ok | atlas-cli-report-format | `atlas schema clean --dry-run --format json` | format | `atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields |  |
@@ -827,7 +826,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | script surface: cmpshow=4, apply=2, executed 6 supported command(s) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#631** — 1 finding(s)

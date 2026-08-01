@@ -57,6 +57,12 @@ func RunMigrateRuntime() []Result {
 			return atlasProjectConfigApplyOracle(bin, DefaultAtlasBinary())
 		},
 		sqliteMigrateApplyRecordsState,
+		sqliteMigrateApplyDryRunReadsStoredState,
+		func(string) Result { return sqliteNativeMigrateUpDryRunReadsStoredState(nativeBin) },
+		sqliteMigrateApplyDryRunLeavesFreshTargetUninitialized,
+		sqliteMigrateDownDryRunReadsStoredState,
+		sqliteMigrateDownMissingBodyPreservesState,
+		sqliteMigrateTxModeAllDiagnosticUsesAvailableFlags,
 		sqliteMigrateSetRepairsRevisionState,
 		sqliteMigrateApplyTxModeAllRollsBack,
 		sqliteMigrateApplyTxModeFileKeepsPriorFiles,
@@ -75,6 +81,7 @@ func RunMigrateRuntime() []Result {
 		case "postgres":
 			checks = append(checks,
 				func(bin string) Result { return postgresMigrateApplyCustomRevisionsSchema(bin, target.URL) },
+				func(bin string) Result { return postgresMigrateApplyDryRunReadsStoredState(bin, target.URL) },
 				func(bin string) Result { return postgresMigrateNoTransactionConcurrentIndex(bin, target.URL) },
 				func(string) Result { return postgresGenerateDiffSkipDropTable(nativeBin, target.URL) },
 			)
@@ -84,7 +91,10 @@ func RunMigrateRuntime() []Result {
 				checks = append(checks, func(bin string) Result { return c.runPostgres(bin, pgURL) })
 			}
 		case "mysql":
-			checks = append(checks, func(bin string) Result { return mysqlMigrateApplyRecordsState(bin, target.URL) })
+			checks = append(checks,
+				func(bin string) Result { return mysqlMigrateApplyRecordsState(bin, target.URL) },
+				func(bin string) Result { return mysqlMigrateApplyDryRunReadsStoredState(bin, target.URL) },
+			)
 		}
 	}
 	out := make([]Result, 0, len(checks))
