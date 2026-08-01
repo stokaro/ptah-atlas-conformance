@@ -333,8 +333,11 @@ func sqliteMigrateApplyTxtarChecksGate(bin string) Result {
 	}
 	// The blocked migration must leave no revision row at all: checks run before
 	// any bookkeeping write, so the apply is recorded as never started. Atlas
-	// behaves the same way, and it is what lets the retry below work without
-	// --allow-dirty, which the compat surface does not have.
+	// behaves the same way, and it is what lets the retry below work with no
+	// flags. The compat surface does register --allow-dirty, but that flag
+	// cannot clear a dirty row: the retry fails on the revision re-insert with
+	// a UNIQUE violation (stokaro/ptah#966), so a recorded failure here would
+	// leave no working in-band recovery.
 	if detail := compareSQLiteRevisions(db, []sqliteRevisionFact{
 		{Version: "1", Description: "first", Applied: 2, Total: 2, OperatorVersion: "Ptah"},
 	}); detail != "" {
