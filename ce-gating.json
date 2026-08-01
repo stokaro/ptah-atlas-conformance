@@ -176,6 +176,13 @@
   },
   {
     "probe": "ce-gating",
+    "fixture": "atlas schema inspect --env (external_schema)",
+    "stage": "named-error",
+    "outcome": "ok",
+    "detail": "class: named-error — Error: data.external_schema is not supported by the community version of Atlas."
+  },
+  {
+    "probe": "ce-gating",
     "fixture": "atlas schema inspect --web",
     "stage": "unknown-flag",
     "outcome": "ok",
