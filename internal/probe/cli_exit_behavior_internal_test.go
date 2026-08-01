@@ -14,16 +14,23 @@ import (
 
 const testCLIExitIssue = "stokaro/ptah#688"
 
+// nonCatalogCLIExitChecks counts the observations appended after the
+// oracle-checked catalog: the native namespace-removal check pinning
+// stokaro/ptah#850, and the ptah-compat --plan implementation check pinning
+// stokaro/ptah#965. Both live outside cliExitCatalog because the catalog is
+// oracle-checked against Atlas CE and these two contracts exist only on one
+// surface.
+const nonCatalogCLIExitChecks = 2
+
 // TestCLIExitBehaviorMatrixShape verifies that the ptah-compat surface emits
-// one well-formed observation per catalog case, plus the single native
-// namespace-removal observation pinning stokaro/ptah#850. Parity outcomes
-// belong to the regression-budget and full-conformance gates, not the harness
-// unit-test tier.
+// one well-formed observation per catalog case, plus the non-catalog
+// single-surface observations. Parity outcomes belong to the regression-budget
+// and full-conformance gates, not the harness unit-test tier.
 func TestCLIExitBehaviorMatrixShape(t *testing.T) {
 	c := qt.New(t)
 
 	results := AtlasCLIExitBehaviorProbe{}.Run(Fixture{Name: cliExitSentinel})
-	want := len(cliExitSurfaces())*len(cliExitCatalog) + 1
+	want := len(cliExitSurfaces())*len(cliExitCatalog) + nonCatalogCLIExitChecks
 	c.Assert(results, qt.HasLen, want)
 	for _, result := range results {
 		c.Check(result.Probe, qt.Equals, cliExitProbeName)
@@ -31,9 +38,16 @@ func TestCLIExitBehaviorMatrixShape(t *testing.T) {
 		c.Check(result.Stage, qt.Not(qt.Equals), "")
 		c.Check(result.Detail, qt.Not(qt.Equals), "")
 	}
-	last := results[len(results)-1]
-	c.Check(last.Fixture, qt.Equals, nativeAtlasNamespaceFixture)
-	c.Check(last.Outcome, qt.Equals, OK, qt.Commentf("%s/%s: %s", last.Fixture, last.Stage, last.Detail))
+	// The non-catalog checks are appended in order, newest last.
+	namespaceCheck := results[len(results)-2]
+	c.Check(namespaceCheck.Fixture, qt.Equals, nativeAtlasNamespaceFixture)
+	c.Check(namespaceCheck.Outcome, qt.Equals, OK,
+		qt.Commentf("%s/%s: %s", namespaceCheck.Fixture, namespaceCheck.Stage, namespaceCheck.Detail))
+
+	planCheck := results[len(results)-1]
+	c.Check(planCheck.Fixture, qt.Equals, compatPlanFlagFixture)
+	c.Check(planCheck.Outcome, qt.Equals, OK,
+		qt.Commentf("%s/%s: %s", planCheck.Fixture, planCheck.Stage, planCheck.Detail))
 }
 
 func TestCLIExitBehaviorIgnoresNonSentinel(t *testing.T) {

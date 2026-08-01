@@ -117,7 +117,6 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | checkpoint-workflow | `ptah migrations up` | post-checkpoint continuation | a fresh database bootstrapped from the checkpoint and applied only the post-checkpoint migration, recording revisions 4 and 5 |  |
 | — | ok | checkpoint-workflow | `ptah migrations validate` | checkpoint integrity | the directory including the fresh checkpoint pair validates against the rewritten ptah.sum |  |
 | — | ok | checkpoint-workflow | `ptah migrations validate` | tamper detection | a single tampered byte in the checkpoint file failed validation naming that file, and restoring the bytes validated cleanly again |  |
-| — | ok | cli-exit-behavior | `ptah-compat/accepted-but-unimplemented-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/added-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/clean-atlas.sum-succeeds-silently` | exit | exit 0, output → silent |  |
 | — | ok | cli-exit-behavior | `ptah-compat/completion-bash-generates-script` | exit | exit 0, output → stdout |  |
@@ -134,6 +133,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | cli-exit-behavior | `ptah-compat/missing-migration-directory` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/missing-project-config` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/missing-required-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/plan-flag-implemented` | content | PTAH-SIDE PIN (surfaces diverge by design; CE v1.2.0 Pro-gates this flag with `Abort: 'atlas schema apply --plan' is not supported by the community version.`): ptah-compat implements `schema apply --plan` and fails only on reading the missing plan file |  |
 | — | ok | cli-exit-behavior | `ptah-compat/removed-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand` | exit | exit 1, error → stderr |  |

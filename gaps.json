@@ -4769,13 +4769,6 @@
   },
   {
     "probe": "cli-exit-behavior",
-    "fixture": "ptah-compat/accepted-but-unimplemented-flag",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
-  },
-  {
-    "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/missing-project-config",
     "stage": "exit",
     "outcome": "ok",
@@ -4787,6 +4780,13 @@
     "stage": "exit",
     "outcome": "ok",
     "detail": "`ptah atlas` exits 2 with the unknown-command diagnostic on stderr; the Atlas surface lives exclusively in the ptah-compat binary"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/plan-flag-implemented",
+    "stage": "content",
+    "outcome": "ok",
+    "detail": "PTAH-SIDE PIN (surfaces diverge by design; CE v1.2.0 Pro-gates this flag with `Abort: 'atlas schema apply --plan' is not supported by the community version.`): ptah-compat implements `schema apply --plan` and fails only on reading the missing plan file"
   },
   {
     "probe": "lex-split-parity",

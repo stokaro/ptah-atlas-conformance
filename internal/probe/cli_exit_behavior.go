@@ -332,19 +332,18 @@ var cliExitCatalog = []cliExitCase{
 		StderrClass: "unknown command",
 		Issue:       "stokaro/ptah#725",
 	},
-	{
-		// `schema apply --plan` used to be the accepted-but-unimplemented
-		// example. stokaro/ptah#965 implemented it, so the case moved to a flag
-		// that Ptah still explicitly accepts and rejects as unimplemented —
-		// `schema plan --format`, named in ptah's own rejection list in
-		// cmd/atlas/schema_plan.go alongside --name-format.
-		Name: "accepted but unimplemented flag",
-		Build: func(string) ([]string, error) {
-			return []string{"schema", "plan", "--from", "sqlite://f", "--to", "file://x", "--format", "{{.}}"}, nil
-		},
-		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "--format",
-		Issue: "stokaro/ptah#688",
-	},
+	// The "accepted but unimplemented flag" case lived here and used
+	// `schema apply --plan`: Atlas CE aborts because --plan is Pro-gated, and
+	// Ptah used to reject it as unimplemented, so both surfaces failed naming
+	// the flag. stokaro/ptah#965 implemented --plan, so the shared expectation
+	// no longer holds and the class is empty for any flag CE can oracle:
+	// every remaining Ptah-unimplemented flag either sits on a command CE does
+	// not expose at all (`schema plan`) or is an unknown flag on both.
+	//
+	// It is NOT re-pointed at such a flag, because a catalog row must hold on
+	// the Atlas CE oracle too — `schema plan --format` for instance never
+	// reaches --format on CE, which rejects the whole command. The Ptah-only
+	// half moved to runCompatPlanFlagImplementedCheck below.
 	{
 		Name: "missing project config",
 		Build: func(string) ([]string, error) {
@@ -389,6 +388,10 @@ const (
 	nativeAtlasNamespaceFixture = "ptah-native/atlas-namespace-rejected"
 	nativeAtlasNamespaceStderr  = "error: unknown command \"atlas\" for \"ptah\"\n"
 	nativeAtlasNamespaceExit    = 2
+
+	// compatPlanFlagFixture pins a contract that exists only on the ptah-compat
+	// surface, because Atlas CE Pro-gates the flag it covers.
+	compatPlanFlagFixture = "ptah-compat/plan-flag-implemented"
 )
 
 // AtlasCLIExitBehaviorProbe exercises Atlas OSS success and failure paths on
@@ -416,7 +419,64 @@ func (AtlasCLIExitBehaviorProbe) Run(fx Fixture) []Result {
 		out = append(out, runCLIExitCatalog(bin, surface)...)
 	}
 	out = append(out, runNativeAtlasNamespaceRemovedCheck())
+	out = append(out, runCompatPlanFlagImplementedCheck())
 	return out
+}
+
+// runCompatPlanFlagImplementedCheck asserts ptah-compat actually implements
+// `schema apply --plan` rather than accepting and rejecting it.
+//
+// This is not a cliExitCatalog case on purpose, for the same reason
+// runNativeAtlasNamespaceRemovedCheck is not: the catalog is oracle-checked
+// against Atlas CE, and here the two surfaces diverge BY DESIGN. Pinned CE
+// v1.2.0 answers `Abort: 'atlas schema apply --plan' is not supported by the
+// community version.`, while Ptah ships the flag as an open capability
+// (stokaro/ptah#965). A shared expectation cannot express that, so the
+// Ptah-side contract is pinned here instead.
+//
+// The probe points --plan at a path that does not exist. A binary that merely
+// accepts the flag fails before reading anything and says so; an implementing
+// binary gets as far as opening the file. That is what separates the two, and
+// it needs no fixture on disk.
+func runCompatPlanFlagImplementedCheck() Result {
+	bin, err := ptahCompatAtlasBinary()
+	if err != nil {
+		return Result{cliExitProbeName, compatPlanFlagFixture, "build", Fail,
+			"could not build the ptah-compat CLI: " + oneLine(err.Error()), "stokaro/ptah#270"}
+	}
+	tmp, err := os.MkdirTemp("", "cli-exit-plan-*")
+	if err != nil {
+		return Result{cliExitProbeName, compatPlanFlagFixture, "setup", Fail, err.Error(), ""}
+	}
+	defer func() { _ = os.RemoveAll(tmp) }()
+
+	res := runCLIExit(bin, []string{
+		"schema", "apply", "--url", "sqlite://f", "--to", "file://x", "--plan", "missing.plan.hcl",
+	}, tmp)
+	switch {
+	case res.timedOut:
+		return Result{cliExitProbeName, compatPlanFlagFixture, "run", Fail,
+			"the command timed out", "stokaro/ptah#270"}
+	case res.runErr != "":
+		return Result{cliExitProbeName, compatPlanFlagFixture, "run", Fail,
+			"could not start command: " + oneLine(res.runErr), ""}
+	case res.exit != int(exitFail):
+		return Result{cliExitProbeName, compatPlanFlagFixture, "exit", Gap,
+			fmt.Sprintf("expected exit %d for a missing plan file, got %d (%s)",
+				int(exitFail), res.exit, streamChoice(res.stdout, res.stderr)), "stokaro/ptah#965"}
+	case strings.Contains(res.stderr, "does not implement"):
+		return Result{cliExitProbeName, compatPlanFlagFixture, "content", Gap,
+			"`schema apply --plan` regressed to accepted-but-unimplemented; stokaro/ptah#965 shipped it as an open capability: "+
+				oneLine(res.stderr), "stokaro/ptah#965"}
+	case !strings.Contains(res.stderr, "read plan file"):
+		return Result{cliExitProbeName, compatPlanFlagFixture, "content", Gap,
+			"`schema apply --plan` did not reach reading the plan file, so the flag is not being executed: "+
+				oneLine(res.stderr), "stokaro/ptah#965"}
+	}
+	return Result{cliExitProbeName, compatPlanFlagFixture, "content", OK,
+		"PTAH-SIDE PIN (surfaces diverge by design; CE v1.2.0 Pro-gates this flag with " +
+			"`Abort: 'atlas schema apply --plan' is not supported by the community version.`): " +
+			"ptah-compat implements `schema apply --plan` and fails only on reading the missing plan file", ""}
 }
 
 // runNativeAtlasNamespaceRemovedCheck asserts the main `ptah` binary rejects

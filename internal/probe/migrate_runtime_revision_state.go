@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"sort"
 	"strings"
 	"time"
 
@@ -745,6 +746,19 @@ type completeRevisionFact struct {
 	OperatorVersion string
 }
 
+// typedDatabaseSchemaSnapshot renders the introspected schema as canonical
+// JSON so two reads of an unchanged database compare equal.
+//
+// Introspection does not guarantee a stable order: reading the same untouched
+// MySQL schema repeatedly yields byte-identical LENGTH but differently ordered
+// collections. Comparing raw json.Marshal output therefore reported "state
+// changed during dry-run" at random, an intermittent false positive that could
+// fail the migrate-runtime gate on a database nothing had touched. Tracked as
+// stokaro/ptah-atlas-conformance#247.
+//
+// Order-insensitivity is the correct semantics here: the probe asks whether
+// the logical schema changed, and introspection row order is not part of that.
+// Element CONTENT is still compared exactly, so a real change still shows up.
 func typedDatabaseSchemaSnapshot(conn *dbschema.DatabaseConnection, schema string) (string, error) {
 	state, err := dbschema.ReadSchemaWithSchemas(conn, []string{schema})
 	if err != nil {
@@ -754,7 +768,45 @@ func typedDatabaseSchemaSnapshot(conn *dbschema.DatabaseConnection, schema strin
 	if err != nil {
 		return "", err
 	}
-	return string(data), nil
+	var generic any
+	if err := json.Unmarshal(data, &generic); err != nil {
+		return "", err
+	}
+	canonical, err := json.Marshal(canonicalizeJSONOrder(generic))
+	if err != nil {
+		return "", err
+	}
+	return string(canonical), nil
+}
+
+// canonicalizeJSONOrder recursively sorts every array by its elements'
+// marshaled form. Object keys already marshal in sorted order via encoding/json,
+// so only arrays need normalizing.
+func canonicalizeJSONOrder(value any) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		for key, element := range typed {
+			typed[key] = canonicalizeJSONOrder(element)
+		}
+		return typed
+	case []any:
+		for i, element := range typed {
+			typed[i] = canonicalizeJSONOrder(element)
+		}
+		sort.SliceStable(typed, func(i, j int) bool {
+			left, errLeft := json.Marshal(typed[i])
+			right, errRight := json.Marshal(typed[j])
+			if errLeft != nil || errRight != nil {
+				// Unmarshaled generic JSON always re-marshals; on the
+				// impossible error path keep the existing order.
+				return false
+			}
+			return string(left) < string(right)
+		})
+		return typed
+	default:
+		return value
+	}
 }
 
 func postgresCompleteRevisionFacts(conn *dbschema.DatabaseConnection, schema string) ([]completeRevisionFact, error) {
