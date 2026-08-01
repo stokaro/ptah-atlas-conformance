@@ -222,6 +222,9 @@ func ParseDocsSurfaceRegistry(data []byte) ([]DocsSurfaceEntry, error) {
 			return nil, fmt.Errorf("docs-surface registry entry %q: unknown status %q (valid: %s)",
 				e.Path, e.Status, joinDocsSurfaceStatuses(valid))
 		}
+		if docsUniverseExcluded(e.Path) {
+			return nil, fmt.Errorf("docs-surface registry entry %q: path is excluded from the docs universe by rule; it can never match a universe page", e.Path)
+		}
 		if i == 0 {
 			continue
 		}

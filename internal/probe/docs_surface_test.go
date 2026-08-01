@@ -147,6 +147,8 @@ func TestParseDocsSurfaceRegistry_Errors(t *testing.T) {
 		{name: "path with trailing slash", input: `[{"path": "/p/", "status": "open", "note": ""}]`},
 		{name: "duplicate path", input: `[{"path": "/p", "status": "open", "note": ""}, {"path": "/p", "status": "gap", "note": ""}]`},
 		{name: "unsorted paths", input: `[{"path": "/z", "status": "open", "note": ""}, {"path": "/a", "status": "open", "note": ""}]`},
+		{name: "excluded subtree path", input: `[{"path": "/blog/announcing-x", "status": "open", "note": ""}]`},
+		{name: "excluded exact path", input: `[{"path": "/pricing", "status": "cloud", "note": ""}]`},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
