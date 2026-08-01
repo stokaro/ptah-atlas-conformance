@@ -57,6 +57,9 @@ func RunMigrateRuntime() []Result {
 			return atlasProjectConfigApplyOracle(bin, DefaultAtlasBinary())
 		},
 		sqliteMigrateApplyRecordsState,
+		sqliteMigrateApplyCheckpointFreshBootstrap,
+		sqliteMigrateApplyCheckpointPreExistingSkips,
+		sqliteMigrateApplyTamperedSumRefuses,
 		sqliteMigrateSetRepairsRevisionState,
 		sqliteMigrateApplyTxModeAllRollsBack,
 		sqliteMigrateApplyTxModeFileKeepsPriorFiles,

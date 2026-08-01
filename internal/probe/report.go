@@ -121,6 +121,7 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 		PtahVersion: ptahVersion,
 		FactCategories: []string{
 			"Migration apply: applied schema objects, Atlas revision rows, and post-apply status.",
+			"Checkpoints and apply-time integrity: `-- atlas:checkpoint` bootstrap-or-skip semantics and the atlas.sum checksum refusal on tampered hashed directories.",
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",

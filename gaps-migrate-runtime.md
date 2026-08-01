@@ -13,14 +13,15 @@ apply uses pinned Atlas CE as an independent runtime oracle.
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE apply oracle pinned by atlas.version
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260730164312-44563e575545`
-- Outcomes: **26 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801114757-064251523640`
+- Outcomes: **29 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
 ## Compared Schema Fact Categories
 
 - Migration apply: applied schema objects, Atlas revision rows, and post-apply status.
+- Checkpoints and apply-time integrity: `-- atlas:checkpoint` bootstrap-or-skip semantics and the atlas.sum checksum refusal on tampered hashed directories.
 - Migration set: repair-state rows and subsequent application of only remaining migrations.
 - Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.
 - Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.
@@ -41,8 +42,11 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `postgres/generate-diff-skip-drop-table` | generate | `diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change |  |
 | — | ok | migrate-runtime | `postgres/no-transaction-concurrent-index` | inspect | `-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction |  |
 | — | ok | migrate-runtime | `sqlite/apply-state` | inspect | apply created expected SQLite tables, Atlas revision rows, and applied status |  |
+| — | ok | migrate-runtime | `sqlite/checkpoint-fresh-bootstrap` | inspect | fresh-database apply executed only the checkpoint, wrote the single type=2 Atlas revision row, and reported a clean status |  |
+| — | ok | migrate-runtime | `sqlite/checkpoint-pre-existing-skip` | inspect | pre-checkpoint database skipped the checkpoint silently with no new revision row and a clean status |  |
 | — | ok | migrate-runtime | `sqlite/project-config-apply-oracle` | compare | atlas community version v1.2.0 created a one-migration brownfield database, Atlas CE and Ptah independently applied the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision metadata, and storage classes matched the Atlas control; measured timing invariants, Ptah full-duration nanosecond units, producer identity, and Atlas CE reading Ptah state all passed |  |
 | — | ok | migrate-runtime | `sqlite/set-repair-state` | inspect | set recorded repair state and apply executed only the remaining migration |  |
+| — | ok | migrate-runtime | `sqlite/tampered-sum-apply-refusal` | apply | apply refused the tampered hashed directory with the Atlas checksum-mismatch shape before creating or touching the target database |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-all` | inspect | `--tx-mode all` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-file` | inspect | `--tx-mode file` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-none` | inspect | `--tx-mode none` leaves the expected SQLite state after a failed migration |  |
