@@ -120,6 +120,34 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-checks-gate",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "failing txtar checks.sql aborted the apply before the body (exit 1, names checks.sql#1, no schema change, no revision row) and the retry after fixing the data succeeded"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-checks-error-gate",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "an erroring checks.sql assertion failed closed: exit 1, the body did not run, and no revision row was recorded"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/revision-metadata-row",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "status, migrate set and a tx-mode none apply all skip two `.atlas_cloud_identifier` metadata rows in their version math, and both rows survive byte-identically"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/down-failure-revisions",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "a failed down left all 12 Atlas revision columns byte-identical, including an Atlas Pro metadata row, and status still reports the version applied, matching Atlas"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "golang-migrate/import-roundtrip",
     "stage": "import",
     "outcome": "ok",
