@@ -1,0 +1,1757 @@
+[
+  {
+    "path": "/atlas-schema",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/atlas-schema/external",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/atlas-schema/hcl",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/atlas-schema/hcl-types",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/atlas-schema/input-variables",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/atlas-schema/projects",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/atlas-schema/sql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/cli-reference",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/cli/data-privacy",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/cloud/agents",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/auditlog",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/aws-marketplace",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/bots",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/deployment",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/directories",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/lineage-graph",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/pre-migration-checks",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/registry",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/roles-and-permissions",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/schema-docs",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/security-graph",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/slack",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/features/troubleshooting",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/getting-started",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/pricing",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/cloud/setup-ci",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/community-edition",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/concepts/declarative-vs-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/concepts/dev-database",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/concepts/migration-directory-integrity",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/concepts/url",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/contributing",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/custom-drivers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/databases",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/declarative/apply",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/declarative/diff",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/declarative/plan",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/declarative/setup-cicd",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/docs",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/features",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/mariadb-declarative-hcl",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/mariadb-declarative-sql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/mysql-declarative-hcl",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/mysql-declarative-sql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/postgresql-declarative-hcl",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/postgresql-declarative-sql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/sqlite-declarative-hcl",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/getting-started/sqlite-declarative-sql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ai-tools",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ai-tools/agent-skills",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ai-tools/claude-code-instructions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ai-tools/codex-instructions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ai-tools/cursor-rules",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ai-tools/github-copilot-instructions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/atlas-in-docker",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/atlas-vs-alembic",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/atlas-vs-flyway",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/atlas-vs-liquibase",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/atlas-vs-schemachange",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/atlas-vs-ssdt",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/azure-fabric",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/backup-continuity-migration-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/backup-continuity-schema-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/azure-devops-github",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/azure-devops-repos",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/bitbucket-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/bitbucket-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/circleci-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/circleci-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/github-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/github-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/gitlab-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/ci-platforms/gitlab-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/advanced-hcl-schema",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/clickhouse-cloud-atlas",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/cluster-mode",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/lineage-graph",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/named-collections",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/security-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/security-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/seed-data",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/session-settings",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/clickhouse/supported-objects",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/cockroachdb/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/database-per-tenant/control-plane",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/database-per-tenant/deploying",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/database-per-tenant/intro",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/database-per-tenant/rollout",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/database-per-tenant/target-groups",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/database-schema-as-context",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/databricks/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/aws-ecs-fargate",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/cloud-sql-via-github-actions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/connect-to-db-from-github-actions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/crossplane",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/fly-io",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/helm",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/image",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/intro",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/k8s-argo",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/k8s-argo-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/k8s-cloud-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/k8s-flux",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/k8s-init-container",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/k8s-operator-certs",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/rds-iam-migration-role",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/remote-directories",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/deploying/secrets",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/destructive-change-policy",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/drift-detection",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/dsql/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/dsql/token-generator",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/environment-promotion",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/environment-promotion-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/advanced-topics",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/ci-cd",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/connect",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/developer-workflow",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/install",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/intro",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/project-structure",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/schema-as-code",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/setup-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/evaluation/verify-atlas",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/flyway-snapshot-alternative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/flyway-undo-alternative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/frameworks/sqlc-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/frameworks/sqlc-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/go-templates",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/go-templates/exporter",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/graphql-with-atlas",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/horizondb/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/liquibase-diff-alternative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/liquibase-rollback-alternative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/lock-safe-not-null",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/migrate-flyway-to-atlas",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/migration-dirs/template-directory",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/migration-tools/golang-migrate",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/migration-tools/goose-import",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/modern-database-ci-cd",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mssql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mssql/security-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mssql/security-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mssql/seed-data",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/check-constraint",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/checks/CD101",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/checks/DS103",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/checks/MY102",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/descending-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/functional-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/generated-columns",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/lineage-graph",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/mysql-automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/prefix-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/security-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/security-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/seed-data",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/mysql/terraform",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/openapi-with-atlas",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/oracle/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/oracle/security-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/oracle/security-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/oracle/vector",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/beego",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/bun",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/django",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/django/getting-started",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/django/linting",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/doctrine",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/drizzle",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/drizzle/existing-project",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/drizzle/getting-started",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/drizzle/triggers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/drizzle/visualize",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/efcore",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/composite-types",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/domain-types",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/enum-types",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/extensions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/generate-models",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/getting-started",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/program",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/row-level-security",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/standalone",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/triggers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/views",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/gorm/visualize",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/hibernate",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/existing-project",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/getting-started",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/lint-naming",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/postgresql-partial-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/row-level-security",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/triggers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/vector-index",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/prisma/visualize",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/composite-types",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/declarative-migrations-with-actions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/domain-types",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/generate-models",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/getting-started",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/row-level-security",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/script",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/standalone",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/triggers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/views",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sequelize/visualize",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sqlalchemy",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sqlalchemy/extensions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sqlalchemy/getting-started",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sqlalchemy/row-level-security",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sqlalchemy/script",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sqlalchemy/standalone",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/sqlalchemy/triggers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/typeorm",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/orms/typeorm/generate-entities",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/descending-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/functional-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/included-columns",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/index-operator-classes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/lineage-graph",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/partial-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/pg-110",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/pgtap-with-atlas",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/rds-extensions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/schema-test-template-databases",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/security-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/security-default-privileges",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/security-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/seed-data",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/serial-columns",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/postgres/unlogged-tables",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/redshift/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/redshift/lineage-graph",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/reviewed-approved-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/rls-policy",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/schema-health-check",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/schema-ownership",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/security-as-code",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/seed-data-as-code",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/snowflake/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/snowflake/lineage-graph",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/snowflake/security-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/spanner/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/spanner/proto-columns",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/sqlite/descending-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/sqlite/functional-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/sqlite/partial-indexes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/sqlite/turso",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/terraform/named-databases",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/terraform/opentaco",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/data-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/docker-compose",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/domains",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/functions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/github-actions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/procedures",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/triggers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/testing/views",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/yugabyte/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/agent",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/clickhouse",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/config",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/databricks",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/docs",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/functions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/mariadb",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/mssql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/mysql",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/oracle",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/plan",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/postgres",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/redshift",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/rule",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/scripts",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/snowflake",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/spanner",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/sqlite",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/hcl/testing",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/inspect",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/inspect/database-to-code",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/azure-devops",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/bitbucket-pipes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/circleci-orbs",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/github-actions",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/github-actions/ad-hoc-approval",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/github-actions/pre-approval",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/gitlab-ci-components",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/gitlab-ci-components/ad-hoc-approval",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/gitlab-ci-components/pre-approval",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/go-sdk",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/ad-hoc-approval",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/install",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/pre-approval",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/project-configuration",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/quickstart",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/terraform-provider",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/terraform/ad-hoc-approval",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/terraform/declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/terraform/project-configuration",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/terraform/quickstart",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/integrations/terraform/versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/lint/analyzers",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/lint/rules",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/monitoring",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/bitbucket-quickstart",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/discovery",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/drift-detection",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/github-quickstart",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/gitlab-quickstart",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/helm",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/overview",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/quickstart",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/security",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/terraform",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/monitoring/webhooks",
+    "status": "cloud",
+    "note": ""
+  },
+  {
+    "path": "/orms",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/orms/why-atlas-for-your-orm",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/scripts",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/scripts/exec",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/scripts/loop",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/scripts/masking",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/scripts/query",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/scripts/testing",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/testing/migrate",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/testing/plan",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/testing/schema",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/apply",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/checkpoint",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/checks",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/diff",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/down",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/drift-detection",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/import",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/intro",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/lint",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/new",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/pre-post-hooks",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/setup-cicd",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/versioned/troubleshoot",
+    "status": "untriaged",
+    "note": ""
+  }
+]

@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating verify-cli-exit-oracle atlas verify test build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -146,6 +146,28 @@ budget-ce-gating: probe-ce-gating
 # diverges from the measured Atlas CE gating baseline.
 gate-ce-gating:
 	$(GO_OFF) run ./cmd/gap-probe-ce-gating -gate
+
+# The docs surface tier: index every atlasgo.io documentation page against the
+# committed triage registry (docs-surface-registry.json). The universe defaults
+# to the committed docs-surface-snapshot.txt so the run is offline and
+# deterministic; FETCH=1 re-fetches the live https://atlasgo.io/sitemap.xml and
+# rewrites the snapshot so docs drift shows up as a git diff (the weekly
+# conformance-docs-surface workflow does this). Regenerates docs-surface.md /
+# docs-surface.json and always exits 0.
+probe-docs-surface:
+	$(GO_OFF) run ./cmd/docs-surface-probe $(if $(filter 1,$(FETCH)),-fetch)
+
+# CI progress gate for the docs surface tier: fail only when the current
+# docs-surface report exceeds the committed budget or has stale waivers. Full
+# docs triage is still `make gate-docs-surface`.
+budget-docs-surface: probe-docs-surface
+	$(GO_OFF) run ./cmd/gap-budget -report docs-surface.json -budget docs-surface-budget.txt
+
+# The full docs surface gate: fail while any atlasgo.io docs page is untriaged,
+# missing from the registry, or vanished from the sitemap universe. Red until
+# the full documentation surface carries an explicit Ptah stance.
+gate-docs-surface:
+	$(GO_OFF) run ./cmd/docs-surface-probe -gate
 
 # Verify that the static process-level exit/output expectations still match the
 # pinned Atlas CE binary. ATLAS_BIN is required and normally points to bin/atlas.
