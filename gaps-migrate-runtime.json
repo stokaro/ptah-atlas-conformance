@@ -92,17 +92,24 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/txtar-checks-error-gate",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "an erroring checks.sql assertion failed closed: exit 1, the body did not run, and no revision row was recorded"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/revision-metadata-row",
     "stage": "inspect",
     "outcome": "ok",
-    "detail": "status stays clean with the `.atlas_cloud_identifier` metadata row present and the row survives byte-identically"
+    "detail": "status, migrate set and a tx-mode none apply all skip two `.atlas_cloud_identifier` metadata rows in their version math, and both rows survive byte-identically"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/down-failure-revisions",
     "stage": "inspect",
     "outcome": "ok",
-    "detail": "a failed down left the Atlas revision rows byte-identical and status still reports the version applied, matching Atlas"
+    "detail": "a failed down left all 12 Atlas revision columns byte-identical, including an Atlas Pro metadata row, and status still reports the version applied, matching Atlas"
   },
   {
     "probe": "migrate-runtime",
