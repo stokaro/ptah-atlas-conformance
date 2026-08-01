@@ -1,6 +1,7 @@
 package probe_test
 
 import (
+	"os"
 	"path/filepath"
 	"regexp"
 	"testing"
@@ -53,6 +54,24 @@ func TestClassifyCEGating(t *testing.T) {
 			wantClass: probe.CEGatingWorks,
 		},
 		{
+			// Near-miss negative: an Abort line without the community-version
+			// sentence must not classify as a gating stub.
+			name:        "community abort stays silent on an unrelated Abort line",
+			exitCode:    1,
+			output:      "Abort: could not connect to gateway\n",
+			wantClass:   probe.CEGatingUnclassified,
+			wantSummary: "exit 1: Abort: could not connect to gateway",
+		},
+		{
+			// Specificity: the classifier must match the community sentence,
+			// not merely the first line starting with "Abort:".
+			name:        "community abort matches the community sentence, not just any Abort line",
+			exitCode:    1,
+			output:      "Abort: retrying connection\nAbort: 'atlas schema push' is not supported by the community version.\n",
+			wantClass:   probe.CEGatingCommunityAbort,
+			wantSummary: "Abort: 'atlas schema push' is not supported by the community version.",
+		},
+		{
 			name:        "unknown flag fires",
 			exitCode:    1,
 			output:      "Error: unknown flag: --web\n",
@@ -64,6 +83,24 @@ func TestClassifyCEGating(t *testing.T) {
 			exitCode:  0,
 			output:    "Migration Status: OK\n",
 			wantClass: probe.CEGatingWorks,
+		},
+		{
+			// Near-miss negative: the word "flag" inside ordinary working
+			// output must not classify as unknown-flag.
+			name:      "unknown flag stays silent on the word flag inside works output",
+			rules:     probe.CEGatingRules{SuccessFragments: []string{"applied"}},
+			exitCode:  0,
+			output:    "applied migration 2 (a flag day migration)\n",
+			wantClass: probe.CEGatingWorks,
+		},
+		{
+			// Specificity: the classifier must match cobra's "unknown flag: "
+			// error, not merely a line containing "flag".
+			name:        "unknown flag matches the cobra error line, not just any flag mention",
+			exitCode:    1,
+			output:      "flag parsing started\nError: unknown flag: --web\n",
+			wantClass:   probe.CEGatingUnknownFlag,
+			wantSummary: "Error: unknown flag: --web",
 		},
 		{
 			name:        "named error fires on a non-zero exit with the pattern",
@@ -88,14 +125,14 @@ func TestClassifyCEGating(t *testing.T) {
 		},
 		{
 			name:      "absent fires on the migrate parent help",
-			rules:     probe.CEGatingRules{NamedSubcommand: true},
+			rules:     probe.CEGatingRules{AbsentCommandPath: "atlas migrate ls"},
 			exitCode:  0,
 			output:    "'atlas migrate' wraps several sub-commands for migration management.\n\nUsage:\n  atlas migrate [command]\n",
 			wantClass: probe.CEGatingAbsent,
 		},
 		{
 			name:      "absent fires on the schema parent help",
-			rules:     probe.CEGatingRules{NamedSubcommand: true},
+			rules:     probe.CEGatingRules{AbsentCommandPath: "atlas schema validate"},
 			exitCode:  0,
 			output:    "The `atlas schema` command groups subcommands working with declarative Atlas schemas.\n",
 			wantClass: probe.CEGatingAbsent,
@@ -107,8 +144,19 @@ func TestClassifyCEGating(t *testing.T) {
 			wantClass: probe.CEGatingWorks,
 		},
 		{
+			// Near-miss negative: a future Atlas registering the name as its
+			// own command GROUP prints that group's help — same wrapping
+			// sentence, but the first line names the attempted path. That is
+			// no longer absent and must not stay green.
+			name:      "absent stays silent when the help names the attempted path itself",
+			rules:     probe.CEGatingRules{AbsentCommandPath: "atlas migrate ls"},
+			exitCode:  0,
+			output:    "'atlas migrate ls' wraps several sub-commands for listing revisions.\n\nUsage:\n  atlas migrate ls [command]\n",
+			wantClass: probe.CEGatingWorks,
+		},
+		{
 			name:      "absent stays silent on a non-zero exit",
-			rules:     probe.CEGatingRules{NamedSubcommand: true},
+			rules:     probe.CEGatingRules{AbsentCommandPath: "atlas migrate ls"},
 			exitCode:  1,
 			output:    "'atlas migrate' wraps several sub-commands for migration management.\n",
 			wantClass: probe.CEGatingUnclassified,
@@ -275,6 +323,71 @@ func TestRunCEGating_UnusableBinaryIsAHarnessFailurePerScenario(t *testing.T) {
 			qt.Commentf("%s/%s: %s", r.Fixture, r.Stage, r.Detail))
 	}
 	c.Check(run.Observed, qt.HasLen, 0)
+}
+
+// TestRunCEGating_BareBinaryNameResolvesViaPATH pins the documented
+// `atlas`-on-PATH fallback: a bare command name must be resolved through PATH
+// before any scenario changes the working directory — never made absolute
+// against the probe's cwd, which would break every scenario with fork/exec
+// failures and silently rewrite the committed reports.
+func TestRunCEGating_BareBinaryNameResolvesViaPATH(t *testing.T) {
+	c := qt.New(t)
+	binDir := t.TempDir()
+	// A stand-in atlas that exits 0 for every invocation: enough to prove the
+	// name resolved and ran, without depending on a real Atlas build.
+	fake := filepath.Join(binDir, "ce-gating-fake-atlas")
+	c.Assert(os.WriteFile(fake, []byte("#!/bin/sh\nexit 0\n"), 0o755), qt.IsNil)
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	run := probe.RunCEGating("ce-gating-fake-atlas")
+
+	c.Assert(run.Results, qt.HasLen, len(probe.CEGatingScenarioTable()))
+	for _, r := range run.Results {
+		c.Check(r.Detail, qt.Not(qt.Contains), "fork/exec",
+			qt.Commentf("%s/%s: %s", r.Fixture, r.Stage, r.Detail))
+	}
+	// A setup-free stub scenario must have produced a classified observation:
+	// the silent fake exits 0, so the abort baseline reads as a works gap —
+	// proof the bare name resolved via PATH and actually executed.
+	var sawSchemaPush bool
+	for _, r := range run.Results {
+		if r.Fixture != "atlas schema push" {
+			continue
+		}
+		sawSchemaPush = true
+		c.Check(r.Outcome, qt.Equals, probe.Gap, qt.Commentf("%s", r.Detail))
+		c.Check(r.Detail, qt.Contains, "observed works")
+	}
+	c.Check(sawSchemaPush, qt.IsTrue)
+}
+
+func TestCEGatingAtlasVersion_HermeticFirstLine(t *testing.T) {
+	c := qt.New(t)
+	dir := t.TempDir()
+	fake := filepath.Join(dir, "fake-atlas")
+	// The stand-in reports $HOME so the test can prove the version probe runs
+	// under the scratch logged-out environment, not the developer's.
+	script := "#!/bin/sh\necho \"fake atlas v9.9 home=$HOME\"\necho \"second line\"\n"
+	c.Assert(os.WriteFile(fake, []byte(script), 0o755), qt.IsNil)
+
+	line, err := probe.CEGatingAtlasVersion(fake)
+
+	c.Assert(err, qt.IsNil)
+	c.Check(line, qt.Contains, "fake atlas v9.9")
+	c.Check(line, qt.Not(qt.Contains), "second line")
+	// The reported HOME is the scenario scratch home, never the real one.
+	c.Check(line, qt.Contains, "ptah-ce-gating-")
+	if home := os.Getenv("HOME"); home != "" {
+		c.Check(line, qt.Not(qt.Contains), "home="+home)
+	}
+}
+
+func TestCEGatingAtlasVersion_UnusableBinary(t *testing.T) {
+	c := qt.New(t)
+
+	_, err := probe.CEGatingAtlasVersion(filepath.Join(t.TempDir(), "atlas-does-not-exist"))
+
+	c.Assert(err, qt.IsNotNil)
 }
 
 func TestRenderCEGatingMarkdown_Header(t *testing.T) {

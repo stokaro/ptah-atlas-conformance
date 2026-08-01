@@ -3,6 +3,7 @@ package probe
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -77,9 +78,14 @@ var ceParentHelpFragments = []string{
 // CEGatingRules are the scenario-specific knobs ClassifyCEGating consults on
 // top of the fixed global community-abort and unknown-flag patterns.
 type CEGatingRules struct {
-	// NamedSubcommand marks that the measured argv named a subcommand under a
-	// parent group, enabling the absent (parent-help, exit 0) classification.
-	NamedSubcommand bool
+	// AbsentCommandPath, when non-empty, is the full command path the argv
+	// named under a parent group (e.g. "atlas migrate ls"), enabling the
+	// absent (parent-help, exit 0) classification. The first help line must
+	// not name the attempted path itself: if a future Atlas registers the
+	// name as its own command group, that group's help has the same
+	// "wraps several sub-commands" shape but leads with the attempted path,
+	// and must not pass as absent.
+	AbsentCommandPath string
 	// SuccessExit is the exit code that counts as works. The zero value keeps
 	// the common exit-0 contract; migrate lint sets 1 because reporting
 	// findings is the working state.
@@ -115,7 +121,9 @@ func ClassifyCEGating(rules CEGatingRules, exitCode int, output string) (CEGatin
 			return CEGatingNamedError, line
 		}
 	}
-	if rules.NamedSubcommand && exitCode == 0 && containsAnyFragment(output, ceParentHelpFragments) {
+	if rules.AbsentCommandPath != "" && exitCode == 0 &&
+		containsAnyFragment(output, ceParentHelpFragments) &&
+		!strings.Contains(firstNonEmptyLine(output), rules.AbsentCommandPath) {
 		return CEGatingAbsent, "exit 0; the parent group help was printed instead of running the named subcommand"
 	}
 	if rules.SilentWhenExitZero && exitCode == 0 && containsAllFragments(output, rules.SilentFragments) {
@@ -216,18 +224,58 @@ type CEGatingRun struct {
 // developer's real Atlas login cannot leak in.
 func RunCEGating(atlasBin string) CEGatingRun {
 	run := CEGatingRun{Observed: map[CEGatingClass]int{}}
-	absBin, err := filepath.Abs(atlasBin)
-	if err != nil {
-		absBin = atlasBin
-	}
+	bin := resolveCEGatingBinary(atlasBin)
 	for _, s := range ceGatingScenarios() {
-		result, class := s.execute(absBin)
+		result, class := s.execute(bin)
 		run.Results = append(run.Results, result)
 		if class != "" {
 			run.Observed[class]++
 		}
 	}
 	return run
+}
+
+// resolveCEGatingBinary resolves atlasBin before any scenario changes the
+// working directory. Bare command names go through exec.LookPath so the
+// documented `atlas`-on-PATH fallback keeps working; path-shaped values are
+// made absolute so per-scenario work dirs cannot re-resolve them. An
+// unresolvable name is returned unchanged, letting exec report the honest
+// not-found error per scenario.
+func resolveCEGatingBinary(atlasBin string) string {
+	if !strings.ContainsRune(atlasBin, os.PathSeparator) {
+		if found, err := exec.LookPath(atlasBin); err == nil {
+			return found
+		}
+		return atlasBin
+	}
+	if abs, err := filepath.Abs(atlasBin); err == nil {
+		return abs
+	}
+	return atlasBin
+}
+
+// CEGatingAtlasVersion reports the first line of `atlas version` for the
+// binary under test, executed under the same scrubbed logged-out environment
+// as every scenario so a developer's ambient Atlas state cannot color the
+// committed report header.
+func CEGatingAtlasVersion(atlasBin string) (string, error) {
+	rt, err := newCEGatingRuntime(resolveCEGatingBinary(atlasBin))
+	if err != nil {
+		return "", err
+	}
+	defer rt.cleanup()
+	result, err := rt.runAtlas("version")
+	if err != nil {
+		return "", fmt.Errorf("execute `atlas version`: %w", err)
+	}
+	if result.exitCode != 0 {
+		return "", fmt.Errorf("`atlas version` exit code %d: %s", result.exitCode, result.diagnostic())
+	}
+	line := strings.TrimSpace(strings.SplitN(result.stdout, "\n", 2)[0])
+	if line == "" {
+		return "", fmt.Errorf("`atlas version` produced no output")
+	}
+	return line, nil
 }
 
 // ceGatingScenario is the internal scenario shape: the public view plus the
@@ -538,6 +586,10 @@ func ceGatingScenarios() []ceGatingScenario {
 	return []ceGatingScenario{
 		// Working, logged out.
 		{
+			// Exit-0-only works predicate: `migrate hash` prints nothing on
+			// success, so (with migrate diff) this is the weakest predicate in
+			// the table. The verified effect — atlas.sum written — lives on
+			// disk, outside what the exit-code+output classifier can see.
 			fixture: "atlas migrate hash",
 			setup: func(rt *ceGatingRuntime) error {
 				return setupCEGatingMigrations(rt, false)
@@ -574,6 +626,9 @@ func ceGatingScenarios() []ceGatingScenario {
 			rules:    CEGatingRules{SuccessFragments: []string{"ALTER TABLE"}},
 		},
 		{
+			// Exit-0-only works predicate: `migrate diff` prints nothing when
+			// it plans a migration, so (with migrate hash) this is the weakest
+			// predicate in the table — the planned file appears on disk only.
 			fixture: "atlas migrate diff",
 			setup: func(rt *ceGatingRuntime) error {
 				if err := rt.mkdir("planned"); err != nil {
@@ -694,25 +749,25 @@ func ceGatingScenarios() []ceGatingScenario {
 			fixture:  "atlas migrate ls",
 			argv:     []string{"migrate", "ls"},
 			expected: CEGatingAbsent,
-			rules:    CEGatingRules{NamedSubcommand: true},
+			rules:    CEGatingRules{AbsentCommandPath: "atlas migrate ls"},
 		},
 		{
 			fixture:  "atlas migrate show",
 			argv:     []string{"migrate", "show"},
 			expected: CEGatingAbsent,
-			rules:    CEGatingRules{NamedSubcommand: true},
+			rules:    CEGatingRules{AbsentCommandPath: "atlas migrate show"},
 		},
 		{
 			fixture:  "atlas schema validate",
 			argv:     []string{"schema", "validate"},
 			expected: CEGatingAbsent,
-			rules:    CEGatingRules{NamedSubcommand: true},
+			rules:    CEGatingRules{AbsentCommandPath: "atlas schema validate"},
 		},
 		{
 			fixture:  "atlas schema stats",
 			argv:     []string{"schema", "stats"},
 			expected: CEGatingAbsent,
-			rules:    CEGatingRules{NamedSubcommand: true},
+			rules:    CEGatingRules{AbsentCommandPath: "atlas schema stats"},
 		},
 
 		// Silent, unenforced behavior — the dangerous class.

@@ -15,7 +15,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
@@ -28,7 +27,10 @@ func main() {
 	flag.Parse()
 
 	atlasBin := probe.DefaultAtlasBinary()
-	versionLine, err := atlasVersionLine(atlasBin)
+	// The version line lands in the committed report header, so it is
+	// measured under the same scrubbed logged-out environment as every
+	// scenario — never with the developer's ambient env.
+	versionLine, err := probe.CEGatingAtlasVersion(atlasBin)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "no usable Atlas binary (%q): %v\n", atlasBin, err)
 		fmt.Fprintln(os.Stderr, "Build it from the pinned tag, e.g.:")
@@ -80,20 +82,6 @@ func formatClassCounts(observed map[probe.CEGatingClass]int) string {
 		return "no classified observations"
 	}
 	return strings.Join(parts, ", ")
-}
-
-// atlasVersionLine reports the first line of `atlas version` for the binary
-// under test, or an error when the binary is not usable at all.
-func atlasVersionLine(bin string) (string, error) {
-	out, err := exec.Command(bin, "version").Output()
-	if err != nil {
-		return "", err
-	}
-	line := strings.TrimSpace(strings.SplitN(string(out), "\n", 2)[0])
-	if line == "" {
-		return "", fmt.Errorf("`%s version` produced no output", bin)
-	}
-	return line, nil
 }
 
 func pinnedVersion() string {

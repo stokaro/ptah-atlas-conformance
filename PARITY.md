@@ -175,6 +175,22 @@ workflow probes are fixture-driven and make only the claims listed below.
   pinned Atlas CE surface; future Atlas changes should either keep this green
   by implementing Ptah parity, or create explicit tracked gaps instead of
   dropping commands from the inventory.
+- **`ce-gating.md`** is the **executed** counterpart to the CLI-surface
+  inventory: help text says what the pinned Atlas CE binary registers, this
+  tier measures what it actually does. Every scenario runs the real binary
+  logged out (scratch `HOME`/XDG dirs per scenario) through the capability set
+  Ptah's feature matrix asserts about the CE column, and classifies the
+  observed outcome: works / community-abort (registered stub refusing with the
+  community-version sentence) / absent (never-registered verb falling through
+  to the parent group help, exit 0) / unknown-flag / named-error /
+  silent-unenforced. The last class is the dangerous one and is pinned by
+  measurement: an HCL `role` block applies as a silent no-op ("Schema is
+  synced"), and a failing txtar `checks.sql` assertion executes as an ordinary
+  statement while the guarded migration applies anyway. Expected classes are a
+  hand-measured baseline with a zero budget, so a renovate bump of
+  `atlas.version` that changes gating turns `gate-ce-gating` red instead of
+  silently invalidating the matrix. This is a claim about the Atlas CE binary,
+  not about Ptah — it changes only when the pin changes.
 - **`lint-analyzer-catalog`** is an **analyzer fidelity matrix** over the full set
   of Atlas analyzer concerns that fire by default in an OSS build — the DS, MF
   (data-dependent), BC, CD, PG1, PG3, PG110, MY, LT and TX families. This is the

@@ -187,6 +187,36 @@ jobs:
       - name: Atlas migrate runtime conformance gate
         run: make gate-migrate-runtime
 
+  # The CE gating full-baseline signal. This is separate from
+  # conformance-ce-gating, which enforces report freshness plus the committed
+  # (zero) budget. It must stay red while the pinned Atlas CE binary's
+  # measured gating behavior — works / community-abort / absent / unknown-flag
+  # / named-error / silent-unenforced per scenario — diverges from the
+  # hand-measured baseline. SQLite only: no database services.
+  ce-gating-gate:
+    runs-on: ubuntu-latest
+    env:
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v6
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
+
+      - name: CE gating baseline gate
+        run: make gate-ce-gating
+
   # The CLI-surface full-parity signal. This is separate from
   # conformance-regression, which enforces only the committed CLI-surface
   # regression budget.
