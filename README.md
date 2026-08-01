@@ -200,7 +200,21 @@ help, then records:
 - compatibility findings for the `ptah-compat` binary named `atlas` — Ptah's
   single Atlas-shaped surface since stokaro/ptah#850 removed the
   `ptah atlas ...` namespace (the offline `cli-exit-behavior` probe pins that
-  the main `ptah` binary keeps rejecting the namespace with exit 2).
+  the main `ptah` binary keeps rejecting the namespace with exit 2);
+- a closed, per-command allow-list of **Pro-surface long flags** on OSS
+  commands (`proSurfaceFlags` in `internal/probe/cli_surface.go`). A licensed
+  Atlas build registers flags the pinned CE binary does not — for example
+  `atlas schema inspect --include`, which CE answers with `unknown flag` (the
+  CE gating tier measures exactly that) and which Ptah implements deliberately,
+  because stokaro/ptah#951 wants `ptah-compat` to be a drop-in even for Atlas
+  Pro. Such a flag is allowed only on a command where the licensed build
+  actually registers it, and the report names it (`plus Pro-surface flags
+  implemented openly: --include`) instead of collapsing to a plain OK. Every
+  other extra flag is still a gap, missing flags are still measured against the
+  CE set alone, and an allow-listed flag Ptah has not implemented never counts
+  against it. This is deliberately not a `waivers.txt` line: a waiver is keyed
+  on (probe, fixture, stage) and would hide every future extra flag on that
+  command.
 
 The regression budget is [`cli-surface-budget.txt`](./cli-surface-budget.txt).
 `make budget-cli-surface` must stay green when Ptah preserves the current known

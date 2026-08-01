@@ -294,7 +294,9 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		// Named errors.
 		"atlas schema inspect --env (composite_schema)": probe.CEGatingNamedError,
 		"atlas schema inspect --env (external_schema)":  probe.CEGatingNamedError,
-		"atlas schema inspect --web":                    probe.CEGatingUnknownFlag,
+		// Flags a licensed Atlas build registers and CE does not register at all.
+		"atlas schema inspect --web":     probe.CEGatingUnknownFlag,
+		"atlas schema inspect --include": probe.CEGatingUnknownFlag,
 	})
 
 	counts := map[probe.CEGatingClass]int{}
@@ -307,7 +309,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		probe.CEGatingAbsent:           4,
 		probe.CEGatingSilentUnenforced: 2,
 		probe.CEGatingNamedError:       2,
-		probe.CEGatingUnknownFlag:      1,
+		probe.CEGatingUnknownFlag:      2,
 	})
 }
 
