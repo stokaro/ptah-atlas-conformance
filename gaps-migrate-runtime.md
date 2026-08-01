@@ -13,14 +13,16 @@ apply uses pinned Atlas CE as an independent runtime oracle.
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, and MySQL databases; Atlas CE apply oracle pinned by atlas.version
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801150040-2cb6b3a3f4e2`
-- Outcomes: **38 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801172128-4680f0266909`
+- Outcomes: **43 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
 ## Compared Schema Fact Categories
 
 - Migration apply: applied schema objects, Atlas revision rows, and post-apply status.
+- Checkpoints: `-- atlas:checkpoint` bootstrap-or-skip semantics on first-party fixtures and on Atlas's own vendored multi-checkpoint directory, including latest-checkpoint selection and post-checkpoint continuation.
+- Apply-time integrity: both Atlas branches of the atlas.sum contract — the checksum-mismatch refusal on a *hashed* directory edited after hashing, and the checksum-file-not-found refusal on a directory that was never hashed. Each is measured on exit code, output shape, and the absence of the target database.
 - Migration set: repair-state rows and subsequent application of only remaining migrations.
 - Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.
 - Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.
@@ -48,6 +50,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `sqlite/apply-dry-run-fresh-target` | inspect | apply dry-run planned version 1 on a fresh target without creating schema objects or revision metadata |  |
 | — | ok | migrate-runtime | `sqlite/apply-dry-run-stored-state` | inspect | apply dry-run read stored revisions without mutation, planned only version 3 when pending, and planned nothing once fully applied |  |
 | — | ok | migrate-runtime | `sqlite/apply-state` | inspect | apply created expected SQLite tables, Atlas revision rows, and applied status |  |
+| — | ok | migrate-runtime | `sqlite/checkpoint-fresh-bootstrap` | inspect | fresh-database apply executed only the checkpoint, wrote the single type=2 Atlas revision row, and reported a clean status |  |
+| — | ok | migrate-runtime | `sqlite/checkpoint-pre-existing-skip` | inspect | pre-checkpoint database skipped the checkpoint silently with no new revision row and a clean status |  |
 | — | ok | migrate-runtime | `sqlite/down-dry-run-stored-state` | inspect | formatted and default-output down dry-runs read stored version 2, honored --to-version, and preserved the complete SQLite schema and revision state |  |
 | — | ok | migrate-runtime | `sqlite/down-failure-revisions` | inspect | a failed down left all 12 Atlas revision columns byte-identical, including an Atlas Pro metadata row, and status still reports the version applied, matching Atlas |  |
 | — | ok | migrate-runtime | `sqlite/down-missing-body-atomicity` | inspect | dry-run and real down exited 1 with the diagnostic on stderr and rejected the incomplete rollback set before any SQLite schema or revision mutation |  |
@@ -55,12 +59,15 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `sqlite/project-config-apply-oracle` | compare | atlas community version v1.2.0 created a one-migration brownfield database, Atlas CE and Ptah independently applied the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision metadata, and storage classes matched the Atlas control; measured timing invariants, Ptah full-duration nanosecond units, producer identity, and Atlas CE reading Ptah state all passed |  |
 | — | ok | migrate-runtime | `sqlite/revision-metadata-row` | inspect | status, migrate set and a tx-mode none apply all skip two `.atlas_cloud_identifier` metadata rows in their version math, and both rows survive byte-identically |  |
 | — | ok | migrate-runtime | `sqlite/set-repair-state` | inspect | set recorded repair state and apply executed only the remaining migration |  |
+| — | ok | migrate-runtime | `sqlite/tampered-sum-apply-refusal` | apply | apply refused the tampered hashed directory with the Atlas checksum-mismatch shape before creating or touching the target database |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-all` | inspect | `--tx-mode all` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-all-diagnostic` | diagnostic | tx-mode all rejected a pre-migration check with exit 1 and the diagnostic on stderr without suggesting unavailable compat flag --skip-checks |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-file` | inspect | `--tx-mode file` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-none` | inspect | `--tx-mode none` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/txtar-checks-error-gate` | inspect | an erroring checks.sql assertion failed closed: exit 1, the body did not run, and no revision row was recorded |  |
 | — | ok | migrate-runtime | `sqlite/txtar-checks-gate` | inspect | failing txtar checks.sql aborted the apply before the body (exit 1, names checks.sql#1, no schema change, no revision row) and the retry after fixing the data succeeded |  |
+| — | ok | migrate-runtime | `sqlite/unhashed-dir-apply-refusal` | apply | apply refused the unhashed directory with the Atlas checksum-file-not-found shape before creating or touching the target database |  |
+| — | ok | migrate-runtime | `sqlite/upstream-partial-checkpoint` | inspect | Atlas's own partial-checkpoint fixture applied only the latest checkpoint plus the migration after it, matching the measured Atlas CE end schema and revision rows |  |
 | — | ok | schema-planning | `postgres/add-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/add-table` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/drop-column` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |

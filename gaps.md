@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801150040-2cb6b3a3f4e2`
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801172128-4680f0266909`
 - Outcomes: **804 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -23,7 +23,7 @@ Every fixture is covered. The conformance gate is green.
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target |  |
-| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --lock-timeout` | lockless dialect note | `schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds |  |
 | — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode --revisions-schema |  |
@@ -117,7 +117,6 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | checkpoint-workflow | `ptah migrations up` | post-checkpoint continuation | a fresh database bootstrapped from the checkpoint and applied only the post-checkpoint migration, recording revisions 4 and 5 |  |
 | — | ok | checkpoint-workflow | `ptah migrations validate` | checkpoint integrity | the directory including the fresh checkpoint pair validates against the rewritten ptah.sum |  |
 | — | ok | checkpoint-workflow | `ptah migrations validate` | tamper detection | a single tampered byte in the checkpoint file failed validation naming that file, and restoring the bytes validated cleanly again |  |
-| — | ok | cli-exit-behavior | `ptah-compat/accepted-but-unimplemented-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/added-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/clean-atlas.sum-succeeds-silently` | exit | exit 0, output → silent |  |
 | — | ok | cli-exit-behavior | `ptah-compat/completion-bash-generates-script` | exit | exit 0, output → stdout |  |
@@ -134,6 +133,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | cli-exit-behavior | `ptah-compat/missing-migration-directory` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/missing-project-config` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/missing-required-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/plan-flag-implemented` | content | PTAH-SIDE PIN (surfaces diverge by design; CE v1.2.0 Pro-gates this flag with `Abort: 'atlas schema apply --plan' is not supported by the community version.`): ptah-compat implements `schema apply --plan` and fails only on reading the missing plan file |  |
 | — | ok | cli-exit-behavior | `ptah-compat/removed-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand` | exit | exit 1, error → stderr |  |
@@ -536,9 +536,9 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | pro-maint-workflow | `atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
 | — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
 | — | ok | pro-maint-workflow | `atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
-| — | ok | pro-plan-workflow | `atlas schema apply` | plan application | `schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table |  |
-| — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
-| — | ok | pro-plan-workflow | `atlas schema plan` | plan creation | `schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity |  |
+| — | ok | pro-plan-workflow | `atlas schema apply` | plan application | PTAH-SIDE PIN (no CE oracle): `schema apply --plan file://...` replayed the saved native JSON plan against the planned target, creating exactly the desired users table |  |
+| — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | PTAH-SIDE PIN (no CE oracle): a target mutated after planning was refused: apply --plan on the native JSON plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
+| — | ok | pro-plan-workflow | `atlas schema plan` | plan creation | PTAH-SIDE PIN (no CE oracle — CE v1.2.0 answers "'atlas schema plan' is not supported by the community version"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity |  |
 | — | ok | pro-test-workflow | `atlas migrate test` | migration tests pass | the Atlas Pro test verb applied the Atlas-format migration directory to a real SQLite dev database and passed the committed case set: migrate_to latest, exec, and row-count/scalar assertions |  |
 | — | ok | pro-test-workflow | `atlas migrate test` | migration test failure exit contract | a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1 |  |
 | — | ok | pro-test-workflow | `atlas schema test` | schema tests pass | the Atlas Pro schema-test verb provisioned the desired schema from the local Go-annotation source on a real SQLite dev database and passed the committed case set |  |

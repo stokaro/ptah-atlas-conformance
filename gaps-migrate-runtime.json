@@ -57,6 +57,41 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/checkpoint-fresh-bootstrap",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "fresh-database apply executed only the checkpoint, wrote the single type=2 Atlas revision row, and reported a clean status"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/checkpoint-pre-existing-skip",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "pre-checkpoint database skipped the checkpoint silently with no new revision row and a clean status"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/upstream-partial-checkpoint",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "Atlas's own partial-checkpoint fixture applied only the latest checkpoint plus the migration after it, matching the measured Atlas CE end schema and revision rows"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/tampered-sum-apply-refusal",
+    "stage": "apply",
+    "outcome": "ok",
+    "detail": "apply refused the tampered hashed directory with the Atlas checksum-mismatch shape before creating or touching the target database"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/unhashed-dir-apply-refusal",
+    "stage": "apply",
+    "outcome": "ok",
+    "detail": "apply refused the unhashed directory with the Atlas checksum-file-not-found shape before creating or touching the target database"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/set-repair-state",
     "stage": "inspect",
     "outcome": "ok",

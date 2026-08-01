@@ -6,7 +6,8 @@ require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.1.3-0.20260801150040-2cb6b3a3f4e2
+	github.com/stokaro/ptah v0.1.3-0.20260801172128-4680f0266909
+	github.com/zclconf/go-cty v1.19.0
 	modernc.org/sqlite v1.55.0
 )
 
@@ -53,7 +54,6 @@ require (
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/zclconf/go-cty v1.19.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.44.0 // indirect

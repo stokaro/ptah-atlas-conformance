@@ -121,6 +121,8 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 		PtahVersion: ptahVersion,
 		FactCategories: []string{
 			"Migration apply: applied schema objects, Atlas revision rows, and post-apply status.",
+			"Checkpoints: `-- atlas:checkpoint` bootstrap-or-skip semantics on first-party fixtures and on Atlas's own vendored multi-checkpoint directory, including latest-checkpoint selection and post-checkpoint continuation.",
+			"Apply-time integrity: both Atlas branches of the atlas.sum contract — the checksum-mismatch refusal on a *hashed* directory edited after hashing, and the checksum-file-not-found refusal on a directory that was never hashed. Each is measured on exit code, output shape, and the absence of the target database.",
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",
