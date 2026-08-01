@@ -293,6 +293,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		"atlas migrate apply (failing txtar checks)": probe.CEGatingSilentUnenforced,
 		// Named errors.
 		"atlas schema inspect --env (composite_schema)": probe.CEGatingNamedError,
+		"atlas schema inspect --env (external_schema)":  probe.CEGatingNamedError,
 		"atlas schema inspect --web":                    probe.CEGatingUnknownFlag,
 	})
 
@@ -305,7 +306,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		probe.CEGatingCommunityAbort:   11,
 		probe.CEGatingAbsent:           4,
 		probe.CEGatingSilentUnenforced: 2,
-		probe.CEGatingNamedError:       1,
+		probe.CEGatingNamedError:       2,
 		probe.CEGatingUnknownFlag:      1,
 	})
 }
