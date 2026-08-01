@@ -8,19 +8,34 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/zclconf/go-cty/cty"
 )
 
 const proPlanWorkflowSentinel = "_capability/pro-plan-workflow/SENTINEL"
 
 // ProPlanWorkflowProbe executes the local half of Atlas's Pro `schema plan`
 // workflow that Ptah implements as an open capability (stokaro/ptah#809)
-// through the real `atlas ...` CLI: `schema plan --save` computes a
-// fingerprinted local plan file against a real SQLite target, `schema apply
-// --plan file://...` replays exactly that reviewed plan, and a target mutated
-// after planning is refused as stale without touching the database. Atlas
-// binds plan storage and approval to its Cloud registry; Ptah's open
-// replacement is the local plan file, so this is a first-party capability
-// probe with no CE oracle.
+// through the real `atlas ...` CLI: `schema plan --save` writes a plan file
+// against a real SQLite target, `schema apply --plan file://...` replays
+// exactly that reviewed plan, and a target mutated after planning is refused
+// as stale without touching the database.
+//
+// THIS PROBE HAS NO CE ORACLE AND PINS PTAH-SIDE BEHAVIOR. Atlas binds plan
+// storage and approval to its Cloud registry, and pinned Atlas CE v1.2.0
+// answers `'atlas schema plan' is not supported by the community version`, so
+// nothing here can be differentialed against CE. Its rows are regression
+// guards on Ptah's own contract, not parity evidence.
+//
+// stokaro/ptah#965 made Atlas's `.plan.hcl` the default encoding and kept the
+// native fingerprinted JSON plan reachable through an explicit .json --output
+// path. Both are measured: the HCL shape against the Atlas-authored artifact
+// captured in that PR, the JSON document against Ptah's own format contract.
+// The two formats are guarded differently on apply — the JSON plan by its
+// fingerprint binding, the Atlas format by a dev-database replay verified
+// against --to — so the apply and stale-refusal stages stay on the JSON plan.
 type ProPlanWorkflowProbe struct {
 	// FixtureRoot contains the committed desired-schema source file.
 	// Relative paths are resolved from the probe process directory.
@@ -74,6 +89,11 @@ func (p *proPlanWorkflow) planCreation() Result {
 		fixture = "atlas schema plan"
 		stage   = "plan creation"
 	)
+	// Since stokaro/ptah#965 the DEFAULT encoding is Atlas's `.plan.hcl` shape.
+	// The expected structure is taken from the Atlas-authored artifact captured
+	// in that PR (ptah cmd/atlas/testdata/atlas.plan.hcl, written by the
+	// licensed v1.2.4 build): a single `plan` block, labeled, carrying `from`,
+	// `to` and a `migration` heredoc.
 	result, harness := p.runCLI(stage,
 		"schema", "plan",
 		"--from", sqliteURL(filepath.Join(p.runRoot, "target.db")),
@@ -88,6 +108,31 @@ func (p *proPlanWorkflow) planCreation() Result {
 		return *gap
 	}
 	if gap := p.expectFragments(fixture, stage, "stdout", result.stdout, []string{
+		"Plan saved to file://conformance.plan.hcl",
+	}); gap != nil {
+		return *gap
+	}
+	if gap := p.checkAtlasPlanHCL(fixture, stage, "conformance.plan.hcl"); gap != nil {
+		return *gap
+	}
+
+	// The native fingerprinted JSON plan stayed reachable through an explicit
+	// .json --output path, so its document contract is still measured here
+	// rather than being dropped along with the default.
+	jsonResult, harness := p.runCLI(stage,
+		"schema", "plan",
+		"--from", sqliteURL(filepath.Join(p.runRoot, "target.db")),
+		"--to", "file://schema.sql",
+		"--output", "conformance.plan.json",
+		"--name", "conformance",
+	)
+	if harness != nil {
+		return *harness
+	}
+	if gap := p.expectExit(fixture, stage, jsonResult, 0); gap != nil {
+		return *gap
+	}
+	if gap := p.expectFragments(fixture, stage, "stdout", jsonResult.stdout, []string{
 		"Plan saved to file://conformance.plan.json",
 	}); gap != nil {
 		return *gap
@@ -115,7 +160,74 @@ func (p *proPlanWorkflow) planCreation() Result {
 		return p.gap(fixture, stage, fmt.Sprintf("plan statement severity = %q, want \"safe\"", plan.Statements[0].Severity))
 	}
 	return p.ok(fixture, stage,
-		"`schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity")
+		"PTAH-SIDE PIN (no CE oracle — CE v1.2.0 answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity")
+}
+
+// checkAtlasPlanHCL asserts the saved plan file has the Atlas plan-file shape.
+//
+// The structure asserted here is what the Atlas-authored artifact settles: one
+// `plan` block with a single label, plus `from`, `to` and `migration`
+// attributes. The sha256: prefix on from/to is deliberately NOT asserted as
+// Atlas parity — Ptah writes its own fingerprints there, and ptah's own help
+// text records that the official Atlas binary parses the file but verifies its
+// own hashes, which have no local recipe.
+func (p *proPlanWorkflow) checkAtlasPlanHCL(fixture, stage, name string) *Result {
+	data, err := os.ReadFile(filepath.Join(p.runRoot, name))
+	if err != nil {
+		gap := p.gap(fixture, stage, "the saved Atlas-format plan file is missing: "+oneLine(err.Error()))
+		return &gap
+	}
+	file, diags := hclsyntax.ParseConfig(data, name, hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		gap := p.gap(fixture, stage, "the saved plan file is not parseable HCL: "+oneLine(diags.Error()))
+		return &gap
+	}
+	body, ok := file.Body.(*hclsyntax.Body)
+	if !ok {
+		gap := p.gap(fixture, stage, "the saved plan file has no HCL body")
+		return &gap
+	}
+	var planBlocks []*hclsyntax.Block
+	for _, block := range body.Blocks {
+		if block.Type == "plan" {
+			planBlocks = append(planBlocks, block)
+		}
+	}
+	if len(planBlocks) != 1 {
+		gap := p.gap(fixture, stage, fmt.Sprintf("plan file has %d `plan` block(s), want exactly 1", len(planBlocks)))
+		return &gap
+	}
+	block := planBlocks[0]
+	if len(block.Labels) != 1 || block.Labels[0] != "conformance" {
+		gap := p.gap(fixture, stage, fmt.Sprintf("plan block labels = %v, want exactly [conformance]", block.Labels))
+		return &gap
+	}
+	attrs := map[string]string{}
+	for _, want := range []string{"from", "to", "migration"} {
+		attr, present := block.Body.Attributes[want]
+		if !present {
+			gap := p.gap(fixture, stage, "plan block has no `"+want+"` attribute")
+			return &gap
+		}
+		value, valDiags := attr.Expr.Value(nil)
+		if valDiags.HasErrors() || value.Type() != cty.String {
+			gap := p.gap(fixture, stage, "plan block attribute `"+want+"` is not a literal string")
+			return &gap
+		}
+		attrs[want] = value.AsString()
+	}
+	switch {
+	case strings.TrimSpace(attrs["from"]) == "" || strings.TrimSpace(attrs["to"]) == "":
+		gap := p.gap(fixture, stage, "plan block from/to fingerprints are empty")
+		return &gap
+	case attrs["from"] == attrs["to"]:
+		gap := p.gap(fixture, stage, "plan block from/to fingerprints are identical although the plan creates a table")
+		return &gap
+	case !strings.Contains(attrs["migration"], `CREATE TABLE "users"`):
+		gap := p.gap(fixture, stage, "plan block migration does not create the desired users table: "+oneLine(attrs["migration"]))
+		return &gap
+	}
+	return nil
 }
 
 func (p *proPlanWorkflow) planApplication() Result {
@@ -144,7 +256,7 @@ func (p *proPlanWorkflow) planApplication() Result {
 		return *gap
 	}
 	return p.ok(fixture, stage,
-		"`schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table")
+		"PTAH-SIDE PIN (no CE oracle): `schema apply --plan file://...` replayed the saved native JSON plan against the planned target, creating exactly the desired users table")
 }
 
 func (p *proPlanWorkflow) stalePlanRefusal() Result {
@@ -153,11 +265,15 @@ func (p *proPlanWorkflow) stalePlanRefusal() Result {
 		stage   = "stale plan refusal"
 	)
 	staleDB := filepath.Join(p.runRoot, "stale-target.db")
+	// Explicitly the native JSON encoding: fingerprint staleness is the JSON
+	// plan's guard. stokaro/ptah#965 gave Atlas-format plans a different one —
+	// a dev-database replay verified against --to — precisely because the
+	// fingerprint is public and forgeable.
 	planned, harness := p.runCLI(stage,
 		"schema", "plan",
 		"--from", sqliteURL(staleDB),
 		"--to", "file://schema.sql",
-		"--save",
+		"--output", "stale.plan.json",
 		"--name", "stale",
 	)
 	if harness != nil {
@@ -194,7 +310,7 @@ func (p *proPlanWorkflow) stalePlanRefusal() Result {
 		return *gap
 	}
 	return p.ok(fixture, stage,
-		"a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched")
+		"PTAH-SIDE PIN (no CE oracle): a target mutated after planning was refused: apply --plan on the native JSON plan exited 1 naming the fingerprint mismatch and left the database untouched")
 }
 
 func (p *proPlanWorkflow) readPlan(fixture, stage, name string) (proPlanDocument, *Result) {

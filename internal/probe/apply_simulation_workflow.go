@@ -165,9 +165,15 @@ func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
 	if gap := s.expectExit(fixture, stage, result, 1); gap != nil {
 		return *gap
 	}
+	// Wording is a PTAH-SIDE PIN with no Atlas artifact behind it:
+	// stokaro/ptah#965 reworded this diagnostic's reassurance clause from "the
+	// target database was left unchanged" to "the plan was not applied to the
+	// target database". The substantive guarantee is asserted independently
+	// below by reading the target database directly, so this fragment check
+	// only guards Ptah's own message contract.
 	if gap := s.expectFragments(fixture, stage, "stderr", result.stderr, []string{
 		"dev database simulation failed during plan",
-		"the target database was left unchanged",
+		"the plan was not applied to the target database",
 	}); gap != nil {
 		return *gap
 	}
@@ -175,7 +181,7 @@ func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
 		return *gap
 	}
 	return s.ok(fixture, stage,
-		"a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table")
+		"PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly)")
 }
 
 func (s *applySimulationWorkflow) devURLMustDifferFromTarget() Result {

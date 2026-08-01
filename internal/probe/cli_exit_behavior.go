@@ -333,11 +333,16 @@ var cliExitCatalog = []cliExitCase{
 		Issue:       "stokaro/ptah#725",
 	},
 	{
+		// `schema apply --plan` used to be the accepted-but-unimplemented
+		// example. stokaro/ptah#965 implemented it, so the case moved to a flag
+		// that Ptah still explicitly accepts and rejects as unimplemented —
+		// `schema plan --format`, named in ptah's own rejection list in
+		// cmd/atlas/schema_plan.go alongside --name-format.
 		Name: "accepted but unimplemented flag",
 		Build: func(string) ([]string, error) {
-			return []string{"schema", "apply", "--url", "sqlite://f", "--to", "file://x", "--plan", "p"}, nil
+			return []string{"schema", "plan", "--from", "sqlite://f", "--to", "file://x", "--format", "{{.}}"}, nil
 		},
-		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "--plan",
+		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "--format",
 		Issue: "stokaro/ptah#688",
 	},
 	{
