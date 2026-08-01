@@ -422,7 +422,11 @@ func compareFlags(probeName, display string, atlasCmd CLISurfaceCommand, target 
 		if len(atlasCmd.Flags) == 0 {
 			detail = "long flags match Atlas: no long flags"
 		}
-		if adopted := commonStrings(atlasCmd.ProFlags, target.Flags); len(adopted) > 0 {
+		// Only flags the pinned CE binary does NOT register count as adopted Pro
+		// surface: once an atlas.version bump moves a listed flag into CE's own
+		// help, it is ordinary CE parity and the allowance entry is dead weight.
+		proOnly := missingStrings(atlasCmd.ProFlags, atlasCmd.Flags)
+		if adopted := commonStrings(proOnly, target.Flags); len(adopted) > 0 {
 			detail += "; plus Pro-surface flags implemented openly: " + strings.Join(adopted, " ")
 		}
 		return Result{probeName, display, "flags", OK, detail, ""}

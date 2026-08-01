@@ -6,6 +6,7 @@ package probe
 
 import (
 	"os"
+	"sort"
 	"strings"
 	"testing"
 
@@ -393,6 +394,29 @@ func TestCompareFlags_UnimplementedProSurfaceFlagIsNotAGap(t *testing.T) {
 
 	c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
 	c.Check(got.Detail, qt.Not(qt.Contains), "--export")
+	c.Check(got.Detail, qt.Not(qt.Contains), "Pro-surface flags implemented openly")
+}
+
+func TestCompareFlags_ProFlagAdoptedByCEIsNoLongerAnnouncedAsProSurface(t *testing.T) {
+	c := qt.New(t)
+
+	// Simulates a future atlas.version bump in which CE itself starts
+	// registering --include. The flag is then ordinary CE parity, so the detail
+	// must stop advertising it as adopted Pro surface — otherwise the report
+	// would keep crediting a dead allow-list entry.
+	ceFlags := append(append([]string(nil), ceInspectFlags...), "--include")
+	sort.Strings(ceFlags)
+	atlasCmd := CLISurfaceCommand{
+		Path:     []string{"schema", "inspect"},
+		Flags:    ceFlags,
+		ProFlags: proSurfaceFlags()["schema inspect"],
+	}
+	target := helpDetails{Flags: ceFlags}
+
+	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
+
+	c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
+	c.Check(got.Detail, qt.Equals, "long flags match Atlas: "+strings.Join(ceFlags, " "))
 	c.Check(got.Detail, qt.Not(qt.Contains), "Pro-surface flags implemented openly")
 }
 
