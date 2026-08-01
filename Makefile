@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface verify-cli-exit-oracle atlas verify test build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -123,6 +123,29 @@ budget-cli-surface: probe-cli-surface
 # usage string, or long flag is not mirrored by the ptah-compat binary.
 gate-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe -gate
+
+# The CE gating tier: execute the pinned Atlas CE binary, logged out, through
+# the fixed capability scenarios Ptah's feature matrix asserts about the CE
+# column, and classify each observed outcome (works / community-abort / absent /
+# unknown-flag / named-error / silent-unenforced). Every scenario runs under a
+# scratch HOME so a developer's real Atlas login can never leak in. SQLite
+# only, no external databases. Needs ATLAS_BIN (or `atlas` on PATH; `make
+# atlas` builds ./bin/atlas from the pinned tag). Regenerates ce-gating.md /
+# ce-gating.json and always exits 0.
+probe-ce-gating:
+	$(GO_OFF) run ./cmd/gap-probe-ce-gating
+
+# CI progress gate for the CE gating tier: fail when the current report
+# exceeds the committed budget or has stale waivers. The budget is zero —
+# every scenario must match the measured Atlas CE gating baseline, so an
+# atlas.version bump that changes gating goes red here.
+budget-ce-gating: probe-ce-gating
+	$(GO_OFF) run ./cmd/gap-budget -report ce-gating.json -budget ce-gating-budget.txt
+
+# The full CE gating gate: regenerate the report AND fail while any scenario
+# diverges from the measured Atlas CE gating baseline.
+gate-ce-gating:
+	$(GO_OFF) run ./cmd/gap-probe-ce-gating -gate
 
 # Verify that the static process-level exit/output expectations still match the
 # pinned Atlas CE binary. ATLAS_BIN is required and normally points to bin/atlas.

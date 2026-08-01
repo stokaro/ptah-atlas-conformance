@@ -1,0 +1,6 @@
+# Maximum allowed unwaived non-OK observations in ce-gating.json.
+# The expected classes are the hand-measured Atlas CE v1.2.0 gating baseline
+# (2026-08-01), so every scenario must match and the budget is zero. An
+# atlas.version bump that changes gating goes red here until the baseline is
+# re-measured by hand and the scenario table is updated.
+0

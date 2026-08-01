@@ -221,6 +221,26 @@ gap and lower the budget, or keep the report red and raise/refresh the budget
 only as an explicit measurement-baseline change. Do not remove commands from the
 inventory to make the report green.
 
+## CE gating tier
+
+The CLI surface tier inventories help and flags; the CE gating tier
+([`ce-gating.md`](./ce-gating.md), workflow
+[`conformance-ce-gating`](./.github/workflows/conformance-ce-gating.yml))
+actually **runs** the pinned Atlas CE binary — always logged out, under a
+scratch `HOME` per scenario — through the capability set Ptah's feature matrix
+asserts about the CE column, and classifies every observed outcome as works /
+community-abort / absent / unknown-flag / named-error / silent-unenforced. The
+expected classes encode a hand-measured baseline, so a renovate bump of
+`atlas.version` that changes what CE gates fails the gate instead of silently
+invalidating the matrix. SQLite only; no database services.
+
+```
+make atlas             # rebuild ./bin/atlas from the pinned Atlas CE tag
+make probe-ce-gating   # regenerate ce-gating.md / ce-gating.json (needs ATLAS_BIN or ./bin/atlas)
+make budget-ce-gating  # verify the committed zero regression budget
+make gate-ce-gating    # full baseline gate: fails on any diverging scenario
+```
+
 ## CI regression budget and full-parity gate
 
 This is a measured corpus, not a claim of complete Atlas feature parity. CI

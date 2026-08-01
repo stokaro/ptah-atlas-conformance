@@ -184,12 +184,19 @@ func runPtahCommandInDir(bin string, args []string, workingDir string) (ptahComm
 // hermetic tool settings such as a scripted $EDITOR without leaking the
 // invoking user's environment into the measured command.
 func runPtahCommandInDirWithEnv(bin string, args []string, workingDir string, extraEnv []string) (ptahCommandResult, error) {
+	return runCommandHermetic(bin, args, workingDir, append(ptahCommandEnvironment(), extraEnv...))
+}
+
+// runCommandHermetic runs a binary with exactly the provided environment —
+// nothing from the invoking process leaks in. The CE gating tier uses it to
+// execute the Atlas binary logged out under a scratch HOME.
+func runCommandHermetic(bin string, args []string, workingDir string, env []string) (ptahCommandResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = workingDir
-	cmd.Env = append(ptahCommandEnvironment(), extraEnv...)
+	cmd.Env = env
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

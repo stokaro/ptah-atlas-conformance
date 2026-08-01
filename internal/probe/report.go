@@ -130,11 +130,36 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 	})
 }
 
+// RenderCEGatingMarkdownWithCommand produces the Atlas CE gating report and
+// records the command that regenerates that specific report file. atlasVersion
+// is the first line of `atlas version` for the binary under test.
+func RenderCEGatingMarkdownWithCommand(results []Result, atlasVersion, command string) string {
+	return renderMarkdownWithOptions(results, &Waivers{}, markdownReportOptions{
+		Title:   "# Atlas CE gating conformance report",
+		Command: command,
+		Intro: "It executes the pinned Atlas CE binary, logged out, through the fixed\n" +
+			"capability scenarios Ptah's feature matrix asserts about the CE column, and\n" +
+			"classifies every observed outcome (works / community-abort / absent /\n" +
+			"unknown-flag / named-error / silent-unenforced). A gap means the binary's\n" +
+			"gating behavior drifted from the measured baseline — for example after an\n" +
+			"atlas.version bump — not that Ptah changed.\n\n",
+		SourceLine: fmt.Sprintf("Atlas CE binary under test: `%s`, built from the release tag pinned in `atlas.version`", atlasVersion),
+		HeaderLines: []string{
+			"Isolation: every scenario runs logged out — scratch `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` in a fresh temp dir, plus `ATLAS_NO_UPDATE_NOTIFIER=1` and `ATLAS_NO_ANON_TELEMETRY=1` — so a developer's real Atlas login can never leak into the measurement.",
+			"Expected classes are the hand-measured 2026-08-01 baseline for Atlas CE v1.2.0.",
+		},
+	})
+}
+
 type markdownReportOptions struct {
-	Title          string
-	Command        string
-	Intro          string
-	SourceLine     string
+	Title      string
+	Command    string
+	Intro      string
+	SourceLine string
+	// HeaderLines are extra bullet lines rendered after SourceLine.
+	HeaderLines []string
+	// PtahVersion is omitted from the header when empty — tiers that measure
+	// only the Atlas binary do not involve Ptah at all.
 	PtahVersion    string
 	FactCategories []string
 }
@@ -159,7 +184,12 @@ func renderMarkdownWithOptions(results []Result, w *Waivers, opts markdownReport
 	}
 
 	fmt.Fprintf(&b, "- %s\n", opts.SourceLine)
-	fmt.Fprintf(&b, "- Ptah at `%s`\n", opts.PtahVersion)
+	for _, line := range opts.HeaderLines {
+		fmt.Fprintf(&b, "- %s\n", line)
+	}
+	if opts.PtahVersion != "" {
+		fmt.Fprintf(&b, "- Ptah at `%s`\n", opts.PtahVersion)
+	}
 	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n", s.OK, s.Gap, s.Fail, s.Panic)
 	fmt.Fprintf(&b, "- Full gate: **%d non-OK** (%s)\n",
 		len(nonOK),

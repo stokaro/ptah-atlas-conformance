@@ -1,0 +1,56 @@
+name: conformance-ce-gating
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # The CE gating tier. It builds a real Atlas CE binary from the tag pinned in
+  # atlas.version (release parity, renovate-bumped) and executes it — logged
+  # out, under a scratch HOME per scenario — through the fixed capability
+  # scenarios Ptah's feature matrix asserts about the CE column, classifying
+  # every observed outcome (works / community-abort / absent / unknown-flag /
+  # named-error / silent-unenforced). The committed report must be fresh and
+  # every scenario must match the measured gating baseline (the budget is
+  # zero), so a renovate bump of atlas.version that changes gating fails here.
+  # SQLite only: no database services.
+  ce-gating:
+    runs-on: ubuntu-latest
+    env:
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      # Cache the built Atlas CE binary keyed on the pinned tag, so it is only
+      # rebuilt when renovate bumps atlas.version.
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v6
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
+
+      - name: Report the Atlas version under test
+        run: ./bin/atlas version | head -1
+
+      - name: Regenerate the CE gating report
+        run: make probe-ce-gating
+
+      - name: Fail if the committed CE gating report is stale
+        run: |
+          if ! git diff --exit-code ce-gating.md ce-gating.json; then
+            echo "ce-gating.md / ce-gating.json are out of date — run 'make probe-ce-gating' with the pinned Atlas binary, then commit the result."
+            exit 1
+          fi
+
+      - name: Enforce CE gating budget
+        run: make budget-ce-gating
