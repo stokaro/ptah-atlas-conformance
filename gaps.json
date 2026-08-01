@@ -4770,9 +4770,10 @@
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/accepted-but-unimplemented-flag",
-    "stage": "exit",
-    "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "stage": "class",
+    "outcome": "gap",
+    "detail": "expected error-class substring \"--plan\" on stderr",
+    "issue": "stokaro/ptah#688"
   },
   {
     "probe": "cli-exit-behavior",
@@ -5324,22 +5325,9 @@
     "probe": "pro-plan-workflow",
     "fixture": "atlas schema plan",
     "stage": "plan creation",
-    "outcome": "ok",
-    "detail": "`schema plan --save` wrote the local format_version-1 plan file binding sha256 source/target fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
-  },
-  {
-    "probe": "pro-plan-workflow",
-    "fixture": "atlas schema apply",
-    "stage": "plan application",
-    "outcome": "ok",
-    "detail": "`schema apply --plan file://...` replayed the saved plan against the planned target, creating exactly the desired users table"
-  },
-  {
-    "probe": "pro-plan-workflow",
-    "fixture": "atlas schema apply",
-    "stage": "stale plan refusal",
-    "outcome": "ok",
-    "detail": "a target mutated after planning was refused: apply --plan exited 1 naming the fingerprint mismatch and left the database untouched"
+    "outcome": "gap",
+    "detail": "stdout does not contain \"Plan saved to file://conformance.plan.json\": Planned schema changes: CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY, \"name\" TEXT NOT NULL ); Plan saved to file://conformance.plan.hcl",
+    "issue": "stokaro/ptah#758"
   },
   {
     "probe": "pro-down-workflow",
@@ -5548,15 +5536,9 @@
     "probe": "apply-simulation-workflow",
     "fixture": "atlas schema apply --dev-url",
     "stage": "failed simulation refuses the target",
-    "outcome": "ok",
-    "detail": "a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table"
-  },
-  {
-    "probe": "apply-simulation-workflow",
-    "fixture": "atlas schema apply --dev-url",
-    "stage": "dev database must differ from target",
-    "outcome": "ok",
-    "detail": "pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched"
+    "outcome": "gap",
+    "detail": "stderr does not contain \"the target database was left unchanged\": error: dev database simulation failed during plan: failed to execute SQL statement: sqlite: SQL execution failed: SQL logic error: table users already exists (1) SQL: CREATE TABLE users (id INTEGER PRIMARY KEY) SQL: CREATE TABLE users (id I…",
+    "issue": "stokaro/ptah#812"
   },
   {
     "probe": "schema-scope-workflow",

@@ -1,13 +1,4 @@
 # Maximum allowed unwaived non-OK observations in gaps-migrate-runtime.json.
-#
-# 1 = sqlite/unhashed-dir-apply-refusal (stokaro/ptah#970).
-#
-# Atlas CE v1.2.0 refuses `migrate apply` on a directory with no atlas.sum
-# (exit 1, "checksum file not found", target database never created);
-# ptah-compat applies it and exits 0, because stokaro/ptah#955 scoped its
-# integrity fix to hashed directories and gated only the mismatch branch.
-#
-# This is carried as budget rather than a waiver on purpose: waivers.txt stays
-# empty, so the divergence keeps showing up as a red row in the report the way
-# docs-surface carries its untriaged count. Drop this back to 0 when #970 lands.
-1
+# Lower this whenever Ptah runtime behavior matches Atlas on another measured
+# contour; CI fails on regressions above it.
+0

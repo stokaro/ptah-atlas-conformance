@@ -87,9 +87,8 @@
     "probe": "migrate-runtime",
     "fixture": "sqlite/unhashed-dir-apply-refusal",
     "stage": "apply",
-    "outcome": "gap",
-    "detail": "apply on an unhashed directory succeeded (exit 0) instead of refusing with the Atlas checksum-file-not-found shape: Migrating to version 20260801100335 from 1 pending migrations. Migration complete. Current version: 20260801100335",
-    "issue": "stokaro/ptah#970"
+    "outcome": "ok",
+    "detail": "apply refused the unhashed directory with the Atlas checksum-file-not-found shape before creating or touching the target database"
   },
   {
     "probe": "migrate-runtime",

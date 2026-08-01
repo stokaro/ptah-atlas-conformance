@@ -12,7 +12,7 @@ the `ptah-compat` binary named `atlas` (stokaro/ptah#850 removed the former
 Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 - Atlas CE binary: `atlas community version v1.2.0`
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801143612-01a39d5e8d96`
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801172128-4680f0266909`
 - Outcomes: **107 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived

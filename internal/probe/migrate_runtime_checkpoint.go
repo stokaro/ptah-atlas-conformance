@@ -19,11 +19,11 @@ import (
 // `migrate apply` on a hashed directory whose files were edited after hashing
 // refuses with a checksum mismatch before executing anything.
 //
-// Apply-time integrity has two branches and Ptah currently implements one.
+// Apply-time integrity has two branches and Ptah now implements both.
 // stokaro/ptah#955 scoped its fix to *hashed* directories, so the post-hash
-// edit branch is enforced while the missing-atlas.sum branch is not:
-// sqliteMigrateApplyUnhashedDirRefuses measures that divergence and is expected
-// red until stokaro/ptah#970 closes.
+// edit branch was enforced while the missing-atlas.sum branch was not;
+// sqliteMigrateApplyUnhashedDirRefuses pinned that divergence as a red row
+// until stokaro/ptah#972 closed it. Both branches are now green.
 
 const (
 	checkpointRuntimeVersion   = "20260801100335"
@@ -234,19 +234,23 @@ func sqliteMigrateApplyTamperedSumRefuses(bin string) Result {
 //
 // Measured on pinned Atlas CE v1.2.0, apply refuses an unhashed directory with
 // exit 1 and "Error: checksum file not found", and never creates the target
-// database. ptah-compat instead applies it and exits 0, because
-// stokaro/ptah#955 scoped its fix to hashed directories and gated only the
-// mismatch branch.
+// database.
 //
-// This check is expected RED until stokaro/ptah#970 closes. It is deliberately
-// not waived: the migrate-runtime budget carries the one observation instead,
-// so the divergence stays visible in the report rather than being suppressed.
-// It cites #970 directly rather than going through migrateRuntimeGap, whose
-// hardcoded umbrella issue would misattribute it.
+// This check landed RED: ptah-compat applied such a directory and exited 0,
+// because stokaro/ptah#955 scoped its fix to hashed directories and gated only
+// the mismatch branch. It was carried as a migrate-runtime budget of 1 rather
+// than a waiver, so the divergence stayed visible as a red row. stokaro/ptah#972
+// closed it, and stdout, stderr, exit code and the absence of the target
+// database are now byte-identical to CE.
+//
+// It cites its issue directly rather than going through migrateRuntimeGap,
+// whose hardcoded umbrella issue would misattribute a future regression.
 func sqliteMigrateApplyUnhashedDirRefuses(bin string) Result {
 	const fixture = "sqlite/unhashed-dir-apply-refusal"
 	gap := func(stage, detail string) Result {
-		return Result{migrateRuntimeProbeName, fixture, stage, Gap, detail, "stokaro/ptah#970"}
+		// Points at the fix rather than the original issue: this row is green
+		// now, so any future red is a regression of stokaro/ptah#972.
+		return Result{migrateRuntimeProbeName, fixture, stage, Gap, detail, "stokaro/ptah#972"}
 	}
 
 	// Deliberately NOT hashed: no migrateRuntimeHash call, so the directory has
