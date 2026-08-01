@@ -521,9 +521,27 @@ env "dev" {
   dev = "` + ceGatingSQLiteDevURL + `"
 }
 `
+	// The program is never executed: CE rejects the data source before any
+	// external process could run, so the referenced script does not need to
+	// exist or be executable.
+	ceGatingExternalSchemaConfig = `data "external_schema" "app" {
+  program = ["./gen.sh"]
+}
+
+env "dev" {
+  src = data.external_schema.app.url
+  url = "sqlite://ext.db"
+  dev = "` + ceGatingSQLiteDevURL + `"
+}
+`
 )
 
 var ceCompositeSchemaErrorPattern = regexp.MustCompile(`missing data source handler for "composite_schema"`)
+
+// Unlike the verb stubs' "Abort: '...' is not supported by the community
+// version." sentence, the external_schema rejection is an Error line with its
+// own phrasing, so it is pinned as a named error rather than community-abort.
+var ceExternalSchemaErrorPattern = regexp.MustCompile(`data\.external_schema is not supported by the community version`)
 
 // setupCEGatingMigrations writes the two-version migration directory and, when
 // hash is set, integrity-hashes it through the real `atlas migrate hash` verb.
@@ -814,6 +832,15 @@ func ceGatingScenarios() []ceGatingScenario {
 			argv:     []string{"schema", "inspect", "--env", "dev"},
 			expected: CEGatingNamedError,
 			rules:    CEGatingRules{NamedErrorPattern: ceCompositeSchemaErrorPattern},
+		},
+		{
+			fixture: "atlas schema inspect --env (external_schema)",
+			setup: func(rt *ceGatingRuntime) error {
+				return rt.writeFile("atlas.hcl", ceGatingExternalSchemaConfig)
+			},
+			argv:     []string{"schema", "inspect", "--env", "dev"},
+			expected: CEGatingNamedError,
+			rules:    CEGatingRules{NamedErrorPattern: ceExternalSchemaErrorPattern},
 		},
 		{
 			fixture:  "atlas schema inspect --web",
