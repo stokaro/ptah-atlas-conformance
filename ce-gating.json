@@ -187,5 +187,12 @@
     "stage": "unknown-flag",
     "outcome": "ok",
     "detail": "class: unknown-flag — Error: unknown flag: --web"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema inspect --include",
+    "stage": "unknown-flag",
+    "outcome": "ok",
+    "detail": "class: unknown-flag — Error: unknown flag: --include"
   }
 ]

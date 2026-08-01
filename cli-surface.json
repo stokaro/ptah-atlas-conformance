@@ -620,7 +620,7 @@
     "fixture": "atlas schema inspect",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var"
+    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var; plus Pro-surface flags implemented openly: --include"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",

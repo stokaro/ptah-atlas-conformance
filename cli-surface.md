@@ -12,7 +12,7 @@ the `ptah-compat` binary named `atlas` (stokaro/ptah#850 removed the former
 Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 - Atlas CE binary: `atlas community version v1.2.0`
-- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801172128-4680f0266909`
+- Ptah at `github.com/stokaro/ptah v0.1.3-0.20260801183059-56c9d8fd2502`
 - Outcomes: **107 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -150,7 +150,7 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema diff` | usage | usage matches Atlas: `atlas schema diff [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | flags | long flags match Atlas: --config --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | usage | usage matches Atlas: `atlas schema fmt [path ...] [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | flags | long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | flags | long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var; plus Pro-surface flags implemented openly: --include |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | usage | usage matches Atlas: `atlas schema inspect [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan` | capability-runtime | `atlas schema plan` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema plan` | flags | exposes the first-party required long flags: --dev-url --dry-run --edit --from --name --output --save --to (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |

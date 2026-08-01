@@ -16,7 +16,7 @@ Every fixture is covered. The conformance gate is green.
 - Atlas CE binary under test: `atlas community version v1.2.0`, built from the release tag pinned in `atlas.version`
 - Isolation: every scenario runs logged out — scratch `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` in a fresh temp dir, plus `ATLAS_NO_UPDATE_NOTIFIER=1` and `ATLAS_NO_ANON_TELEMETRY=1` — so a developer's real Atlas login can never leak into the measurement.
 - Expected classes are the hand-measured 2026-08-01 baseline for Atlas CE v1.2.0.
-- Outcomes: **27 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **28 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -45,6 +45,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | ce-gating | `atlas schema diff` | works | class: works — exit 0; output contains "ALTER TABLE" |  |
 | — | ok | ce-gating | `atlas schema inspect --env (composite_schema)` | named-error | class: named-error — Error: missing data source handler for "composite_schema" |  |
 | — | ok | ce-gating | `atlas schema inspect --env (external_schema)` | named-error | class: named-error — Error: data.external_schema is not supported by the community version of Atlas. |  |
+| — | ok | ce-gating | `atlas schema inspect --include` | unknown-flag | class: unknown-flag — Error: unknown flag: --include |  |
 | — | ok | ce-gating | `atlas schema inspect --web` | unknown-flag | class: unknown-flag — Error: unknown flag: --web |  |
 | — | ok | ce-gating | `atlas schema plan --env` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas schema push` | community-abort | class: community-abort — Abort: 'atlas schema push' is not supported by the community version. |  |

@@ -321,6 +321,185 @@ esac
 	c.Check(got[2].Detail, qt.Contains, "missing --dev-url, --dir-format, --run")
 }
 
+// ceInspectFlags mirrors the long flags the pinned Atlas CE binary registers on
+// `atlas schema inspect`. The Pro-flag allowance is measured as a delta from
+// exactly this set, so the tests below state it explicitly instead of shelling
+// out to the binary.
+var ceInspectFlags = []string{"--config", "--dev-url", "--env", "--exclude", "--format", "--schema", "--url", "--var"}
+
+func TestProSurfaceFlags_TableIsWellFormed(t *testing.T) {
+	c := qt.New(t)
+
+	// The allowance only ever applies to OSS commands: out-of-scope verbs are
+	// compared by compareOutOfScopeCommand / compareImplementedProCommand and
+	// never reach compareFlags, so an entry there would be silently dead.
+	for command, flags := range proSurfaceFlags() {
+		classification, _ := classifyAtlasCommand(strings.Fields(command))
+		c.Check(classification, qt.Equals, CLISurfaceOSS,
+			qt.Commentf("Pro-flag allowance %q is not an OSS command, so compareFlags never consults it", command))
+
+		c.Check(flags, qt.Not(qt.HasLen), 0, qt.Commentf("empty allowance for %q", command))
+		seen := map[string]bool{}
+		for i, flag := range flags {
+			c.Check(strings.HasPrefix(flag, "--"), qt.IsTrue,
+				qt.Commentf("%q allowance entry %q is not a long flag", command, flag))
+			c.Check(seen[flag], qt.IsFalse, qt.Commentf("%q allowance repeats %q", command, flag))
+			seen[flag] = true
+			if i > 0 {
+				c.Check(flags[i-1] < flag, qt.IsTrue,
+					qt.Commentf("%q allowance is not sorted at %q", command, flag))
+			}
+		}
+	}
+}
+
+func TestCompareFlags_ProSurfaceFlagIsAllowedAndNamed(t *testing.T) {
+	c := qt.New(t)
+
+	// `atlas schema inspect --include` is registered by a licensed Atlas build
+	// but not by the pinned CE binary, and ptah-compat implements it
+	// (stokaro/ptah#977). It must not read as a non-Atlas flag.
+	atlasCmd := CLISurfaceCommand{
+		Path:     []string{"schema", "inspect"},
+		Flags:    ceInspectFlags,
+		ProFlags: proSurfaceFlags()["schema inspect"],
+	}
+	target := helpDetails{Flags: append(append([]string(nil), ceInspectFlags...), "--include")}
+
+	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
+
+	c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
+	// A bare OK would make a mistaken allow-list entry invisible forever, so
+	// the adopted Pro surface has to be named in the committed report.
+	c.Check(got.Detail, qt.Contains, "plus Pro-surface flags implemented openly: --include")
+	c.Check(got.Detail, qt.Contains, "long flags match Atlas: "+strings.Join(ceInspectFlags, " "))
+}
+
+func TestCompareFlags_UnimplementedProSurfaceFlagIsNotAGap(t *testing.T) {
+	c := qt.New(t)
+
+	// --export is on the same licensed-only delta but ptah-compat does not
+	// implement it. Missing flags are measured against the CE set only, so an
+	// unimplemented Pro flag must never turn the tier red — and must not be
+	// announced as adopted either.
+	atlasCmd := CLISurfaceCommand{
+		Path:     []string{"schema", "inspect"},
+		Flags:    ceInspectFlags,
+		ProFlags: proSurfaceFlags()["schema inspect"],
+	}
+	target := helpDetails{Flags: ceInspectFlags}
+
+	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
+
+	c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
+	c.Check(got.Detail, qt.Not(qt.Contains), "--export")
+	c.Check(got.Detail, qt.Not(qt.Contains), "Pro-surface flags implemented openly")
+}
+
+func TestCompareFlags_ArbitraryExtraFlagOnAnAllowedCommandIsStillAGap(t *testing.T) {
+	c := qt.New(t)
+
+	// The allowance is closed: `schema inspect` having an entry must not make
+	// the command a free-for-all.
+	atlasCmd := CLISurfaceCommand{
+		Path:     []string{"schema", "inspect"},
+		Flags:    ceInspectFlags,
+		ProFlags: proSurfaceFlags()["schema inspect"],
+	}
+	target := helpDetails{Flags: append(append([]string(nil), ceInspectFlags...), "--include", "--ptah-anything")}
+
+	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
+
+	c.Assert(got.Outcome, qt.Equals, Gap, qt.Commentf("detail: %s", got.Detail))
+	c.Check(got.Detail, qt.Equals, "flag mismatch: extra --ptah-anything")
+	c.Check(got.Issue, qt.Equals, cliSurfaceCompatIssue)
+}
+
+func TestCompareFlags_ProFlagAllowanceIsPerCommand(t *testing.T) {
+	c := qt.New(t)
+
+	// --include is allowed on `schema inspect` because a licensed Atlas build
+	// registers it there. The licensed build does NOT register it on
+	// `migrate diff` (verified against the v1.2.4-e282f76-canary help capture),
+	// so the same flag must still be a gap on that command.
+	c.Assert(proSurfaceFlags()["migrate diff"], qt.HasLen, 0)
+
+	ceDiffFlags := []string{"--dev-url", "--dir", "--to"}
+	atlasCmd := CLISurfaceCommand{
+		Path:     []string{"migrate", "diff"},
+		Flags:    ceDiffFlags,
+		ProFlags: proSurfaceFlags()["migrate diff"],
+	}
+	target := helpDetails{Flags: append(append([]string(nil), ceDiffFlags...), "--include")}
+
+	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas migrate diff", atlasCmd, target, cliSurfaceCompatIssue)
+
+	c.Assert(got.Outcome, qt.Equals, Gap, qt.Commentf("detail: %s", got.Detail))
+	c.Check(got.Detail, qt.Equals, "flag mismatch: extra --include")
+}
+
+func TestCompareFlags_MissingCEFlagIsStillAGapOnAnAllowedCommand(t *testing.T) {
+	c := qt.New(t)
+
+	// The allowance must not leak into the missing direction: every CE flag is
+	// still mandatory on a command that carries a Pro-flag entry.
+	atlasCmd := CLISurfaceCommand{
+		Path:     []string{"schema", "inspect"},
+		Flags:    ceInspectFlags,
+		ProFlags: proSurfaceFlags()["schema inspect"],
+	}
+	target := helpDetails{Flags: append([]string(nil), ceInspectFlags[1:]...)}
+
+	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
+
+	c.Assert(got.Outcome, qt.Equals, Gap, qt.Commentf("detail: %s", got.Detail))
+	c.Check(got.Detail, qt.Equals, "flag mismatch: missing --config")
+}
+
+func TestDiscoverCLISurface_AttachesProSurfaceFlags(t *testing.T) {
+	c := qt.New(t)
+
+	// Pins the wiring, not just the rule: the allow-list is useless unless
+	// discovery actually attaches it to the discovered command.
+	bin := writeExecutable(t, `#!/bin/sh
+case "$*" in
+  "version")
+    printf "atlas community version v1.2.0\n"
+    ;;
+  "--help")
+    printf "Usage:\n  atlas\n\nAvailable Commands:\n  schema      Work with atlas schemas\n\nFlags:\n  -h, --help   help for atlas\n"
+    ;;
+  "schema --help")
+    printf "Usage:\n  atlas schema\n\nAvailable Commands:\n  inspect     Inspect a database schema\n\nFlags:\n  -h, --help   help for schema\n"
+    ;;
+  "schema inspect --help")
+    printf "Usage:\n  atlas schema inspect [flags]\n\nFlags:\n  -u, --url string   select a resource\n  -h, --help         help for inspect\n"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+`)
+
+	inventory, err := DiscoverCLISurface(bin)
+	c.Assert(err, qt.IsNil)
+
+	byPath := map[string]CLISurfaceCommand{}
+	for _, cmd := range inventory.Commands {
+		byPath[strings.Join(cmd.Path, " ")] = cmd
+	}
+
+	inspect, ok := byPath["schema inspect"]
+	c.Assert(ok, qt.IsTrue)
+	c.Check(inspect.Flags, qt.DeepEquals, []string{"--url"})
+	c.Check(inspect.ProFlags, qt.DeepEquals, proSurfaceFlags()["schema inspect"])
+
+	// Commands with no allowance entry must carry no Pro flags at all.
+	schema, ok := byPath["schema"]
+	c.Assert(ok, qt.IsTrue)
+	c.Check(schema.ProFlags, qt.HasLen, 0)
+}
+
 func writeExecutable(t *testing.T, content string) string {
 	t.Helper()
 
