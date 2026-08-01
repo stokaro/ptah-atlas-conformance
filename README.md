@@ -221,6 +221,31 @@ gap and lower the budget, or keep the report red and raise/refresh the budget
 only as an explicit measurement-baseline change. Do not remove commands from the
 inventory to make the report green.
 
+## Docs surface tier
+
+The dedicated docs surface report is [`docs-surface.md`](./docs-surface.md). It
+indexes every documentation page on [atlasgo.io](https://atlasgo.io/docs) — the
+committed sitemap snapshot
+[`docs-surface-snapshot.txt`](./docs-surface-snapshot.txt) — and requires each
+page to carry an explicit Ptah stance in
+[`docs-surface-registry.json`](./docs-surface-registry.json): `open`, `partial`,
+`gap`, `pro`, `cloud`, `out-of-scope`, or `untriaged`. Parity is thereby built
+against the full Atlas documentation surface, not only the CLI help tree, and
+the budget in [`docs-surface-budget.txt`](./docs-surface-budget.txt) ratchets
+down to zero as pages get triaged. A weekly
+[`conformance-docs-surface`](./.github/workflows/conformance-docs-surface.yml)
+run re-fetches the live sitemap, so new or renamed Atlas docs pages fail CI as
+snapshot drift until they are triaged; PR runs stay offline and deterministic on
+the committed snapshot. The registry and snapshot store only atlasgo.io URL
+paths and this repository's own triage labels — never atlasgo.io content.
+
+```
+make probe-docs-surface           # regenerate docs-surface.md / docs-surface.json (offline, exit 0)
+FETCH=1 make probe-docs-surface   # refresh the universe from the live sitemap and rewrite the snapshot
+make budget-docs-surface          # docs progress gate: red only on regression/stale waivers
+make gate-docs-surface            # docs triage yardstick: fails while any page is untriaged
+```
+
 ## CI regression budget and full-parity gate
 
 This is a measured corpus, not a claim of complete Atlas feature parity. CI
@@ -245,6 +270,11 @@ publishes two separate pipelines:
   [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses [`cli-surface-budget.txt`](./cli-surface-budget.txt) the same way for
   `cli-surface.*`.
+- [`conformance-docs-surface`](./.github/workflows/conformance-docs-surface.yml)
+  applies the same regression-budget model to `docs-surface.*` from the
+  committed sitemap snapshot (offline on PRs and pushes), and its weekly
+  scheduled job re-fetches the live atlasgo.io sitemap and fails on snapshot
+  drift — the "Atlas docs changed, triage needed" alert.
 - [`full-conformance`](./.github/workflows/full-conformance.yml) runs
   `make gate`, `make gate-live`, `make gate-diff`, and
   `make gate-migrate-runtime`, and `make gate-cli-surface` as separate jobs. It
@@ -301,6 +331,9 @@ make gate-orm-providers      # ORM provider full-conformance gate
 make probe-cli-surface   # regenerate cli-surface.md / cli-surface.json (exit 0)
 make budget-cli-surface  # CLI progress gate: red only on regression/stale waivers
 make gate-cli-surface    # CLI corpus-parity yardstick: fails if any CLI non-OK remains
+make probe-docs-surface  # regenerate docs-surface.md / docs-surface.json (offline, exit 0; FETCH=1 refreshes the snapshot)
+make budget-docs-surface # docs progress gate: red only on regression/stale waivers
+make gate-docs-surface   # docs triage yardstick: fails while any page is untriaged
 ATLAS_BIN=./bin/atlas make verify-cli-exit-oracle  # audit static exit/output expectations against Atlas CE
 make gate         # offline corpus-parity yardstick: fails if any offline non-OK remains
 make verify       # test, build, vet, and assert Ptah's tree would gain no Apache file

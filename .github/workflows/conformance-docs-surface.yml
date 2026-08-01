@@ -1,0 +1,61 @@
+name: conformance-docs-surface
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly: re-fetch the live atlasgo.io sitemap so new or renamed docs pages
+    # surface as snapshot drift and fail until triaged.
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  # The docs surface regression gate. Offline and deterministic: the universe
+  # comes from the committed docs-surface-snapshot.txt, so PRs never touch the
+  # network. This stays green while the committed report is fresh and the
+  # untriaged page count does not regress above docs-surface-budget.txt. Full
+  # docs triage is a separate `make gate-docs-surface` signal.
+  docs-surface-budget:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Enforce docs surface budget
+        run: make budget-docs-surface
+
+      - name: Fail if the committed docs surface report is stale
+        run: |
+          if ! git diff --exit-code docs-surface.md docs-surface.json; then
+            echo "docs-surface.md / docs-surface.json are out of date -- run 'make probe-docs-surface' and commit the result."
+            exit 1
+          fi
+
+  # The weekly docs drift alert. Fetches the live atlasgo.io sitemap,
+  # regenerates the snapshot and reports, and fails when the freshly fetched
+  # universe differs from the committed snapshot. That failure means "the Atlas
+  # docs surface changed, triage needed": run `FETCH=1 make probe-docs-surface`,
+  # triage the new/renamed pages in docs-surface-registry.json, and commit the
+  # refreshed snapshot, registry, reports, and budget.
+  docs-surface-drift:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Refresh the docs universe from the live sitemap
+        run: FETCH=1 make probe-docs-surface
+
+      - name: Fail if the live Atlas docs surface drifted from the committed snapshot
+        run: |
+          if ! git diff --exit-code docs-surface-snapshot.txt docs-surface.md docs-surface.json; then
+            echo "The atlasgo.io docs surface changed -- run 'FETCH=1 make probe-docs-surface', triage the new pages in docs-surface-registry.json, and commit the result."
+            exit 1
+          fi

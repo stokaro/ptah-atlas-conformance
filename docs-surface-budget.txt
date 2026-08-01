@@ -1,0 +1,5 @@
+# Maximum allowed unwaived non-OK observations in docs-surface.json.
+# Ratchet this down as atlasgo.io docs pages get triaged in
+# docs-surface-registry.json; CI fails on regressions above it.
+# Seed state: 322 of 351 pages are untriaged (29 are triaged as cloud).
+322

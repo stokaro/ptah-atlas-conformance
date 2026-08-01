@@ -1,0 +1,2459 @@
+[
+  {
+    "probe": "docs-surface",
+    "fixture": "/atlas-schema",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/atlas-schema/external",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/atlas-schema/hcl",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/atlas-schema/hcl-types",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/atlas-schema/input-variables",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/atlas-schema/projects",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/atlas-schema/sql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cli-reference",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cli/data-privacy",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/agents",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/auditlog",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/aws-marketplace",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/bots",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/deployment",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/directories",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/lineage-graph",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/pre-migration-checks",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/registry",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/roles-and-permissions",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/schema-docs",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/security-graph",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/slack",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/features/troubleshooting",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/getting-started",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/pricing",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/cloud/setup-ci",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/community-edition",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/concepts/declarative-vs-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/concepts/dev-database",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/concepts/migration-directory-integrity",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/concepts/url",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/contributing",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/custom-drivers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/databases",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/declarative/apply",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/declarative/diff",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/declarative/plan",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/declarative/setup-cicd",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/docs",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/features",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/mariadb-declarative-hcl",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/mariadb-declarative-sql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/mysql-declarative-hcl",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/mysql-declarative-sql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/postgresql-declarative-hcl",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/postgresql-declarative-sql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/sqlite-declarative-hcl",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/getting-started/sqlite-declarative-sql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ai-tools",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ai-tools/agent-skills",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ai-tools/claude-code-instructions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ai-tools/codex-instructions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ai-tools/cursor-rules",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ai-tools/github-copilot-instructions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/atlas-in-docker",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/atlas-vs-alembic",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/atlas-vs-flyway",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/atlas-vs-liquibase",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/atlas-vs-schemachange",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/atlas-vs-ssdt",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/azure-fabric",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/backup-continuity-migration-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/backup-continuity-schema-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/azure-devops-github",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/azure-devops-repos",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/bitbucket-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/bitbucket-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/circleci-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/circleci-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/github-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/github-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/gitlab-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/gitlab-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/advanced-hcl-schema",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/clickhouse-cloud-atlas",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/cluster-mode",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/lineage-graph",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/named-collections",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/security-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/security-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/seed-data",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/session-settings",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/supported-objects",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/cockroachdb/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/database-per-tenant/control-plane",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/database-per-tenant/deploying",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/database-per-tenant/intro",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/database-per-tenant/rollout",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/database-per-tenant/target-groups",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/database-schema-as-context",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/databricks/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/aws-ecs-fargate",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/cloud-sql-via-github-actions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/connect-to-db-from-github-actions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/crossplane",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/fly-io",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/helm",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/image",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/intro",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/k8s-argo",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/k8s-argo-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/k8s-cloud-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/k8s-flux",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/k8s-init-container",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/k8s-operator-certs",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/rds-iam-migration-role",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/remote-directories",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/deploying/secrets",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/destructive-change-policy",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/drift-detection",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/dsql/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/dsql/token-generator",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/environment-promotion",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/environment-promotion-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/advanced-topics",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/ci-cd",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/connect",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/developer-workflow",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/install",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/intro",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/project-structure",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/schema-as-code",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/setup-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/evaluation/verify-atlas",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/flyway-snapshot-alternative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/flyway-undo-alternative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/frameworks/sqlc-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/frameworks/sqlc-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/go-templates",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/go-templates/exporter",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/graphql-with-atlas",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/horizondb/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/liquibase-diff-alternative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/liquibase-rollback-alternative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/lock-safe-not-null",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/migrate-flyway-to-atlas",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/migration-dirs/template-directory",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/migration-tools/golang-migrate",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/migration-tools/goose-import",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/modern-database-ci-cd",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mssql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mssql/security-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mssql/security-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mssql/seed-data",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/check-constraint",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/checks/CD101",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/checks/DS103",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/checks/MY102",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/descending-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/functional-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/generated-columns",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/lineage-graph",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/mysql-automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/prefix-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/security-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/security-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/seed-data",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mysql/terraform",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/openapi-with-atlas",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/oracle/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/oracle/security-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/oracle/security-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/oracle/vector",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/beego",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/bun",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/django",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/django/getting-started",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/django/linting",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/doctrine",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/drizzle",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/drizzle/existing-project",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/drizzle/getting-started",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/drizzle/triggers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/drizzle/visualize",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/efcore",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/composite-types",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/domain-types",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/enum-types",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/extensions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/generate-models",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/getting-started",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/program",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/row-level-security",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/standalone",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/triggers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/views",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/gorm/visualize",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/hibernate",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/existing-project",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/getting-started",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/lint-naming",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/postgresql-partial-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/row-level-security",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/triggers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/vector-index",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/prisma/visualize",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/composite-types",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/declarative-migrations-with-actions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/domain-types",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/generate-models",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/getting-started",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/row-level-security",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/script",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/standalone",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/triggers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/views",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sequelize/visualize",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sqlalchemy",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sqlalchemy/extensions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sqlalchemy/getting-started",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sqlalchemy/row-level-security",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sqlalchemy/script",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sqlalchemy/standalone",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/sqlalchemy/triggers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/typeorm",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/orms/typeorm/generate-entities",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/descending-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/functional-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/included-columns",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/index-operator-classes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/lineage-graph",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/partial-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/pg-110",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/pgtap-with-atlas",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/rds-extensions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/schema-test-template-databases",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/security-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/security-default-privileges",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/security-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/seed-data",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/serial-columns",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/postgres/unlogged-tables",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/redshift/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/redshift/lineage-graph",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/reviewed-approved-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/rls-policy",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/schema-health-check",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/schema-ownership",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/security-as-code",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/seed-data-as-code",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/snowflake/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/snowflake/lineage-graph",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/snowflake/security-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/spanner/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/spanner/proto-columns",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/sqlite/descending-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/sqlite/functional-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/sqlite/partial-indexes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/sqlite/turso",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/terraform/named-databases",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/terraform/opentaco",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/data-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/docker-compose",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/domains",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/functions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/github-actions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/procedures",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/triggers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/testing/views",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/yugabyte/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/agent",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/clickhouse",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/config",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/databricks",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/docs",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/functions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/mariadb",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/mssql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/mysql",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/oracle",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/plan",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/postgres",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/redshift",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/rule",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/scripts",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/snowflake",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/spanner",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/sqlite",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/hcl/testing",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/inspect",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/inspect/database-to-code",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/azure-devops",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/bitbucket-pipes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/circleci-orbs",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/github-actions",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/github-actions/ad-hoc-approval",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/github-actions/pre-approval",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/gitlab-ci-components",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/gitlab-ci-components/ad-hoc-approval",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/gitlab-ci-components/pre-approval",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/go-sdk",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/ad-hoc-approval",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/install",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/pre-approval",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/project-configuration",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/quickstart",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/terraform-provider",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/terraform/ad-hoc-approval",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/terraform/declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/terraform/project-configuration",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/terraform/quickstart",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/terraform/versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/lint/analyzers",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/lint/rules",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/bitbucket-quickstart",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/discovery",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/drift-detection",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/github-quickstart",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/gitlab-quickstart",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/helm",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/overview",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/quickstart",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/security",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/terraform",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/monitoring/webhooks",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "cloud"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/orms",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/orms/why-atlas-for-your-orm",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/scripts",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/scripts/exec",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/scripts/loop",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/scripts/masking",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/scripts/query",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/scripts/testing",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/testing/migrate",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/testing/plan",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/testing/schema",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/apply",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/checkpoint",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/checks",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/diff",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/down",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/drift-detection",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/import",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/intro",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/lint",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/new",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/pre-post-hooks",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/setup-cicd",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/versioned/troubleshoot",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  }
+]
