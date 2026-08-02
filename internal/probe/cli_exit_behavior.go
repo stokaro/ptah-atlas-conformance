@@ -473,8 +473,12 @@ func runCompatPlanFlagImplementedCheck() Result {
 			"`schema apply --plan` did not reach reading the plan file, so the flag is not being executed: "+
 				oneLine(res.stderr), "stokaro/ptah#965"}
 	}
+	// The detail names no Atlas release on purpose: what is asserted is the
+	// gate, not the version that happens to be pinned. Hardcoding a release
+	// here rots the committed report on every atlas.version bump even when
+	// nothing changed — measured byte-identical on CE v1.2.0 and v1.3.0.
 	return Result{cliExitProbeName, compatPlanFlagFixture, "content", OK,
-		"PTAH-SIDE PIN (surfaces diverge by design; CE v1.2.0 Pro-gates this flag with " +
+		"PTAH-SIDE PIN (surfaces diverge by design; the pinned Atlas CE Pro-gates this flag with " +
 			"`Abort: 'atlas schema apply --plan' is not supported by the community version.`): " +
 			"ptah-compat implements `schema apply --plan` and fails only on reading the missing plan file", ""}
 }

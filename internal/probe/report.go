@@ -146,13 +146,18 @@ func RenderCEGatingMarkdownWithCommand(results []Result, atlasVersion, command s
 		Intro: "It executes the pinned Atlas CE binary, logged out, through the fixed\n" +
 			"capability scenarios Ptah's feature matrix asserts about the CE column, and\n" +
 			"classifies every observed outcome (works / community-abort / absent /\n" +
-			"unknown-flag / named-error / silent-unenforced). A gap means the binary's\n" +
-			"gating behavior drifted from the measured baseline — for example after an\n" +
-			"atlas.version bump — not that Ptah changed.\n\n",
+			"unregistered-command / unknown-flag / named-error / silent-unenforced). A\n" +
+			"gap means the binary's gating behavior drifted from the measured baseline —\n" +
+			"for example after an atlas.version bump — not that Ptah changed.\n\n",
 		SourceLine: fmt.Sprintf("Atlas CE binary under test: `%s`, built from the release tag pinned in `atlas.version`", atlasVersion),
 		HeaderLines: []string{
 			"Isolation: every scenario runs logged out — scratch `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` in a fresh temp dir, plus `ATLAS_NO_UPDATE_NOTIFIER=1` and `ATLAS_NO_ANON_TELEMETRY=1` — so a developer's real Atlas login can never leak into the measurement.",
-			"Expected classes are the hand-measured 2026-08-01 baseline for Atlas CE v1.2.0.",
+			// Baseline provenance is deliberately dated and version-named: it
+			// records WHEN and against WHAT the expectations were established,
+			// which the binary-under-test line above cannot convey. It must be
+			// extended whenever the baseline is re-confirmed against a new
+			// pin, otherwise the report implies the pin was never re-measured.
+			"Expected classes are the hand-measured 2026-08-01 baseline for Atlas CE v1.2.0, re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02.",
 		},
 	})
 }

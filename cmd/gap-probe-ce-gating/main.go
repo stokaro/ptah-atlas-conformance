@@ -2,10 +2,11 @@
 // / ce-gating.json. It executes the pinned Atlas CE binary — logged out, under
 // a scratch HOME per scenario — through the fixed capability scenarios Ptah's
 // feature matrix asserts about the CE column, and classifies each observed
-// outcome (works / community-abort / absent / unknown-flag / named-error /
-// silent-unenforced). Expected classes encode the measured 2026-08-01 baseline
-// for Atlas CE v1.2.0, so a renovate bump of atlas.version that changes gating
-// turns the gate red. SQLite only; no external databases. Needs ATLAS_BIN or
+// outcome (works / community-abort / absent / unregistered-command /
+// unknown-flag / named-error / silent-unenforced). Expected classes encode the
+// measured 2026-08-01 baseline for Atlas CE v1.2.0, re-confirmed unchanged
+// against v1.3.0 on 2026-08-02, so a renovate bump of atlas.version that
+// changes gating turns the gate red. SQLite only; no external databases. Needs ATLAS_BIN or
 // ./bin/atlas, built from the tag pinned in atlas.version so release parity is
 // explicit and auditable.
 package main

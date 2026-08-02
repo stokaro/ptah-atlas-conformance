@@ -4786,7 +4786,7 @@
     "fixture": "ptah-compat/plan-flag-implemented",
     "stage": "content",
     "outcome": "ok",
-    "detail": "PTAH-SIDE PIN (surfaces diverge by design; CE v1.2.0 Pro-gates this flag with `Abort: 'atlas schema apply --plan' is not supported by the community version.`): ptah-compat implements `schema apply --plan` and fails only on reading the missing plan file"
+    "detail": "PTAH-SIDE PIN (surfaces diverge by design; the pinned Atlas CE Pro-gates this flag with `Abort: 'atlas schema apply --plan' is not supported by the community version.`): ptah-compat implements `schema apply --plan` and fails only on reading the missing plan file"
   },
   {
     "probe": "lex-split-parity",
@@ -5325,7 +5325,7 @@
     "fixture": "atlas schema plan",
     "stage": "plan creation",
     "outcome": "ok",
-    "detail": "PTAH-SIDE PIN (no CE oracle — CE v1.2.0 answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
+    "detail": "PTAH-SIDE PIN (no CE oracle — the pinned Atlas CE answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
   },
   {
     "probe": "pro-plan-workflow",
