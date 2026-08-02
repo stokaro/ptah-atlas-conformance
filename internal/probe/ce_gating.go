@@ -12,16 +12,16 @@ import (
 // The CE gating tier executes the pinned Atlas CE binary, logged out, through
 // a fixed scenario table covering the capabilities Ptah's feature matrix
 // asserts about the CE column, and classifies each observed outcome. The
-// expected classes encode the hand-measured 2026-08-01 baseline for Atlas CE
-// v1.2.0, re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02; a
-// renovate bump of atlas.version that changes gating behavior turns the gate
-// red instead of silently invalidating the matrix.
+// expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0
+// baseline with v1.3.0 additions measured on 2026-08-02. Every row was
+// measured against Atlas CE v1.3.0; a renovate bump of atlas.version that
+// changes gating behavior turns the gate red instead of silently invalidating
+// the matrix.
 //
-// The v1.3.0 re-measurement found ZERO class changes in either direction: the
-// generated report was byte-identical apart from its header version line. That
-// is recorded here because "the pin moved and nothing moved with it" is only
-// trustworthy if someone wrote down that it was actually re-measured rather
-// than assumed.
+// The v1.3.0 re-measurement found no class changes in the pre-existing rows and
+// added explicit scenarios for the newly announced surfaces. That distinction
+// prevents the provenance from claiming an unchanged report after its scenario
+// universe grew.
 
 // CEGatingClass partitions the observed behavior of one Atlas CE invocation.
 type CEGatingClass string
@@ -78,7 +78,7 @@ func CEGatingClassOrder() []CEGatingClass {
 var (
 	// ceCommunityAbortPattern matches the registered community-version stub
 	// refusal, for both gated verbs and gated flags.
-	ceCommunityAbortPattern = regexp.MustCompile(`Abort: '.*' is not supported by the community version`)
+	ceCommunityAbortPattern = regexp.MustCompile(`(?:Abort: )?'.*' is not supported by the community version`)
 	// ceUnknownFlagPattern matches cobra's unregistered-flag error.
 	ceUnknownFlagPattern = regexp.MustCompile(`unknown flag: `)
 	// ceUnknownCommandPattern matches cobra's unregistered-command error, which
@@ -99,6 +99,13 @@ var ceParentHelpFragments = []string{
 // CEGatingRules are the scenario-specific knobs ClassifyCEGating consults on
 // top of the fixed global community-abort and unknown-flag patterns.
 type CEGatingRules struct {
+	// CommunityAbortPath names the exact Atlas command in the CE abort line.
+	// CommunityAbortExit and CommunityAbortStream pin the process boundary for
+	// bare and --help sentinel invocations instead of classifying a matching
+	// sentence from the wrong stream as equivalent.
+	CommunityAbortPath   string
+	CommunityAbortExit   int
+	CommunityAbortStream string
 	// AbsentCommandPath, when non-empty, is the full command path the argv
 	// named under a parent group (e.g. "atlas migrate ls"), enabling the
 	// absent (parent-help, exit 0) classification. The first help line must
@@ -250,9 +257,9 @@ type CEGatingScenario struct {
 	Expected CEGatingClass
 }
 
-// CEGatingScenarioTable returns the fixed scenario table encoding the measured
-// 2026-08-01 Atlas CE v1.2.0 gating baseline, re-confirmed against v1.3.0 on
-// 2026-08-02.
+// CEGatingScenarioTable returns the fixed scenario table combining the Atlas CE
+// v1.2.0 baseline with v1.3.0 additions. Every row was measured against v1.3.0
+// on 2026-08-02.
 func CEGatingScenarioTable() []CEGatingScenario {
 	scenarios := ceGatingScenarios()
 	table := make([]CEGatingScenario, len(scenarios))
@@ -368,6 +375,17 @@ func (s ceGatingScenario) execute(atlasBin string) (Result, CEGatingClass) {
 	}
 	observed, summary := ClassifyCEGating(s.rules, command.exitCode, command.stdout+"\n"+command.stderr)
 	if observed == s.expected {
+		if s.expected == CEGatingCommunityAbort {
+			if detail := compareCECommunityAbortContract(command, s.rules); detail != "" {
+				return Result{
+					Probe:   "ce-gating",
+					Fixture: s.fixture,
+					Stage:   string(s.expected),
+					Outcome: Gap,
+					Detail:  detail,
+				}, observed
+			}
+		}
 		return Result{
 			Probe:   "ce-gating",
 			Fixture: s.fixture,
@@ -386,6 +404,35 @@ func (s ceGatingScenario) execute(atlasBin string) (Result, CEGatingClass) {
 	}, observed
 }
 
+func compareCECommunityAbortContract(command ptahCommandResult, rules CEGatingRules) string {
+	if rules.CommunityAbortPath == "" {
+		return "community abort scenario has no process contract"
+	}
+	if command.exitCode != rules.CommunityAbortExit {
+		return fmt.Sprintf("community abort exited %d, want %d", command.exitCode, rules.CommunityAbortExit)
+	}
+	want := "'" + rules.CommunityAbortPath + "' is not supported by the community version."
+	switch rules.CommunityAbortStream {
+	case "stdout":
+		if command.stderr != "" {
+			return "community abort wrote unexpected stderr: " + oneLine(command.stderr)
+		}
+		if firstNonEmptyLine(command.stdout) != want {
+			return "community abort stdout did not name the measured CE abort path: " + oneLine(command.stdout)
+		}
+	case "stderr":
+		if command.stdout != "" {
+			return "community abort wrote unexpected stdout: " + oneLine(command.stdout)
+		}
+		if firstNonEmptyLine(command.stderr) != "Abort: "+want {
+			return "community abort stderr did not name the measured CE abort path: " + oneLine(command.stderr)
+		}
+	default:
+		return "community abort contract has no valid stream owner"
+	}
+	return ""
+}
+
 func ceGatingHarnessFailure(fixture, stage string, err error) Result {
 	return Result{
 		Probe:   "ce-gating",
@@ -394,6 +441,37 @@ func ceGatingHarnessFailure(fixture, stage string, err error) Result {
 		Outcome: Fail,
 		Detail:  err.Error(),
 	}
+}
+
+func ceGatingNonOSSSentinelScenarios() []ceGatingScenario {
+	var scenarios []ceGatingScenario
+	for _, sentinel := range nonOSSSentinels() {
+		invocation := displayCommand("atlas", sentinel.invocationPath)
+		abortPath := displayCommand("atlas", sentinel.ceAbortPath)
+		scenarios = append(scenarios,
+			ceGatingScenario{
+				fixture:  invocation + " (bare CE sentinel)",
+				argv:     append([]string(nil), sentinel.invocationPath...),
+				expected: CEGatingCommunityAbort,
+				rules: CEGatingRules{
+					CommunityAbortPath:   abortPath,
+					CommunityAbortExit:   1,
+					CommunityAbortStream: "stderr",
+				},
+			},
+			ceGatingScenario{
+				fixture:  invocation + " (--help CE sentinel)",
+				argv:     append(append([]string(nil), sentinel.invocationPath...), "--help"),
+				expected: CEGatingCommunityAbort,
+				rules: CEGatingRules{
+					CommunityAbortPath:   abortPath,
+					CommunityAbortExit:   0,
+					CommunityAbortStream: "stdout",
+				},
+			},
+		)
+	}
+	return scenarios
 }
 
 // ceGatingRuntime is one scenario's isolated execution environment.
@@ -529,9 +607,9 @@ table "users" {
   column "id" {
     type = int
   }
-  primary_key {
-    columns = [column.id]
-  }
+	primary_key {
+		columns = [column.id]
+	}
 }
 `
 	ceGatingDesiredHCL = `schema "main" {}
@@ -797,11 +875,10 @@ func setupCEGatingDeclarativeState(rt *ceGatingRuntime, extraFiles map[string]st
 		"--auto-approve")
 }
 
-// ceGatingScenarios is the fixed scenario table. Expected classes encode the
-// hand-measured 2026-08-01 baseline for the pinned Atlas CE v1.2.0 binary,
-// re-confirmed unchanged against v1.3.0 on 2026-08-02, with the v1.3.0 rows
-// and the control set added at that point; do not edit an expectation without
-// re-measuring against the real binary.
+// ceGatingScenarios is the fixed scenario table. Expected classes combine the
+// hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 rows and
+// controls added on 2026-08-02. Every row was measured against v1.3.0; do not
+// edit an expectation without re-measuring against the real binary.
 //
 // Rows whose fixture name starts with "control:" are not capability
 // assertions — they are the reference shapes that make the capability rows
@@ -809,7 +886,7 @@ func setupCEGatingDeclarativeState(rt *ceGatingRuntime, extraFiles map[string]st
 // its subject row is otherwise ambiguous between "CE supports this" and "CE
 // does not know what this is".
 func ceGatingScenarios() []ceGatingScenario {
-	return []ceGatingScenario{
+	scenarios := []ceGatingScenario{
 		// Working, logged out.
 		{
 			// Exit-0-only works predicate: `migrate hash` prints nothing on
@@ -901,60 +978,6 @@ func ceGatingScenarios() []ceGatingScenario {
 			rules:    CEGatingRules{SuccessFragments: []string{"Planned Changes"}},
 		},
 
-		// Registered community-abort stubs.
-		{
-			fixture:  "atlas schema push",
-			argv:     []string{"schema", "push"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas schema plan --env",
-			argv:     []string{"schema", "plan", "--env", "x"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas schema test",
-			argv:     []string{"schema", "test"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas migrate push",
-			argv:     []string{"migrate", "push", "demo"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas migrate test",
-			argv:     []string{"migrate", "test"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas migrate checkpoint",
-			argv:     []string{"migrate", "checkpoint"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas migrate edit",
-			argv:     []string{"migrate", "edit"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas migrate rebase",
-			argv:     []string{"migrate", "rebase", "1"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			fixture:  "atlas migrate rm",
-			argv:     []string{"migrate", "rm"},
-			expected: CEGatingCommunityAbort,
-		},
-		{
-			// Bare invocation only: the stub registers no flags, so with
-			// --url/--dir the process dies earlier on "unknown flag" instead
-			// of reaching the community gate.
-			fixture:  "atlas migrate down (bare)",
-			argv:     []string{"migrate", "down"},
-			expected: CEGatingCommunityAbort,
-		},
 		{
 			// The abort names the Pro-gated flag, not the verb.
 			fixture: "atlas schema apply --include",
@@ -968,6 +991,11 @@ func ceGatingScenarios() []ceGatingScenario {
 				"--auto-approve",
 				"--include", "users"},
 			expected: CEGatingCommunityAbort,
+			rules: CEGatingRules{
+				CommunityAbortPath:   "atlas schema apply --include",
+				CommunityAbortExit:   1,
+				CommunityAbortStream: "stderr",
+			},
 		},
 
 		// Never-registered verbs: parent group help, exit 0.
@@ -1298,4 +1326,5 @@ func ceGatingScenarios() []ceGatingScenario {
 			},
 		},
 	}
+	return append(scenarios, ceGatingNonOSSSentinelScenarios()...)
 }

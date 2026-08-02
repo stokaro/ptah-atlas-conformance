@@ -17,17 +17,17 @@ import (
 const proPlanWorkflowSentinel = "_capability/pro-plan-workflow/SENTINEL"
 
 // ProPlanWorkflowProbe executes the local half of Atlas's Pro `schema plan`
-// workflow that Ptah implements as an open capability (stokaro/ptah#809)
-// through the real `atlas ...` CLI: `schema plan --save` writes a plan file
-// against a real SQLite target, `schema apply --plan file://...` replays
-// exactly that reviewed plan, and a target mutated after planning is refused
-// as stale without touching the database.
+// workflow that Ptah implements as an open capability (stokaro/ptah#809 and
+// stokaro/ptah#951) through the real `atlas ...` CLI: the parent and `new`
+// create plan files against real SQLite targets, `validate` checks a plan
+// without changing the target, `schema apply --plan file://...` replays the
+// reviewed plan, and stale targets are refused without mutation.
 //
 // THIS PROBE HAS NO CE ORACLE AND PINS PTAH-SIDE BEHAVIOR. Atlas binds plan
-// storage and approval to its Cloud registry, and pinned Atlas CE v1.2.0
-// answers `'atlas schema plan' is not supported by the community version`, so
-// nothing here can be differentialed against CE. Its rows are regression
-// guards on Ptah's own contract, not parity evidence.
+// storage and approval to its Cloud registry, and Atlas CE v1.3.0 answers
+// `'atlas schema plan' is not supported by the community version`, so nothing
+// here can be differentialed against CE. Its rows are regression guards on
+// Ptah's own contract, not parity evidence.
 //
 // stokaro/ptah#965 made Atlas's `.plan.hcl` the default encoding and kept the
 // native fingerprinted JSON plan reachable through an explicit .json --output
@@ -60,6 +60,9 @@ func (p ProPlanWorkflowProbe) Run(fx Fixture) []Result {
 	pl := &proPlanWorkflow{proWorkflowRuntime: w}
 	return w.runSteps([]func() Result{
 		pl.planCreation,
+		pl.planNewCreation,
+		pl.planValidation,
+		pl.stalePlanValidation,
 		pl.planApplication,
 		pl.stalePlanRefusal,
 	})
@@ -231,6 +234,110 @@ func (p *proPlanWorkflow) checkAtlasPlanHCL(fixture, stage, name string) *Result
 		return &gap
 	}
 	return nil
+}
+
+func (p *proPlanWorkflow) planNewCreation() Result {
+	const (
+		fixture = "atlas schema plan new"
+		stage   = "plan file creation"
+	)
+	result, harness := p.runCLI(stage,
+		"schema", "plan", "new",
+		"--from", sqliteURL(filepath.Join(p.runRoot, "new-target.db")),
+		"--to", "file://schema.sql",
+		"--output", "new.plan.hcl",
+		"--name", "conformance",
+	)
+	if harness != nil {
+		return *harness
+	}
+	if gap := p.expectExit(fixture, stage, result, 0); gap != nil {
+		return *gap
+	}
+	if gap := p.expectFragments(fixture, stage, "stdout", result.stdout, []string{
+		`CREATE TABLE "users"`,
+		"Plan saved to file://new.plan.hcl",
+	}); gap != nil {
+		return *gap
+	}
+	if result.stderr != "" {
+		return p.gap(fixture, stage, "successful plan creation wrote unexpected stderr: "+oneLine(result.stderr))
+	}
+	if gap := p.checkAtlasPlanHCL(fixture, stage, "new.plan.hcl"); gap != nil {
+		return *gap
+	}
+	if gap := p.expectTables(fixture, stage, "new-target.db", nil); gap != nil {
+		return *gap
+	}
+	return p.ok(fixture, stage,
+		"PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, kept stderr empty, and left the target database unchanged")
+}
+
+func (p *proPlanWorkflow) planValidation() Result {
+	const (
+		fixture = "atlas schema plan validate"
+		stage   = "non-mutating validation"
+	)
+	result, harness := p.runCLI(stage,
+		"schema", "plan", "validate",
+		"--from", sqliteURL(filepath.Join(p.runRoot, "new-target.db")),
+		"--to", "file://schema.sql",
+		"--file", "file://new.plan.hcl",
+	)
+	if harness != nil {
+		return *harness
+	}
+	if gap := p.expectExit(fixture, stage, result, 0); gap != nil {
+		return *gap
+	}
+	if result.stdout != "" {
+		return p.gap(fixture, stage, "successful validation wrote unexpected stdout: "+oneLine(result.stdout))
+	}
+	if result.stderr != "" {
+		return p.gap(fixture, stage, "successful validation wrote unexpected stderr: "+oneLine(result.stderr))
+	}
+	if gap := p.expectTables(fixture, stage, "new-target.db", nil); gap != nil {
+		return *gap
+	}
+	return p.ok(fixture, stage,
+		"PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout and stderr and left the target database unchanged")
+}
+
+func (p *proPlanWorkflow) stalePlanValidation() Result {
+	const (
+		fixture = "atlas schema plan validate"
+		stage   = "stale target refusal"
+	)
+	dbPath := filepath.Join(p.runRoot, "new-target.db")
+	if err := p.execSQL(dbPath, "CREATE TABLE drift (id INTEGER PRIMARY KEY)"); err != nil {
+		return p.harnessFailure(stage, err)
+	}
+	result, harness := p.runCLI(stage,
+		"schema", "plan", "validate",
+		"--from", sqliteURL(dbPath),
+		"--to", "file://schema.sql",
+		"--file", "file://new.plan.hcl",
+	)
+	if harness != nil {
+		return *harness
+	}
+	if gap := p.expectExit(fixture, stage, result, 1); gap != nil {
+		return *gap
+	}
+	if result.stdout != "" {
+		return p.gap(fixture, stage, "stale validation wrote unexpected stdout: "+oneLine(result.stdout))
+	}
+	if gap := p.expectFragments(fixture, stage, "stderr", result.stderr, []string{
+		"pre-planned migration is stale",
+		"source fingerprint",
+	}); gap != nil {
+		return *gap
+	}
+	if gap := p.expectTables(fixture, stage, "new-target.db", []string{"drift"}); gap != nil {
+		return *gap
+	}
+	return p.ok(fixture, stage,
+		"PTAH-SIDE PIN (documented, no executable Atlas oracle): validation rejected a target changed after planning, named the source fingerprint mismatch, and preserved the drift table without applying the plan")
 }
 
 func (p *proPlanWorkflow) planApplication() Result {

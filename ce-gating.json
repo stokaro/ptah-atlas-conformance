@@ -50,76 +50,6 @@
   },
   {
     "probe": "ce-gating",
-    "fixture": "atlas schema push",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas schema push' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas schema plan --env",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas schema test",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas schema test' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas migrate push",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas migrate push' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas migrate test",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas migrate test' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas migrate checkpoint",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas migrate checkpoint' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas migrate edit",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas migrate edit' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas migrate rebase",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas migrate rebase' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas migrate rm",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas migrate rm' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
-    "fixture": "atlas migrate down (bare)",
-    "stage": "community-abort",
-    "outcome": "ok",
-    "detail": "class: community-abort — Abort: 'atlas migrate down' is not supported by the community version."
-  },
-  {
-    "probe": "ce-gating",
     "fixture": "atlas schema apply --include",
     "stage": "community-abort",
     "outcome": "ok",
@@ -285,5 +215,271 @@
     "stage": "silent-unenforced",
     "outcome": "ok",
     "detail": "class: silent-unenforced — exit 0; output contains \"20260101000003\"; output does not contain \"drift\", \"does not match expected state\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema test (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema test' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema test (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema test' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan approve (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan approve (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan lint (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan lint (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan list (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan list (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan new (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan new (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan pull (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan pull (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan push (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan push (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan rm (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan rm (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan test (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan test (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan validate (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema plan validate (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema plan' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema push (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas schema push' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema push (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas schema push' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate checkpoint (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate checkpoint' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate checkpoint (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas migrate checkpoint' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate down (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate down' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate down (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas migrate down' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate edit (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate edit' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate edit (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas migrate edit' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate push (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate push' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate push (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas migrate push' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate rebase (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate rebase' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate rebase (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas migrate rebase' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate rm (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate rm' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate rm (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas migrate rm' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate test (bare CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — Abort: 'atlas migrate test' is not supported by the community version."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate test (--help CE sentinel)",
+    "stage": "community-abort",
+    "outcome": "ok",
+    "detail": "class: community-abort — 'atlas migrate test' is not supported by the community version."
   }
 ]

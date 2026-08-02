@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	qt "github.com/frankban/quicktest"
-
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 )
 
@@ -69,7 +68,7 @@ func TestProPlanWorkflowProbe_HappyPath(t *testing.T) {
 		Name: "_capability/pro-plan-workflow/SENTINEL",
 	})
 
-	c.Assert(results, qt.HasLen, 3)
+	c.Assert(results, qt.HasLen, 6)
 	gotContours := make([]string, 0, len(results))
 	for _, result := range results {
 		gotContours = append(gotContours, result.Fixture+"|"+result.Stage)
@@ -79,6 +78,9 @@ func TestProPlanWorkflowProbe_HappyPath(t *testing.T) {
 	}
 	c.Assert(gotContours, qt.DeepEquals, []string{
 		"atlas schema plan|plan creation",
+		"atlas schema plan new|plan file creation",
+		"atlas schema plan validate|non-mutating validation",
+		"atlas schema plan validate|stale target refusal",
 		"atlas schema apply|plan application",
 		"atlas schema apply|stale plan refusal",
 	})

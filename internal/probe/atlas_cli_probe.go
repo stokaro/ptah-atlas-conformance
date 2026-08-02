@@ -32,9 +32,10 @@ type CLIVerb struct {
 // ptah-compat binary (built as `atlas`); cloud/registry/Pro verbs are out of
 // OSS scope and only recorded. The split is grounded in Atlas's documented
 // open CLI feature surface and current CLI reference. In particular, `atlas
-// migrate down` is an OSS versioned-migration command even though Ptah still
-// has behavior and flag gaps behind its resolving command path. Since
-// stokaro/ptah#850 the ptah-compat binary is the only Atlas-shaped surface:
+// migrate down` is Pro-gated by Atlas CE v1.3.0; Ptah exposes it as an open
+// extension and measures it in the dedicated non-OSS sentinel and workflow
+// tiers. Since stokaro/ptah#850 the ptah-compat binary is the only Atlas-shaped
+// surface:
 // the main `ptah` binary rejects the `atlas` namespace outright (pinned by the
 // cli-exit-behavior probe).
 var atlasCLIVerbs = []CLIVerb{
@@ -47,7 +48,7 @@ var atlasCLIVerbs = []CLIVerb{
 	{"atlas schema clean", []string{"schema", "clean"}, true},
 	{"atlas migrate apply", []string{"migrate", "apply"}, true},
 	{"atlas migrate diff", []string{"migrate", "diff"}, true},
-	{"atlas migrate down", []string{"migrate", "down"}, true},
+	{"atlas migrate down", []string{"migrate", "down"}, false},
 	{"atlas migrate hash", []string{"migrate", "hash"}, true},
 	{"atlas migrate import", []string{"migrate", "import"}, true},
 	{"atlas migrate lint", []string{"migrate", "lint"}, true},
@@ -375,10 +376,22 @@ func commandOutputStdin(bin string, path []string, stdin string) (string, error)
 // (e.g. Atlas migrate-lint writes its analysis report to stdout while genuine
 // errors go to stderr).
 func commandStreams(bin string, args []string, dir string) (stdout, stderr string, err error) {
+	return commandStreamsWithEnv(bin, args, dir, nil)
+}
+
+func commandStreamsWithEnv(
+	bin string,
+	args []string,
+	dir string,
+	env []string,
+) (stdout, stderr string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = dir
+	if len(env) > 0 {
+		cmd.Env = append(os.Environ(), env...)
+	}
 	var out, errOut bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut
@@ -414,7 +427,7 @@ func ptahBinary() (string, error) {
 			ptahBinPath = env
 			return
 		}
-		ptahBinPath, ptahBinErr = buildPtahCommand("ptah", "github.com/stokaro/ptah/cmd/ptah")
+		ptahBinPath, ptahBinErr = buildPtahCommand("ptah", "go.5x5.cz/ptah/cmd/ptah")
 	})
 	return ptahBinPath, ptahBinErr
 }
@@ -428,7 +441,7 @@ func ptahCompatAtlasBinary() (string, error) {
 			ptahCompatBinPath = env
 			return
 		}
-		ptahCompatBinPath, ptahCompatBinErr = buildPtahCommand("atlas", "github.com/stokaro/ptah/cmd/ptah-compat")
+		ptahCompatBinPath, ptahCompatBinErr = buildPtahCommand("atlas", "go.5x5.cz/ptah/cmd/ptah-compat")
 	})
 	return ptahCompatBinPath, ptahCompatBinErr
 }

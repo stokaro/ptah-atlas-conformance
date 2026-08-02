@@ -84,7 +84,7 @@ func RenderLiveMarkdownWithCommand(results []Result, ptahVersion, command string
 
 // RenderDifferentialMarkdownWithCommand produces a live Ptah-vs-Atlas CE
 // differential report and records the command that regenerates that report file.
-func RenderDifferentialMarkdownWithCommand(results []Result, atlasSHA, ptahVersion, command string) string {
+func RenderDifferentialMarkdownWithCommand(results []Result, atlasVersion, ptahVersion, command string) string {
 	return renderMarkdownWithOptions(results, &Waivers{}, markdownReportOptions{
 		Title:   "# Ptah vs Atlas CE live differential report",
 		Command: command,
@@ -92,7 +92,10 @@ func RenderDifferentialMarkdownWithCommand(results []Result, atlasSHA, ptahVersi
 			"introspected schema facts when inspected by Ptah and Atlas CE on live\n" +
 			"databases. It is a behavioral equivalence probe, not an Atlas-authored\n" +
 			"fixture coverage score.\n\n",
-		SourceLine:  fmt.Sprintf("Live fixtures: `testdata/live` first-party Ptah schema fixtures; Atlas CE binary pinned at `ariga/atlas@%s`", atlasSHA),
+		SourceLine: fmt.Sprintf(
+			"Live fixtures: `testdata/live` first-party Ptah schema fixtures; Atlas CE binary built from release tag `%s` pinned in `atlas.version`",
+			atlasVersion,
+		),
 		PtahVersion: ptahVersion,
 		FactCategories: []string{
 			"Global schemas and enum definitions.",
@@ -116,8 +119,8 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"preserve Atlas-compatible runtime behavior against real databases. Unlike the\n" +
 			"offline txtar-script simulator, this tier executes the real drop-in CLI and\n" +
 			"inspects revision rows and end database state directly. Project configuration\n" +
-			"apply uses pinned Atlas CE as an independent runtime oracle.\n\n",
-		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply oracle pinned by atlas.version",
+			"apply and Goose checksum integrity use pinned Atlas CE as independent runtime oracles.\n\n",
+		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles pinned by atlas.version",
 		PtahVersion: ptahVersion,
 		FactCategories: []string{
 			"Migration apply: applied schema objects, Atlas revision rows, and post-apply status.",
@@ -125,6 +128,7 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"Apply-time integrity: both Atlas branches of the atlas.sum contract — the checksum-mismatch refusal on a *hashed* directory edited after hashing, and the checksum-file-not-found refusal on a directory that was never hashed. Each is measured on exit code, output shape, and the absence of the target database.",
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
+			"Goose checksum integrity: byte-identical Atlas CE/Ptah atlas.sum generation, cross-validation of each other's checksum, explicit measurement of Atlas CE's stateful first-error advisory, and byte-identical stable rejection after tampering.",
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",
 			"Pre-migration checks: checks.sql and ordered checks/*.sql groups run before migration.sql; oneof groups, including empty groups, fail closed; every assertion must return exactly one row and one column; blocked migrations write no revision row.",
 			"Check isolation and dialect semantics: PostgreSQL E-strings and advisory-lock release; MySQL and MariaDB executable comments, short numeric comment bodies, and hidden-statement rejection before query execution.",
@@ -157,7 +161,7 @@ func RenderCEGatingMarkdownWithCommand(results []Result, atlasVersion, command s
 			// which the binary-under-test line above cannot convey. It must be
 			// extended whenever the baseline is re-confirmed against a new
 			// pin, otherwise the report implies the pin was never re-measured.
-			"Expected classes are the hand-measured 2026-08-01 baseline for Atlas CE v1.2.0, re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02.",
+			"Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02.",
 		},
 	})
 }

@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stokaro/ptah/atlascompat"
-	"github.com/stokaro/ptah/core/goschema"
-	"github.com/stokaro/ptah/core/renderer"
-	"github.com/stokaro/ptah/dbschema"
+	"go.5x5.cz/ptah/atlascompat"
+	"go.5x5.cz/ptah/core/goschema"
+	"go.5x5.cz/ptah/core/renderer"
+	"go.5x5.cz/ptah/dbschema"
 )
 
 // RunSchemaDiff is the differential-vs-Atlas tier: it measures whether Ptah and

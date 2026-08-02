@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 )
@@ -28,6 +29,16 @@ func main() {
 	results, inventory, err := probe.ProbeCLISurface(*atlasBin)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "probe CLI surface:", err)
+		os.Exit(2)
+	}
+	pinnedAtlasVersion := pinnedVersion()
+	if !probe.AtlasVersionMatchesPin(inventory.AtlasVersion, pinnedAtlasVersion) {
+		fmt.Fprintf(
+			os.Stderr,
+			"Atlas binary reports %q, want atlas.version %q\n",
+			inventory.AtlasVersion,
+			pinnedAtlasVersion,
+		)
 		os.Exit(2)
 	}
 
@@ -66,4 +77,12 @@ func main() {
 		}
 		fmt.Println("CLI SURFACE GATE: GREEN — every OSS Atlas command surface matches.")
 	}
+}
+
+func pinnedVersion() string {
+	data, err := os.ReadFile("atlas.version")
+	if err != nil {
+		return "unpinned"
+	}
+	return strings.TrimSpace(string(data))
 }

@@ -6,8 +6,8 @@ require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.1.3-0.20260801191234-40f7d034b5ec
 	github.com/zclconf/go-cty v1.19.0
+	go.5x5.cz/ptah v0.2.1-0.20260802212341-c59c94b35cdd
 	modernc.org/sqlite v1.55.0
 )
 
@@ -30,6 +30,7 @@ require (
 	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

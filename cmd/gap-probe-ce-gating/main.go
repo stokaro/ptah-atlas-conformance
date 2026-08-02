@@ -38,7 +38,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  make atlas && export ATLAS_BIN=$PWD/bin/atlas")
 		os.Exit(2)
 	}
-	fmt.Printf("ce-gating against %s (atlas.version=%s)\n", versionLine, pinnedVersion())
+	pinnedAtlasVersion := pinnedVersion()
+	if !probe.AtlasVersionMatchesPin(versionLine, pinnedAtlasVersion) {
+		fmt.Fprintf(os.Stderr, "Atlas binary reports %q, want atlas.version %q\n", versionLine, pinnedAtlasVersion)
+		os.Exit(2)
+	}
+	fmt.Printf("ce-gating against %s (atlas.version=%s)\n", versionLine, pinnedAtlasVersion)
 
 	run := probe.RunCEGating(atlasBin)
 

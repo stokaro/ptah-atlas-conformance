@@ -11,9 +11,9 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/stokaro/ptah/atlascompat"
-	"github.com/stokaro/ptah/core/ast"
-	"github.com/stokaro/ptah/migration/migrator"
+	"go.5x5.cz/ptah/atlascompat"
+	"go.5x5.cz/ptah/core/ast"
+	"go.5x5.cz/ptah/migration/migrator"
 )
 
 func TestLoadCorpusIncludesAllAtlasTestArtifactKinds(t *testing.T) {
@@ -305,8 +305,8 @@ func TestAtlasCLIMetadataRuntimeProbeAcceptsAtlasDefaults(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIMetadataRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 13 {
-		t.Fatalf("expected 13 results, got %d: %#v", len(results), results)
+	if len(results) != 11 {
+		t.Fatalf("expected 11 results, got %d: %#v", len(results), results)
 	}
 	for _, r := range results {
 		if r.Probe != "atlas-cli-metadata-runtime" {
@@ -614,7 +614,14 @@ esac
 func fakeMetadataRuntimeScript() string {
 	return `#!/bin/sh
 case "$*" in
-  "migrate hash --dir file://"*" --dir-format goose"|"migrate lint --latest 1 --dir file://"*" --dir-format goose"|"migrate new init --dir file://"*" --dir-format goose"|"migrate set --url sqlite://ignored.db 20240101000000 --dir file://"*" --dir-format goose"|"migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose"|"migrate validate --dir file://"*" --dir-format goose")
+  "migrate hash --dir file://"*" --dir-format goose")
+    dir=${4#file://}
+    printf 'h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n20240101000000_init.sql h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n' > "$dir/atlas.sum"
+    printf 'Wrote %s/atlas.sum\n1 migration file(s) hashed\n' "$dir"
+    ;;
+  "migrate validate --dir file://"*" --dir-format goose")
+    ;;
+  "migrate lint --latest 1 --dir file://"*" --dir-format goose"|"migrate new init --dir file://"*" --dir-format goose"|"migrate set --url sqlite://ignored.db 20240101000000 --dir file://"*" --dir-format goose"|"migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose")
     printf 'error: Atlas accepts --dir-format=goose, but Ptah does not implement that directory format yet\n' >&2
     exit 2
     ;;

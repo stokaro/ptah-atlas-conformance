@@ -1,14 +1,15 @@
 package probe
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
+	"strconv"
 	"strings"
-	"time"
 )
 
 const (
@@ -79,6 +80,7 @@ func ProbeCLISurface(atlasBin string) ([]Result, CLISurfaceInventory, error) {
 
 	results := inventoryResults(inventory)
 	results = append(results, buildComparisonResults("atlas-cli-surface-ptah-compat", inventory, compatBin, compatErr)...)
+	results = append(results, buildNonOSSSentinelResults(compatBin, compatErr)...)
 	return results, inventory, nil
 }
 
@@ -130,19 +132,6 @@ func DiscoverCLISurface(atlasBin string) (CLISurfaceInventory, error) {
 	}
 	if err := walk(nil, ""); err != nil {
 		return CLISurfaceInventory{}, err
-	}
-
-	for _, known := range knownOutOfScopeAtlasCommands() {
-		if visited[strings.Join(known.path, " ")] {
-			continue
-		}
-		commands = append(commands, CLISurfaceCommand{
-			Path:                 known.path,
-			Summary:              known.summary,
-			Usage:                displayCommand("atlas", known.path),
-			Classification:       CLISurfaceOutOfScope,
-			ClassificationReason: known.reason,
-		})
 	}
 
 	sort.Slice(commands, func(i, j int) bool {
@@ -221,11 +210,6 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 		issue := cliSurfaceCompatIssue
 		display := displayCommand(prefix, atlasCmd.Path)
 		if atlasCmd.Classification == CLISurfaceOutOfScope {
-			if surface, ok := implementedProVerbSurfaces()[strings.Join(atlasCmd.Path, " ")]; ok {
-				out = append(out, compareImplementedProCommand(probeName, display, bin, path, atlasCmd, surface, issue)...)
-				continue
-			}
-			out = append(out, compareOutOfScopeCommand(probeName, display, bin, path, atlasCmd, issue))
 			continue
 		}
 		if atlasCmd.Classification != CLISurfaceOSS {
@@ -249,29 +233,111 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 	return out
 }
 
+func buildNonOSSSentinelResults(bin string, buildErr error) []Result {
+	const probeName = "ptah-non-oss-sentinel"
+	if buildErr != nil {
+		return []Result{{probeName, "atlas", "build", Fail,
+			"could not build Ptah CLI: " + oneLine(buildErr.Error()), ""}}
+	}
+	surfaces := implementedProVerbSurfaces()
+	var out []Result
+	for _, sentinel := range nonOSSSentinels() {
+		path := sentinel.invocationPath
+		display := displayCommand("atlas", path)
+		command := CLISurfaceCommand{
+			Path:                 path,
+			Summary:              sentinel.summary,
+			Classification:       CLISurfaceOutOfScope,
+			ClassificationReason: sentinel.reason,
+		}
+		switch sentinel.policy {
+		case nonOSSSentinelOpen:
+			surface, ok := surfaces[strings.Join(path, " ")]
+			if !ok {
+				out = append(out, Result{probeName, display, "catalog", Fail,
+					"open non-OSS sentinel has no first-party command-surface contract", ""})
+				continue
+			}
+			out = append(out, compareImplementedProCommand(
+				probeName, display, bin, path, command, surface, cliSurfaceCompatIssue,
+			)...)
+		case nonOSSSentinelUnavailable:
+			out = append(out, compareOutOfScopeCommand(
+				probeName, display, bin, path, command, cliSurfaceCompatIssue,
+			)...)
+		}
+	}
+	return out
+}
+
 // compareOutOfScopeCommand checks an out-of-scope Atlas command that Ptah
 // deliberately keeps as a CE-boundary stub — the Cloud/registry verbs such as
 // `migrate push`, `schema push`, and the `schema plan` registry sub-verbs.
-// The expectation is exact in the closed direction: the command must report
-// Atlas CE's community-version abort. A stub that starts resolving as an open
-// capability is a Gap, not a silent upgrade — an implemented verb must be
-// listed in implementedProVerbSurfaces so its usage/flag surface and workflow
-// behavior are measured instead of merely observed.
-func compareOutOfScopeCommand(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, issue string) Result {
-	out, err := commandOutput(bin, path)
-	if err != nil {
-		if _, ok := err.(*exec.ExitError); !ok {
-			return Result{probeName, display, "out-of-scope-runtime", Fail,
-				"executing `" + display + "` failed: " + oneLine(err.Error()), ""}
-		}
+// The expectation is exact in the closed direction: bare execution must exit
+// 1 with Ptah's command-specific diagnostic on stderr and no stdout, while
+// --help must exit 0 with command-specific help on stdout and no stderr.
+// Copying Atlas CE's community-version prose is deliberately not part of the
+// compatibility contract. A stub that starts resolving as an open capability
+// is a Gap, not a silent upgrade — an implemented verb must be listed in
+// implementedProVerbSurfaces so its usage/flag surface and workflow behavior
+// are measured instead of merely observed.
+func compareOutOfScopeCommand(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, issue string) []Result {
+	return []Result{
+		compareOutOfScopeRuntime(probeName, display, bin, path, atlasCmd, issue),
+		compareOutOfScopeHelp(probeName, display, bin, path, atlasCmd, issue),
 	}
-	want := "'" + displayCommand("atlas", atlasCmd.Path) + "' is not supported by the community version"
-	if strings.Contains(out, want) {
+}
+
+func compareOutOfScopeRuntime(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, issue string) Result {
+	stdout, stderr, err := commandStreams(bin, path, "")
+	if err == nil {
+		return Result{probeName, display, "out-of-scope-runtime", Gap,
+			"`" + display + "` exited successfully; a still-stubbed Cloud/registry command must remain unavailable until it is implemented and added to the open-capability expectations",
+			issue}
+	}
+	exitErr, ok := err.(*exec.ExitError)
+	if !ok {
+		return Result{probeName, display, "out-of-scope-runtime", Fail,
+			"executing `" + display + "` failed: " + oneLine(err.Error()), ""}
+	}
+	if exitErr.ExitCode() != 1 {
+		return Result{probeName, display, "out-of-scope-runtime", Gap,
+			"`" + display + "` exited with code " + strconv.Itoa(exitErr.ExitCode()) + "; the Ptah-owned unavailable-command boundary requires exit code 1",
+			issue}
+	}
+	if stdout != "" {
+		return Result{probeName, display, "out-of-scope-runtime", Gap,
+			"`" + display + "` wrote unexpected stdout; the unavailable-command runtime contract requires stdout to be empty; got `" + oneLine(stdout) + "`",
+			issue}
+	}
+	want := "Error: " + displayCommand("atlas", atlasCmd.Path) + " is not implemented by Ptah\n"
+	if stderr == want {
 		return Result{probeName, display, "out-of-scope-runtime", OK,
-			"`" + display + "` reports the same community-version unsupported boundary as Atlas CE", ""}
+			"`" + display + "` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)", ""}
 	}
 	return Result{probeName, display, "out-of-scope-runtime", Gap,
-		"`" + display + "` did not report Atlas CE's community-version unsupported boundary; still-stubbed Cloud/registry verbs must keep the CE abort until they are implemented and added to the open-capability expectations; got `" + oneLine(out) + "`",
+		"`" + display + "` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `" + oneLine(want) + "`, got `" + oneLine(stderr) + "`",
+		issue}
+}
+
+func compareOutOfScopeHelp(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, issue string) Result {
+	stdout, stderr, err := commandStreams(bin, append(slices.Clone(path), "--help"), "")
+	if err != nil {
+		return Result{probeName, display, "out-of-scope-help", Fail,
+			"executing `" + display + " --help` failed: " + oneLine(err.Error()), ""}
+	}
+	if stderr != "" {
+		return Result{probeName, display, "out-of-scope-help", Gap,
+			"`" + display + " --help` wrote unexpected stderr; the help contract requires stderr to be empty; got `" + oneLine(stderr) + "`",
+			issue}
+	}
+	want := displayCommand("atlas", atlasCmd.Path) + " is not implemented by Ptah.\n"
+	if stdout == want {
+		return Result{probeName, display, "out-of-scope-help", OK,
+			"`" + display + " --help` preserves the byte-exact Ptah-owned unavailable-command help boundary", ""}
+	}
+	return Result{probeName, display, "out-of-scope-help", Gap,
+		"`" + display + " --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `" + oneLine(want) + "`, got `" + oneLine(stdout) + "`",
 		issue}
 }
 
@@ -302,6 +368,13 @@ func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
 			usage: "atlas migrate checkpoint [flags] [name]",
 			flags: []string{"--dev-url", "--dir", "--dir-format"},
 		},
+		"migrate down": {
+			usage: "atlas migrate down [flags]",
+			flags: []string{
+				"--dev-url", "--dir", "--dry-run", "--format", "--lock-timeout",
+				"--revisions-schema", "--to-version", "--url",
+			},
+		},
 		"migrate edit": {
 			usage: "atlas migrate edit [flags] {name | version}",
 			flags: []string{"--dir", "--dir-format"},
@@ -326,32 +399,49 @@ func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
 			usage: "atlas schema plan [flags]",
 			flags: []string{"--dev-url", "--dry-run", "--edit", "--from", "--name", "--output", "--save", "--to"},
 		},
+		"schema plan new": {
+			usage: "atlas schema plan new [flags]",
+			flags: []string{
+				"--auto-approve", "--dev-url", "--edit", "--exclude", "--format", "--from", "--include",
+				"--lock-timeout", "--name", "--name-format", "--output", "--repo", "--schema", "--to",
+			},
+		},
+		"schema plan validate": {
+			usage: "atlas schema plan validate [flags]",
+			flags: []string{
+				"--auto-approve", "--dev-url", "--exclude", "--file", "--format", "--from", "--include",
+				"--lock-timeout", "--repo", "--schema", "--to",
+			},
+		},
 	}
 }
 
 // compareImplementedProCommand checks an out-of-scope Atlas command that Ptah
 // implements as an open capability. Three observations are emitted per
-// surface: the runtime boundary (the CE community-version abort must be gone),
+// surface: the runtime boundary (both unavailable-command forms must be gone),
 // the help usage line, and the minimum long-flag set. The usage/flag oracle is
 // first-party (see implementedProVerbSurfaces) because the CE binary cannot
 // supply help for these verbs; behavioral evidence is owned by the matching
 // workflow probes, not by help output. A regression to the CE abort stub
 // short-circuits so the gate points at the real problem.
 func compareImplementedProCommand(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, surface implementedProVerbSurface, issue string) []Result {
-	bare, err := commandOutput(bin, path)
+	stdout, stderr, err := commandStreams(bin, path, "")
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
-			return []Result{{probeName, display, "capability-runtime", Fail,
+			return []Result{{probeName, display, "availability-boundary", Fail,
 				"executing `" + display + "` failed: " + oneLine(err.Error()), ""}}
 		}
 	}
-	boundary := "'" + displayCommand("atlas", atlasCmd.Path) + "' is not supported by the community version"
-	if strings.Contains(bare, boundary) {
-		return []Result{{probeName, display, "capability-runtime", Gap,
-			"`" + display + "` regressed to Atlas CE's community-version abort stub; Ptah implements this Pro verb as an open capability and must keep it resolving", issue}}
+	command := displayCommand("atlas", atlasCmd.Path)
+	ptahBoundary := "Error: " + command + " is not implemented by Ptah"
+	ceBoundary := "'" + command + "' is not supported by the community version"
+	combined := stdout + stderr
+	if strings.Contains(combined, ptahBoundary) || strings.Contains(combined, ceBoundary) {
+		return []Result{{probeName, display, "availability-boundary", Gap,
+			"`" + display + "` regressed to an unavailable-command stub; Ptah implements this Pro verb as an open capability and must keep it resolving", issue}}
 	}
-	out := []Result{{probeName, display, "capability-runtime", OK,
-		"`" + display + "` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe", ""}}
+	out := []Result{{probeName, display, "availability-boundary", OK,
+		"`" + display + "` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe", ""}}
 
 	target, err := readCommandSurface(bin, path)
 	if err != nil {
@@ -448,17 +538,22 @@ func readCommandSurface(bin string, path []string) (helpDetails, error) {
 }
 
 func commandHelp(bin string, path []string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 	args := append(append([]string(nil), path...), "--help")
-	cmd := exec.CommandContext(ctx, bin, args...)
-	out, err := cmd.CombinedOutput()
+	stdout, stderr, err := commandStreams(bin, args, "")
 	if err != nil {
-		if _, ok := err.(*exec.ExitError); !ok {
-			return "", err
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return "", fmt.Errorf(
+				"help exited %d; stdout=%q stderr=%q",
+				exitErr.ExitCode(), oneLine(stdout), oneLine(stderr),
+			)
 		}
+		return "", err
 	}
-	return string(out), nil
+	if stderr != "" {
+		return "", fmt.Errorf("help wrote to stderr: %s", oneLine(stderr))
+	}
+	return stdout, nil
 }
 
 func atlasVersionLine(atlasBin string) (string, error) {
@@ -587,29 +682,19 @@ type outOfScopeCommand struct {
 // parity targets because the pinned CE binary aborts on them. Two directions
 // exist within this set: verbs listed in implementedProVerbSurfaces must
 // resolve as open Ptah capabilities, while the rest (the Cloud/registry verbs,
-// including the `schema plan` registry sub-verbs) must keep Atlas CE's
-// community-version abort boundary.
+// including the `schema plan` registry sub-verbs) must keep the strict
+// Ptah-owned unavailable-command boundary.
 func knownOutOfScopeAtlasCommands() []outOfScopeCommand {
-	return []outOfScopeCommand{
-		{[]string{"schema", "test"}, "Test schemas through Atlas Cloud", "Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"schema", "plan"}, "Plan schema changes through Atlas Cloud", "Atlas Pro/Cloud plan workflow not present in the pinned CE binary; Ptah implements the local plan-file half as an open capability"},
-		{[]string{"schema", "plan", "approve"}, "Approve a plan in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "lint"}, "Lint a plan against the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "list"}, "List plans in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "new"}, "Create a new plan in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "pull"}, "Pull a plan from the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "push"}, "Push a plan to the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "rm"}, "Remove a plan from the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "test"}, "Test a plan through the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "validate"}, "Validate a plan through the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "push"}, "Push schema state to Atlas Cloud", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"migrate", "checkpoint"}, "Create migration checkpoint files", "Atlas Pro feature not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "edit"}, "Edit migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "push"}, "Push migration directory to Atlas Cloud", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"migrate", "rebase"}, "Rebase migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "rm"}, "Remove migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "test"}, "Test migration files through Atlas Cloud", "Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"},
+	sentinels := nonOSSSentinels()
+	commands := make([]outOfScopeCommand, len(sentinels))
+	for i, sentinel := range sentinels {
+		commands[i] = outOfScopeCommand{
+			path:    sentinel.invocationPath,
+			summary: sentinel.summary,
+			reason:  sentinel.reason,
+		}
 	}
+	return commands
 }
 
 func displayCommand(prefix string, path []string) string {
@@ -673,6 +758,9 @@ func DefaultAtlasBinary() string {
 	}
 	local := filepath.Join("bin", "atlas")
 	if _, err := os.Stat(local); err == nil {
+		if absolute, absErr := filepath.Abs(local); absErr == nil {
+			return absolute
+		}
 		return local
 	}
 	return "atlas"

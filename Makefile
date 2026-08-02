@@ -71,8 +71,9 @@ gate-diff:
 # workflows on the ptah-compat binary against real local databases and inspect
 # the resulting schema and Atlas revision rows. Kept separate from offline
 # txtar simulation so runtime parity cannot be hidden by fixture parsing
-# success. Regenerates gaps-migrate-runtime.md / gaps-migrate-runtime.json and
-# always exits 0.
+# success. The Goose checksum differential requires ATLAS_BIN (or `atlas` on
+# PATH; `make atlas` builds ./bin/atlas from the pinned tag). Regenerates
+# gaps-migrate-runtime.md / gaps-migrate-runtime.json and always exits 0.
 probe-migrate-runtime:
 	$(GO_OFF) run ./cmd/gap-probe-migrate-runtime
 
@@ -127,10 +128,11 @@ gate-cli-surface:
 # The CE gating tier: execute the pinned Atlas CE binary, logged out, through
 # the fixed capability scenarios Ptah's feature matrix asserts about the CE
 # column, and classify each observed outcome (works / community-abort / absent /
-# unknown-flag / named-error / silent-unenforced). Every scenario runs under a
-# scratch HOME so a developer's real Atlas login can never leak in. SQLite
-# only, no external databases. Needs ATLAS_BIN (or `atlas` on PATH; `make
-# atlas` builds ./bin/atlas from the pinned tag). Regenerates ce-gating.md /
+# unregistered-command / unknown-flag / named-error / silent-unenforced).
+# Every scenario runs under a scratch HOME so a developer's real Atlas login
+# can never leak in. SQLite only, no external databases. Needs ATLAS_BIN or
+# `atlas` on PATH; `make atlas` builds ./bin/atlas from the pinned tag.
+# Regenerates ce-gating.md /
 # ce-gating.json and always exits 0.
 probe-ce-gating:
 	$(GO_OFF) run ./cmd/gap-probe-ce-gating

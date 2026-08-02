@@ -12,6 +12,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"go.5x5.cz/ptah/atlascompat"
 )
 
 const (
@@ -195,7 +197,7 @@ func (p ORMProviderSmokeProbe) runProvider(
 		))}
 	}
 
-	outputResult := validateORMProviderSchema(provider, "provider output", providerResult.stdout, false)
+	outputResult := validateORMProviderSchema(provider, "provider output", providerResult.stdout)
 	results := []Result{outputResult}
 	if outputResult.Outcome != OK {
 		return results
@@ -220,8 +222,7 @@ func (p ORMProviderSmokeProbe) runProvider(
 			ptahResult.exitCode, ptahResult.diagnostic(),
 		)))
 	}
-	return append(results,
-		validateORMProviderSchema(provider, "ptah schema render", ptahResult.stdout, true))
+	return append(results, validateORMProviderRender(provider, ptahResult))
 }
 
 func (p ORMProviderSmokeProbe) providerTimeout() time.Duration {
@@ -349,7 +350,7 @@ var ormProviderSchemaFacts = []ormSchemaFact{
 	{name: "users email index identity", fragment: "idx_users_email"},
 }
 
-func validateORMProviderSchema(provider, stage, output string, rendered bool) Result {
+func validateORMProviderSchema(provider, stage, output string) Result {
 	compact := compactORMProviderOutput(output)
 	var missing []string
 	for _, fact := range ormProviderSchemaFacts {
@@ -360,12 +361,27 @@ func validateORMProviderSchema(provider, stage, output string, rendered bool) Re
 	if strings.Count(compact, "primarykey") < 2 {
 		missing = append(missing, "primary keys on users and pets")
 	}
-	if rendered && !strings.Contains(compact, "found2tables") {
-		missing = append(missing, "Ptah two-table summary")
-	}
 	if len(missing) > 0 {
 		return ormProviderGap(provider, stage,
 			"missing expected schema facts: "+strings.Join(missing, ", "))
+	}
+	return ormProviderOK(provider, stage)
+}
+
+func validateORMProviderRender(provider string, result ormCommandResult) Result {
+	const stage = "ptah schema render"
+	compactStdout := compactORMProviderOutput(result.stdout)
+	if strings.Contains(compactStdout, "found2tables") || strings.Contains(result.stdout, "=== ") {
+		return ormProviderGap(provider, stage, "render stdout contains non-SQL progress text")
+	}
+	if _, err := atlascompat.ParseSQL(result.stdout, atlascompat.ParseSQLOptions{Dialect: "sqlite"}); err != nil {
+		return ormProviderGap(provider, stage, "render stdout is not valid SQL: "+oneLine(err.Error()))
+	}
+	if schemaResult := validateORMProviderSchema(provider, stage, result.stdout); schemaResult.Outcome != OK {
+		return schemaResult
+	}
+	if !strings.Contains(compactORMProviderOutput(result.stderr), "found2tables") {
+		return ormProviderGap(provider, stage, "render stderr is missing the Ptah two-table progress summary")
 	}
 	return ormProviderOK(provider, stage)
 }

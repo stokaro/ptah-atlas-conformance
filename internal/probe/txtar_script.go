@@ -17,9 +17,9 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/stokaro/ptah/atlascompat"
-	"github.com/stokaro/ptah/core/ast"
-	"github.com/stokaro/ptah/migration/migrator"
+	"go.5x5.cz/ptah/atlascompat"
+	"go.5x5.cz/ptah/core/ast"
+	"go.5x5.cz/ptah/migration/migrator"
 )
 
 var (
@@ -332,7 +332,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			case err != nil:
 				summary.failures = append(summary.failures, "stdout assertion regexp failed: "+oneLine(err.Error()))
 			case !matched:
-				summary.failures = append(summary.failures, "stdout assertion did not match")
+				summary.failures = append(summary.failures, fmt.Sprintf(
+					"stdout assertion %q did not match %q",
+					txtarAssertionText(trimmed), oneLine(last.stdout),
+				))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "stderr "):
@@ -345,7 +348,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			case err != nil:
 				summary.failures = append(summary.failures, "stderr assertion regexp failed: "+oneLine(err.Error()))
 			case !matched:
-				summary.failures = append(summary.failures, "stderr assertion did not match")
+				summary.failures = append(summary.failures, fmt.Sprintf(
+					"stderr assertion %q did not match %q",
+					txtarAssertionText(trimmed), oneLine(last.stderr),
+				))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "cmp "):

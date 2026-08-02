@@ -192,10 +192,6 @@ func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
 		args    []string
 	}{
 		{
-			fixture: "atlas migrate hash --dir-format goose",
-			args:    []string{"migrate", "hash"},
-		},
-		{
 			fixture: "atlas migrate lint --dir-format goose",
 			args:    []string{"migrate", "lint", "--latest", "1"},
 		},
@@ -210,10 +206,6 @@ func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
 		{
 			fixture: "atlas migrate status --dir-format goose",
 			args:    []string{"migrate", "status", "--url", "sqlite://ignored.db"},
-		},
-		{
-			fixture: "atlas migrate validate --dir-format goose",
-			args:    []string{"migrate", "validate"},
 		},
 	}
 

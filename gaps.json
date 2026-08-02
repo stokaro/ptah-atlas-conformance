@@ -3874,9 +3874,9 @@
   {
     "probe": "atlas-compat-binary-surface",
     "fixture": "atlas migrate down",
-    "stage": "resolve",
+    "stage": "out-of-scope",
     "outcome": "ok",
-    "detail": "`atlas migrate down` resolves through a ptah-compat binary named `atlas`"
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
   },
   {
     "probe": "atlas-compat-binary-surface",
@@ -4216,13 +4216,6 @@
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "atlas migrate hash --dir-format goose",
-    "stage": "execute",
-    "outcome": "ok",
-    "detail": "`atlas migrate hash --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
-  },
-  {
-    "probe": "atlas-cli-metadata-runtime",
     "fixture": "atlas migrate lint --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
@@ -4248,13 +4241,6 @@
     "stage": "execute",
     "outcome": "ok",
     "detail": "`atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
-  },
-  {
-    "probe": "atlas-cli-metadata-runtime",
-    "fixture": "atlas migrate validate --dir-format goose",
-    "stage": "execute",
-    "outcome": "ok",
-    "detail": "`atlas migrate validate --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
   },
   {
     "probe": "atlas-cli-shorthands",
@@ -5326,6 +5312,27 @@
     "stage": "plan creation",
     "outcome": "ok",
     "detail": "PTAH-SIDE PIN (no CE oracle — the pinned Atlas CE answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
+  },
+  {
+    "probe": "pro-plan-workflow",
+    "fixture": "atlas schema plan new",
+    "stage": "plan file creation",
+    "outcome": "ok",
+    "detail": "PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, kept stderr empty, and left the target database unchanged"
+  },
+  {
+    "probe": "pro-plan-workflow",
+    "fixture": "atlas schema plan validate",
+    "stage": "non-mutating validation",
+    "outcome": "ok",
+    "detail": "PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout and stderr and left the target database unchanged"
+  },
+  {
+    "probe": "pro-plan-workflow",
+    "fixture": "atlas schema plan validate",
+    "stage": "stale target refusal",
+    "outcome": "ok",
+    "detail": "PTAH-SIDE PIN (documented, no executable Atlas oracle): validation rejected a target changed after planning, named the source fingerprint mismatch, and preserved the drift table without applying the plan"
   },
   {
     "probe": "pro-plan-workflow",

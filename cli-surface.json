@@ -29,24 +29,10 @@
   },
   {
     "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas migrate checkpoint",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Pro feature not present in the pinned CE binary; Ptah implements it as an open capability"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
     "fixture": "atlas migrate diff",
     "stage": "classify",
     "outcome": "ok",
     "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas migrate edit",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"
   },
   {
     "probe": "atlas-cli-surface-inventory",
@@ -78,27 +64,6 @@
   },
   {
     "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas migrate push",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas migrate rebase",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas migrate rm",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
     "fixture": "atlas migrate set",
     "stage": "classify",
     "outcome": "ok",
@@ -110,13 +75,6 @@
     "stage": "classify",
     "outcome": "ok",
     "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas migrate test",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"
   },
   {
     "probe": "atlas-cli-surface-inventory",
@@ -166,90 +124,6 @@
     "stage": "classify",
     "outcome": "ok",
     "detail": "Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Pro/Cloud plan workflow not present in the pinned CE binary; Ptah implements the local plan-file half as an open capability"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan approve",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan lint",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan list",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan new",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan pull",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan push",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan rm",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan test",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema plan validate",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema push",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Cloud / registry workflow, not present in the pinned CE binary"
-  },
-  {
-    "probe": "atlas-cli-surface-inventory",
-    "fixture": "atlas schema test",
-    "stage": "classify",
-    "outcome": "ok",
-    "detail": "not an OSS drop-in target: Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"
   },
   {
     "probe": "atlas-cli-surface-inventory",
@@ -316,27 +190,6 @@
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate checkpoint",
-    "stage": "capability-runtime",
-    "outcome": "ok",
-    "detail": "`atlas migrate checkpoint` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate checkpoint",
-    "stage": "usage",
-    "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas migrate checkpoint [flags] [name]` (Atlas CE has no help for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate checkpoint",
-    "stage": "flags",
-    "outcome": "ok",
-    "detail": "exposes the first-party required long flags: --dev-url --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate diff",
     "stage": "usage",
     "outcome": "ok",
@@ -348,27 +201,6 @@
     "stage": "flags",
     "outcome": "ok",
     "detail": "long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate edit",
-    "stage": "capability-runtime",
-    "outcome": "ok",
-    "detail": "`atlas migrate edit` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate edit",
-    "stage": "usage",
-    "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas migrate edit [flags] {name | version}` (Atlas CE has no help for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate edit",
-    "stage": "flags",
-    "outcome": "ok",
-    "detail": "exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -428,55 +260,6 @@
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate push",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas migrate push` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate rebase",
-    "stage": "capability-runtime",
-    "outcome": "ok",
-    "detail": "`atlas migrate rebase` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate rebase",
-    "stage": "usage",
-    "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas migrate rebase [flags] {name | version}...` (Atlas CE has no help for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate rebase",
-    "stage": "flags",
-    "outcome": "ok",
-    "detail": "exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate rm",
-    "stage": "capability-runtime",
-    "outcome": "ok",
-    "detail": "`atlas migrate rm` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate rm",
-    "stage": "usage",
-    "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas migrate rm [flags] {name | version}` (Atlas CE has no help for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate rm",
-    "stage": "flags",
-    "outcome": "ok",
-    "detail": "exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate set",
     "stage": "usage",
     "outcome": "ok",
@@ -502,27 +285,6 @@
     "stage": "flags",
     "outcome": "ok",
     "detail": "long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate test",
-    "stage": "capability-runtime",
-    "outcome": "ok",
-    "detail": "`atlas migrate test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate test",
-    "stage": "usage",
-    "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas migrate test [flags] [paths]` (Atlas CE has no help for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas migrate test",
-    "stage": "flags",
-    "outcome": "ok",
-    "detail": "exposes the first-party required long flags: --dev-url --dir --dir-format --run (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -624,118 +386,6 @@
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan",
-    "stage": "capability-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan",
-    "stage": "usage",
-    "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas schema plan [flags]` (Atlas CE has no help for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan",
-    "stage": "flags",
-    "outcome": "ok",
-    "detail": "exposes the first-party required long flags: --dev-url --dry-run --edit --from --name --output --save --to (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan approve",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan approve` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan lint",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan lint` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan list",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan list` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan new",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan new` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan pull",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan pull` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan push",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan push` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan rm",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan rm` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan test",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan test` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema plan validate",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan validate` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema push",
-    "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema push` reports the same community-version unsupported boundary as Atlas CE"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema test",
-    "stage": "capability-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema test",
-    "stage": "usage",
-    "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
-    "fixture": "atlas schema test",
-    "stage": "flags",
-    "outcome": "ok",
-    "detail": "exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
-  },
-  {
-    "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas version",
     "stage": "usage",
     "outcome": "ok",
@@ -747,5 +397,341 @@
     "stage": "flags",
     "outcome": "ok",
     "detail": "long flags match Atlas: no long flags"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema test",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas schema test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema test",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema test",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas schema plan` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas schema plan [flags]` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dev-url --dry-run --edit --from --name --output --save --to (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan approve",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema plan approve` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan approve",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan approve --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan lint",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema plan lint` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan lint",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan lint --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan list",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema plan list` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan list",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan list --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan new",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas schema plan new` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan new",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas schema plan new [flags]` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan new",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --auto-approve --dev-url --edit --exclude --format --from --include --lock-timeout --name --name-format --output --repo --schema --to (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan pull",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema plan pull` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan pull",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan pull --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan push",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema plan push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan push",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan rm",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema plan rm` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan rm",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan rm --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan test",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema plan test` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan test",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan test --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan validate",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas schema plan validate` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan validate",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas schema plan validate [flags]` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema plan validate",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --auto-approve --dev-url --exclude --file --format --from --include --lock-timeout --repo --schema --to (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema push",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas schema push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas schema push",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate checkpoint",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas migrate checkpoint` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate checkpoint",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas migrate checkpoint [flags] [name]` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate checkpoint",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dev-url --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate down",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas migrate down` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate down",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas migrate down [flags]` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate down",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dev-url --dir --dry-run --format --lock-timeout --revisions-schema --to-version --url (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate edit",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas migrate edit` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate edit",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas migrate edit [flags] {name | version}` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate edit",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate push",
+    "stage": "out-of-scope-runtime",
+    "outcome": "ok",
+    "detail": "`atlas migrate push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate push",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas migrate push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate rebase",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas migrate rebase` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate rebase",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas migrate rebase [flags] {name | version}...` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate rebase",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate rm",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas migrate rm` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate rm",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas migrate rm [flags] {name | version}` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate rm",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate test",
+    "stage": "availability-boundary",
+    "outcome": "ok",
+    "detail": "`atlas migrate test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate test",
+    "stage": "usage",
+    "outcome": "ok",
+    "detail": "usage matches the first-party open-capability contract: `atlas migrate test [flags] [paths]` (Atlas CE has no help for this verb)"
+  },
+  {
+    "probe": "ptah-non-oss-sentinel",
+    "fixture": "atlas migrate test",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "exposes the first-party required long flags: --dev-url --dir --dir-format --run (extra flags are allowed; Atlas CE has no flag oracle for this verb)"
   }
 ]

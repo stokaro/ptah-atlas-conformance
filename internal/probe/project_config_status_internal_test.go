@@ -196,33 +196,6 @@ func TestProjectConfigProducer_FailurePath(t *testing.T) {
 	}
 }
 
-func TestAtlasVersionMatchesPin_HappyPath(t *testing.T) {
-	c := qt.New(t)
-
-	c.Assert(atlasVersionMatchesPin("atlas community version v1.2.0", "v1.2.0"), qt.IsTrue)
-}
-
-func TestAtlasVersionMatchesPin_FailurePath(t *testing.T) {
-	c := qt.New(t)
-	tests := []struct {
-		name     string
-		observed string
-		pinned   string
-	}{
-		{name: "empty pin", observed: "atlas community version v1.2.0"},
-		{name: "wrong version", observed: "atlas community version v1.1.0", pinned: "v1.2.0"},
-		{name: "untrusted prefix", observed: "wrapper atlas community version v1.2.0", pinned: "v1.2.0"},
-		{name: "trailing text", observed: "atlas community version v1.2.0 modified", pinned: "v1.2.0"},
-		{name: "official binary spelling", observed: "atlas version v1.2.0", pinned: "v1.2.0"},
-	}
-
-	for _, test := range tests {
-		c.Run(test.name, func(c *qt.C) {
-			c.Assert(atlasVersionMatchesPin(test.observed, test.pinned), qt.IsFalse)
-		})
-	}
-}
-
 func TestCanonicalProjectConfigJSON_HappyPath(t *testing.T) {
 	c := qt.New(t)
 	tests := []struct {

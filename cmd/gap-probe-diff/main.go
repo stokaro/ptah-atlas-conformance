@@ -21,10 +21,9 @@ import (
 	"time"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
-	"github.com/stokaro/ptah/dbschema"
-)
 
-const atlasSHA = "a5e0aecc2bb64143bf522734f8ad88e04885fca6"
+	"go.5x5.cz/ptah/dbschema"
+)
 
 func main() {
 	corpus := flag.String("corpus", "testdata/live", "root of first-party schema fixtures")
@@ -41,7 +40,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  (cd /tmp/atlas && GOWORK=off go build -o atlas ./cmd/atlas) && export ATLAS_BIN=/tmp/atlas/atlas")
 		os.Exit(2)
 	}
-	fmt.Printf("differential against %s (atlas.version=%s)\n", atlasReported(atlasBin), pinnedVersion())
+	reportedVersion := atlasReported(atlasBin)
+	pinnedAtlasVersion := pinnedVersion()
+	if !probe.AtlasVersionMatchesPin(reportedVersion, pinnedAtlasVersion) {
+		fmt.Fprintf(os.Stderr, "Atlas binary reports %q, want atlas.version %q\n", reportedVersion, pinnedAtlasVersion)
+		os.Exit(2)
+	}
+	fmt.Printf("differential against %s (atlas.version=%s)\n", reportedVersion, pinnedAtlasVersion)
 
 	sqliteDir, err := os.MkdirTemp("", "ptah-conformance-diff-*")
 	if err != nil {
@@ -82,7 +87,7 @@ func main() {
 		}
 	}
 
-	md := probe.RenderDifferentialMarkdownWithCommand(results, atlasSHA, probe.PtahVersion(), "make probe-diff")
+	md := probe.RenderDifferentialMarkdownWithCommand(results, pinnedAtlasVersion, probe.PtahVersion(), "make probe-diff")
 	if err := os.WriteFile(*mdOut, []byte(md), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "write md:", err)
 		os.Exit(2)

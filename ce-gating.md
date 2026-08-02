@@ -15,8 +15,8 @@ Every fixture is covered. The conformance gate is green.
 
 - Atlas CE binary under test: `atlas community version v1.3.0`, built from the release tag pinned in `atlas.version`
 - Isolation: every scenario runs logged out — scratch `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` in a fresh temp dir, plus `ATLAS_NO_UPDATE_NOTIFIER=1` and `ATLAS_NO_ANON_TELEMETRY=1` — so a developer's real Atlas login can never leak into the measurement.
-- Expected classes are the hand-measured 2026-08-01 baseline for Atlas CE v1.2.0, re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02.
-- Outcomes: **41 ok**, **0 gap**, **0 fail**, **0 panic**
+- Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02.
+- Outcomes: **69 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -28,19 +28,26 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | ce-gating | `atlas migrate apply` | works | class: works — exit 0; output contains "2 migrations in total" |  |
 | — | ok | ce-gating | `atlas migrate apply (check drift configured, drifted db, v1.3.0)` | silent-unenforced | class: silent-unenforced — exit 0; output contains "20260101000003"; output does not contain "drift", "does not match expected state" |  |
 | — | ok | ce-gating | `atlas migrate apply (failing txtar checks)` | silent-unenforced | class: silent-unenforced — exit 0; output contains "Migrating to version 20260101000002", "SELECT NOT EXISTS" |  |
-| — | ok | ce-gating | `atlas migrate checkpoint` | community-abort | class: community-abort — Abort: 'atlas migrate checkpoint' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate checkpoint (--help CE sentinel)` | community-abort | class: community-abort — 'atlas migrate checkpoint' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate checkpoint (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas migrate checkpoint' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas migrate diff` | works | class: works — exit 0 |  |
-| — | ok | ce-gating | `atlas migrate down (bare)` | community-abort | class: community-abort — Abort: 'atlas migrate down' is not supported by the community version. |  |
-| — | ok | ce-gating | `atlas migrate edit` | community-abort | class: community-abort — Abort: 'atlas migrate edit' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate down (--help CE sentinel)` | community-abort | class: community-abort — 'atlas migrate down' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate down (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas migrate down' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate edit (--help CE sentinel)` | community-abort | class: community-abort — 'atlas migrate edit' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate edit (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas migrate edit' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas migrate hash` | works | class: works — exit 0 |  |
 | — | ok | ce-gating | `atlas migrate lint (destructive latest)` | works | class: works — exit 1; output contains "destructive changes detected" |  |
 | — | ok | ce-gating | `atlas migrate ls` | absent | class: absent — exit 0; the parent group help was printed instead of running the named subcommand |  |
-| — | ok | ce-gating | `atlas migrate push` | community-abort | class: community-abort — Abort: 'atlas migrate push' is not supported by the community version. |  |
-| — | ok | ce-gating | `atlas migrate rebase` | community-abort | class: community-abort — Abort: 'atlas migrate rebase' is not supported by the community version. |  |
-| — | ok | ce-gating | `atlas migrate rm` | community-abort | class: community-abort — Abort: 'atlas migrate rm' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate push (--help CE sentinel)` | community-abort | class: community-abort — 'atlas migrate push' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate push (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas migrate push' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate rebase (--help CE sentinel)` | community-abort | class: community-abort — 'atlas migrate rebase' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate rebase (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas migrate rebase' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate rm (--help CE sentinel)` | community-abort | class: community-abort — 'atlas migrate rm' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate rm (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas migrate rm' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas migrate show` | absent | class: absent — exit 0; the parent group help was printed instead of running the named subcommand |  |
 | — | ok | ce-gating | `atlas migrate status` | works | class: works — exit 0; output contains "Migration Status: OK" |  |
-| — | ok | ce-gating | `atlas migrate test` | community-abort | class: community-abort — Abort: 'atlas migrate test' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate test (--help CE sentinel)` | community-abort | class: community-abort — 'atlas migrate test' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas migrate test (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas migrate test' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas schema apply (declarative)` | works | class: works — exit 0; output contains "Planned Changes" |  |
 | — | ok | ce-gating | `atlas schema apply (role block)` | silent-unenforced | class: silent-unenforced — exit 0; output contains "Schema is synced" |  |
 | — | ok | ce-gating | `atlas schema apply --include` | community-abort | class: community-abort — Abort: 'atlas schema apply --include' is not supported by the community version. |  |
@@ -51,10 +58,31 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | ce-gating | `atlas schema inspect --env (external_schema)` | named-error | class: named-error — Error: data.external_schema is not supported by the community version of Atlas. |  |
 | — | ok | ce-gating | `atlas schema inspect --include` | unknown-flag | class: unknown-flag — Error: unknown flag: --include |  |
 | — | ok | ce-gating | `atlas schema inspect --web` | unknown-flag | class: unknown-flag — Error: unknown flag: --web |  |
-| — | ok | ce-gating | `atlas schema plan --env` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
-| — | ok | ce-gating | `atlas schema push` | community-abort | class: community-abort — Abort: 'atlas schema push' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan approve (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan approve (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan lint (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan lint (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan list (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan list (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan new (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan new (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan pull (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan pull (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan push (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan push (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan rm (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan rm (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan test (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan test (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan validate (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema plan validate (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema plan' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema push (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema push' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema push (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema push' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas schema stats` | absent | class: absent — exit 0; the parent group help was printed instead of running the named subcommand |  |
-| — | ok | ce-gating | `atlas schema test` | community-abort | class: community-abort — Abort: 'atlas schema test' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema test (--help CE sentinel)` | community-abort | class: community-abort — 'atlas schema test' is not supported by the community version. |  |
+| — | ok | ce-gating | `atlas schema test (bare CE sentinel)` | community-abort | class: community-abort — Abort: 'atlas schema test' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas schema validate` | absent | class: absent — exit 0; the parent group help was printed instead of running the named subcommand |  |
 | — | ok | ce-gating | `atlas script (v1.3.0)` | unregistered-command | class: unregistered-command — Error: unknown command "script" for "atlas" |  |
 | — | ok | ce-gating | `atlas.hcl bad reference inside an ignored block` | named-error | class: named-error — Error: atlas.hcl:2,10-24: Unsupported attribute; This object does not have an attribute named "undefined_ref". |  |
