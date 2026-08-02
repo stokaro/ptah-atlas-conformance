@@ -174,9 +174,12 @@ workflow probes are fixture-driven and make only the claims listed below.
   first-party usage line and required long-flag set — regressing to Atlas CE's
   community-version abort stub is a gap — while still-stubbed Cloud/registry
   verbs (`migrate push`, `schema push`, and the nine `schema plan` registry
-  sub-verbs) must keep reporting the CE abort boundary; a stub that silently
-  starts resolving is also a gap until it is explicitly promoted. Resolution
-  proves only the CLI surface; dedicated workflow probes
+  sub-verbs) must preserve two byte-exact Ptah-owned boundaries: bare execution
+  exits 1 with empty stdout and a command-specific diagnostic on stderr, while
+  `--help` exits 0 with command-specific text on stdout and empty stderr. This
+  remains strict without copying Atlas CE prose; success, exit-code, stream, or
+  whitespace drift, generic or wrong-command output, and the old copied CE
+  message are all gaps. Resolution proves only the CLI surface; dedicated workflow probes
   own behavioral evidence for extra Ptah capabilities. The current full gate is green on the
   pinned Atlas CE surface; future Atlas changes should either keep this green
   by implementing Ptah parity, or create explicit tracked gaps instead of

@@ -431,7 +431,14 @@
     "fixture": "atlas migrate push",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas migrate push` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas migrate push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas migrate push",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas migrate push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -648,70 +655,140 @@
     "fixture": "atlas schema plan approve",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan approve` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan approve` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan approve",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan approve --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan lint",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan lint` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan lint` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan lint",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan lint --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan list",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan list` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan list` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan list",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan list --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan new",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan new` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan new` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan new",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan new --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan pull",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan pull` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan pull` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan pull",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan pull --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan push",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan push` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan push",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan rm",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan rm` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan rm` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan rm",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan rm --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan test",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan test` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan test` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan test",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan test --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema plan validate",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema plan validate` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema plan validate` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema plan validate",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema plan validate --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas schema push",
     "stage": "out-of-scope-runtime",
     "outcome": "ok",
-    "detail": "`atlas schema push` reports the same community-version unsupported boundary as Atlas CE"
+    "detail": "`atlas schema push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+  },
+  {
+    "probe": "atlas-cli-surface-ptah-compat",
+    "fixture": "atlas schema push",
+    "stage": "out-of-scope-help",
+    "outcome": "ok",
+    "detail": "`atlas schema push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",

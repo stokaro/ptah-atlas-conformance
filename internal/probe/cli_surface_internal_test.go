@@ -135,38 +135,13 @@ func TestCompareOutOfScopeCommand_HappyPath(t *testing.T) {
 	c := qt.New(t)
 
 	bin := writeExecutable(t, `#!/bin/sh
-printf "'atlas migrate push' is not supported by the community version.\n"
-`)
-	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
-
-	got := compareOutOfScopeCommand(
-		"atlas-cli-surface-ptah-compat",
-		"atlas migrate push",
-		bin,
-		[]string{"migrate", "push"},
-		cmd,
-		"stokaro/ptah#514",
-	)
-
-	c.Assert(got.Outcome, qt.Equals, OK)
-}
-
-func TestCompareOutOfScopeCommand_ResolvingStubIsAGap(t *testing.T) {
-	c := qt.New(t)
-
-	// A still-stubbed Cloud/registry verb that silently starts resolving as an
-	// open capability must be a gap: an implemented verb belongs in
-	// implementedProVerbSurfaces, where its surface is measured instead of
-	// merely observed.
-	bin := writeExecutable(t, `#!/bin/sh
 case "$*" in
   *--help*)
-    printf "Usage:\n  atlas migrate push [flags]\n"
-    exit 0
+    printf "atlas migrate push is not implemented by Ptah.\n"
     ;;
   *)
-    printf "error: a registry URL is required (--url)\n"
-    exit 2
+    printf "Error: atlas migrate push is not implemented by Ptah\n" >&2
+    exit 1
     ;;
 esac
 `)
@@ -181,16 +156,18 @@ esac
 		"stokaro/ptah#514",
 	)
 
-	c.Assert(got.Outcome, qt.Equals, Gap)
-	c.Assert(got.Detail, qt.Contains, "must keep the CE abort")
-	c.Assert(got.Detail, qt.Contains, "open-capability expectations")
+	c.Assert(got, qt.HasLen, 2)
+	c.Assert(got[0].Outcome, qt.Equals, OK)
+	c.Assert(got[0].Detail, qt.Contains, "exit 1, empty stdout, and byte-exact stderr")
+	c.Assert(got[1].Outcome, qt.Equals, OK)
+	c.Assert(got[1].Detail, qt.Contains, "byte-exact Ptah-owned unavailable-command help boundary")
 }
 
-func TestCompareOutOfScopeCommand_FailurePath(t *testing.T) {
+func TestCompareOutOfScopeCommand_ResolvingStubIsAGap(t *testing.T) {
 	c := qt.New(t)
 
 	bin := writeExecutable(t, `#!/bin/sh
-printf "Usage:\n  atlas migrate [flags]\n"
+printf "migration pushed\n"
 `)
 	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
 
@@ -203,8 +180,201 @@ printf "Usage:\n  atlas migrate [flags]\n"
 		"stokaro/ptah#514",
 	)
 
-	c.Assert(got.Outcome, qt.Equals, Gap)
-	c.Assert(got.Detail, qt.Contains, "community-version unsupported boundary")
+	c.Assert(got[0].Outcome, qt.Equals, Gap)
+	c.Assert(got[0].Detail, qt.Contains, "exited successfully")
+	c.Assert(got[0].Detail, qt.Contains, "open-capability expectations")
+}
+
+func TestCompareOutOfScopeCommand_WrongDiagnosticIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Error: cloud command unavailable\n" >&2
+exit 1
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, Gap)
+	c.Assert(got[0].Detail, qt.Contains, "byte-exact Ptah-owned unavailable-command diagnostic")
+}
+
+func TestCompareOutOfScopeCommand_WrongCommandDiagnosticIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Error: atlas schema push is not implemented by Ptah\n" >&2
+exit 1
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, Gap)
+	c.Assert(got[0].Detail, qt.Contains, "atlas migrate push is not implemented by Ptah")
+}
+
+func TestCompareOutOfScopeCommand_CopiedAtlasDiagnosticIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Abort: 'atlas migrate push' is not supported by the community version.\n" >&2
+exit 1
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, Gap)
+	c.Assert(got[0].Detail, qt.Contains, "byte-exact Ptah-owned unavailable-command diagnostic")
+}
+
+func TestCompareOutOfScopeCommand_WrongExitCodeIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Error: atlas migrate push is not implemented by Ptah\n" >&2
+exit 2
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, Gap)
+	c.Assert(got[0].Detail, qt.Contains, "requires exit code 1")
+}
+
+func TestCompareOutOfScopeCommand_RuntimeDiagnosticOnStdoutIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Error: atlas migrate push is not implemented by Ptah\n"
+exit 1
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, Gap)
+	c.Assert(got[0].Detail, qt.Contains, "unexpected stdout")
+}
+
+func TestCompareOutOfScopeCommand_RuntimeWhitespaceDriftIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Error: atlas migrate push is not implemented by Ptah \n" >&2
+exit 1
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, Gap)
+	c.Assert(got[0].Detail, qt.Contains, "byte-exact Ptah-owned unavailable-command diagnostic")
+}
+
+func TestCompareOutOfScopeCommand_HelpDiagnosticOnStderrIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+case "$*" in
+  *--help*)
+    printf "atlas migrate push is not implemented by Ptah.\n" >&2
+    ;;
+  *)
+    printf "Error: atlas migrate push is not implemented by Ptah\n" >&2
+    exit 1
+    ;;
+esac
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, OK)
+	c.Assert(got[1].Outcome, qt.Equals, Gap)
+	c.Assert(got[1].Detail, qt.Contains, "unexpected stderr")
+}
+
+func TestCompareOutOfScopeCommand_HelpExtraOutputIsAGap(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+case "$*" in
+  *--help*)
+    printf "atlas migrate push is not implemented by Ptah.\nextra\n"
+    ;;
+  *)
+    printf "Error: atlas migrate push is not implemented by Ptah\n" >&2
+    exit 1
+    ;;
+esac
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "push"}}
+
+	got := compareOutOfScopeCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate push",
+		bin,
+		[]string{"migrate", "push"},
+		cmd,
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got[0].Outcome, qt.Equals, OK)
+	c.Assert(got[1].Outcome, qt.Equals, Gap)
+	c.Assert(got[1].Detail, qt.Contains, "byte-exact Ptah-owned unavailable-command help text")
 }
 
 func TestImplementedProVerbSurfaces_CoverEveryImplementedVerb(t *testing.T) {
@@ -264,7 +434,7 @@ func TestCompareImplementedProCommand_StubRegressionShortCircuits(t *testing.T) 
 	c := qt.New(t)
 
 	bin := writeExecutable(t, `#!/bin/sh
-printf "Abort: 'atlas migrate test' is not supported by the community version.\n"
+printf "Error: atlas migrate test is not implemented by Ptah\n" >&2
 exit 1
 `)
 	cmd := CLISurfaceCommand{Path: []string{"migrate", "test"}}
@@ -282,7 +452,32 @@ exit 1
 	c.Assert(got, qt.HasLen, 1)
 	c.Check(got[0].Stage, qt.Equals, "capability-runtime")
 	c.Check(got[0].Outcome, qt.Equals, Gap)
-	c.Check(got[0].Detail, qt.Contains, "regressed to Atlas CE's community-version abort stub")
+	c.Check(got[0].Detail, qt.Contains, "regressed to an unavailable-command stub")
+}
+
+func TestCompareImplementedProCommand_LegacyAtlasStubRegressionShortCircuits(t *testing.T) {
+	c := qt.New(t)
+
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Abort: 'atlas migrate test' is not supported by the community version.\n" >&2
+exit 1
+`)
+	cmd := CLISurfaceCommand{Path: []string{"migrate", "test"}}
+
+	got := compareImplementedProCommand(
+		"atlas-cli-surface-ptah-compat",
+		"atlas migrate test",
+		bin,
+		[]string{"migrate", "test"},
+		cmd,
+		implementedProVerbSurfaces()["migrate test"],
+		"stokaro/ptah#514",
+	)
+
+	c.Assert(got, qt.HasLen, 1)
+	c.Check(got[0].Stage, qt.Equals, "capability-runtime")
+	c.Check(got[0].Outcome, qt.Equals, Gap)
+	c.Check(got[0].Detail, qt.Contains, "regressed to an unavailable-command stub")
 }
 
 func TestCompareImplementedProCommand_SurfaceDrift(t *testing.T) {

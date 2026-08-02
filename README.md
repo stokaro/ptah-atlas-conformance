@@ -196,8 +196,14 @@ help, then records:
   resolve with a first-party usage/flag contract — regressing to Atlas CE's
   community-version abort stub is a gap — while still-stubbed Cloud/registry
   verbs (`migrate push`, `schema push`, the `schema plan` registry sub-verbs)
-  **must** keep the CE abort boundary; dedicated workflow probes, not help
-  output, own behavioral evidence for the implemented capabilities;
+  **must** preserve two byte-exact Ptah-owned boundaries: bare execution exits
+  1 with empty stdout and a command-specific diagnostic on stderr, while
+  `--help` exits 0 with command-specific text on stdout and empty stderr. The
+  clean-room contract intentionally does not require copying Atlas CE's prose;
+  successful bare execution, a different exit code, stream or whitespace
+  drift, generic or wrong-command output, and the old copied CE message are all
+  gaps. Dedicated workflow probes, not help output, own behavioral evidence
+  for implemented capabilities;
 - compatibility findings for the `ptah-compat` binary named `atlas` — Ptah's
   single Atlas-shaped surface since stokaro/ptah#850 removed the
   `ptah atlas ...` namespace (the offline `cli-exit-behavior` probe pins that
