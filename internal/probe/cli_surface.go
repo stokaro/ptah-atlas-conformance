@@ -24,7 +24,7 @@ type CLISurfaceCommand struct {
 	// Flags are the long flags the pinned Atlas CE binary registers on this
 	// command, discovered from its own help output.
 	Flags []string
-	// ProFlags are the long flags a licensed Atlas build registers on this same
+	// ProFlags are the long flags Atlas registers on this same
 	// command while the pinned CE binary does not. They are NOT discovered —
 	// the CE binary answers "unknown flag" for every one of them — so they come
 	// from the static proSurfaceFlags table; see its provenance comment.
@@ -151,9 +151,9 @@ func DiscoverCLISurface(atlasBin string) (CLISurfaceInventory, error) {
 	return CLISurfaceInventory{AtlasVersion: version, Commands: commands}, nil
 }
 
-// proSurfaceFlags is a closed, per-command allow-list of long flags that a
-// licensed Atlas build registers on a command the pinned CE binary also ships,
-// but which CE itself does not register. Implementing one of these on
+// proSurfaceFlags is a closed, per-command allow-list of long flags that Atlas
+// registers on a command the pinned CE binary also ships, but which CE itself
+// does not register. Implementing one of these on
 // ptah-compat is deliberate — stokaro/ptah#951 wants Ptah to be a drop-in even
 // for Atlas Pro — so it must not be reported as a non-Atlas flag.
 //
@@ -161,10 +161,8 @@ func DiscoverCLISurface(atlasBin string) (CLISurfaceInventory, error) {
 // that binary answers `Error: unknown flag: --include` for these flags, so the
 // data has to be static.
 //
-// PROVENANCE: captured 2026-08-01 from a licensed Atlas build reporting
-// `atlas version v1.2.4-e282f76-canary`, recorded as the `help-surface`
-// capture `trial-surface.json` in the atlas-pro-trial-observations working
-// notes. Each entry is that build's long-flag set for the command minus the
+// PROVENANCE: Atlas's own help surface for these commands, recorded
+// 2026-08-01. Each entry is Atlas's long-flag set for the command minus the
 // pinned CE binary's long-flag set for the same command (`--help` excluded, as
 // everywhere else in this file).
 //
@@ -182,10 +180,10 @@ func DiscoverCLISurface(atlasBin string) (CLISurfaceInventory, error) {
 func proSurfaceFlags() map[string][]string {
 	return map[string][]string{
 		// CE v1.2.0 registers --config --dev-url --env --exclude --format
-		// --schema --url --var on `atlas schema inspect`; the licensed build
+		// --schema --url --var on `atlas schema inspect`; Atlas
 		// registers these four in addition. ptah-compat implements --include
 		// (stokaro/ptah#977); --export, --output, and --web are listed because
-		// they are part of the same measured licensed-only delta, and listing
+		// they are part of the same measured Atlas-only delta, and listing
 		// them keeps an unimplemented Pro flag from ever reading as a Ptah gap.
 		"schema inspect": {"--export", "--include", "--output", "--web"},
 	}
@@ -404,12 +402,12 @@ func compareUsage(probeName, display string, atlasCmd CLISurfaceCommand, target 
 //     ptah-compat has not implemented is not a gap: CE does not expose it
 //     either, so a drop-in replacement for CE is complete without it.
 //   - extra is measured against the CE flag set PLUS this command's
-//     proSurfaceFlags allowance, so a flag a licensed Atlas build registers on
+//     proSurfaceFlags allowance, so a flag Atlas registers on
 //     this same command is not reported as a non-Atlas flag. Anything outside
 //     both sets is still a gap — the allowance is closed and per-command, so an
 //     arbitrary extra flag stays red.
 //
-// A command that adopted part of the licensed surface does NOT collapse to a
+// A command that adopted part of that surface does NOT collapse to a
 // bare OK: the adopted flags are named in the detail so the committed report
 // keeps showing which Pro surface ptah-compat has taken on, and so a mistaken
 // allow-list entry is visible instead of silently permanent.

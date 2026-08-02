@@ -357,7 +357,7 @@ func TestProSurfaceFlags_TableIsWellFormed(t *testing.T) {
 func TestCompareFlags_ProSurfaceFlagIsAllowedAndNamed(t *testing.T) {
 	c := qt.New(t)
 
-	// `atlas schema inspect --include` is registered by a licensed Atlas build
+	// `atlas schema inspect --include` is registered by Atlas
 	// but not by the pinned CE binary, and ptah-compat implements it
 	// (stokaro/ptah#977). It must not read as a non-Atlas flag.
 	atlasCmd := CLISurfaceCommand{
@@ -379,7 +379,7 @@ func TestCompareFlags_ProSurfaceFlagIsAllowedAndNamed(t *testing.T) {
 func TestCompareFlags_UnimplementedProSurfaceFlagIsNotAGap(t *testing.T) {
 	c := qt.New(t)
 
-	// --export is on the same licensed-only delta but ptah-compat does not
+	// --export is on the same Atlas-only delta but ptah-compat does not
 	// implement it. Missing flags are measured against the CE set only, so an
 	// unimplemented Pro flag must never turn the tier red — and must not be
 	// announced as adopted either.
@@ -442,9 +442,9 @@ func TestCompareFlags_ArbitraryExtraFlagOnAnAllowedCommandIsStillAGap(t *testing
 func TestCompareFlags_ProFlagAllowanceIsPerCommand(t *testing.T) {
 	c := qt.New(t)
 
-	// --include is allowed on `schema inspect` because a licensed Atlas build
-	// registers it there. The licensed build does NOT register it on
-	// `migrate diff` (verified against the v1.2.4-e282f76-canary help capture),
+	// --include is allowed on `schema inspect` because Atlas
+	// registers it there. Atlas does NOT register it on
+	// `migrate diff` (verified against the same help surface),
 	// so the same flag must still be a gap on that command.
 	c.Assert(proSurfaceFlags()["migrate diff"], qt.HasLen, 0)
 

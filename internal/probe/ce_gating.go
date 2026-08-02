@@ -1000,7 +1000,7 @@ func ceGatingScenarios() []ceGatingScenario {
 			expected: CEGatingUnknownFlag,
 		},
 		{
-			// A licensed Atlas build registers --include on this command; CE
+			// Atlas registers --include on this command; CE
 			// does not register it at all, so it dies on the flag rather than
 			// reaching a community-version abort. This is the measured
 			// justification for the `schema inspect` entry in proSurfaceFlags.

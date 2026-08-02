@@ -208,7 +208,7 @@ help, then records:
   `atlas schema inspect --include`, which CE answers with `unknown flag` (the
   CE gating tier measures exactly that) and which Ptah implements deliberately,
   because stokaro/ptah#951 wants `ptah-compat` to be a drop-in even for Atlas
-  Pro. Such a flag is allowed only on a command where the licensed build
+  Pro. Such a flag is allowed only on a command where Atlas
   actually registers it, and the report names it (`plus Pro-surface flags
   implemented openly: --include`) instead of collapsing to a plain OK. Every
   other extra flag is still a gap, missing flags are still measured against the

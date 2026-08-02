@@ -367,7 +367,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		// Named errors.
 		"atlas schema inspect --env (composite_schema)": probe.CEGatingNamedError,
 		"atlas schema inspect --env (external_schema)":  probe.CEGatingNamedError,
-		// Flags a licensed Atlas build registers and CE does not register at all.
+		// Flags Atlas registers and CE does not register at all.
 		"atlas schema inspect --web":     probe.CEGatingUnknownFlag,
 		"atlas schema inspect --include": probe.CEGatingUnknownFlag,
 
