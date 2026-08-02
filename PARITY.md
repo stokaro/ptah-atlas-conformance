@@ -119,7 +119,7 @@ is **"unknown — not measured"**, not "works".
   SQLite databases, plus the integrity, rollback-boundary, and post-checkpoint
   continuation contracts; Atlas keeps the checkpoint-*generating* `migrate
   checkpoint` command in its proprietary Pro build, so there is no CE oracle for
-  producing a checkpoint. Reading one is a different matter: CE v1.2.0 does
+  producing a checkpoint. Reading one is a different matter: the pinned Atlas CE does
   honor the `-- atlas:checkpoint` directive, applying only the latest checkpoint
   on a fresh database and skipping it on a database that already ran the
   pre-checkpoint history, so the read half is measured against CE directly by

@@ -159,8 +159,11 @@ func (p *proPlanWorkflow) planCreation() Result {
 	case plan.Statements[0].Severity != "safe":
 		return p.gap(fixture, stage, fmt.Sprintf("plan statement severity = %q, want \"safe\"", plan.Statements[0].Severity))
 	}
+	// Names no Atlas release: the assertion is that CE gates the verb at all,
+	// which is stable across the pin (measured identical on v1.2.0 and
+	// v1.3.0). See the cli_exit_behavior sibling for the same reasoning.
 	return p.ok(fixture, stage,
-		"PTAH-SIDE PIN (no CE oracle — CE v1.2.0 answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity")
+		"PTAH-SIDE PIN (no CE oracle — the pinned Atlas CE answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity")
 }
 
 // checkAtlasPlanHCL asserts the saved plan file has the Atlas plan-file shape.

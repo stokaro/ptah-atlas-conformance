@@ -501,6 +501,9 @@ func TestRenderCEGatingMarkdown_Header(t *testing.T) {
 	c.Check(md, qt.Contains, "`atlas community version v1.2.0`")
 	c.Check(md, qt.Contains, "logged out")
 	c.Check(md, qt.Contains, "measured 2026-08-01 baseline for Atlas CE v1.2.0")
+	// The baseline line must carry the re-confirmation too, so a reader can
+	// tell the current pin was actually re-measured rather than assumed.
+	c.Check(md, qt.Contains, "re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02")
 	// This tier measures the Atlas binary only; Ptah must not be claimed.
 	c.Check(md, qt.Not(qt.Contains), "Ptah at `")
 }
