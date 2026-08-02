@@ -120,6 +120,13 @@
   },
   {
     "probe": "ce-gating",
+    "fixture": "atlas.hcl unknown name nested inside env",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output does not contain \"frobnicate_nested\", \"totally_made_up\""
+  },
+  {
+    "probe": "ce-gating",
     "fixture": "atlas schema inspect --env (composite_schema)",
     "stage": "named-error",
     "outcome": "ok",
