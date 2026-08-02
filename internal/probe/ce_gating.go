@@ -745,6 +745,23 @@ env "local" {
   url = "sqlite://app.db"
 }
 `
+	// ceGatingNestedUnknownConfig places an unknown name DEEP inside env rather
+	// than at the top level, where the rows above measure it.
+	//
+	// The distinction is not cosmetic. Refusal in Ptah lived in two independent
+	// layers -- a recursive structural validator and the per-block parsers --
+	// so relaxing the top level alone changed nothing here, and a top-level-only
+	// scenario reports the tolerance as implemented while the nested surface
+	// still rejects. This pins the nested position on its own.
+	ceGatingNestedUnknownConfig = `env "local" {
+  url = "sqlite://app.db"
+  lint {
+    frobnicate_nested {
+      totally_made_up = "yes"
+    }
+  }
+}
+`
 	// ceGatingRoledHCL is ceGatingDesiredHCL plus a Pro-gated role block. On a
 	// database already at the desired state, applying it must expose whether
 	// CE enforces, rejects, or silently drops the role.
@@ -1089,6 +1106,20 @@ func ceGatingScenarios() []ceGatingScenario {
 			argv:     []string{"schema", "inspect", "--env", "local"},
 			expected: CEGatingWorks,
 			rules:    CEGatingRules{SuccessAbsentFragments: []string{"frobnicate", "undefined_ref"}},
+		},
+		{
+			// The nested counterpart of the two rows above: an unknown name
+			// several levels down is accepted and dropped just the same, and
+			// is never echoed back.
+			fixture: "atlas.hcl unknown name nested inside env",
+			setup: func(rt *ceGatingRuntime) error {
+				return rt.writeFile("atlas.hcl", ceGatingNestedUnknownConfig)
+			},
+			argv:     []string{"schema", "inspect", "--env", "local"},
+			expected: CEGatingWorks,
+			rules: CEGatingRules{
+				SuccessAbsentFragments: []string{"frobnicate_nested", "totally_made_up"},
+			},
 		},
 		{
 			fixture: "atlas schema inspect --env (composite_schema)",

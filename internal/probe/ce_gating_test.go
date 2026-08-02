@@ -424,6 +424,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		"atlas.hcl unknown argument inside variable (strict)": probe.CEGatingNamedError,
 		"atlas.hcl bad reference inside an ignored block":     probe.CEGatingNamedError,
 		"control: ignored block with a literal value":         probe.CEGatingWorks,
+		"atlas.hcl unknown name nested inside env":            probe.CEGatingWorks,
 	})
 
 	counts := map[probe.CEGatingClass]int{}
@@ -431,7 +432,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		counts[class]++
 	}
 	c.Check(counts, qt.DeepEquals, map[probe.CEGatingClass]int{
-		probe.CEGatingWorks:               11,
+		probe.CEGatingWorks:               12,
 		probe.CEGatingCommunityAbort:      39,
 		probe.CEGatingAbsent:              5,
 		probe.CEGatingUnregisteredCommand: 3,
