@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	qt "github.com/frankban/quicktest"
-	"github.com/stokaro/ptah/core/goschema"
+
+	"go.5x5.cz/ptah/core/goschema"
 )
 
 func TestLiveFixtures_ParseIndexes(t *testing.T) {

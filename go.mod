@@ -6,8 +6,8 @@ require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/stokaro/ptah v0.1.3-0.20260802143926-685d3b7cf271
 	github.com/zclconf/go-cty v1.19.0
+	go.5x5.cz/ptah v0.2.1-0.20260802173234-7eb8d0748d76
 	modernc.org/sqlite v1.55.0
 )
 

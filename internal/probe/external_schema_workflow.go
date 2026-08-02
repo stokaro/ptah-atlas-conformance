@@ -51,7 +51,7 @@ func (p ExternalSchemaWorkflowProbe) Run(fx Fixture) []Result {
 	}
 	defer func() { _ = os.RemoveAll(runRoot) }()
 
-	expected, err := os.ReadFile(filepath.Join(root, "expected.sqlite.sql"))
+	expectedSQL, err := readExternalSchemaSnapshots(root)
 	if err != nil {
 		return []Result{externalSchemaHarnessFailure("fixture setup", err)}
 	}
@@ -65,7 +65,7 @@ func (p ExternalSchemaWorkflowProbe) Run(fx Fixture) []Result {
 		root:             root,
 		runRoot:          runRoot,
 		provider:         provider,
-		expectedSQL:      strings.TrimSpace(string(expected)),
+		expectedSQL:      expectedSQL,
 		databasePath:     filepath.Join(runRoot, "external-schema.db"),
 		migrationsDir:    filepath.Join(runRoot, "migrations"),
 		convergenceDir:   filepath.Join(runRoot, "convergence-migrations"),
@@ -78,6 +78,26 @@ func (p ExternalSchemaWorkflowProbe) Run(fx Fixture) []Result {
 		return []Result{externalSchemaHarnessFailure("runtime setup", err)}
 	}
 	return workflow.run()
+}
+
+func readExternalSchemaSnapshots(root string) (map[string]string, error) {
+	snapshots := map[string]string{}
+	files := []struct {
+		format string
+		name   string
+	}{
+		{format: "sql", name: "expected.sqlite.sql"},
+		{format: "hcl", name: "expected.hcl.sqlite.sql"},
+		{format: "yaml", name: "expected.yaml.sqlite.sql"},
+	}
+	for _, file := range files {
+		data, err := os.ReadFile(filepath.Join(root, file.name))
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", file.name, err)
+		}
+		snapshots[file.format] = strings.TrimSpace(string(data))
+	}
+	return snapshots, nil
 }
 
 func (p ExternalSchemaWorkflowProbe) binary() (string, error) {
@@ -125,7 +145,7 @@ type externalSchemaWorkflow struct {
 	root             string
 	runRoot          string
 	provider         string
-	expectedSQL      string
+	expectedSQL      map[string]string
 	databasePath     string
 	migrationsDir    string
 	convergenceDir   string
@@ -204,7 +224,7 @@ func (w *externalSchemaWorkflow) staticSQLRender() Result {
 		result,
 		"static SQL schema",
 		"offline render",
-		w.expectedSQL,
+		w.expectedSQL["sql"],
 		"",
 	)
 }
@@ -223,15 +243,11 @@ func (w *externalSchemaWorkflow) explicitRender(format string) Result {
 		"--schema-format", format,
 		"--dialect", "sqlite",
 	})
-	expected := ""
-	if format == "sql" {
-		expected = w.expectedSQL
-	}
 	return w.renderResult(
 		result,
 		"external "+format+" schema",
 		"explicit command render",
-		expected,
+		w.expectedSQL[format],
 		marker,
 	)
 }
@@ -351,7 +367,7 @@ func (w *externalSchemaWorkflow) configRender() Result {
 		result,
 		"configured external schema",
 		"allowed config render",
-		w.expectedSQL,
+		w.expectedSQL["sql"],
 		w.configMarker,
 	)
 }
@@ -689,7 +705,7 @@ func (w *externalSchemaWorkflow) renderResult(
 	if commandResult.Outcome != OK {
 		return commandResult
 	}
-	rendered, err := renderedSQLSection(result.command.stdout)
+	rendered, err := renderedSQL(result.command.stdout)
 	if err != nil {
 		return externalSchemaGap(fixture, stage, err.Error()+": "+result.command.diagnostic())
 	}

@@ -289,7 +289,7 @@ func (e compositeRenderExpectation) validate(result compositeCommandResult) erro
 	if result.command.exitCode != 0 {
 		return fmt.Errorf("expected exit code 0, got %d", result.command.exitCode)
 	}
-	rendered, err := renderedSQLSection(result.command.stdout)
+	rendered, err := renderedSQL(result.command.stdout)
 	if err != nil {
 		return err
 	}
@@ -357,11 +357,11 @@ func compositeRenderEquivalenceResult(
 			),
 		)
 	}
-	compositeSQL, err := renderedSQLSection(composite.command.stdout)
+	compositeSQL, err := renderedSQL(composite.command.stdout)
 	if err != nil {
 		return compositeSchemaGap("hand-merged equivalence", "render equivalence", err.Error())
 	}
-	handMergedSQL, err := renderedSQLSection(handMerged.command.stdout)
+	handMergedSQL, err := renderedSQL(handMerged.command.stdout)
 	if err != nil {
 		return compositeSchemaGap("hand-merged equivalence", "render equivalence", err.Error())
 	}
@@ -669,13 +669,12 @@ func schemaComparisonSection(output string) (string, error) {
 	return strings.TrimSpace(diff), nil
 }
 
-func renderedSQLSection(output string) (string, error) {
-	const marker = "=== SQLITE SCHEMA ==="
-	_, sql, ok := strings.Cut(output, marker)
-	if !ok {
-		return "", fmt.Errorf("render output is missing %q", marker)
+func renderedSQL(output string) (string, error) {
+	rendered := strings.TrimSpace(output)
+	if rendered == "" {
+		return "", fmt.Errorf("render output is empty")
 	}
-	return strings.TrimSpace(sql), nil
+	return rendered, nil
 }
 
 func compositeSchemaGap(fixture, stage, detail string) Result {

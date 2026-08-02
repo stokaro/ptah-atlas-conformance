@@ -127,7 +127,7 @@ gate-cli-surface:
 # The CE gating tier: execute the pinned Atlas CE binary, logged out, through
 # the fixed capability scenarios Ptah's feature matrix asserts about the CE
 # column, and classify each observed outcome (works / community-abort / absent /
-# unknown-flag / named-error / silent-unenforced). Every scenario runs under a
+# unregistered-command / unknown-flag / named-error / silent-unenforced). Every scenario runs under a
 # scratch HOME so a developer's real Atlas login can never leak in. SQLite
 # only, no external databases. Needs ATLAS_BIN (or `atlas` on PATH; `make
 # atlas` builds ./bin/atlas from the pinned tag). Regenerates ce-gating.md /

@@ -22,7 +22,7 @@ const (
 // atlasProjectConfigApplyOracle uses Atlas CE to create and finish a
 // brownfield migration, then compares Ptah against an Atlas-controlled clone.
 func atlasProjectConfigApplyOracle(ptahBin, atlasBin string) Result {
-	atlasVersion, err := validateProjectConfigAtlasBinary(atlasBin)
+	atlasVersion, err := validatePinnedAtlasBinary(atlasBin)
 	if err != nil {
 		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-version", err)
 	}

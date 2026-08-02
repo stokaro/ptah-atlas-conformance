@@ -1,7 +1,7 @@
 package probe
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const (
@@ -81,6 +80,7 @@ func ProbeCLISurface(atlasBin string) ([]Result, CLISurfaceInventory, error) {
 
 	results := inventoryResults(inventory)
 	results = append(results, buildComparisonResults("atlas-cli-surface-ptah-compat", inventory, compatBin, compatErr)...)
+	results = append(results, buildNonOSSSentinelResults(compatBin, compatErr)...)
 	return results, inventory, nil
 }
 
@@ -132,19 +132,6 @@ func DiscoverCLISurface(atlasBin string) (CLISurfaceInventory, error) {
 	}
 	if err := walk(nil, ""); err != nil {
 		return CLISurfaceInventory{}, err
-	}
-
-	for _, known := range knownOutOfScopeAtlasCommands() {
-		if visited[strings.Join(known.path, " ")] {
-			continue
-		}
-		commands = append(commands, CLISurfaceCommand{
-			Path:                 known.path,
-			Summary:              known.summary,
-			Usage:                displayCommand("atlas", known.path),
-			Classification:       CLISurfaceOutOfScope,
-			ClassificationReason: known.reason,
-		})
 	}
 
 	sort.Slice(commands, func(i, j int) bool {
@@ -223,11 +210,6 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 		issue := cliSurfaceCompatIssue
 		display := displayCommand(prefix, atlasCmd.Path)
 		if atlasCmd.Classification == CLISurfaceOutOfScope {
-			if surface, ok := implementedProVerbSurfaces()[strings.Join(atlasCmd.Path, " ")]; ok {
-				out = append(out, compareImplementedProCommand(probeName, display, bin, path, atlasCmd, surface, issue)...)
-				continue
-			}
-			out = append(out, compareOutOfScopeCommand(probeName, display, bin, path, atlasCmd, issue)...)
 			continue
 		}
 		if atlasCmd.Classification != CLISurfaceOSS {
@@ -247,6 +229,43 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 		}
 		out = append(out, compareUsage(probeName, display, atlasCmd, target, issue))
 		out = append(out, compareFlags(probeName, display, atlasCmd, target, issue))
+	}
+	return out
+}
+
+func buildNonOSSSentinelResults(bin string, buildErr error) []Result {
+	const probeName = "ptah-non-oss-sentinel"
+	if buildErr != nil {
+		return []Result{{probeName, "atlas", "build", Fail,
+			"could not build Ptah CLI: " + oneLine(buildErr.Error()), ""}}
+	}
+	surfaces := implementedProVerbSurfaces()
+	var out []Result
+	for _, sentinel := range nonOSSSentinels() {
+		path := sentinel.invocationPath
+		display := displayCommand("atlas", path)
+		command := CLISurfaceCommand{
+			Path:                 path,
+			Summary:              sentinel.summary,
+			Classification:       CLISurfaceOutOfScope,
+			ClassificationReason: sentinel.reason,
+		}
+		switch sentinel.policy {
+		case nonOSSSentinelOpen:
+			surface, ok := surfaces[strings.Join(path, " ")]
+			if !ok {
+				out = append(out, Result{probeName, display, "catalog", Fail,
+					"open non-OSS sentinel has no first-party command-surface contract", ""})
+				continue
+			}
+			out = append(out, compareImplementedProCommand(
+				probeName, display, bin, path, command, surface, cliSurfaceCompatIssue,
+			)...)
+		case nonOSSSentinelUnavailable:
+			out = append(out, compareOutOfScopeCommand(
+				probeName, display, bin, path, command, cliSurfaceCompatIssue,
+			)...)
+		}
 	}
 	return out
 }
@@ -349,6 +368,13 @@ func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
 			usage: "atlas migrate checkpoint [flags] [name]",
 			flags: []string{"--dev-url", "--dir", "--dir-format"},
 		},
+		"migrate down": {
+			usage: "atlas migrate down [flags]",
+			flags: []string{
+				"--dev-url", "--dir", "--dry-run", "--format", "--lock-timeout",
+				"--revisions-schema", "--to-version", "--url",
+			},
+		},
 		"migrate edit": {
 			usage: "atlas migrate edit [flags] {name | version}",
 			flags: []string{"--dir", "--dir-format"},
@@ -372,6 +398,20 @@ func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
 		"schema plan": {
 			usage: "atlas schema plan [flags]",
 			flags: []string{"--dev-url", "--dry-run", "--edit", "--from", "--name", "--output", "--save", "--to"},
+		},
+		"schema plan new": {
+			usage: "atlas schema plan new [flags]",
+			flags: []string{
+				"--auto-approve", "--dev-url", "--edit", "--exclude", "--format", "--from", "--include",
+				"--lock-timeout", "--name", "--name-format", "--output", "--repo", "--schema", "--to",
+			},
+		},
+		"schema plan validate": {
+			usage: "atlas schema plan validate [flags]",
+			flags: []string{
+				"--auto-approve", "--dev-url", "--exclude", "--file", "--format", "--from", "--include",
+				"--lock-timeout", "--repo", "--schema", "--to",
+			},
 		},
 	}
 }
@@ -498,17 +538,22 @@ func readCommandSurface(bin string, path []string) (helpDetails, error) {
 }
 
 func commandHelp(bin string, path []string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 	args := append(append([]string(nil), path...), "--help")
-	cmd := exec.CommandContext(ctx, bin, args...)
-	out, err := cmd.CombinedOutput()
+	stdout, stderr, err := commandStreams(bin, args, "")
 	if err != nil {
-		if _, ok := err.(*exec.ExitError); !ok {
-			return "", err
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return "", fmt.Errorf(
+				"help exited %d; stdout=%q stderr=%q",
+				exitErr.ExitCode(), oneLine(stdout), oneLine(stderr),
+			)
 		}
+		return "", err
 	}
-	return string(out), nil
+	if stderr != "" {
+		return "", fmt.Errorf("help wrote to stderr: %s", oneLine(stderr))
+	}
+	return stdout, nil
 }
 
 func atlasVersionLine(atlasBin string) (string, error) {
@@ -640,26 +685,16 @@ type outOfScopeCommand struct {
 // including the `schema plan` registry sub-verbs) must keep the strict
 // Ptah-owned unavailable-command boundary.
 func knownOutOfScopeAtlasCommands() []outOfScopeCommand {
-	return []outOfScopeCommand{
-		{[]string{"schema", "test"}, "Test schemas through Atlas Cloud", "Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"schema", "plan"}, "Plan schema changes through Atlas Cloud", "Atlas Pro/Cloud plan workflow not present in the pinned CE binary; Ptah implements the local plan-file half as an open capability"},
-		{[]string{"schema", "plan", "approve"}, "Approve a plan in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "lint"}, "Lint a plan against the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "list"}, "List plans in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "new"}, "Create a new plan in the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "pull"}, "Pull a plan from the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "push"}, "Push a plan to the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "rm"}, "Remove a plan from the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "test"}, "Test a plan through the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "plan", "validate"}, "Validate a plan through the Atlas Registry", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"schema", "push"}, "Push schema state to Atlas Cloud", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"migrate", "checkpoint"}, "Create migration checkpoint files", "Atlas Pro feature not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "edit"}, "Edit migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "push"}, "Push migration directory to Atlas Cloud", "Atlas Cloud / registry workflow, not present in the pinned CE binary"},
-		{[]string{"migrate", "rebase"}, "Rebase migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "rm"}, "Remove migration files", "Atlas Pro directory-maintenance verb not present in the pinned CE binary; Ptah implements it as an open capability"},
-		{[]string{"migrate", "test"}, "Test migration files through Atlas Cloud", "Atlas Pro/Cloud test workflow not present in the pinned CE binary; Ptah implements it as an open capability"},
+	sentinels := nonOSSSentinels()
+	commands := make([]outOfScopeCommand, len(sentinels))
+	for i, sentinel := range sentinels {
+		commands[i] = outOfScopeCommand{
+			path:    sentinel.invocationPath,
+			summary: sentinel.summary,
+			reason:  sentinel.reason,
+		}
 	}
+	return commands
 }
 
 func displayCommand(prefix string, path []string) string {

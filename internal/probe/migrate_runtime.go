@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stokaro/ptah/dbschema"
-
 	_ "modernc.org/sqlite"
+
+	"go.5x5.cz/ptah/dbschema"
 )
 
 const migrateRuntimeProbeName = "migrate-runtime"
@@ -42,6 +42,11 @@ type migrateRuntimeTarget struct {
 // stokaro/ptah#850); Ptah-native `migrations ...` checks run on the main
 // `ptah` binary.
 func RunMigrateRuntime() []Result {
+	atlasBin := DefaultAtlasBinary()
+	_, err := validatePinnedAtlasBinary(atlasBin)
+	if err != nil {
+		return []Result{migrateRuntimeFail("atlas-runtime-oracle", "atlas-version", err)}
+	}
 	compatBin, err := ptahCompatAtlasBinary()
 	if err != nil {
 		return []Result{{migrateRuntimeProbeName, "atlas migrate", "build", Fail,
@@ -55,7 +60,7 @@ func RunMigrateRuntime() []Result {
 
 	checks := []migrateRuntimeCheck{
 		func(bin string) Result {
-			return atlasProjectConfigApplyOracle(bin, DefaultAtlasBinary())
+			return atlasProjectConfigApplyOracle(bin, atlasBin)
 		},
 		sqliteMigrateApplyRecordsState,
 		sqliteMigrateApplyDryRunReadsStoredState,
@@ -117,7 +122,8 @@ func RunMigrateRuntime() []Result {
 			)
 		}
 	}
-	out := make([]Result, 0, len(checks))
+	out := gooseMigrateIntegrityOracle(compatBin, atlasBin)
+	out = slices.Grow(out, len(checks))
 	for _, check := range checks {
 		out = append(out, check(compatBin))
 	}

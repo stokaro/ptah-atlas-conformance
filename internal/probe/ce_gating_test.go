@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	qt "github.com/frankban/quicktest"
-
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 )
 
@@ -344,18 +343,48 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		"atlas migrate apply":                     probe.CEGatingWorks,
 		"atlas migrate status":                    probe.CEGatingWorks,
 		"atlas schema apply (declarative)":        probe.CEGatingWorks,
-		// Registered community-abort stubs.
-		"atlas schema push":            probe.CEGatingCommunityAbort,
-		"atlas schema plan --env":      probe.CEGatingCommunityAbort,
-		"atlas schema test":            probe.CEGatingCommunityAbort,
-		"atlas migrate push":           probe.CEGatingCommunityAbort,
-		"atlas migrate test":           probe.CEGatingCommunityAbort,
-		"atlas migrate checkpoint":     probe.CEGatingCommunityAbort,
-		"atlas migrate edit":           probe.CEGatingCommunityAbort,
-		"atlas migrate rebase":         probe.CEGatingCommunityAbort,
-		"atlas migrate rm":             probe.CEGatingCommunityAbort,
-		"atlas migrate down (bare)":    probe.CEGatingCommunityAbort,
-		"atlas schema apply --include": probe.CEGatingCommunityAbort,
+		// Registered community-abort sentinels. Every path pins both process
+		// boundaries: bare writes the abort to stderr at exit 1, while --help
+		// writes it to stdout at exit 0.
+		"atlas schema test (bare CE sentinel)":            probe.CEGatingCommunityAbort,
+		"atlas schema test (--help CE sentinel)":          probe.CEGatingCommunityAbort,
+		"atlas schema plan (bare CE sentinel)":            probe.CEGatingCommunityAbort,
+		"atlas schema plan (--help CE sentinel)":          probe.CEGatingCommunityAbort,
+		"atlas schema plan approve (bare CE sentinel)":    probe.CEGatingCommunityAbort,
+		"atlas schema plan approve (--help CE sentinel)":  probe.CEGatingCommunityAbort,
+		"atlas schema plan lint (bare CE sentinel)":       probe.CEGatingCommunityAbort,
+		"atlas schema plan lint (--help CE sentinel)":     probe.CEGatingCommunityAbort,
+		"atlas schema plan list (bare CE sentinel)":       probe.CEGatingCommunityAbort,
+		"atlas schema plan list (--help CE sentinel)":     probe.CEGatingCommunityAbort,
+		"atlas schema plan new (bare CE sentinel)":        probe.CEGatingCommunityAbort,
+		"atlas schema plan new (--help CE sentinel)":      probe.CEGatingCommunityAbort,
+		"atlas schema plan pull (bare CE sentinel)":       probe.CEGatingCommunityAbort,
+		"atlas schema plan pull (--help CE sentinel)":     probe.CEGatingCommunityAbort,
+		"atlas schema plan push (bare CE sentinel)":       probe.CEGatingCommunityAbort,
+		"atlas schema plan push (--help CE sentinel)":     probe.CEGatingCommunityAbort,
+		"atlas schema plan rm (bare CE sentinel)":         probe.CEGatingCommunityAbort,
+		"atlas schema plan rm (--help CE sentinel)":       probe.CEGatingCommunityAbort,
+		"atlas schema plan test (bare CE sentinel)":       probe.CEGatingCommunityAbort,
+		"atlas schema plan test (--help CE sentinel)":     probe.CEGatingCommunityAbort,
+		"atlas schema plan validate (bare CE sentinel)":   probe.CEGatingCommunityAbort,
+		"atlas schema plan validate (--help CE sentinel)": probe.CEGatingCommunityAbort,
+		"atlas schema push (bare CE sentinel)":            probe.CEGatingCommunityAbort,
+		"atlas schema push (--help CE sentinel)":          probe.CEGatingCommunityAbort,
+		"atlas migrate checkpoint (bare CE sentinel)":     probe.CEGatingCommunityAbort,
+		"atlas migrate checkpoint (--help CE sentinel)":   probe.CEGatingCommunityAbort,
+		"atlas migrate down (bare CE sentinel)":           probe.CEGatingCommunityAbort,
+		"atlas migrate down (--help CE sentinel)":         probe.CEGatingCommunityAbort,
+		"atlas migrate edit (bare CE sentinel)":           probe.CEGatingCommunityAbort,
+		"atlas migrate edit (--help CE sentinel)":         probe.CEGatingCommunityAbort,
+		"atlas migrate push (bare CE sentinel)":           probe.CEGatingCommunityAbort,
+		"atlas migrate push (--help CE sentinel)":         probe.CEGatingCommunityAbort,
+		"atlas migrate rebase (bare CE sentinel)":         probe.CEGatingCommunityAbort,
+		"atlas migrate rebase (--help CE sentinel)":       probe.CEGatingCommunityAbort,
+		"atlas migrate rm (bare CE sentinel)":             probe.CEGatingCommunityAbort,
+		"atlas migrate rm (--help CE sentinel)":           probe.CEGatingCommunityAbort,
+		"atlas migrate test (bare CE sentinel)":           probe.CEGatingCommunityAbort,
+		"atlas migrate test (--help CE sentinel)":         probe.CEGatingCommunityAbort,
+		"atlas schema apply --include":                    probe.CEGatingCommunityAbort,
 		// Never-registered verbs.
 		"atlas migrate ls":      probe.CEGatingAbsent,
 		"atlas migrate show":    probe.CEGatingAbsent,
@@ -402,7 +431,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 	}
 	c.Check(counts, qt.DeepEquals, map[probe.CEGatingClass]int{
 		probe.CEGatingWorks:               11,
-		probe.CEGatingCommunityAbort:      11,
+		probe.CEGatingCommunityAbort:      39,
 		probe.CEGatingAbsent:              5,
 		probe.CEGatingUnregisteredCommand: 3,
 		probe.CEGatingSilentUnenforced:    4,
@@ -452,7 +481,7 @@ func TestRunCEGating_BareBinaryNameResolvesViaPATH(t *testing.T) {
 	// proof the bare name resolved via PATH and actually executed.
 	var sawSchemaPush bool
 	for _, r := range run.Results {
-		if r.Fixture != "atlas schema push" {
+		if r.Fixture != "atlas schema push (bare CE sentinel)" {
 			continue
 		}
 		sawSchemaPush = true

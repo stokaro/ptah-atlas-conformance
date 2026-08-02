@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stokaro/ptah/core/goschema"
+	"go.5x5.cz/ptah/core/goschema"
 )
 
 // This file reduces a schema to a canonical, comparable set of column facts so

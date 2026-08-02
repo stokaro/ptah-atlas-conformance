@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/stokaro/ptah/atlascompat"
-	"github.com/stokaro/ptah/migration/migrator"
+	"go.5x5.cz/ptah/atlascompat"
+	"go.5x5.cz/ptah/migration/migrator"
 )
 
 // AtlasCLIHiddenRuntimeProbe measures Atlas-compatible hidden CLI behavior that

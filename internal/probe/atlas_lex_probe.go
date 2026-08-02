@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/stokaro/ptah/core/sqlutil"
+	"go.5x5.cz/ptah/core/sqlutil"
 )
 
 // atlasGoldenSep is how Atlas's lexer tests serialize a statement list into a

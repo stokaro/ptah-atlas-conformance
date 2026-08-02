@@ -21,9 +21,13 @@ func RenderCLISurfaceMarkdown(results []Result, w *Waivers, inventory CLISurface
 	b.WriteString("Atlas CE binary, then compares them with Ptah's single Atlas-shaped surface:\n")
 	b.WriteString("the `ptah-compat` binary named `atlas` (stokaro/ptah#850 removed the former\n")
 	b.WriteString("`ptah atlas <command>` namespace from the main binary).\n\n")
+	b.WriteString("The Atlas CE inventory is discovery-only. Rows under `ptah-non-oss-sentinel`\n")
+	b.WriteString("are separately labeled first-party Ptah policy checks for Pro/Cloud paths; they\n")
+	b.WriteString("are not Atlas OSS parity evidence. The CE side of those sentinels is measured in\n")
+	b.WriteString("the dedicated CE-gating report.\n\n")
 
 	if len(nonOK) == 0 {
-		b.WriteString("## Status: CLI SURFACE PARITY\n\n")
+		b.WriteString("## Status: OSS CLI SURFACE PARITY\n\n")
 		b.WriteString("Every discovered OSS Atlas CE command has matching Ptah help usage and flags.\n\n")
 	} else {
 		fmt.Fprintf(&b, "## Status: NOT DONE — %d non-OK observation(s)\n\n", len(nonOK))

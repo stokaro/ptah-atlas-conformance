@@ -97,7 +97,7 @@ func projectConfigCommand(
 	}, err
 }
 
-func validateProjectConfigAtlasBinary(atlasBin string) (string, error) {
+func validatePinnedAtlasBinary(atlasBin string) (string, error) {
 	pinnedData, err := os.ReadFile("atlas.version")
 	if err != nil {
 		return "", fmt.Errorf("read atlas.version: %w", err)
@@ -107,12 +107,14 @@ func validateProjectConfigAtlasBinary(atlasBin string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if !atlasVersionMatchesPin(observed, pinned) {
+	if !AtlasVersionMatchesPin(observed, pinned) {
 		return "", fmt.Errorf("Atlas binary reports %q, want atlas.version %q", observed, pinned)
 	}
 	return observed, nil
 }
 
-func atlasVersionMatchesPin(observed, pinned string) bool {
+// AtlasVersionMatchesPin reports whether an Atlas version line identifies the
+// Community release selected by atlas.version.
+func AtlasVersionMatchesPin(observed, pinned string) bool {
 	return pinned != "" && strings.TrimSpace(observed) == "atlas community version "+pinned
 }

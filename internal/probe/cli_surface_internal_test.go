@@ -64,6 +64,51 @@ Flags:
 	c.Assert(got.Flags, qt.DeepEquals, []string{"--revisions-schema"})
 }
 
+func TestCommandHelp_HappyPath(t *testing.T) {
+	c := qt.New(t)
+	bin := writeExecutable(t, `#!/bin/sh
+printf "Usage:\n  atlas migrate status [flags]\n"
+`)
+
+	got, err := commandHelp(bin, []string{"migrate", "status"})
+
+	c.Assert(err, qt.IsNil)
+	c.Assert(got, qt.Equals, "Usage:\n  atlas migrate status [flags]\n")
+}
+
+func TestCommandHelp_FailurePath(t *testing.T) {
+	c := qt.New(t)
+	tests := []struct {
+		name   string
+		script string
+		want   string
+	}{
+		{
+			name: "non-zero exit",
+			script: `#!/bin/sh
+printf "Usage:\n  atlas migrate status [flags]\n"
+exit 1
+`,
+			want: `help exited 1; stdout="Usage: atlas migrate status \[flags\]" stderr=""`,
+		},
+		{
+			name: "help on stderr",
+			script: `#!/bin/sh
+printf "Usage:\n  atlas migrate status [flags]\n" >&2
+`,
+			want: `help wrote to stderr: Usage: atlas migrate status \[flags\]`,
+		},
+	}
+
+	for _, test := range tests {
+		c.Run(test.name, func(c *qt.C) {
+			got, err := commandHelp(writeExecutable(t, test.script), []string{"migrate", "status"})
+			c.Assert(err, qt.ErrorMatches, test.want)
+			c.Assert(got, qt.Equals, "")
+		})
+	}
+}
+
 func TestClassifyAtlasCommand_HappyPath(t *testing.T) {
 	c := qt.New(t)
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing/fstest"
 
-	"github.com/stokaro/ptah/migration/lint"
+	"go.5x5.cz/ptah/migration/lint"
 )
 
 // lintAnalyzerSentinel owns the analyzer-catalog probe's emission.

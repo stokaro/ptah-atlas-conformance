@@ -43,7 +43,7 @@ func TestRenderDifferentialMarkdownShowsLiveDifferentialSource(t *testing.T) {
 
 	c.Assert(report, qt.Contains, "# Ptah vs Atlas CE live differential report")
 	c.Assert(report, qt.Contains, "first-party Ptah schema fixtures")
-	c.Assert(report, qt.Contains, "Atlas CE binary pinned at `ariga/atlas@atlas-sha`")
+	c.Assert(report, qt.Contains, "Atlas CE binary built from release tag `atlas-sha` pinned in `atlas.version`")
 	c.Assert(report, qt.Contains, "## Compared Schema Fact Categories")
 	c.Assert(report, qt.Contains, "Schema-qualified table identity and table metadata.")
 	c.Assert(report, qt.Contains, "Indexes: ordered columns and expressions")
