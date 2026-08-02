@@ -103,6 +103,79 @@ func TestClassifyCEGating(t *testing.T) {
 			wantSummary: "Error: unknown flag: --web",
 		},
 		{
+			name:        "unregistered command fires on cobra's unknown-command error",
+			exitCode:    1,
+			output:      "Error: unknown command \"cloud\" for \"atlas\"\nRun 'atlas --help' for usage.\n",
+			wantClass:   probe.CEGatingUnregisteredCommand,
+			wantSummary: "Error: unknown command \"cloud\" for \"atlas\"",
+		},
+		{
+			// Specificity: ordinary output mentioning an unknown command must
+			// not classify. Only cobra's quoted `unknown command "x" for` form
+			// counts, so a log line cannot fake an unregistered verb.
+			name:      "unregistered command stays silent on a prose mention",
+			rules:     probe.CEGatingRules{SuccessFragments: []string{"done"}},
+			exitCode:  0,
+			output:    "warning: unknown command in script, skipping; done\n",
+			wantClass: probe.CEGatingWorks,
+		},
+		{
+			// The absent class must keep winning for a name under a registered
+			// group: that path prints help at exit 0 and never emits cobra's
+			// unknown-command line, so the two classes cannot collide.
+			name: "absent still wins over unregistered command for a group subcommand",
+			rules: probe.CEGatingRules{
+				AbsentCommandPath: "atlas migrate frobnicate-nonsense",
+			},
+			exitCode:    0,
+			output:      "'atlas migrate' wraps several sub-commands for migration management.\n",
+			wantClass:   probe.CEGatingAbsent,
+			wantSummary: "exit 0; the parent group help was printed instead of running the named subcommand",
+		},
+		{
+			// The load-bearing half of SuccessAbsentFragments: a present
+			// forbidden fragment must DROP the row out of works, otherwise the
+			// "CE ignored this construct" rows would be vacuous.
+			name: "success absent fragment present denies works",
+			rules: probe.CEGatingRules{
+				SuccessFragments:       []string{"CREATE TABLE"},
+				SuccessAbsentFragments: []string{"INVISIBLE"},
+			},
+			exitCode:  0,
+			output:    "CREATE TABLE `t` (`secret` int NOT NULL INVISIBLE);\n",
+			wantClass: probe.CEGatingUnclassified,
+		},
+		{
+			name: "success absent fragment missing allows works and is reported",
+			rules: probe.CEGatingRules{
+				SuccessFragments:       []string{"CREATE TABLE"},
+				SuccessAbsentFragments: []string{"INVISIBLE"},
+			},
+			exitCode:    0,
+			output:      "CREATE TABLE `t` (`secret` int NOT NULL);\n",
+			wantClass:   probe.CEGatingWorks,
+			wantSummary: `exit 0; output contains "CREATE TABLE"; output does not contain "INVISIBLE"`,
+		},
+		{
+			// Same guarantee for the silent-unenforced class: if the gated
+			// construct ever starts producing its own diagnostics, the row
+			// must stop counting as unenforced. It falls through to works
+			// here (exit 0, no success fragments required), which is still a
+			// class CHANGE — the drift scenarios expect silent-unenforced, so
+			// the gate turns red either way. What must never happen is the row
+			// staying green while Atlas started enforcing.
+			name: "silent absent fragment present denies silent-unenforced",
+			rules: probe.CEGatingRules{
+				SilentWhenExitZero:    true,
+				SilentFragments:       []string{"20260101000003"},
+				SilentAbsentFragments: []string{"drift"},
+			},
+			exitCode:    0,
+			output:      "check drift against version 20260101000003\n",
+			wantClass:   probe.CEGatingWorks,
+			wantSummary: "exit 0",
+		},
+		{
 			name:        "named error fires on a non-zero exit with the pattern",
 			rules:       probe.CEGatingRules{NamedErrorPattern: namedError},
 			exitCode:    1,
@@ -297,6 +370,23 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		// Flags a licensed Atlas build registers and CE does not register at all.
 		"atlas schema inspect --web":     probe.CEGatingUnknownFlag,
 		"atlas schema inspect --include": probe.CEGatingUnknownFlag,
+
+		// The three-way verb control. These rows are the reference shapes the
+		// capability rows are read against, not capability claims themselves.
+		"control: nonsense root verb":                     probe.CEGatingUnregisteredCommand,
+		"control: nonsense verb under a registered group": probe.CEGatingAbsent,
+		"control: nonsense flag on a gated verb":          probe.CEGatingUnknownFlag,
+		// v1.3.0 announced command groups: unregistered in CE, not Pro stubs.
+		"atlas script (v1.3.0)": probe.CEGatingUnregisteredCommand,
+		"atlas cloud (v1.3.0)":  probe.CEGatingUnregisteredCommand,
+		// v1.3.0 HCL constructs CE silently drops, each paired with a
+		// nonsense control asserting the identical shape.
+		"atlas schema diff (column attr: invisible, v1.3.0)": probe.CEGatingWorks,
+		"control: nonsense column attribute":                 probe.CEGatingWorks,
+		"atlas schema diff (annotation block, v1.3.0)":       probe.CEGatingWorks,
+		// v1.3.0 pre-apply drift detection: accepted, then not enforced.
+		"atlas migrate apply (check drift configured, drifted db, v1.3.0)": probe.CEGatingSilentUnenforced,
+		"control: nonsense atlas.hcl top-level block":                      probe.CEGatingSilentUnenforced,
 	})
 
 	counts := map[probe.CEGatingClass]int{}
@@ -304,12 +394,13 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		counts[class]++
 	}
 	c.Check(counts, qt.DeepEquals, map[probe.CEGatingClass]int{
-		probe.CEGatingWorks:            7,
-		probe.CEGatingCommunityAbort:   11,
-		probe.CEGatingAbsent:           4,
-		probe.CEGatingSilentUnenforced: 2,
-		probe.CEGatingNamedError:       2,
-		probe.CEGatingUnknownFlag:      2,
+		probe.CEGatingWorks:               10,
+		probe.CEGatingCommunityAbort:      11,
+		probe.CEGatingAbsent:              5,
+		probe.CEGatingUnregisteredCommand: 3,
+		probe.CEGatingSilentUnenforced:    4,
+		probe.CEGatingNamedError:          2,
+		probe.CEGatingUnknownFlag:         3,
 	})
 }
 

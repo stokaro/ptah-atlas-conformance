@@ -13,8 +13,15 @@ import (
 // a fixed scenario table covering the capabilities Ptah's feature matrix
 // asserts about the CE column, and classifies each observed outcome. The
 // expected classes encode the hand-measured 2026-08-01 baseline for Atlas CE
-// v1.2.0; a renovate bump of atlas.version that changes gating behavior turns
-// the gate red instead of silently invalidating the matrix.
+// v1.2.0, re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02; a
+// renovate bump of atlas.version that changes gating behavior turns the gate
+// red instead of silently invalidating the matrix.
+//
+// The v1.3.0 re-measurement found ZERO class changes in either direction: the
+// generated report was byte-identical apart from its header version line. That
+// is recorded here because "the pin moved and nothing moved with it" is only
+// trustworthy if someone wrote down that it was actually re-measured rather
+// than assumed.
 
 // CEGatingClass partitions the observed behavior of one Atlas CE invocation.
 type CEGatingClass string
@@ -29,6 +36,14 @@ const (
 	// CEGatingAbsent — the named subcommand does not exist: the parent group
 	// help is printed and the process exits 0.
 	CEGatingAbsent CEGatingClass = "absent"
+	// CEGatingUnregisteredCommand — the command name is not registered at all
+	// under its parent: cobra reports `unknown command "x" for "atlas"` and the
+	// process exits 1. Distinct from absent (a name under a registered group,
+	// which yields that group's help at exit 0) and from community-abort (a
+	// name that IS registered and refuses as a Pro stub). Keeping the three
+	// apart is what makes "this verb is missing" a measurement rather than a
+	// reading of the help listing.
+	CEGatingUnregisteredCommand CEGatingClass = "unregistered-command"
 	// CEGatingUnknownFlag — the flag is not registered at all ("unknown flag:").
 	CEGatingUnknownFlag CEGatingClass = "unknown-flag"
 	// CEGatingNamedError — the command failed with the scenario's specific,
@@ -47,6 +62,7 @@ var ceGatingClassOrder = []CEGatingClass{
 	CEGatingWorks,
 	CEGatingCommunityAbort,
 	CEGatingAbsent,
+	CEGatingUnregisteredCommand,
 	CEGatingUnknownFlag,
 	CEGatingNamedError,
 	CEGatingSilentUnenforced,
@@ -65,6 +81,11 @@ var (
 	ceCommunityAbortPattern = regexp.MustCompile(`Abort: '.*' is not supported by the community version`)
 	// ceUnknownFlagPattern matches cobra's unregistered-flag error.
 	ceUnknownFlagPattern = regexp.MustCompile(`unknown flag: `)
+	// ceUnknownCommandPattern matches cobra's unregistered-command error, which
+	// the binary emits (exit 1) for a name it never registered under its
+	// parent. No registered Atlas verb can produce this line, so the pattern is
+	// global like the two above rather than scenario-gated.
+	ceUnknownCommandPattern = regexp.MustCompile(`unknown command "[^"]*" for `)
 )
 
 // ceParentHelpFragments identify the `atlas migrate` / `atlas schema` parent
@@ -92,6 +113,16 @@ type CEGatingRules struct {
 	SuccessExit int
 	// SuccessFragments must all appear in the combined output for works.
 	SuccessFragments []string
+	// SuccessAbsentFragments must NOT appear in the combined output for works.
+	//
+	// This exists because CE's indifference and CE's support are otherwise
+	// indistinguishable. CE silently drops HCL constructs it does not know, so
+	// a Pro-only construct still yields exit 0 and a plausible-looking result;
+	// only the *absence* of its effect in the emitted DDL proves it was
+	// ignored rather than honored. A scenario asserting exit 0 alone would be
+	// read backwards by the next person as "CE supports this". Pair every such
+	// row with a nonsense-construct control asserting the identical shape.
+	SuccessAbsentFragments []string
 	// NamedErrorPattern classifies matching non-zero-exit output as
 	// named-error.
 	NamedErrorPattern *regexp.Regexp
@@ -102,6 +133,11 @@ type CEGatingRules struct {
 	// SilentFragments must all appear in the combined output for
 	// silent-unenforced.
 	SilentFragments []string
+	// SilentAbsentFragments must NOT appear in the combined output for
+	// silent-unenforced. Same rationale as SuccessAbsentFragments: the class
+	// asserts that a construct had NO enforced effect, and only the absence of
+	// the enforcement's own diagnostics can carry that claim.
+	SilentAbsentFragments []string
 }
 
 // ClassifyCEGating is a pure function classifying one observed Atlas CE
@@ -116,6 +152,9 @@ func ClassifyCEGating(rules CEGatingRules, exitCode int, output string) (CEGatin
 	if line, ok := firstMatchingLine(output, ceUnknownFlagPattern); ok {
 		return CEGatingUnknownFlag, line
 	}
+	if line, ok := firstMatchingLine(output, ceUnknownCommandPattern); ok {
+		return CEGatingUnregisteredCommand, line
+	}
 	if rules.NamedErrorPattern != nil && exitCode != 0 {
 		if line, ok := firstMatchingLine(output, rules.NamedErrorPattern); ok {
 			return CEGatingNamedError, line
@@ -126,11 +165,14 @@ func ClassifyCEGating(rules CEGatingRules, exitCode int, output string) (CEGatin
 		!strings.Contains(firstNonEmptyLine(output), rules.AbsentCommandPath) {
 		return CEGatingAbsent, "exit 0; the parent group help was printed instead of running the named subcommand"
 	}
-	if rules.SilentWhenExitZero && exitCode == 0 && containsAllFragments(output, rules.SilentFragments) {
-		return CEGatingSilentUnenforced, observedExitSummary(exitCode, rules.SilentFragments)
+	if rules.SilentWhenExitZero && exitCode == 0 && containsAllFragments(output, rules.SilentFragments) &&
+		!containsAnyFragment(output, rules.SilentAbsentFragments) {
+		return CEGatingSilentUnenforced,
+			observedWorksSummary(exitCode, rules.SilentFragments, rules.SilentAbsentFragments)
 	}
-	if exitCode == rules.SuccessExit && containsAllFragments(output, rules.SuccessFragments) {
-		return CEGatingWorks, observedExitSummary(exitCode, rules.SuccessFragments)
+	if exitCode == rules.SuccessExit && containsAllFragments(output, rules.SuccessFragments) &&
+		!containsAnyFragment(output, rules.SuccessAbsentFragments) {
+		return CEGatingWorks, observedWorksSummary(exitCode, rules.SuccessFragments, rules.SuccessAbsentFragments)
 	}
 	return CEGatingUnclassified, fmt.Sprintf("exit %d: %s", exitCode, oneLine(firstNonEmptyLine(output)))
 }
@@ -184,6 +226,22 @@ func observedExitSummary(exitCode int, fragments []string) string {
 	return fmt.Sprintf("exit %d; output contains %s", exitCode, strings.Join(quoted, ", "))
 }
 
+// observedWorksSummary extends observedExitSummary with the verified-absent
+// fragments, so a committed row that depends on an absence says so out loud.
+// Without this the report would show a bare "exit 0" for a scenario whose
+// whole point is what the output does NOT contain.
+func observedWorksSummary(exitCode int, present, absent []string) string {
+	summary := observedExitSummary(exitCode, present)
+	if len(absent) == 0 {
+		return summary
+	}
+	quoted := make([]string, len(absent))
+	for i, fragment := range absent {
+		quoted[i] = fmt.Sprintf("%q", fragment)
+	}
+	return fmt.Sprintf("%s; output does not contain %s", summary, strings.Join(quoted, ", "))
+}
+
 // CEGatingScenario is the read-only public view of one fixed scenario: its
 // report fixture label, the measured argv, and the expected baseline class.
 type CEGatingScenario struct {
@@ -193,7 +251,8 @@ type CEGatingScenario struct {
 }
 
 // CEGatingScenarioTable returns the fixed scenario table encoding the measured
-// 2026-08-01 Atlas CE v1.2.0 gating baseline.
+// 2026-08-01 Atlas CE v1.2.0 gating baseline, re-confirmed against v1.3.0 on
+// 2026-08-02.
 func CEGatingScenarioTable() []CEGatingScenario {
 	scenarios := ceGatingScenarios()
 	table := make([]CEGatingScenario, len(scenarios))
@@ -452,6 +511,17 @@ const (
 	ceGatingInitMigration = "CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT NOT NULL);\n" +
 		"CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NOT NULL);\n"
 	ceGatingDropMigration = "DROP TABLE widgets;\n"
+	// ceGatingPendingMigration is applied AFTER drift is injected, so the
+	// drift-check scenarios have real work for `migrate apply` to do. Without
+	// a pending version, apply would exit 0 for the uninteresting reason that
+	// there was nothing to run.
+	ceGatingPendingMigration = "CREATE TABLE orders (id INTEGER PRIMARY KEY);\n"
+	// ceGatingDriftInjectionSQL is out-of-band schema change no migration in
+	// the corpus produces: a table the directory never creates plus a column
+	// the directory never adds. This is the drift a pre-apply drift check is
+	// supposed to catch.
+	ceGatingDriftInjectionSQL = "CREATE TABLE rogue_drift (x INTEGER);\n" +
+		"ALTER TABLE users ADD COLUMN injected TEXT;\n"
 
 	ceGatingFromHCL = `schema "main" {}
 table "users" {
@@ -476,6 +546,80 @@ table "users" {
   primary_key {
     columns = [column.id]
   }
+}
+`
+	// ceGatingEmptySchemaHCL is the empty baseline the unknown-construct
+	// scenarios diff FROM, so the emitted DDL is a single CREATE TABLE and the
+	// absent-fragment assertions have an unambiguous target.
+	ceGatingEmptySchemaHCL = `schema "main" {}
+`
+	// ceGatingInvisibleColumnHCL carries the v1.3.0-announced MySQL invisible
+	// column attribute. CE emits the column with no INVISIBLE keyword.
+	ceGatingInvisibleColumnHCL = `schema "main" {}
+table "t" {
+  schema = schema.main
+  column "id" {
+    type = int
+  }
+  column "secret" {
+    type = int
+    invisible = true
+  }
+}
+`
+	// ceGatingNonsenseColumnAttrHCL is the control for the row above: a column
+	// attribute that cannot possibly be supported. CE treats it identically,
+	// which is what proves `invisible` is ignored rather than honored.
+	ceGatingNonsenseColumnAttrHCL = `schema "main" {}
+table "t" {
+  schema = schema.main
+  column "id" {
+    type = int
+  }
+  column "secret" {
+    type = int
+    zzz_nonsense_attr = true
+  }
+}
+`
+	// ceGatingAnnotationHCL carries the v1.3.0-announced Schema Annotations
+	// blocks. CE drops both the declaration and the usage.
+	ceGatingAnnotationHCL = `schema "main" {}
+annotation "gql" {
+  attr "name" {
+    type = string
+  }
+}
+table "t" {
+  schema = schema.main
+  column "id" {
+    type = int
+  }
+  annotation {
+    gql = "Thing"
+  }
+}
+`
+	// ceGatingDriftCheckConfig carries the v1.3.0-announced pre-apply drift
+	// check. CE parses the file, ignores the block, and proceeds.
+	ceGatingDriftCheckConfig = `check "migrate_apply" {
+  drift {
+    on_error = "FAIL"
+  }
+}
+env "local" {
+  url = "sqlite://app.db"
+}
+`
+	// ceGatingNonsenseBlockConfig is the control for the row above: an
+	// atlas.hcl top-level block that cannot possibly be supported. CE ignores
+	// it exactly as it ignores `check`, proving the indifference is a general
+	// policy rather than a check-shaped allowance.
+	ceGatingNonsenseBlockConfig = `frobnicate_nonsense "zzz" {
+  totally_made_up = "yes"
+}
+env "local" {
+  url = "sqlite://app.db"
 }
 `
 	// ceGatingRoledHCL is ceGatingDesiredHCL plus a Pro-gated role block. On a
@@ -598,8 +742,16 @@ func setupCEGatingDeclarativeState(rt *ceGatingRuntime, extraFiles map[string]st
 }
 
 // ceGatingScenarios is the fixed scenario table. Expected classes encode the
-// hand-measured 2026-08-01 baseline for the pinned Atlas CE v1.2.0 binary; do
-// not edit an expectation without re-measuring against the real binary.
+// hand-measured 2026-08-01 baseline for the pinned Atlas CE v1.2.0 binary,
+// re-confirmed unchanged against v1.3.0 on 2026-08-02, with the v1.3.0 rows
+// and the control set added at that point; do not edit an expectation without
+// re-measuring against the real binary.
+//
+// Rows whose fixture name starts with "control:" are not capability
+// assertions — they are the reference shapes that make the capability rows
+// legible. Do not delete one because it looks redundant: each exists because
+// its subject row is otherwise ambiguous between "CE supports this" and "CE
+// does not know what this is".
 func ceGatingScenarios() []ceGatingScenario {
 	return []ceGatingScenario{
 		// Working, logged out.
@@ -855,6 +1007,206 @@ func ceGatingScenarios() []ceGatingScenario {
 			fixture:  "atlas schema inspect --include",
 			argv:     []string{"schema", "inspect", "--include", "users"},
 			expected: CEGatingUnknownFlag,
+		},
+
+		// --- The three-way verb control -------------------------------------
+		//
+		// These three rows exist as a set and must be read as a set. Together
+		// they separate the only three ways a verb can be missing from CE, and
+		// they are what makes every "verb X is not in CE" claim on this chain a
+		// measurement rather than a reading of the help listing:
+		//
+		//   1. unregistered-command — the name does not exist (exit 1)
+		//   2. absent               — the name is unknown under a REGISTERED
+		//                             group, which prints that group's help
+		//                             (exit 0)
+		//   3. unknown-flag         — flag parsing precedes the community gate,
+		//                             so a registered-but-gated verb answers
+		//                             `Abort: ... community version` while an
+		//                             unregistered one never gets that far
+		//
+		// Without row 1's nonsense control, `atlas cloud` exiting 1 could be
+		// misread as a gated Pro stub; without row 3, a Pro verb's flag surface
+		// could be misread as unparseable.
+		{
+			fixture:  "control: nonsense root verb",
+			argv:     []string{"frobnicate-nonsense"},
+			expected: CEGatingUnregisteredCommand,
+		},
+		{
+			fixture:  "control: nonsense verb under a registered group",
+			argv:     []string{"migrate", "frobnicate-nonsense"},
+			expected: CEGatingAbsent,
+			rules:    CEGatingRules{AbsentCommandPath: "atlas migrate frobnicate-nonsense"},
+		},
+		{
+			// schema plan IS registered in CE (it aborts as a Pro stub), yet a
+			// nonsense flag on it still dies at flag parsing. That ordering is
+			// what lets the ce-gating table distinguish "flag not registered"
+			// from "verb gated".
+			fixture:  "control: nonsense flag on a gated verb",
+			argv:     []string{"schema", "plan", "--frobnicate-nonsense"},
+			expected: CEGatingUnknownFlag,
+		},
+
+		// --- v1.3.0 announced command groups --------------------------------
+		//
+		// Atlas v1.3.0 announced both of these. Measured against the community
+		// build they are unregistered root verbs — not Pro stubs. If a future
+		// Atlas moves either into CE, these rows go red and the capability
+		// becomes a mandatory drop-in obligation rather than a best-effort one.
+		{
+			fixture:  "atlas script (v1.3.0)",
+			argv:     []string{"script"},
+			expected: CEGatingUnregisteredCommand,
+		},
+		{
+			fixture:  "atlas cloud (v1.3.0)",
+			argv:     []string{"cloud"},
+			expected: CEGatingUnregisteredCommand,
+		},
+
+		// --- CE's indifference to unknown HCL constructs ---------------------
+		//
+		// Each subject row is paired with a nonsense control asserting the
+		// IDENTICAL shape. The pairing is the point: CE exits 0 on a Pro-only
+		// construct exactly as it exits 0 on gibberish, so a row asserting
+		// exit 0 alone reads as "CE supports this". The negative fragment is
+		// what pins the difference between indifference and support.
+		{
+			// v1.3.0 announced MySQL invisible columns. CE emits DDL with no
+			// INVISIBLE keyword: the attribute was dropped, not honored.
+			fixture: "atlas schema diff (column attr: invisible, v1.3.0)",
+			setup: func(rt *ceGatingRuntime) error {
+				if err := rt.writeFile("from.hcl", ceGatingEmptySchemaHCL); err != nil {
+					return err
+				}
+				return rt.writeFile("to.hcl", ceGatingInvisibleColumnHCL)
+			},
+			argv: []string{"schema", "diff",
+				"--from", "file://from.hcl", "--to", "file://to.hcl", "--dev-url", ceGatingSQLiteDevURL},
+			expected: CEGatingWorks,
+			rules: CEGatingRules{
+				SuccessFragments:       []string{"CREATE TABLE"},
+				SuccessAbsentFragments: []string{"INVISIBLE", "invisible"},
+			},
+		},
+		{
+			fixture: "control: nonsense column attribute",
+			setup: func(rt *ceGatingRuntime) error {
+				if err := rt.writeFile("from.hcl", ceGatingEmptySchemaHCL); err != nil {
+					return err
+				}
+				return rt.writeFile("to.hcl", ceGatingNonsenseColumnAttrHCL)
+			},
+			argv: []string{"schema", "diff",
+				"--from", "file://from.hcl", "--to", "file://to.hcl", "--dev-url", ceGatingSQLiteDevURL},
+			expected: CEGatingWorks,
+			rules: CEGatingRules{
+				SuccessFragments:       []string{"CREATE TABLE"},
+				SuccessAbsentFragments: []string{"zzz_nonsense_attr"},
+			},
+		},
+		{
+			// v1.3.0 announced Schema Annotations. CE drops the block.
+			fixture: "atlas schema diff (annotation block, v1.3.0)",
+			setup: func(rt *ceGatingRuntime) error {
+				if err := rt.writeFile("from.hcl", ceGatingEmptySchemaHCL); err != nil {
+					return err
+				}
+				return rt.writeFile("to.hcl", ceGatingAnnotationHCL)
+			},
+			argv: []string{"schema", "diff",
+				"--from", "file://from.hcl", "--to", "file://to.hcl", "--dev-url", ceGatingSQLiteDevURL},
+			expected: CEGatingWorks,
+			rules: CEGatingRules{
+				SuccessFragments:       []string{"CREATE TABLE"},
+				SuccessAbsentFragments: []string{"annotation", "gql"},
+			},
+		},
+
+		// --- v1.3.0 pre-apply drift detection --------------------------------
+		//
+		// The dangerous class. CE accepts `check "migrate_apply" { drift }` in
+		// atlas.hcl and then applies a migration with real drift present, at
+		// exit 0, printing no check output. The config is inert, and silently
+		// so. Paired with a nonsense-block control proving atlas.hcl ignores
+		// unknown top-level blocks generally.
+		{
+			// The measured claim is strong and the setup must earn it: apply
+			// the corpus, inject REAL drift the migrations never produced (a
+			// rogue table and an extra column), add a pending migration, then
+			// measure `migrate apply` with the drift check configured. Exit 0
+			// with the pending version applied proves the check neither ran
+			// nor blocked. A `migrate status` here would prove only that the
+			// config parses, which is a much weaker statement.
+			fixture: "atlas migrate apply (check drift configured, drifted db, v1.3.0)",
+			setup: func(rt *ceGatingRuntime) error {
+				if err := setupCEGatingMigrations(rt, true); err != nil {
+					return err
+				}
+				if err := rt.writeFile("atlas.hcl", ceGatingDriftCheckConfig); err != nil {
+					return err
+				}
+				if err := rt.mustRunAtlas("migrate", "apply",
+					"--dir", "file://migrations", "--url", "sqlite://app.db"); err != nil {
+					return err
+				}
+				if err := rt.execSQLite("app.db", ceGatingDriftInjectionSQL); err != nil {
+					return err
+				}
+				if err := rt.writeFile(
+					"migrations/20260101000003_pending.sql", ceGatingPendingMigration); err != nil {
+					return err
+				}
+				return rt.mustRunAtlas("migrate", "hash", "--dir", "file://migrations")
+			},
+			argv: []string{"migrate", "apply", "-c", "file://atlas.hcl", "--env", "local",
+				"--dir", "file://migrations"},
+			expected: CEGatingSilentUnenforced,
+			rules: CEGatingRules{
+				SilentWhenExitZero: true,
+				SilentFragments:    []string{"20260101000003"},
+				// If CE ever starts honoring the check, it prints a drift
+				// diagnostic before any statement runs. Pinning the absence of
+				// that wording means the row cannot stay green by accident.
+				SilentAbsentFragments: []string{"drift", "does not match expected state"},
+			},
+		},
+		{
+			// Identical setup and identical measured argv as the row above,
+			// differing only in the atlas.hcl block name. Same outcome proves
+			// `check` is ignored because it is UNKNOWN, not because drift
+			// detection ran and found nothing.
+			fixture: "control: nonsense atlas.hcl top-level block",
+			setup: func(rt *ceGatingRuntime) error {
+				if err := setupCEGatingMigrations(rt, true); err != nil {
+					return err
+				}
+				if err := rt.writeFile("atlas.hcl", ceGatingNonsenseBlockConfig); err != nil {
+					return err
+				}
+				if err := rt.mustRunAtlas("migrate", "apply",
+					"--dir", "file://migrations", "--url", "sqlite://app.db"); err != nil {
+					return err
+				}
+				if err := rt.execSQLite("app.db", ceGatingDriftInjectionSQL); err != nil {
+					return err
+				}
+				if err := rt.writeFile(
+					"migrations/20260101000003_pending.sql", ceGatingPendingMigration); err != nil {
+					return err
+				}
+				return rt.mustRunAtlas("migrate", "hash", "--dir", "file://migrations")
+			},
+			argv: []string{"migrate", "apply", "-c", "file://atlas.hcl", "--env", "local",
+				"--dir", "file://migrations"},
+			expected: CEGatingSilentUnenforced,
+			rules: CEGatingRules{
+				SilentWhenExitZero:    true,
+				SilentFragments:       []string{"20260101000003"},
+				SilentAbsentFragments: []string{"drift", "does not match expected state"},
+			},
 		},
 	}
 }
