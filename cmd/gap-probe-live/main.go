@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
-	"github.com/stokaro/ptah/dbschema"
+	"go.5x5.cz/ptah/dbschema"
 )
 
 func main() {

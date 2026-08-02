@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
-	"github.com/stokaro/ptah/dbschema"
+	"go.5x5.cz/ptah/dbschema"
 )
 
 const atlasSHA = "a5e0aecc2bb64143bf522734f8ad88e04885fca6"

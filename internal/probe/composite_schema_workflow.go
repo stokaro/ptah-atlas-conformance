@@ -669,13 +669,22 @@ func schemaComparisonSection(output string) (string, error) {
 	return strings.TrimSpace(diff), nil
 }
 
+// renderedSQLSection returns the SQL from a `ptah schema render` run.
+//
+// It used to cut the output at an `=== SQLITE SCHEMA ===` banner. stokaro/ptah#1007
+// deliberately removed that banner and moved every diagnostic to stderr --
+// asserting `stdout` does NOT contain it, and that `Found N tables` and
+// `Table Dependencies:` appear on stderr instead -- so stdout is now pure SQL
+// and there is nothing to cut.
+//
+// This tier did not notice for a day: it builds ptah from the pinned module
+// version rather than from a checkout, and the pin predated that change.
 func renderedSQLSection(output string) (string, error) {
-	const marker = "=== SQLITE SCHEMA ==="
-	_, sql, ok := strings.Cut(output, marker)
-	if !ok {
-		return "", fmt.Errorf("render output is missing %q", marker)
+	sql := strings.TrimSpace(output)
+	if sql == "" {
+		return "", fmt.Errorf("render output is empty")
 	}
-	return strings.TrimSpace(sql), nil
+	return sql, nil
 }
 
 func compositeSchemaGap(fixture, stage, detail string) Result {
