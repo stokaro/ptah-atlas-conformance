@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
@@ -320,8 +321,8 @@ func TestClassifyCEGating(t *testing.T) {
 }
 
 // TestCEGatingScenarioTable_MatchesMeasuredBaseline pins the scenario table to
-// the hand-measured 2026-08-01 Atlas CE v1.2.0 gating baseline. Changing the
-// table without re-measuring against the real binary must fail here.
+// the v1.2.0 baseline plus v1.3.0 additions, all measured against Atlas CE
+// v1.3.0. Changing the table without re-measuring the real binary must fail.
 func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 	c := qt.New(t)
 	table := probe.CEGatingScenarioTable()
@@ -479,16 +480,13 @@ func TestRunCEGating_BareBinaryNameResolvesViaPATH(t *testing.T) {
 	// A setup-free stub scenario must have produced a classified observation:
 	// the silent fake exits 0, so the abort baseline reads as a works gap —
 	// proof the bare name resolved via PATH and actually executed.
-	var sawSchemaPush bool
-	for _, r := range run.Results {
-		if r.Fixture != "atlas schema push (bare CE sentinel)" {
-			continue
-		}
-		sawSchemaPush = true
-		c.Check(r.Outcome, qt.Equals, probe.Gap, qt.Commentf("%s", r.Detail))
-		c.Check(r.Detail, qt.Contains, "observed works")
-	}
-	c.Check(sawSchemaPush, qt.IsTrue)
+	resultIndex := slices.IndexFunc(run.Results, func(result probe.Result) bool {
+		return result.Fixture == "atlas schema push (bare CE sentinel)"
+	})
+	c.Assert(resultIndex, qt.Not(qt.Equals), -1)
+	result := run.Results[resultIndex]
+	c.Check(result.Outcome, qt.Equals, probe.Gap, qt.Commentf("%s", result.Detail))
+	c.Check(result.Detail, qt.Contains, "observed works")
 }
 
 func TestCEGatingAtlasVersion_HermeticFirstLine(t *testing.T) {
@@ -530,16 +528,15 @@ func TestRenderCEGatingMarkdown_Header(t *testing.T) {
 		Detail:  "class: works — exit 0",
 	}}
 
-	md := probe.RenderCEGatingMarkdownWithCommand(results, "atlas community version v1.2.0", "make probe-ce-gating")
+	md := probe.RenderCEGatingMarkdownWithCommand(results, "atlas community version v1.3.0", "make probe-ce-gating")
 
 	c.Check(md, qt.Contains, "# Atlas CE gating conformance report")
 	c.Check(md, qt.Contains, "make probe-ce-gating")
-	c.Check(md, qt.Contains, "`atlas community version v1.2.0`")
+	c.Check(md, qt.Contains, "`atlas community version v1.3.0`")
 	c.Check(md, qt.Contains, "logged out")
-	c.Check(md, qt.Contains, "measured 2026-08-01 baseline for Atlas CE v1.2.0")
-	// The baseline line must carry the re-confirmation too, so a reader can
-	// tell the current pin was actually re-measured rather than assumed.
-	c.Check(md, qt.Contains, "re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02")
+	c.Check(md, qt.Contains, "2026-08-01 Atlas CE v1.2.0 baseline")
+	c.Check(md, qt.Contains, "v1.3.0 additions measured on 2026-08-02")
+	c.Check(md, qt.Contains, "every row was measured against Atlas CE v1.3.0 on 2026-08-02")
 	// This tier measures the Atlas binary only; Ptah must not be claimed.
 	c.Check(md, qt.Not(qt.Contains), "Ptah at `")
 }

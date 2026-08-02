@@ -3874,9 +3874,9 @@
   {
     "probe": "atlas-compat-binary-surface",
     "fixture": "atlas migrate down",
-    "stage": "resolve",
+    "stage": "out-of-scope",
     "outcome": "ok",
-    "detail": "`atlas migrate down` resolves through a ptah-compat binary named `atlas`"
+    "detail": "cloud/registry or Pro-only Atlas command; not an OSS drop-in target"
   },
   {
     "probe": "atlas-compat-binary-surface",
@@ -5318,14 +5318,14 @@
     "fixture": "atlas schema plan new",
     "stage": "plan file creation",
     "outcome": "ok",
-    "detail": "PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, reported the documentation-derived boundary on stderr, and left the target database unchanged"
+    "detail": "PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, kept stderr empty, and left the target database unchanged"
   },
   {
     "probe": "pro-plan-workflow",
     "fixture": "atlas schema plan validate",
     "stage": "non-mutating validation",
     "outcome": "ok",
-    "detail": "PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout, emitted only the explicit documentation-derived warning, and left the target database unchanged"
+    "detail": "PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout and stderr and left the target database unchanged"
   },
   {
     "probe": "pro-plan-workflow",

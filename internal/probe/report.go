@@ -161,7 +161,7 @@ func RenderCEGatingMarkdownWithCommand(results []Result, atlasVersion, command s
 			// which the binary-under-test line above cannot convey. It must be
 			// extended whenever the baseline is re-confirmed against a new
 			// pin, otherwise the report implies the pin was never re-measured.
-			"Expected classes are the hand-measured 2026-08-01 baseline for Atlas CE v1.2.0, re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02.",
+			"Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02.",
 		},
 	})
 }

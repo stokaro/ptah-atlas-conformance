@@ -24,10 +24,10 @@ const proPlanWorkflowSentinel = "_capability/pro-plan-workflow/SENTINEL"
 // reviewed plan, and stale targets are refused without mutation.
 //
 // THIS PROBE HAS NO CE ORACLE AND PINS PTAH-SIDE BEHAVIOR. Atlas binds plan
-// storage and approval to its Cloud registry, and pinned Atlas CE v1.2.0
-// answers `'atlas schema plan' is not supported by the community version`, so
-// nothing here can be differentialed against CE. Its rows are regression
-// guards on Ptah's own contract, not parity evidence.
+// storage and approval to its Cloud registry, and Atlas CE v1.3.0 answers
+// `'atlas schema plan' is not supported by the community version`, so nothing
+// here can be differentialed against CE. Its rows are regression guards on
+// Ptah's own contract, not parity evidence.
 //
 // stokaro/ptah#965 made Atlas's `.plan.hcl` the default encoding and kept the
 // native fingerprinted JSON plan reachable through an explicit .json --output
@@ -71,11 +71,6 @@ func (p ProPlanWorkflowProbe) Run(fx Fixture) []Result {
 type proPlanWorkflow struct {
 	*proWorkflowRuntime
 }
-
-const (
-	proPlanNewWarning      = "Note: the behavior of `atlas schema plan new` (writing a plan file with no --save flag to request it) is derived from Atlas documentation and is not verified against the Atlas binary (stokaro/ptah#951).\n"
-	proPlanValidateWarning = "Note: the behavior of `atlas schema plan validate` (which checks it runs, and its silent success output) is derived from Atlas documentation and is not verified against the Atlas binary (stokaro/ptah#951).\n"
-)
 
 // proPlanDocument is the subset of the saved plan-file document the probe
 // asserts on.
@@ -265,8 +260,8 @@ func (p *proPlanWorkflow) planNewCreation() Result {
 	}); gap != nil {
 		return *gap
 	}
-	if result.stderr != proPlanNewWarning {
-		return p.gap(fixture, stage, "documentation-derived behavior warning changed: "+oneLine(result.stderr))
+	if result.stderr != "" {
+		return p.gap(fixture, stage, "successful plan creation wrote unexpected stderr: "+oneLine(result.stderr))
 	}
 	if gap := p.checkAtlasPlanHCL(fixture, stage, "new.plan.hcl"); gap != nil {
 		return *gap
@@ -275,7 +270,7 @@ func (p *proPlanWorkflow) planNewCreation() Result {
 		return *gap
 	}
 	return p.ok(fixture, stage,
-		"PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, reported the documentation-derived boundary on stderr, and left the target database unchanged")
+		"PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, kept stderr empty, and left the target database unchanged")
 }
 
 func (p *proPlanWorkflow) planValidation() Result {
@@ -298,14 +293,14 @@ func (p *proPlanWorkflow) planValidation() Result {
 	if result.stdout != "" {
 		return p.gap(fixture, stage, "successful validation wrote unexpected stdout: "+oneLine(result.stdout))
 	}
-	if result.stderr != proPlanValidateWarning {
-		return p.gap(fixture, stage, "documentation-derived behavior warning changed: "+oneLine(result.stderr))
+	if result.stderr != "" {
+		return p.gap(fixture, stage, "successful validation wrote unexpected stderr: "+oneLine(result.stderr))
 	}
 	if gap := p.expectTables(fixture, stage, "new-target.db", nil); gap != nil {
 		return *gap
 	}
 	return p.ok(fixture, stage,
-		"PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout, emitted only the explicit documentation-derived warning, and left the target database unchanged")
+		"PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout and stderr and left the target database unchanged")
 }
 
 func (p *proPlanWorkflow) stalePlanValidation() Result {
@@ -333,7 +328,6 @@ func (p *proPlanWorkflow) stalePlanValidation() Result {
 		return p.gap(fixture, stage, "stale validation wrote unexpected stdout: "+oneLine(result.stdout))
 	}
 	if gap := p.expectFragments(fixture, stage, "stderr", result.stderr, []string{
-		strings.TrimSpace(proPlanValidateWarning),
 		"pre-planned migration is stale",
 		"source fingerprint",
 	}); gap != nil {

@@ -42,7 +42,7 @@ type migrateRuntimeTarget struct {
 // stokaro/ptah#850); Ptah-native `migrations ...` checks run on the main
 // `ptah` binary.
 func RunMigrateRuntime() []Result {
-	atlasBin := DefaultAtlasBinary()
+	atlasBin := resolveCEGatingBinary(DefaultAtlasBinary())
 	_, err := validatePinnedAtlasBinary(atlasBin)
 	if err != nil {
 		return []Result{migrateRuntimeFail("atlas-runtime-oracle", "atlas-version", err)}

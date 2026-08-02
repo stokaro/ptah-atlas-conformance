@@ -17,7 +17,7 @@ the dedicated CE-gating report.
 Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 - Atlas CE binary: `atlas community version v1.3.0`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260802173234-7eb8d0748d76`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260802212341-c59c94b35cdd`
 - Outcomes: **105 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -107,27 +107,27 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | usage | usage matches Atlas: `atlas schema inspect [flags]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas version` | flags | long flags match Atlas: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas version` | usage | usage matches Atlas: `atlas version [flags]` |  |
-| — | ok | ptah-non-oss-sentinel | `atlas migrate checkpoint` | capability-runtime | `atlas migrate checkpoint` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas migrate checkpoint` | availability-boundary | `atlas migrate checkpoint` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate checkpoint` | flags | exposes the first-party required long flags: --dev-url --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate checkpoint` | usage | usage matches the first-party open-capability contract: `atlas migrate checkpoint [flags] [name]` (Atlas CE has no help for this verb) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas migrate down` | capability-runtime | `atlas migrate down` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas migrate down` | availability-boundary | `atlas migrate down` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate down` | flags | exposes the first-party required long flags: --dev-url --dir --dry-run --format --lock-timeout --revisions-schema --to-version --url (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate down` | usage | usage matches the first-party open-capability contract: `atlas migrate down [flags]` (Atlas CE has no help for this verb) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas migrate edit` | capability-runtime | `atlas migrate edit` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas migrate edit` | availability-boundary | `atlas migrate edit` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate edit` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate edit` | usage | usage matches the first-party open-capability contract: `atlas migrate edit [flags] {name \| version}` (Atlas CE has no help for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate push` | out-of-scope-help | `atlas migrate push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate push` | out-of-scope-runtime | `atlas migrate push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas migrate rebase` | capability-runtime | `atlas migrate rebase` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas migrate rebase` | availability-boundary | `atlas migrate rebase` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate rebase` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate rebase` | usage | usage matches the first-party open-capability contract: `atlas migrate rebase [flags] {name \| version}...` (Atlas CE has no help for this verb) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas migrate rm` | capability-runtime | `atlas migrate rm` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas migrate rm` | availability-boundary | `atlas migrate rm` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate rm` | flags | exposes the first-party required long flags: --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate rm` | usage | usage matches the first-party open-capability contract: `atlas migrate rm [flags] {name \| version}` (Atlas CE has no help for this verb) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas migrate test` | capability-runtime | `atlas migrate test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas migrate test` | availability-boundary | `atlas migrate test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate test` | flags | exposes the first-party required long flags: --dev-url --dir --dir-format --run (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate test` | usage | usage matches the first-party open-capability contract: `atlas migrate test [flags] [paths]` (Atlas CE has no help for this verb) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema plan` | capability-runtime | `atlas schema plan` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas schema plan` | availability-boundary | `atlas schema plan` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan` | flags | exposes the first-party required long flags: --dev-url --dry-run --edit --from --name --output --save --to (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan` | usage | usage matches the first-party open-capability contract: `atlas schema plan [flags]` (Atlas CE has no help for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan approve` | out-of-scope-help | `atlas schema plan approve --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
@@ -136,7 +136,7 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-runtime | `atlas schema plan lint` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan list` | out-of-scope-help | `atlas schema plan list --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan list` | out-of-scope-runtime | `atlas schema plan list` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema plan new` | capability-runtime | `atlas schema plan new` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas schema plan new` | availability-boundary | `atlas schema plan new` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan new` | flags | exposes the first-party required long flags: --auto-approve --dev-url --edit --exclude --format --from --include --lock-timeout --name --name-format --output --repo --schema --to (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan new` | usage | usage matches the first-party open-capability contract: `atlas schema plan new [flags]` (Atlas CE has no help for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan pull` | out-of-scope-help | `atlas schema plan pull --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
@@ -147,11 +147,11 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan rm` | out-of-scope-runtime | `atlas schema plan rm` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-help | `atlas schema plan test --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-runtime | `atlas schema plan test` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema plan validate` | capability-runtime | `atlas schema plan validate` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas schema plan validate` | availability-boundary | `atlas schema plan validate` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan validate` | flags | exposes the first-party required long flags: --auto-approve --dev-url --exclude --file --format --from --include --lock-timeout --repo --schema --to (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan validate` | usage | usage matches the first-party open-capability contract: `atlas schema plan validate [flags]` (Atlas CE has no help for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema push` | out-of-scope-help | `atlas schema push --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema push` | out-of-scope-runtime | `atlas schema push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema test` | capability-runtime | `atlas schema test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe |  |
+| — | ok | ptah-non-oss-sentinel | `atlas schema test` | availability-boundary | `atlas schema test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | flags | exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | usage | usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb) |  |

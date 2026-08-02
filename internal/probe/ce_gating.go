@@ -12,16 +12,16 @@ import (
 // The CE gating tier executes the pinned Atlas CE binary, logged out, through
 // a fixed scenario table covering the capabilities Ptah's feature matrix
 // asserts about the CE column, and classifies each observed outcome. The
-// expected classes encode the hand-measured 2026-08-01 baseline for Atlas CE
-// v1.2.0, re-confirmed unchanged against Atlas CE v1.3.0 on 2026-08-02; a
-// renovate bump of atlas.version that changes gating behavior turns the gate
-// red instead of silently invalidating the matrix.
+// expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0
+// baseline with v1.3.0 additions measured on 2026-08-02. Every row was
+// measured against Atlas CE v1.3.0; a renovate bump of atlas.version that
+// changes gating behavior turns the gate red instead of silently invalidating
+// the matrix.
 //
-// The v1.3.0 re-measurement found ZERO class changes in either direction: the
-// generated report was byte-identical apart from its header version line. That
-// is recorded here because "the pin moved and nothing moved with it" is only
-// trustworthy if someone wrote down that it was actually re-measured rather
-// than assumed.
+// The v1.3.0 re-measurement found no class changes in the pre-existing rows and
+// added explicit scenarios for the newly announced surfaces. That distinction
+// prevents the provenance from claiming an unchanged report after its scenario
+// universe grew.
 
 // CEGatingClass partitions the observed behavior of one Atlas CE invocation.
 type CEGatingClass string
@@ -257,9 +257,9 @@ type CEGatingScenario struct {
 	Expected CEGatingClass
 }
 
-// CEGatingScenarioTable returns the fixed scenario table encoding the measured
-// 2026-08-01 Atlas CE v1.2.0 gating baseline, re-confirmed against v1.3.0 on
-// 2026-08-02.
+// CEGatingScenarioTable returns the fixed scenario table combining the Atlas CE
+// v1.2.0 baseline with v1.3.0 additions. Every row was measured against v1.3.0
+// on 2026-08-02.
 func CEGatingScenarioTable() []CEGatingScenario {
 	scenarios := ceGatingScenarios()
 	table := make([]CEGatingScenario, len(scenarios))
@@ -375,14 +375,16 @@ func (s ceGatingScenario) execute(atlasBin string) (Result, CEGatingClass) {
 	}
 	observed, summary := ClassifyCEGating(s.rules, command.exitCode, command.stdout+"\n"+command.stderr)
 	if observed == s.expected {
-		if detail := compareCECommunityAbortContract(command, s.rules); detail != "" {
-			return Result{
-				Probe:   "ce-gating",
-				Fixture: s.fixture,
-				Stage:   string(s.expected),
-				Outcome: Gap,
-				Detail:  detail,
-			}, observed
+		if s.expected == CEGatingCommunityAbort {
+			if detail := compareCECommunityAbortContract(command, s.rules); detail != "" {
+				return Result{
+					Probe:   "ce-gating",
+					Fixture: s.fixture,
+					Stage:   string(s.expected),
+					Outcome: Gap,
+					Detail:  detail,
+				}, observed
+			}
 		}
 		return Result{
 			Probe:   "ce-gating",
@@ -873,11 +875,10 @@ func setupCEGatingDeclarativeState(rt *ceGatingRuntime, extraFiles map[string]st
 		"--auto-approve")
 }
 
-// ceGatingScenarios is the fixed scenario table. Expected classes encode the
-// hand-measured 2026-08-01 baseline for the pinned Atlas CE v1.2.0 binary,
-// re-confirmed unchanged against v1.3.0 on 2026-08-02, with the v1.3.0 rows
-// and the control set added at that point; do not edit an expectation without
-// re-measuring against the real binary.
+// ceGatingScenarios is the fixed scenario table. Expected classes combine the
+// hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 rows and
+// controls added on 2026-08-02. Every row was measured against v1.3.0; do not
+// edit an expectation without re-measuring against the real binary.
 //
 // Rows whose fixture name starts with "control:" are not capability
 // assertions — they are the reference shapes that make the capability rows

@@ -428,7 +428,7 @@ func compareImplementedProCommand(probeName, display, bin string, path []string,
 	stdout, stderr, err := commandStreams(bin, path, "")
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
-			return []Result{{probeName, display, "capability-runtime", Fail,
+			return []Result{{probeName, display, "availability-boundary", Fail,
 				"executing `" + display + "` failed: " + oneLine(err.Error()), ""}}
 		}
 	}
@@ -437,11 +437,11 @@ func compareImplementedProCommand(probeName, display, bin string, path []string,
 	ceBoundary := "'" + command + "' is not supported by the community version"
 	combined := stdout + stderr
 	if strings.Contains(combined, ptahBoundary) || strings.Contains(combined, ceBoundary) {
-		return []Result{{probeName, display, "capability-runtime", Gap,
+		return []Result{{probeName, display, "availability-boundary", Gap,
 			"`" + display + "` regressed to an unavailable-command stub; Ptah implements this Pro verb as an open capability and must keep it resolving", issue}}
 	}
-	out := []Result{{probeName, display, "capability-runtime", OK,
-		"`" + display + "` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe", ""}}
+	out := []Result{{probeName, display, "availability-boundary", OK,
+		"`" + display + "` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe", ""}}
 
 	target, err := readCommandSurface(bin, path)
 	if err != nil {
@@ -758,6 +758,9 @@ func DefaultAtlasBinary() string {
 	}
 	local := filepath.Join("bin", "atlas")
 	if _, err := os.Stat(local); err == nil {
+		if absolute, absErr := filepath.Abs(local); absErr == nil {
+			return absolute
+		}
 		return local
 	}
 	return "atlas"

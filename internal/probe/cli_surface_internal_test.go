@@ -466,11 +466,11 @@ esac
 
 	c.Assert(got, qt.HasLen, 3)
 	stages := []string{got[0].Stage, got[1].Stage, got[2].Stage}
-	c.Check(stages, qt.DeepEquals, []string{"capability-runtime", "usage", "flags"})
+	c.Check(stages, qt.DeepEquals, []string{"availability-boundary", "usage", "flags"})
 	for _, result := range got {
 		c.Check(result.Outcome, qt.Equals, OK, qt.Commentf("%s: %s", result.Stage, result.Detail))
 	}
-	c.Check(got[0].Detail, qt.Contains, "open Ptah capability")
+	c.Check(got[0].Detail, qt.Contains, "does not return either unavailable-command sentinel")
 	c.Check(got[1].Detail, qt.Contains, "atlas migrate edit [flags] {name | version}")
 	c.Check(got[2].Detail, qt.Contains, "--dir --dir-format")
 }
@@ -495,7 +495,7 @@ exit 1
 	)
 
 	c.Assert(got, qt.HasLen, 1)
-	c.Check(got[0].Stage, qt.Equals, "capability-runtime")
+	c.Check(got[0].Stage, qt.Equals, "availability-boundary")
 	c.Check(got[0].Outcome, qt.Equals, Gap)
 	c.Check(got[0].Detail, qt.Contains, "regressed to an unavailable-command stub")
 }
@@ -520,7 +520,7 @@ exit 1
 	)
 
 	c.Assert(got, qt.HasLen, 1)
-	c.Check(got[0].Stage, qt.Equals, "capability-runtime")
+	c.Check(got[0].Stage, qt.Equals, "availability-boundary")
 	c.Check(got[0].Outcome, qt.Equals, Gap)
 	c.Check(got[0].Detail, qt.Contains, "regressed to an unavailable-command stub")
 }

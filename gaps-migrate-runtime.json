@@ -25,7 +25,7 @@
     "fixture": "goose/hash-validate-differential",
     "stage": "tamper detection",
     "outcome": "ok",
-    "detail": "Atlas CE and ptah-compat rejected the same tampered Goose directory with byte-identical stdout/stderr"
+    "detail": "Atlas CE and ptah-compat rejected the same tampered Goose directory with the pinned v1.3.0 exit/stdout/stderr contract"
   },
   {
     "probe": "migrate-runtime",

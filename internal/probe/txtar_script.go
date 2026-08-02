@@ -239,12 +239,11 @@ func (r txtarRunSummary) detail() string {
 }
 
 type txtarCommandResult struct {
-	stdout         string
-	stderr         string
-	unsupported    string
-	failed         bool
-	migrateLintRun *txtarMigrateLintRun
-	err            error
+	stdout      string
+	stderr      string
+	unsupported string
+	failed      bool
+	err         error
 }
 
 type txtarRuntime struct {
@@ -283,14 +282,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 	dbStateUnsupported := false
 	summary := txtarRunSummary{commands: commands}
 	var last txtarCommandResult
-	var migrateLintExpected migrateLintExpectedDiagnostics
 	for _, line := range strings.Split(txtarScriptPrefix(data), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
 			continue
-		}
-		if !txtarIsStreamAssertion(trimmed) {
-			finalizeMigrateLintAssertions(&summary, &last, &migrateLintExpected)
 		}
 		switch {
 		case strings.HasPrefix(trimmed, "only ") || strings.HasPrefix(trimmed, "! only "):
@@ -332,22 +327,15 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 				continue
 			}
 			summary.checked++
-			if last.migrateLintRun != nil {
-				handled, err := migrateLintExpected.observe(trimmed)
-				switch {
-				case err != nil:
-					summary.failures = append(summary.failures, "migrate lint assertion failed: "+oneLine(err.Error()))
-					continue
-				case handled:
-					continue
-				}
-			}
 			matched, err := txtarAssertionMatches(last.stdout, trimmed)
 			switch {
 			case err != nil:
 				summary.failures = append(summary.failures, "stdout assertion regexp failed: "+oneLine(err.Error()))
 			case !matched:
-				summary.failures = append(summary.failures, "stdout assertion did not match")
+				summary.failures = append(summary.failures, fmt.Sprintf(
+					"stdout assertion %q did not match %q",
+					txtarAssertionText(trimmed), oneLine(last.stdout),
+				))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "stderr "):
@@ -360,7 +348,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			case err != nil:
 				summary.failures = append(summary.failures, "stderr assertion regexp failed: "+oneLine(err.Error()))
 			case !matched:
-				summary.failures = append(summary.failures, "stderr assertion did not match")
+				summary.failures = append(summary.failures, fmt.Sprintf(
+					"stderr assertion %q did not match %q",
+					txtarAssertionText(trimmed), oneLine(last.stderr),
+				))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "cmp "):
@@ -473,31 +464,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			summary.failures = append(summary.failures, txtarFailureDetail(result))
 		}
 	}
-	finalizeMigrateLintAssertions(&summary, &last, &migrateLintExpected)
 	if summary.executed == 0 && summary.checked == 0 && len(summary.unsupported) == 0 {
 		summary.unsupported = append(summary.unsupported, commands...)
 	}
 	return summary
-}
-
-func txtarIsStreamAssertion(line string) bool {
-	return strings.HasPrefix(line, "stdout ") || strings.HasPrefix(line, "stderr ") ||
-		strings.HasPrefix(line, "! stdout ") || strings.HasPrefix(line, "! stderr ")
-}
-
-func finalizeMigrateLintAssertions(
-	summary *txtarRunSummary,
-	result *txtarCommandResult,
-	expected *migrateLintExpectedDiagnostics,
-) {
-	if result.migrateLintRun == nil {
-		return
-	}
-	if err := expected.compare(*result.migrateLintRun); err != nil {
-		summary.failures = append(summary.failures, oneLine(err.Error()))
-	}
-	result.migrateLintRun = nil
-	*expected = migrateLintExpectedDiagnostics{}
 }
 
 func runTxtarCommand(fx Fixture, runtime *txtarRuntime, line string, expectedFailure bool) txtarCommandResult {

@@ -54,3 +54,18 @@ func TestRunMigrateRuntime_RejectsMismatchedAtlasVersion(t *testing.T) {
 		Detail:  `Atlas binary reports "atlas community version v0.0.0", want atlas.version "v1.3.0"`,
 	}})
 }
+
+func TestDefaultAtlasBinary_RepositoryLocalPathIsAbsolute(t *testing.T) {
+	c := qt.New(t)
+	root := t.TempDir()
+	binDir := filepath.Join(root, "bin")
+	c.Assert(os.Mkdir(binDir, 0o700), qt.IsNil)
+	c.Assert(os.WriteFile(filepath.Join(binDir, "atlas"), []byte("atlas"), 0o600), qt.IsNil)
+	t.Chdir(root)
+	t.Setenv("ATLAS_BIN", "")
+
+	got := probe.DefaultAtlasBinary()
+
+	c.Assert(got, qt.Equals, filepath.Join(root, "bin", "atlas"))
+	c.Assert(filepath.IsAbs(got), qt.IsTrue)
+}

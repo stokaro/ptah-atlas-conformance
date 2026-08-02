@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260802173234-7eb8d0748d76`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260802212341-c59c94b35cdd`
 - Outcomes: **805 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -73,7 +73,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-compat-binary-surface | `atlas migrate apply` | resolve | `atlas migrate apply` resolves through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-compat-binary-surface | `atlas migrate checkpoint` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-compat-binary-surface | `atlas migrate diff` | resolve | `atlas migrate diff` resolves through a ptah-compat binary named `atlas` |  |
-| — | ok | atlas-compat-binary-surface | `atlas migrate down` | resolve | `atlas migrate down` resolves through a ptah-compat binary named `atlas` |  |
+| — | ok | atlas-compat-binary-surface | `atlas migrate down` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-compat-binary-surface | `atlas migrate edit` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-compat-binary-surface | `atlas migrate hash` | resolve | `atlas migrate hash` resolves through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-compat-binary-surface | `atlas migrate import` | resolve | `atlas migrate import` resolves through a ptah-compat binary named `atlas` |  |
@@ -537,8 +537,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | pro-plan-workflow | `atlas schema apply` | plan application | PTAH-SIDE PIN (no CE oracle): `schema apply --plan file://...` replayed the saved native JSON plan against the planned target, creating exactly the desired users table |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | PTAH-SIDE PIN (no CE oracle): a target mutated after planning was refused: apply --plan on the native JSON plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
 | — | ok | pro-plan-workflow | `atlas schema plan` | plan creation | PTAH-SIDE PIN (no CE oracle — the pinned Atlas CE answers "'atlas schema plan' is not supported by the community version"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity |  |
-| — | ok | pro-plan-workflow | `atlas schema plan new` | plan file creation | PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, reported the documentation-derived boundary on stderr, and left the target database unchanged |  |
-| — | ok | pro-plan-workflow | `atlas schema plan validate` | non-mutating validation | PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout, emitted only the explicit documentation-derived warning, and left the target database unchanged |  |
+| — | ok | pro-plan-workflow | `atlas schema plan new` | plan file creation | PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan new` wrote the Atlas-shaped plan without --save, kept stderr empty, and left the target database unchanged |  |
+| — | ok | pro-plan-workflow | `atlas schema plan validate` | non-mutating validation | PTAH-SIDE PIN (documented, no executable Atlas oracle): `schema plan validate` exited 0 with empty stdout and stderr and left the target database unchanged |  |
 | — | ok | pro-plan-workflow | `atlas schema plan validate` | stale target refusal | PTAH-SIDE PIN (documented, no executable Atlas oracle): validation rejected a target changed after planning, named the source fingerprint mismatch, and preserved the drift table without applying the plan |  |
 | — | ok | pro-test-workflow | `atlas migrate test` | migration tests pass | the Atlas Pro test verb applied the Atlas-format migration directory to a real SQLite dev database and passed the committed case set: migrate_to latest, exec, and row-count/scalar assertions |  |
 | — | ok | pro-test-workflow | `atlas migrate test` | migration test failure exit contract | a deliberately failing assertion produced a structured FAIL report naming the step divergence and process exit code 1 |  |

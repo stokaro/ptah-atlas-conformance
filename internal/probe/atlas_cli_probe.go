@@ -32,9 +32,10 @@ type CLIVerb struct {
 // ptah-compat binary (built as `atlas`); cloud/registry/Pro verbs are out of
 // OSS scope and only recorded. The split is grounded in Atlas's documented
 // open CLI feature surface and current CLI reference. In particular, `atlas
-// migrate down` is an OSS versioned-migration command even though Ptah still
-// has behavior and flag gaps behind its resolving command path. Since
-// stokaro/ptah#850 the ptah-compat binary is the only Atlas-shaped surface:
+// migrate down` is Pro-gated by Atlas CE v1.3.0; Ptah exposes it as an open
+// extension and measures it in the dedicated non-OSS sentinel and workflow
+// tiers. Since stokaro/ptah#850 the ptah-compat binary is the only Atlas-shaped
+// surface:
 // the main `ptah` binary rejects the `atlas` namespace outright (pinned by the
 // cli-exit-behavior probe).
 var atlasCLIVerbs = []CLIVerb{
@@ -47,7 +48,7 @@ var atlasCLIVerbs = []CLIVerb{
 	{"atlas schema clean", []string{"schema", "clean"}, true},
 	{"atlas migrate apply", []string{"migrate", "apply"}, true},
 	{"atlas migrate diff", []string{"migrate", "diff"}, true},
-	{"atlas migrate down", []string{"migrate", "down"}, true},
+	{"atlas migrate down", []string{"migrate", "down"}, false},
 	{"atlas migrate hash", []string{"migrate", "hash"}, true},
 	{"atlas migrate import", []string{"migrate", "import"}, true},
 	{"atlas migrate lint", []string{"migrate", "lint"}, true},

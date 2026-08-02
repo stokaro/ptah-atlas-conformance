@@ -401,9 +401,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema test",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas schema test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas schema test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -422,9 +422,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema plan",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas schema plan` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas schema plan` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -485,9 +485,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema plan new",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas schema plan new` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas schema plan new` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -562,9 +562,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema plan validate",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas schema plan validate` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas schema plan validate` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -597,9 +597,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas migrate checkpoint",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas migrate checkpoint` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas migrate checkpoint` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -618,9 +618,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas migrate down",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas migrate down` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas migrate down` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -639,9 +639,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas migrate edit",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas migrate edit` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas migrate edit` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -674,9 +674,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas migrate rebase",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas migrate rebase` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas migrate rebase` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -695,9 +695,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas migrate rm",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas migrate rm` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas migrate rm` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -716,9 +716,9 @@
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas migrate test",
-    "stage": "capability-runtime",
+    "stage": "availability-boundary",
     "outcome": "ok",
-    "detail": "`atlas migrate test` executes as an open Ptah capability instead of Atlas CE's community-version abort; behavioral coverage is owned by the matching workflow probe"
+    "detail": "`atlas migrate test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe"
   },
   {
     "probe": "ptah-non-oss-sentinel",
