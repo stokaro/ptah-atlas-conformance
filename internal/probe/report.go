@@ -128,7 +128,7 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"Apply-time integrity: both Atlas branches of the atlas.sum contract — the checksum-mismatch refusal on a *hashed* directory edited after hashing, and the checksum-file-not-found refusal on a directory that was never hashed. Each is measured on exit code, output shape, and the absence of the target database.",
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
-			"Goose checksum integrity: byte-identical Atlas CE/Ptah atlas.sum generation, cross-validation of each other's checksum, and byte-identical rejection after tampering.",
+			"Goose checksum integrity: byte-identical Atlas CE/Ptah atlas.sum generation, cross-validation of each other's checksum, explicit measurement of Atlas CE's stateful first-error advisory, and byte-identical stable rejection after tampering.",
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",
 			"Pre-migration checks: checks.sql and ordered checks/*.sql groups run before migration.sql; oneof groups, including empty groups, fail closed; every assertion must return exactly one row and one column; blocked migrations write no revision row.",
 			"Check isolation and dialect semantics: PostgreSQL E-strings and advisory-lock release; MySQL and MariaDB executable comments, short numeric comment bodies, and hidden-statement rejection before query execution.",

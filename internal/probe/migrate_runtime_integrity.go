@@ -27,6 +27,7 @@ func gooseMigrateIntegrityOracle(ptahBin, atlasBin string) []Result {
 
 	atlasDir := filepath.Join(root, "atlas")
 	ptahDir := filepath.Join(root, "ptah")
+	atlasEnv := []string{"HOME=" + filepath.Join(root, "atlas-home")}
 	for _, dir := range []string{atlasDir, ptahDir} {
 		if err := writeGooseIntegrityFixture(dir); err != nil {
 			return []Result{migrateRuntimeFail(gooseIntegrityFixture, "setup", err)}
@@ -34,7 +35,7 @@ func gooseMigrateIntegrityOracle(ptahBin, atlasBin string) []Result {
 	}
 
 	atlasBin = resolveCEGatingBinary(atlasBin)
-	atlasHash, err := runIntegrityCommand(atlasBin, "hash", atlasDir)
+	atlasHash, err := runIntegrityCommand(atlasBin, "hash", atlasDir, atlasEnv...)
 	if err != nil {
 		return []Result{migrateRuntimeFail(gooseIntegrityFixture, "atlas hash", err)}
 	}
@@ -60,7 +61,7 @@ func gooseMigrateIntegrityOracle(ptahBin, atlasBin string) []Result {
 	if err := os.WriteFile(filepath.Join(atlasDir, "atlas.sum"), ptahSum, 0o600); err != nil { //nolint:gosec // Fixed child of the private MkdirTemp root.
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "install Ptah checksum", err))
 	}
-	atlasValidate, err := runIntegrityCommand(atlasBin, "validate", atlasDir)
+	atlasValidate, err := runIntegrityCommand(atlasBin, "validate", atlasDir, atlasEnv...)
 	if err != nil {
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Atlas cross-validation", err))
 	}
@@ -75,9 +76,14 @@ func gooseMigrateIntegrityOracle(ptahBin, atlasBin string) []Result {
 			return append(results, migrateRuntimeFail(gooseIntegrityFixture, "tamper fixture", err))
 		}
 	}
-	atlasTampered, err := runIntegrityCommand(atlasBin, "validate", atlasDir)
+	atlasFirstTampered, err := runIntegrityCommand(atlasBin, "validate", atlasDir, atlasEnv...)
 	if err != nil {
-		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Atlas tamper validation", err))
+		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Atlas first tamper validation", err))
+	}
+	results = append(results, compareAtlasFirstErrorAdvisory(atlasFirstTampered))
+	atlasTampered, err := runIntegrityCommand(atlasBin, "validate", atlasDir, atlasEnv...)
+	if err != nil {
+		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Atlas stable tamper validation", err))
 	}
 	ptahTampered, err := runIntegrityCommand(ptahBin, "validate", ptahDir)
 	if err != nil {
@@ -94,7 +100,11 @@ const (
 	gooseIntegrityTamperStdout = "You have a checksum error in your migration directory.\n\n" +
 		"\tL2: 1_initial.sql was edited\n\n" +
 		"Please check your migration files and run 'atlas migrate hash' to re-hash the contents\n\n"
-	gooseIntegrityTamperStderr = "Error: checksum mismatch\n"
+	gooseIntegrityTamperStderr      = "Error: checksum mismatch\n"
+	gooseIntegrityCommunityAdvisory = "You're running the community build of Atlas, which differs from the official version.\n" +
+		"If this error persists, try installing the official version as a troubleshooting step:\n\n" +
+		"  curl -sSf https://atlasgo.sh | sh\n\n" +
+		"More installation options: https://atlasgo.io/docs#installation\n"
 )
 
 func writeGooseIntegrityFixture(dir string) error {
@@ -107,10 +117,10 @@ func writeGooseIntegrityFixture(dir string) error {
 	return os.WriteFile(filepath.Join(dir, "2_second_migration.sql"), []byte(gooseIntegritySecondSQL), 0o600)
 }
 
-func runIntegrityCommand(bin, verb, dir string) (integrityProcessResult, error) {
-	stdout, stderr, err := commandStreams(bin, []string{
+func runIntegrityCommand(bin, verb, dir string, env ...string) (integrityProcessResult, error) {
+	stdout, stderr, err := commandStreamsWithEnv(bin, []string{
 		"migrate", verb, "--dir", fileURL(dir), "--dir-format", "goose",
-	}, "")
+	}, "", env)
 	result := integrityProcessResult{stdout: stdout, stderr: stderr}
 	if err == nil {
 		return result, nil
@@ -121,6 +131,21 @@ func runIntegrityCommand(bin, verb, dir string) (integrityProcessResult, error) 
 		return result, nil
 	}
 	return integrityProcessResult{}, err
+}
+
+func compareAtlasFirstErrorAdvisory(atlas integrityProcessResult) Result {
+	want := integrityProcessResult{
+		stdout:   gooseIntegrityTamperStdout,
+		stderr:   gooseIntegrityTamperStderr + gooseIntegrityCommunityAdvisory,
+		exitCode: 1,
+	}
+	if atlas != want {
+		return migrateRuntimeGap(gooseIntegrityFixture, "Atlas first-error advisory",
+			"Atlas CE first tamper response differs from the pinned v1.3.0 stateful process contract: "+
+				integrityProcessDetail(atlas))
+	}
+	return Result{migrateRuntimeProbeName, gooseIntegrityFixture, "Atlas first-error advisory", OK,
+		"Atlas CE emitted the pinned v1.3.0 community-build advisory on the first error in an isolated HOME; the stable checksum contract is compared on the repeated error", ""}
 }
 
 func compareGooseHashProcesses(atlas, ptah integrityProcessResult) Result {
@@ -172,7 +197,7 @@ func compareGooseTamperedValidation(atlas, ptah integrityProcessResult) Result {
 				" Ptah="+integrityProcessDetail(ptah))
 	}
 	return Result{migrateRuntimeProbeName, gooseIntegrityFixture, "tamper detection", OK,
-		"Atlas CE and ptah-compat rejected the same tampered Goose directory with the pinned v1.3.0 exit/stdout/stderr contract", ""}
+		"Atlas CE and ptah-compat rejected the same tampered Goose directory with the pinned v1.3.0 stable exit/stdout/stderr contract after the Atlas-only first-error advisory was measured separately", ""}
 }
 
 func integrityProcessDetail(result integrityProcessResult) string {

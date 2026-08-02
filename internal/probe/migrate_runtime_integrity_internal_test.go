@@ -18,11 +18,17 @@ func TestCompareGooseIntegrity_HappyPath(t *testing.T) {
 	tampered := integrityProcessResult{
 		stdout: gooseIntegrityTamperStdout, stderr: gooseIntegrityTamperStderr, exitCode: 1,
 	}
+	advisory := compareAtlasFirstErrorAdvisory(integrityProcessResult{
+		stdout:   gooseIntegrityTamperStdout,
+		stderr:   gooseIntegrityTamperStderr + gooseIntegrityCommunityAdvisory,
+		exitCode: 1,
+	})
 	tamper := compareGooseTamperedValidation(tampered, tampered)
 
 	c.Assert(hash.Outcome, qt.Equals, OK)
 	c.Assert(checksum.Outcome, qt.Equals, OK)
 	c.Assert(clean.Outcome, qt.Equals, OK)
+	c.Assert(advisory.Outcome, qt.Equals, OK)
 	c.Assert(tamper.Outcome, qt.Equals, OK)
 }
 
@@ -50,6 +56,9 @@ func TestCompareGooseIntegrity_FailurePath(t *testing.T) {
 		integrityProcessResult{stderr: "same but wrong\n", exitCode: 1},
 		integrityProcessResult{stderr: "same but wrong\n", exitCode: 1},
 	)
+	advisoryMissing := compareAtlasFirstErrorAdvisory(integrityProcessResult{
+		stdout: gooseIntegrityTamperStdout, stderr: gooseIntegrityTamperStderr, exitCode: 1,
+	})
 
 	c.Assert(hash.Outcome, qt.Equals, Gap)
 	c.Assert(checksum.Outcome, qt.Equals, Gap)
@@ -57,4 +66,5 @@ func TestCompareGooseIntegrity_FailurePath(t *testing.T) {
 	c.Assert(tamperStreams.Outcome, qt.Equals, Gap)
 	c.Assert(tamperExit.Outcome, qt.Equals, Gap)
 	c.Assert(tamperSameWrongContract.Outcome, qt.Equals, Gap)
+	c.Assert(advisoryMissing.Outcome, qt.Equals, Gap)
 }

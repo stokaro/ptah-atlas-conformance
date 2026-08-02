@@ -376,10 +376,22 @@ func commandOutputStdin(bin string, path []string, stdin string) (string, error)
 // (e.g. Atlas migrate-lint writes its analysis report to stdout while genuine
 // errors go to stderr).
 func commandStreams(bin string, args []string, dir string) (stdout, stderr string, err error) {
+	return commandStreamsWithEnv(bin, args, dir, nil)
+}
+
+func commandStreamsWithEnv(
+	bin string,
+	args []string,
+	dir string,
+	env []string,
+) (stdout, stderr string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = dir
+	if len(env) > 0 {
+		cmd.Env = append(os.Environ(), env...)
+	}
 	var out, errOut bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut
