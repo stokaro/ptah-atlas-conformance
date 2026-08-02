@@ -194,5 +194,75 @@
     "stage": "unknown-flag",
     "outcome": "ok",
     "detail": "class: unknown-flag — Error: unknown flag: --include"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: nonsense root verb",
+    "stage": "unregistered-command",
+    "outcome": "ok",
+    "detail": "class: unregistered-command — Error: unknown command \"frobnicate-nonsense\" for \"atlas\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: nonsense verb under a registered group",
+    "stage": "absent",
+    "outcome": "ok",
+    "detail": "class: absent — exit 0; the parent group help was printed instead of running the named subcommand"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: nonsense flag on a gated verb",
+    "stage": "unknown-flag",
+    "outcome": "ok",
+    "detail": "class: unknown-flag — Error: unknown flag: --frobnicate-nonsense"
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas script (v1.3.0)",
+    "stage": "unregistered-command",
+    "outcome": "ok",
+    "detail": "class: unregistered-command — Error: unknown command \"script\" for \"atlas\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas cloud (v1.3.0)",
+    "stage": "unregistered-command",
+    "outcome": "ok",
+    "detail": "class: unregistered-command — Error: unknown command \"cloud\" for \"atlas\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema diff (column attr: invisible, v1.3.0)",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"CREATE TABLE\"; output does not contain \"INVISIBLE\", \"invisible\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: nonsense column attribute",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"CREATE TABLE\"; output does not contain \"zzz_nonsense_attr\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas schema diff (annotation block, v1.3.0)",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"CREATE TABLE\"; output does not contain \"annotation\", \"gql\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas migrate apply (check drift configured, drifted db, v1.3.0)",
+    "stage": "silent-unenforced",
+    "outcome": "ok",
+    "detail": "class: silent-unenforced — exit 0; output contains \"20260101000003\"; output does not contain \"drift\", \"does not match expected state\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: nonsense atlas.hcl top-level block",
+    "stage": "silent-unenforced",
+    "outcome": "ok",
+    "detail": "class: silent-unenforced — exit 0; output contains \"20260101000003\"; output does not contain \"drift\", \"does not match expected state\""
   }
 ]
