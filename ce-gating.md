@@ -16,7 +16,7 @@ Every fixture is covered. The conformance gate is green.
 - Atlas CE binary under test: `atlas community version v1.3.0`, built from the release tag pinned in `atlas.version`
 - Isolation: every scenario runs logged out — scratch `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` in a fresh temp dir, plus `ATLAS_NO_UPDATE_NOTIFIER=1` and `ATLAS_NO_ANON_TELEMETRY=1` — so a developer's real Atlas login can never leak into the measurement.
 - Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02.
-- Outcomes: **69 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **70 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -87,6 +87,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | ce-gating | `atlas script (v1.3.0)` | unregistered-command | class: unregistered-command — Error: unknown command "script" for "atlas" |  |
 | — | ok | ce-gating | `atlas.hcl bad reference inside an ignored block` | named-error | class: named-error — Error: atlas.hcl:2,10-24: Unsupported attribute; This object does not have an attribute named "undefined_ref". |  |
 | — | ok | ce-gating | `atlas.hcl unknown argument inside variable (strict)` | named-error | class: named-error — Error: atlas.hcl:4,3-13: Unsupported argument; An argument named "frobnicate" is not expected here. |  |
+| — | ok | ce-gating | `atlas.hcl unknown name nested inside env` | works | class: works — exit 0; output does not contain "frobnicate_nested", "totally_made_up" |  |
 | — | ok | ce-gating | `control: ignored block with a literal value` | works | class: works — exit 0; output does not contain "frobnicate", "undefined_ref" |  |
 | — | ok | ce-gating | `control: nonsense atlas.hcl top-level block` | silent-unenforced | class: silent-unenforced — exit 0; output contains "20260101000003"; output does not contain "drift", "does not match expected state" |  |
 | — | ok | ce-gating | `control: nonsense column attribute` | works | class: works — exit 0; output contains "CREATE TABLE"; output does not contain "zzz_nonsense_attr" |  |
