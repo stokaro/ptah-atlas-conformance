@@ -11,8 +11,8 @@ import (
 	"strings"
 )
 
-// Checkpoint and apply-time integrity checks measured against Atlas trial
-// v1.2.4 (stokaro/ptah#954, stokaro/ptah#955): a migration whose first line is
+// Checkpoint and apply-time integrity checks measured against Atlas
+// (stokaro/ptah#954, stokaro/ptah#955): a migration whose first line is
 // the `-- atlas:checkpoint` directive bootstraps a fresh database on its own
 // (single type=2 revision row, pre-checkpoint files never replayed) and is
 // silently skipped on a database that already applied pre-checkpoint history;
