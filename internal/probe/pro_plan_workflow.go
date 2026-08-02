@@ -91,8 +91,8 @@ func (p *proPlanWorkflow) planCreation() Result {
 	)
 	// Since stokaro/ptah#965 the DEFAULT encoding is Atlas's `.plan.hcl` shape.
 	// The expected structure is taken from the Atlas-authored artifact captured
-	// in that PR (ptah cmd/atlas/testdata/atlas.plan.hcl, written by the
-	// licensed v1.2.4 build): a single `plan` block, labeled, carrying `from`,
+	// in that PR (ptah cmd/atlas/testdata/atlas.plan.hcl, written by Atlas):
+	// a single `plan` block, labeled, carrying `from`,
 	// `to` and a `migration` heredoc.
 	result, harness := p.runCLI(stage,
 		"schema", "plan",
