@@ -377,8 +377,8 @@ func compareMigrateRuntimeStatus(output, wantCurrent string, wantApplied, wantPe
 // statement runs, and must record nothing, so the retry after fixing the data
 // works with no flags.
 //
-// Those are the Atlas-observable facts. The measured Atlas
-// (v1.2.4) prints `Error: check assertion "..." returned false`, so Ptah's
+// Those are the Atlas-observable facts. Atlas prints
+// `Error: check assertion "..." returned false`, so Ptah's
 // "checks.sql#N ... was not satisfied" wording is NOT Atlas parity; the token
 // assertion below is a Ptah self-consistency pin that the abort names the
 // failing check. Atlas CE, by contrast, executes the section as plain SQL and
@@ -759,7 +759,7 @@ const migrateRuntimePromptAbortMarker = "read rollback confirmation"
 const migrateRuntimeFailingDownStatement = "THIS IS A FAILING STATEMENT"
 
 // sqliteMigrateDownFailureLeavesRevisionsIntact pins the Atlas-shaped surface's
-// failed-down bookkeeping (stokaro/ptah#957): measured against Atlas CLI v1.2.4,
+// failed-down bookkeeping (stokaro/ptah#957): measured against Atlas,
 // a down whose statement fails rolls the body back and leaves the revision rows
 // byte-identical, so `atlas migrate status` and `ptah-compat migrate status`
 // agree that the version is still applied.
