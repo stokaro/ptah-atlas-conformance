@@ -169,6 +169,27 @@
   },
   {
     "probe": "ce-gating",
+    "fixture": "atlas.hcl unknown argument inside variable (strict)",
+    "stage": "named-error",
+    "outcome": "ok",
+    "detail": "class: named-error — Error: atlas.hcl:4,3-13: Unsupported argument; An argument named \"frobnicate\" is not expected here."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas.hcl bad reference inside an ignored block",
+    "stage": "named-error",
+    "outcome": "ok",
+    "detail": "class: named-error — Error: atlas.hcl:2,10-24: Unsupported attribute; This object does not have an attribute named \"undefined_ref\"."
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: ignored block with a literal value",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output does not contain \"frobnicate\", \"undefined_ref\""
+  },
+  {
+    "probe": "ce-gating",
     "fixture": "atlas schema inspect --env (composite_schema)",
     "stage": "named-error",
     "outcome": "ok",

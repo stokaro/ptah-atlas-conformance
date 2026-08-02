@@ -387,6 +387,13 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		// v1.3.0 pre-apply drift detection: accepted, then not enforced.
 		"atlas migrate apply (check drift configured, drifted db, v1.3.0)": probe.CEGatingSilentUnenforced,
 		"control: nonsense atlas.hcl top-level block":                      probe.CEGatingSilentUnenforced,
+		// Where the unknown-name tolerance STOPS. `variable` is the one strict
+		// block, and tolerance is name-level rather than subtree-level -- an
+		// ignored block's body is still evaluated. The literal-value control is
+		// what separates the two: same block, only the value differs.
+		"atlas.hcl unknown argument inside variable (strict)": probe.CEGatingNamedError,
+		"atlas.hcl bad reference inside an ignored block":     probe.CEGatingNamedError,
+		"control: ignored block with a literal value":         probe.CEGatingWorks,
 	})
 
 	counts := map[probe.CEGatingClass]int{}
@@ -394,12 +401,12 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		counts[class]++
 	}
 	c.Check(counts, qt.DeepEquals, map[probe.CEGatingClass]int{
-		probe.CEGatingWorks:               10,
+		probe.CEGatingWorks:               11,
 		probe.CEGatingCommunityAbort:      11,
 		probe.CEGatingAbsent:              5,
 		probe.CEGatingUnregisteredCommand: 3,
 		probe.CEGatingSilentUnenforced:    4,
-		probe.CEGatingNamedError:          2,
+		probe.CEGatingNamedError:          4,
 		probe.CEGatingUnknownFlag:         3,
 	})
 }
