@@ -622,6 +622,51 @@ env "local" {
   url = "sqlite://app.db"
 }
 `
+	// ceGatingStrictVariableConfig isolates the ONE place in atlas.hcl where CE
+	// refuses an unknown name. Everywhere else -- top level, inside env, inside
+	// env's sub-blocks, inside locals, arbitrarily deep -- an unknown name is
+	// accepted and dropped. `variable` is decoded by a strict schema instead,
+	// and rejects. `type` is present so the refusal isolates the unknown
+	// argument rather than a missing required one.
+	//
+	// Pinning this matters because the obvious way to implement CE's tolerance
+	// -- relax at the top level, generalize downward -- would start accepting
+	// this file, making an implementation LOOSER than CE, which is the more
+	// dangerous direction.
+	ceGatingStrictVariableConfig = `variable "x" {
+  type       = string
+  default    = "v"
+  frobnicate = "yes"
+}
+env "local" {
+  url = "sqlite://app.db"
+}
+`
+	// ceGatingIgnoredBlockBadRefConfig proves CE's tolerance is NAME-level, not
+	// SUBTREE-level: the block name is unknown and dropped, but its body is
+	// still evaluated, so an unresolvable reference inside it is fatal.
+	//
+	// An implementation that skips an unrecognized block before evaluating
+	// would accept this file, which CE rejects.
+	ceGatingIgnoredBlockBadRefConfig = `frobnicate "zzz" {
+  v = var.undefined_ref
+}
+env "local" {
+  url = "sqlite://app.db"
+}
+`
+	// ceGatingIgnoredBlockLiteralConfig is the control for the row above, and
+	// the discriminator for the whole rule: it differs ONLY in the value.
+	// Exit 0 here plus exit 1 there proves the refusal comes from evaluating
+	// the body, not from the block being unknown -- the two are
+	// indistinguishable without this pair.
+	ceGatingIgnoredBlockLiteralConfig = `frobnicate "zzz" {
+  v = "literal"
+}
+env "local" {
+  url = "sqlite://app.db"
+}
+`
 	// ceGatingRoledHCL is ceGatingDesiredHCL plus a Pro-gated role block. On a
 	// database already at the desired state, applying it must expose whether
 	// CE enforces, rejects, or silently drops the role.
@@ -686,6 +731,17 @@ var ceCompositeSchemaErrorPattern = regexp.MustCompile(`missing data source hand
 // version." sentence, the external_schema rejection is an Error line with its
 // own phrasing, so it is pinned as a named error rather than community-abort.
 var ceExternalSchemaErrorPattern = regexp.MustCompile(`data\.external_schema is not supported by the community version`)
+
+// ceStrictVariableErrorPattern is HCL's own diagnostic, not atlas's
+// `schemahcl:` prefix -- matching CE's refusals here means emitting a
+// different message family than the rest of the file uses.
+var ceStrictVariableErrorPattern = regexp.MustCompile(
+	`Unsupported argument; An argument named "frobnicate" is not expected here`)
+
+// ceIgnoredBlockBadRefErrorPattern is the failure from evaluating the body of a
+// block whose NAME was dropped.
+var ceIgnoredBlockBadRefErrorPattern = regexp.MustCompile(
+	`Unsupported attribute; This object does not have an attribute named "undefined_ref"`)
 
 // setupCEGatingMigrations writes the two-version migration directory and, when
 // hash is set, integrity-hashes it through the real `atlas migrate hash` verb.
@@ -973,6 +1029,39 @@ func ceGatingScenarios() []ceGatingScenario {
 		},
 
 		// Named errors.
+		{
+			// The one strict corner of atlas.hcl. See the fixture comment.
+			fixture: "atlas.hcl unknown argument inside variable (strict)",
+			setup: func(rt *ceGatingRuntime) error {
+				return rt.writeFile("atlas.hcl", ceGatingStrictVariableConfig)
+			},
+			argv:     []string{"schema", "inspect", "--env", "local"},
+			expected: CEGatingNamedError,
+			rules:    CEGatingRules{NamedErrorPattern: ceStrictVariableErrorPattern},
+		},
+		{
+			// Tolerance is name-level, not subtree-level: the unknown block is
+			// dropped but its body is still evaluated.
+			fixture: "atlas.hcl bad reference inside an ignored block",
+			setup: func(rt *ceGatingRuntime) error {
+				return rt.writeFile("atlas.hcl", ceGatingIgnoredBlockBadRefConfig)
+			},
+			argv:     []string{"schema", "inspect", "--env", "local"},
+			expected: CEGatingNamedError,
+			rules:    CEGatingRules{NamedErrorPattern: ceIgnoredBlockBadRefErrorPattern},
+		},
+		{
+			// The discriminator: identical block, literal value. Without this
+			// pair, the row above reads as "CE rejects unknown blocks", which
+			// is the opposite of what it measures.
+			fixture: "control: ignored block with a literal value",
+			setup: func(rt *ceGatingRuntime) error {
+				return rt.writeFile("atlas.hcl", ceGatingIgnoredBlockLiteralConfig)
+			},
+			argv:     []string{"schema", "inspect", "--env", "local"},
+			expected: CEGatingWorks,
+			rules:    CEGatingRules{SuccessAbsentFragments: []string{"frobnicate", "undefined_ref"}},
+		},
 		{
 			fixture: "atlas schema inspect --env (composite_schema)",
 			setup: func(rt *ceGatingRuntime) error {
