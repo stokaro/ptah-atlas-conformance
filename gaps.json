@@ -5357,10 +5357,17 @@
   },
   {
     "probe": "pro-down-workflow",
+    "fixture": "atlas migrate down --format",
+    "stage": "formatted rollback",
+    "outcome": "ok",
+    "detail": "formatted `atlas migrate down` ran without stdin, reported version 20260101000002 reverted, removed its table, and preserved only the version 20260101000001 revision"
+  },
+  {
+    "probe": "pro-down-workflow",
     "fixture": "atlas migrate down",
     "stage": "bare rollback",
     "outcome": "ok",
-    "detail": "bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)"
+    "detail": "bare `atlas migrate down` — no stdin, --confirm, or --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)"
   },
   {
     "probe": "external-schema-workflow",

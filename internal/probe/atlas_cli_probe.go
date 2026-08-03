@@ -353,23 +353,6 @@ func commandOutputDir(bin string, path []string, dir string) (string, error) {
 	return string(outBytes), err
 }
 
-// commandOutputStdin is commandOutput with a fixed stdin payload, for commands
-// that prompt for confirmation.
-//
-// Without it the child inherits no stdin, reads EOF at the prompt, and exits
-// non-zero before doing any work. A probe that only checks "the command
-// failed" then passes for the wrong reason and stops measuring anything — the
-// exact way sqlite/down-failure-revisions went vacuous. Probes using this
-// should still assert that the run got past the prompt.
-func commandOutputStdin(bin string, path []string, stdin string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, bin, path...)
-	cmd.Stdin = strings.NewReader(stdin)
-	outBytes, err := cmd.CombinedOutput()
-	return string(outBytes), err
-}
-
 // commandStreams runs bin with args in dir and returns stdout and stderr
 // captured separately, along with the process error. Unlike commandOutput it
 // keeps the streams apart, which matters when a probe asserts on stdout alone
