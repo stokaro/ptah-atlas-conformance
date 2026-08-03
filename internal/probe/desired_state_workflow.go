@@ -13,13 +13,16 @@ const desiredStateWorkflowSentinel = "_capability/desired-state-workflow/SENTINE
 // references as `schema diff`/`schema apply` desired-state sources.
 const desiredStateIssue = "stokaro/ptah#811"
 
+// migrateDiffDesiredStateIssue tracks the follow-up that extended the same
+// source model to `migrate diff`.
+const migrateDiffDesiredStateIssue = "stokaro/ptah#842"
+
 // DesiredStateWorkflowProbe executes the Atlas desired-state source model
-// Ptah implements for `schema diff` and `schema apply` (stokaro/ptah#811)
-// through the real `atlas ...` CLI on ephemeral SQLite: a database URL
-// as the `--from` diff source and as the `--to` apply source, a migration
-// directory replayed on a dev database (and refused deterministically before
-// the target is contacted when no dev database is configured), and an env://
-// reference resolved through an evaluated atlas.hcl environment.
+// Ptah implements for `schema diff`, `schema apply`, and `migrate diff`
+// (stokaro/ptah#811, stokaro/ptah#842) through the real ptah-compat CLI on
+// ephemeral SQLite: database URLs, migration directories, and env://
+// references; migrate-diff convergence; and desired/dev alias rejection before
+// source mutation or artifact creation.
 type DesiredStateWorkflowProbe struct {
 	// FixtureRoot contains the committed desired-schema sources. Relative
 	// paths are resolved from the probe process directory.
@@ -42,12 +45,18 @@ func (p DesiredStateWorkflowProbe) Run(fx Fixture) []Result {
 	defer w.cleanup()
 
 	d := &desiredStateWorkflow{proWorkflowRuntime: w}
+	migrateDiffRuntime := *w
+	migrateDiffRuntime.issue = migrateDiffDesiredStateIssue
+	m := &desiredStateWorkflow{proWorkflowRuntime: &migrateDiffRuntime}
 	return w.runSteps([]func() Result{
 		d.databaseURLDiffSource,
 		d.databaseURLApplySource,
 		d.migrationDirReplay,
 		d.migrationDirWithoutDevDatabase,
 		d.envSourceResolution,
+		m.migrateDiffDatabaseURLSource,
+		m.migrateDiffEnvURLSource,
+		m.migrateDiffRejectsDesiredDevAlias,
 	})
 }
 
@@ -62,7 +71,7 @@ func (d *desiredStateWorkflow) seedSourceDatabase(stage string) (string, *Result
 	if _, err := os.Stat(sourceDB); err == nil {
 		return sourceDB, nil
 	}
-	if err := execSQLiteStatement(sourceDB, "CREATE TABLE users (id INTEGER PRIMARY KEY)"); err != nil {
+	if err := execSQLiteStatement(sourceDB, "CREATE TABLE users (id INTEGER PRIMARY KEY); INSERT INTO users (id) VALUES (42)"); err != nil {
 		failure := d.harnessFailure(stage, err)
 		return "", &failure
 	}
