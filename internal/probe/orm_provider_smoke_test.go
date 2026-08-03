@@ -71,14 +71,14 @@ func TestORMProviderSmokeProbe_HappyPath(t *testing.T) {
 			Fixture: "sqlalchemy",
 			Stage:   "provider output",
 			Outcome: probe.OK,
-			Detail:  "SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 provider output preserved two tables, primary keys, a unique index, and a foreign key",
+			Detail:  "SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 provider output preserved two tables, primary keys, a unique index, and a foreign key",
 		},
 		{
 			Probe:   "orm-provider-smoke",
 			Fixture: "sqlalchemy",
 			Stage:   "ptah schema render",
 			Outcome: probe.OK,
-			Detail:  "SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key",
+			Detail:  "SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key",
 		},
 	})
 	after, err := os.ReadFile(gormModule)
@@ -212,8 +212,8 @@ func TestRenderORMProviderMarkdown(t *testing.T) {
 
 	c.Check(report, qt.Contains, "# Ptah ORM provider conformance report")
 	c.Check(report, qt.Contains, "ariga.io/atlas-provider-gorm@v0.6.1")
-	c.Check(report, qt.Contains, "atlas-provider-sqlalchemy==0.4.1")
-	c.Check(report, qt.Contains, "SQLAlchemy==2.0.50")
+	c.Check(report, qt.Contains, "atlas-provider-sqlalchemy==0.5.0")
+	c.Check(report, qt.Contains, "SQLAlchemy==2.0.51")
 	c.Check(report, qt.Contains, "Ptah at `v0.0.0-test`")
 	c.Check(report, qt.Contains, "| **RED** | **gap** | gorm | ptah schema render |")
 	c.Check(report, qt.Contains, "| #669 |")
