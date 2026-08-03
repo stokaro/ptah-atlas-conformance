@@ -143,6 +143,7 @@ func (p ORMProviderSmokeProbe) runSQLAlchemy(bin, fixtureRoot, runRoot string) [
 			virtualenvExecutable(venvRoot, "python"),
 			"-m", "pip", "install",
 			"--disable-pip-version-check",
+			"--require-hashes",
 			"--requirement", "requirements.txt",
 		}); err != nil {
 			return []Result{ormProviderHarnessFailure(sqlAlchemyProviderName, "provider setup", err)}
@@ -256,18 +257,22 @@ func copyORMProviderFixture(fixtureRoot, runRoot, provider string) (string, erro
 }
 
 func validateSQLAlchemyRequirements(dir string) error {
-	data, err := os.ReadFile(filepath.Join(dir, "requirements.txt"))
-	if err != nil {
-		return fmt.Errorf("read requirements.txt: %w", err)
-	}
-	requirements := strings.Fields(string(data))
 	required := []string{
 		"atlas-provider-sqlalchemy==" + SQLAlchemyProviderVersion,
 		"SQLAlchemy==" + SQLAlchemyVersion,
 	}
-	for _, pin := range required {
-		if !slices.Contains(requirements, pin) {
-			return fmt.Errorf("requirements.txt is missing exact pin %q", pin)
+	for _, name := range []string{"requirements.in", "requirements.txt"} {
+		data, err := os.ReadFile(filepath.Join(dir, name))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", name, err)
+		}
+		requirements := strings.Fields(string(data))
+		for _, pin := range required {
+			if !slices.ContainsFunc(requirements, func(requirement string) bool {
+				return strings.EqualFold(requirement, pin)
+			}) {
+				return fmt.Errorf("%s is missing exact pin %q", name, pin)
+			}
 		}
 	}
 	return nil
