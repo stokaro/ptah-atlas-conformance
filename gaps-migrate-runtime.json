@@ -36,6 +36,34 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "goose/status-set-differential",
+    "stage": "pending status",
+    "outcome": "ok",
+    "detail": "the community Atlas binary and ptah-compat both read the converted directory as {total=2 applied=0 pending=2} (the status layouts differ for every directory format, so the migration facts are compared)"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "goose/status-set-differential",
+    "stage": "set process",
+    "outcome": "ok",
+    "detail": "`migrate set --dir-format goose` produced byte-identical exit/stdout/stderr on the community Atlas binary and ptah-compat, both reporting the Goose versions they set"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "goose/status-set-differential",
+    "stage": "applied status",
+    "outcome": "ok",
+    "detail": "the community Atlas binary and ptah-compat both read the converted directory as {total=2 applied=2 pending=0} (the status layouts differ for every directory format, so the migration facts are compared)"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "goose/status-set-differential",
+    "stage": "verbatim format",
+    "outcome": "ok",
+    "detail": "the community Atlas binary and ptah-compat both refuse the near-miss format spellings \"Goose\", \"GOOSE\", \" goose\" and \"goose \" on `migrate status` and `migrate set` with exit 1, each echoing the rejected value verbatim"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/project-config-apply-oracle",
     "stage": "compare",
     "outcome": "ok",

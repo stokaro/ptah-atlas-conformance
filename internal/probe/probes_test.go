@@ -305,8 +305,8 @@ func TestAtlasCLIMetadataRuntimeProbeAcceptsAtlasDefaults(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIMetadataRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 11 {
-		t.Fatalf("expected 11 results, got %d: %#v", len(results), results)
+	if len(results) != 15 {
+		t.Fatalf("expected 15 results, got %d: %#v", len(results), results)
 	}
 	for _, r := range results {
 		if r.Probe != "atlas-cli-metadata-runtime" {
@@ -613,7 +613,43 @@ esac
 
 func fakeMetadataRuntimeScript() string {
 	return `#!/bin/sh
+# Atlas CE matches the directory format name verbatim, so the fake refuses any
+# value that is not exactly "atlas" or "goose" before dispatching on the verb.
+dirformat=""
+prev=""
+for arg in "$@"; do
+  if [ "$prev" = "--dir-format" ]; then
+    dirformat="$arg"
+  fi
+  prev="$arg"
+done
+case "$dirformat" in
+  ""|atlas|goose)
+    ;;
+  *)
+    printf 'Error: unknown Atlas migration directory format "%s"\n' "$dirformat" >&2
+    exit 1
+    ;;
+esac
 case "$*" in
+  "migrate hash --dir file://"*"?format=goose")
+    dir=${4#file://}
+    dir=${dir%%\?*}
+    printf 'h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n1_initial.sql h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n' > "$dir/atlas.sum"
+    ;;
+  "migrate status --url sqlite://"*" --dir file://"*"?format=goose"|"migrate status --url sqlite://"*" --dir file://"*" --dir-format goose")
+    db=${4#sqlite://}
+    if [ -f "$db.set" ]; then
+      printf 'Total Migrations: 2\nApplied Migrations: 2\nPending Migrations: 0\n'
+    else
+      printf 'Total Migrations: 2\nApplied Migrations: 0\nPending Migrations: 2\n'
+    fi
+    ;;
+  "migrate set --url sqlite://"*" --dir file://"*"?format=goose 2"|"migrate set --url sqlite://"*" --dir file://"*" --dir-format goose 2")
+    db=${4#sqlite://}
+    printf 'set\n' > "$db.set"
+    printf 'Current version is 2 (2 set):\n\n  + 1 (initial)\n  + 2 (second_migration)\n\n'
+    ;;
   "migrate hash --dir file://"*" --dir-format goose")
     dir=${4#file://}
     printf 'h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n20240101000000_init.sql h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n' > "$dir/atlas.sum"
@@ -621,7 +657,7 @@ case "$*" in
     ;;
   "migrate validate --dir file://"*" --dir-format goose")
     ;;
-  "migrate lint --latest 1 --dir file://"*" --dir-format goose"|"migrate new init --dir file://"*" --dir-format goose"|"migrate set --url sqlite://ignored.db 20240101000000 --dir file://"*" --dir-format goose"|"migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose")
+  "migrate lint --latest 1 --dir file://"*" --dir-format goose"|"migrate new init --dir file://"*" --dir-format goose")
     printf 'error: Atlas accepts --dir-format=goose, but Ptah does not implement that directory format yet\n' >&2
     exit 2
     ;;

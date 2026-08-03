@@ -4230,17 +4230,45 @@
   },
   {
     "probe": "atlas-cli-metadata-runtime",
-    "fixture": "atlas migrate set --dir-format goose",
-    "stage": "execute",
-    "outcome": "ok",
-    "detail": "`atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
-  },
-  {
-    "probe": "atlas-cli-metadata-runtime",
     "fixture": "atlas migrate status --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate status --dir-format goose` reads a directory laid out in Goose's convention and reports its two migrations as pending"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "atlas migrate set --dir-format goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`atlas migrate set --dir-format goose` sets revisions from a directory laid out in Goose's convention; the read-back reports both migrations applied"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "atlas migrate status --dir ?format=goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`atlas migrate status --dir ?format=goose` reads a directory laid out in Goose's convention and reports its two migrations as pending"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "atlas migrate set --dir ?format=goose",
+    "stage": "execute",
+    "outcome": "ok",
+    "detail": "`atlas migrate set --dir ?format=goose` sets revisions from a directory laid out in Goose's convention; the read-back reports both migrations applied"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "atlas migrate status --dir-format verbatim",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "`atlas migrate status --dir-format verbatim` refuses every near-miss format spelling (\"Goose\", \"GOOSE\", \" goose\", \"goose \"), echoing each rejected value verbatim"
+  },
+  {
+    "probe": "atlas-cli-metadata-runtime",
+    "fixture": "atlas migrate set --dir-format verbatim",
+    "stage": "flags",
+    "outcome": "ok",
+    "detail": "`atlas migrate set --dir-format verbatim` refuses every near-miss format spelling (\"Goose\", \"GOOSE\", \" goose\", \"goose \"), echoing each rejected value verbatim"
   },
   {
     "probe": "atlas-cli-shorthands",

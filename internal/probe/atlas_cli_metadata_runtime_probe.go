@@ -2,9 +2,11 @@ package probe
 
 import (
 	"errors"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -37,11 +39,12 @@ func (AtlasCLIMetadataRuntimeProbe) Run(fx Fixture) []Result {
 		atlasMigrateApplyRejectsDirFormat,
 	}
 
-	out := make([]Result, 0, len(checks)+6)
+	out := make([]Result, 0, len(checks)+8)
 	for _, check := range checks {
 		out = append(out, check(bin))
 	}
 	out = append(out, atlasMigrateRejectsUnsupportedMetadataDirFormats(bin)...)
+	out = append(out, atlasMigrateReadsConvertedMetadataDirs(bin)...)
 	return out
 }
 
@@ -186,6 +189,12 @@ func atlasMigrateSetAcceptsRevisionsSchema(bin string) Result {
 		"`atlas migrate set --revisions-schema main` executed successfully", ""}
 }
 
+// atlasMigrateRejectsUnsupportedMetadataDirFormats covers the verbs that still
+// have no foreign-format implementation. Refusing explicitly is the acceptable
+// shape here; silently reading foreign-format files as Atlas files is not.
+// `migrate status` and `migrate set` used to be on this list and no longer are:
+// stokaro/ptah#1002 gave them a real converted-directory reader, which
+// atlasMigrateReadsConvertedMetadataDirs pins instead.
 func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
 	checks := []struct {
 		fixture string
@@ -198,14 +207,6 @@ func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
 		{
 			fixture: "atlas migrate new --dir-format goose",
 			args:    []string{"migrate", "new", "init"},
-		},
-		{
-			fixture: "atlas migrate set --dir-format goose",
-			args:    []string{"migrate", "set", "--url", "sqlite://ignored.db", "20240101000000"},
-		},
-		{
-			fixture: "atlas migrate status --dir-format goose",
-			args:    []string{"migrate", "status", "--url", "sqlite://ignored.db"},
 		},
 	}
 
@@ -239,6 +240,222 @@ func atlasMigrateRejectsUnsupportedMetadataDirFormat(bin, fixture string, prefix
 	}
 	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
 		"`" + fixture + "` fails explicitly instead of treating external-format files as Atlas files", ""}
+}
+
+// metadataDirSpelling is one of the two ways an Atlas caller names the
+// directory convention: the `--dir-format` flag, or a `format` query parameter
+// on the `--dir` URL. The pinned Atlas CE binary honors both, so a verb that
+// only understands one of them is not a drop-in.
+type metadataDirSpelling struct {
+	// label names the spelling the way it reads in a fixture title, e.g.
+	// "--dir-format goose".
+	label string
+	args  func(migrations, format string) []string
+}
+
+func metadataDirSpellings() []metadataDirSpelling {
+	return []metadataDirSpelling{
+		{
+			label: "--dir-format goose",
+			args: func(migrations, format string) []string {
+				return []string{"--dir", fileURL(migrations), "--dir-format", format}
+			},
+		},
+		{
+			label: "--dir ?format=goose",
+			args: func(migrations, format string) []string {
+				return []string{"--dir", fileURL(migrations) + "?format=" + url.QueryEscape(format)}
+			},
+		},
+	}
+}
+
+// atlasMigrateReadsConvertedMetadataDirs pins stokaro/ptah#1002: `migrate
+// status` and `migrate set` read a migration directory laid out in a foreign
+// tool's convention instead of refusing the layout outright, through both
+// spellings above. It also pins that the format value is taken verbatim —
+// Atlas CE matches the format name case-sensitively and does not trim it, so
+// accepting `Goose` or ` goose` would make Ptah quietly more permissive than
+// the tool it stands in for.
+//
+// This tier has no Atlas binary, so it pins the capability and the value
+// contract; the process-for-process comparison against the pinned community
+// binary lives in the migrate-runtime tier, which does have one.
+func atlasMigrateReadsConvertedMetadataDirs(bin string) []Result {
+	out := make([]Result, 0, 6)
+	for _, spelling := range metadataDirSpellings() {
+		out = append(out,
+			atlasMigrateStatusReadsConvertedDir(bin, spelling),
+			atlasMigrateSetReadsConvertedDir(bin, spelling),
+		)
+	}
+	return append(out, atlasMigrateTakesDirFormatVerbatim(bin)...)
+}
+
+func atlasMigrateStatusReadsConvertedDir(bin string, spelling metadataDirSpelling) Result {
+	fixture := "atlas migrate status " + spelling.label
+	root, migrations, cleanup, result := prepareGooseMetadataDir(bin, fixture, spelling)
+	if result != nil {
+		return *result
+	}
+	defer cleanup()
+
+	args := append([]string{"migrate", "status", "--url", "sqlite://" + filepath.Join(root, "status.db")},
+		spelling.args(migrations, "goose")...)
+	output, err := commandOutput(bin, args)
+	if err != nil {
+		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+	}
+	if !strings.Contains(output, "Total Migrations: 2") || !strings.Contains(output, "Pending Migrations: 2") {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`" + fixture + "` did not read the Goose-format directory as two pending migrations: " + oneLine(output),
+			"stokaro/ptah#1002"}
+	}
+	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
+		"`" + fixture + "` reads a directory laid out in Goose's convention and reports its two migrations as pending", ""}
+}
+
+func atlasMigrateSetReadsConvertedDir(bin string, spelling metadataDirSpelling) Result {
+	fixture := "atlas migrate set " + spelling.label
+	root, migrations, cleanup, result := prepareGooseMetadataDir(bin, fixture, spelling)
+	if result != nil {
+		return *result
+	}
+	defer cleanup()
+
+	dbURL := "sqlite://" + filepath.Join(root, "set.db")
+	args := append([]string{"migrate", "set", "--url", dbURL}, spelling.args(migrations, "goose")...)
+	output, err := commandOutput(bin, append(args, "2"))
+	if err != nil {
+		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+	}
+
+	// Reading the state back proves the revisions were written for the Goose
+	// versions, not merely that the command exited 0.
+	statusArgs := append([]string{"migrate", "status", "--url", dbURL}, spelling.args(migrations, "goose")...)
+	status, err := commandOutput(bin, statusArgs)
+	if err != nil {
+		return atlasMetadataRuntimeExit(fixture, "readback", status, err)
+	}
+	if !strings.Contains(status, "Applied Migrations: 2") || !strings.Contains(status, "Pending Migrations: 0") {
+		return Result{"atlas-cli-metadata-runtime", fixture, "readback", Gap,
+			"`" + fixture + "` did not leave the Goose-format directory fully applied: " + oneLine(status),
+			"stokaro/ptah#1002"}
+	}
+	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
+		"`" + fixture + "` sets revisions from a directory laid out in Goose's convention; the read-back reports both migrations applied", ""}
+}
+
+// atlasMigrateTakesDirFormatVerbatim pins that neither verb widens the set of
+// accepted format names. Atlas CE compares the value verbatim, so every
+// near-miss spelling below is refused; a Ptah that folded case or trimmed
+// whitespace would accept directories Atlas CE rejects.
+func atlasMigrateTakesDirFormatVerbatim(bin string) []Result {
+	nearMisses := []string{"Goose", "GOOSE", " goose", "goose "}
+
+	verbs := []struct {
+		fixture string
+		prefix  func(dbURL string) []string
+		suffix  []string
+	}{
+		{
+			fixture: "atlas migrate status --dir-format verbatim",
+			prefix:  func(dbURL string) []string { return []string{"migrate", "status", "--url", dbURL} },
+		},
+		{
+			fixture: "atlas migrate set --dir-format verbatim",
+			prefix:  func(dbURL string) []string { return []string{"migrate", "set", "--url", dbURL} },
+			suffix:  []string{"2"},
+		},
+	}
+
+	out := make([]Result, 0, len(verbs))
+	for _, verb := range verbs {
+		out = append(out, atlasMigrateRefusesNearMissDirFormats(bin, verb.fixture, verb.prefix, verb.suffix, nearMisses))
+	}
+	return out
+}
+
+func atlasMigrateRefusesNearMissDirFormats(bin, fixture string, prefix func(string) []string, suffix, nearMisses []string) Result {
+	spelling := metadataDirSpellings()[0]
+	root, migrations, cleanup, result := prepareGooseMetadataDir(bin, fixture, spelling)
+	if result != nil {
+		return *result
+	}
+	defer cleanup()
+
+	dbURL := "sqlite://" + filepath.Join(root, "verbatim.db")
+	for _, value := range nearMisses {
+		full := append(prefix(dbURL), spelling.args(migrations, value)...)
+		output, err := commandOutput(bin, append(full, suffix...))
+		if err == nil {
+			return Result{"atlas-cli-metadata-runtime", fixture, "flags", Gap,
+				"`" + fixture + "` accepted --dir-format=" + strconv.Quote(value) +
+					", but Atlas CE matches the format name verbatim and refuses it",
+				"stokaro/ptah#1002"}
+		}
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) {
+			return atlasMetadataRuntimeFail(fixture, "flags", err)
+		}
+		if !strings.Contains(output, strconv.Quote(value)) {
+			return Result{"atlas-cli-metadata-runtime", fixture, "flags", Gap,
+				"`" + fixture + "` refused --dir-format=" + strconv.Quote(value) +
+					" without echoing the rejected value back: " + oneLine(output),
+				"stokaro/ptah#1002"}
+		}
+	}
+	return Result{"atlas-cli-metadata-runtime", fixture, "flags", OK,
+		"`" + fixture + "` refuses every near-miss format spelling (" + strings.Join(quoteAll(nearMisses), ", ") +
+			"), echoing each rejected value verbatim", ""}
+}
+
+func quoteAll(values []string) []string {
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		out = append(out, strconv.Quote(value))
+	}
+	return out
+}
+
+// prepareGooseMetadataDir writes a Goose-convention directory and hashes it
+// through the spelling under test, so the hash step is measured by the same
+// route as the verb it feeds.
+func prepareGooseMetadataDir(bin, fixture string, spelling metadataDirSpelling) (string, string, func(), *Result) {
+	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
+	if err != nil {
+		result := atlasMetadataRuntimeFail(fixture, "setup", err)
+		return "", "", nil, &result
+	}
+	if err := writeGooseMetadataDir(migrations); err != nil {
+		cleanup()
+		result := atlasMetadataRuntimeFail(fixture, "setup", err)
+		return "", "", nil, &result
+	}
+	output, err := commandOutput(bin, append([]string{"migrate", "hash"}, spelling.args(migrations, "goose")...))
+	if err != nil {
+		cleanup()
+		result := atlasMetadataRuntimeExit(fixture, "setup", output, err)
+		return "", "", nil, &result
+	}
+	return root, migrations, cleanup, nil
+}
+
+const (
+	gooseMetadataFirstSQL = "-- +goose Up\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n" +
+		"-- +goose Down\nDROP TABLE users;\n"
+	gooseMetadataSecondSQL = "-- +goose Up\nALTER TABLE users ADD COLUMN email TEXT;\n" +
+		"-- +goose Down\nALTER TABLE users DROP COLUMN email;\n"
+)
+
+// writeGooseMetadataDir lays the directory out the way Goose does: numeric
+// version prefixes and `+goose Up`/`+goose Down` section directives, neither of
+// which the Atlas convention has.
+func writeGooseMetadataDir(migrations string) error {
+	if err := os.WriteFile(filepath.Join(migrations, "1_initial.sql"), []byte(gooseMetadataFirstSQL), 0o600); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(migrations, "2_second_migration.sql"), []byte(gooseMetadataSecondSQL), 0o600)
 }
 
 func atlasMigrateApplyRejectsDirFormat(bin string) Result {

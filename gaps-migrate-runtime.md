@@ -13,8 +13,8 @@ apply and Goose checksum integrity use pinned Atlas CE as independent runtime or
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles pinned by atlas.version
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803000711-ba6c81ffd86b`
-- Outcomes: **65 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803112729-c0f86693b36e`
+- Outcomes: **69 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -47,6 +47,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `goose/hash-validate-differential` | Atlas first-error advisory | Atlas CE emitted the pinned v1.3.0 community-build advisory on the first error in an isolated HOME; the stable checksum contract is compared on the repeated error |  |
 | — | ok | migrate-runtime | `goose/hash-validate-differential` | tamper detection | Atlas CE and ptah-compat rejected the same tampered Goose directory with the pinned v1.3.0 stable exit/stdout/stderr contract after the Atlas-only first-error advisory was measured separately |  |
 | — | ok | migrate-runtime | `goose/import-roundtrip` | import | goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts |  |
+| — | ok | migrate-runtime | `goose/status-set-differential` | pending status | the community Atlas binary and ptah-compat both read the converted directory as {total=2 applied=0 pending=2} (the status layouts differ for every directory format, so the migration facts are compared) |  |
+| — | ok | migrate-runtime | `goose/status-set-differential` | set process | `migrate set --dir-format goose` produced byte-identical exit/stdout/stderr on the community Atlas binary and ptah-compat, both reporting the Goose versions they set |  |
+| — | ok | migrate-runtime | `goose/status-set-differential` | applied status | the community Atlas binary and ptah-compat both read the converted directory as {total=2 applied=2 pending=0} (the status layouts differ for every directory format, so the migration facts are compared) |  |
+| — | ok | migrate-runtime | `goose/status-set-differential` | verbatim format | the community Atlas binary and ptah-compat both refuse the near-miss format spellings "Goose", "GOOSE", " goose" and "goose " on `migrate status` and `migrate set` with exit 1, each echoing the rejected value verbatim |  |
 | — | ok | migrate-runtime | `liquibase/import-roundtrip` | import | liquibase import split formatted-SQL changesets into Ptah up/down pairs (rollback as down) that validate accepts |  |
 | — | ok | migrate-runtime | `mariadb/apply-dry-run-stored-state` | inspect | MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged |  |
 | — | ok | migrate-runtime | `mariadb/apply-state` | inspect | apply created expected MariaDB tables and Atlas revision rows |  |

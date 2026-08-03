@@ -118,9 +118,16 @@ func writeGooseIntegrityFixture(dir string) error {
 }
 
 func runIntegrityCommand(bin, verb, dir string, env ...string) (integrityProcessResult, error) {
-	stdout, stderr, err := commandStreamsWithEnv(bin, []string{
+	return runIntegrityCommandArgs(bin, []string{
 		"migrate", verb, "--dir", fileURL(dir), "--dir-format", "goose",
-	}, "", env)
+	}, env...)
+}
+
+// runIntegrityCommandArgs runs an arbitrary Atlas-form argument vector and
+// reports the process outcome, treating a non-zero exit as a result to compare
+// rather than a harness failure.
+func runIntegrityCommandArgs(bin string, args []string, env ...string) (integrityProcessResult, error) {
+	stdout, stderr, err := commandStreamsWithEnv(bin, args, "", env)
 	result := integrityProcessResult{stdout: stdout, stderr: stderr}
 	if err == nil {
 		return result, nil
