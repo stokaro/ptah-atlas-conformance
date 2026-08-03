@@ -12,8 +12,8 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803112729-c0f86693b36e`
-- Outcomes: **810 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803105339-da1c4cd2754c`
+- Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -47,14 +47,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate lint --dir-format goose` | execute | `atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate new` | execute | `atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate new --dir-format goose` | execute | `atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir ?format=goose` | execute | `atlas migrate set --dir ?format=goose` sets revisions from a directory laid out in Goose's convention; the read-back reports both migrations applied |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` sets revisions from a directory laid out in Goose's convention; the read-back reports both migrations applied |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format verbatim` | flags | `atlas migrate set --dir-format verbatim` refuses every near-miss format spelling ("Goose", "GOOSE", " goose", "goose "), echoing each rejected value verbatim |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate set --revisions-schema` | execute | `atlas migrate set --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status` | execute | `atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir ?format=goose` | execute | `atlas migrate status --dir ?format=goose` reads a directory laid out in Goose's convention and reports its two migrations as pending |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` reads a directory laid out in Goose's convention and reports its two migrations as pending |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format verbatim` | flags | `atlas migrate status --dir-format verbatim` refuses every near-miss format spelling ("Goose", "GOOSE", " goose", "goose "), echoing each rejected value verbatim |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --revisions-schema` | execute | `atlas migrate status --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | `atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
 | — | ok | atlas-cli-report-format | `atlas migrate apply --format json` | format | `atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
@@ -337,6 +333,9 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | dbtest-workflow | `ptah schema test/json` | JSON report | structured schema JSON report preserved exact summary, case, and step results |  |
 | — | ok | dbtest-workflow | `ptah schema test/setup failure` | setup exit contract | invalid schema-test input produced process exit code 2 and an actionable diagnostic |  |
 | — | ok | dbtest-workflow | `ptah schema test/text` | schema execution | desired-schema provisioning, seed, drift repair, assertions, and case filtering passed |  |
+| — | ok | desired-state-workflow | `atlas migrate diff` | database-url --to source converges | `migrate diff --to sqlite://...` introspected the live desired database, wrote one validated migration that replayed on a fresh target, converged without rewriting artifacts, and preserved the source data |  |
+| — | ok | desired-state-workflow | `atlas migrate diff` | env://url source with project defaults | `migrate diff --to env://url` resolved the live desired database, took dev and migration defaults from atlas.hcl, generated a validated migration that replayed on a fresh target, and preserved the source data |  |
+| — | ok | desired-state-workflow | `atlas migrate diff` | desired and dev path alias rejected | textually different SQLite URLs resolving to the same desired/dev database were rejected before destructive replay; the source table and data survived and no migration directory was created |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | database-url --to source | `schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source replay | `schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted |  |

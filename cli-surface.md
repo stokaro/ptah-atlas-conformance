@@ -17,7 +17,7 @@ the dedicated CE-gating report.
 Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 - Atlas CE binary: `atlas community version v1.3.0`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803112729-c0f86693b36e`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803105339-da1c4cd2754c`
 - Outcomes: **105 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived

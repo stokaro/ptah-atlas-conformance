@@ -10,9 +10,9 @@ mismatches are tracked against `stokaro/ptah#669`.
 ## Status: PROVIDER CONFORMANCE on the pinned fixtures
 
 - GORM provider: `ariga.io/atlas-provider-gorm@v0.6.1`
-- SQLAlchemy provider: `atlas-provider-sqlalchemy==0.4.1`
-- SQLAlchemy: `SQLAlchemy==2.0.50`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803112729-c0f86693b36e`
+- SQLAlchemy provider: `atlas-provider-sqlalchemy==0.5.0`
+- SQLAlchemy: `SQLAlchemy==2.0.51`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803105339-da1c4cd2754c`
 - Outcomes: **4 ok**, **0 gap**, **0 fail**, **0 panic**
 
 ## Findings
@@ -21,5 +21,5 @@ mismatches are tracked against `stokaro/ptah#669`.
 | --- | --- | --- | --- | --- | --- |
 | - | ok | gorm | provider output | GORM provider v0.6.1 provider output preserved two tables, primary keys, a unique index, and a foreign key |  |
 | - | ok | gorm | ptah schema render | GORM provider v0.6.1 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key |  |
-| - | ok | sqlalchemy | provider output | SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 provider output preserved two tables, primary keys, a unique index, and a foreign key |  |
-| - | ok | sqlalchemy | ptah schema render | SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key |  |
+| - | ok | sqlalchemy | provider output | SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 provider output preserved two tables, primary keys, a unique index, and a foreign key |  |
+| - | ok | sqlalchemy | ptah schema render | SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key |  |

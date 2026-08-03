@@ -101,7 +101,9 @@ func RunMigrateRuntime() []Result {
 			checks = append(checks,
 				func(bin string) Result { return postgresMigrateApplyCustomRevisionsSchema(bin, target.URL) },
 				func(bin string) Result { return postgresMigrateApplyDryRunReadsStoredState(bin, target.URL) },
-				func(bin string) Result { return postgresMigrateNoTransactionConcurrentIndex(bin, target.URL) },
+				func(bin string) Result {
+					return postgresMigrateNoTransactionConcurrentIndex(bin, atlasBin, target.URL)
+				},
 				func(bin string) Result { return postgresMigrateTxtarCheckEscapeString(bin, target.URL) },
 				func(bin string) Result { return postgresMigrateTxtarCheckSessionIsolation(bin, target.URL) },
 				func(string) Result { return postgresGenerateDiffSkipDropTable(nativeBin, target.URL) },
@@ -123,7 +125,7 @@ func RunMigrateRuntime() []Result {
 		}
 	}
 	out := gooseMigrateIntegrityOracle(compatBin, atlasBin)
-	out = append(out, gooseMigrateConvertedDirOracle(compatBin, atlasBin)...)
+	out = append(out, sqliteMigrateFileTxModeOracle(compatBin, nativeBin, atlasBin)...)
 	out = slices.Grow(out, len(checks))
 	for _, check := range checks {
 		out = append(out, check(compatBin))
@@ -1083,52 +1085,124 @@ func postgresMigrateApplyCustomRevisionsSchema(bin, dbURL string) Result {
 		"apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema", ""}
 }
 
-func postgresMigrateNoTransactionConcurrentIndex(bin, dbURL string) Result {
+func postgresMigrateNoTransactionConcurrentIndex(bin, atlasBin, dbURL string) Result {
 	const fixture = "postgres/no-transaction-concurrent-index"
-	schema := migrateRuntimeIdentifier("ptah_rt_pg_notx")
+	atlasSchema := migrateRuntimeIdentifier("ptah_rt_pg_notx_atlas")
+	ptahSchema := migrateRuntimeIdentifier("ptah_rt_pg_notx_ptah")
+
+	atlasMigrations, cleanupAtlas, err := postgresNoTransactionMigrations(atlasSchema)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "atlas-setup", err)
+	}
+	defer cleanupAtlas()
+	ptahMigrations, cleanupPtah, err := postgresNoTransactionMigrations(ptahSchema)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "ptah-setup", err)
+	}
+	defer cleanupPtah()
+
+	if result := migrateRuntimeHash(atlasBin, atlasMigrations, fixture); result != nil {
+		result.Stage = "atlas-hash"
+		return *result
+	}
+	if result := migrateRuntimeHash(bin, ptahMigrations, fixture); result != nil {
+		result.Stage = "ptah-hash"
+		return *result
+	}
+	if result := cleanupPostgresRuntimeSchema(dbURL, atlasSchema, fixture); result != nil {
+		return *result
+	}
+	defer cleanupPostgresRuntimeSchema(dbURL, atlasSchema, fixture) //nolint:errcheck
+	if result := cleanupPostgresRuntimeSchema(dbURL, ptahSchema, fixture); result != nil {
+		return *result
+	}
+	defer cleanupPostgresRuntimeSchema(dbURL, ptahSchema, fixture) //nolint:errcheck
+
+	atlasOutput, atlasErr := commandOutput(atlasBin, []string{
+		"migrate", "apply",
+		"--url", dbURL,
+		"--dir", fileURL(atlasMigrations),
+		"--revisions-schema", atlasSchema,
+		"--tx-mode", "file",
+		"--allow-dirty",
+	})
+	if atlasErr == nil {
+		return fileTxModeGapForIssue(
+			fixture,
+			"atlas-apply",
+			"Atlas CE unexpectedly honored the no-separator txmode directive on PostgreSQL: "+oneLine(atlasOutput),
+			fileTxModeNoSeparatorIssue,
+		)
+	}
+	if detail := compareProcessExitCode(atlasErr, 1); detail != "" {
+		return fileTxModeGapForIssue(
+			fixture,
+			"atlas-apply",
+			detail+": "+oneLine(atlasOutput),
+			fileTxModeNoSeparatorIssue,
+		)
+	}
+	if !strings.Contains(atlasOutput, "CREATE INDEX CONCURRENTLY cannot run inside a transaction block") {
+		return fileTxModeGapForIssue(
+			fixture,
+			"atlas-apply",
+			"Atlas CE failed for an unexpected reason: "+oneLine(atlasOutput),
+			fileTxModeNoSeparatorIssue,
+		)
+	}
+
+	atlasConn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "atlas-inspect", err)
+	}
+	defer func() { _ = atlasConn.Close() }()
+	if detail := comparePostgresIndexes(atlasConn, atlasSchema, "users", []string{"users_pkey"}); detail != "" {
+		return fileTxModeGapForIssue(fixture, "atlas-inspect", detail, fileTxModeNoSeparatorIssue)
+	}
+	if detail := comparePostgresRevisions(atlasConn, atlasSchema, []sqliteRevisionFact{
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Atlas CLI v1.3.0"},
+	}); detail != "" {
+		return fileTxModeGapForIssue(fixture, "atlas-revisions", detail, fileTxModeNoSeparatorIssue)
+	}
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "apply",
+		"--url", dbURL,
+		"--dir", fileURL(ptahMigrations),
+		"--revisions-schema", ptahSchema,
+		"--tx-mode", "file",
+		"--allow-dirty",
+	})
+	if err != nil {
+		return migrateRuntimeExit(fixture, "ptah-apply", output, err)
+	}
+
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return migrateRuntimeFail(fixture, "ptah-inspect", err)
+	}
+	defer func() { _ = conn.Close() }()
+	if detail := comparePostgresIndexes(conn, ptahSchema, "users", []string{"users_email_idx", "users_pkey"}); detail != "" {
+		return fileTxModeGapForIssue(fixture, "ptah-inspect", detail, fileTxModeNoSeparatorIssue)
+	}
+	if detail := comparePostgresRevisions(conn, ptahSchema, []sqliteRevisionFact{
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+		{Version: "2", Description: "index", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
+	}); detail != "" {
+		return fileTxModeGapForIssue(fixture, "ptah-revisions", detail, fileTxModeNoSeparatorIssue)
+	}
+	return Result{migrateRuntimeProbeName, fixture, fileTxModePtahBetterStage, OK,
+		"on live PostgreSQL, Atlas CE v1.3 dropped `-- atlas:txmode none` directly above CREATE INDEX CONCURRENTLY, failed, and left one revision with no concurrent index; Ptah honored the directive, created the index outside a transaction, and recorded both revisions",
+		"stokaro/ptah#1081"}
+}
+
+func postgresNoTransactionMigrations(schema string) (string, func(), error) {
 	_, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
 		"1_first.sql": "CREATE TABLE " + quotePostgresIdentifier(schema) + ".users (id integer PRIMARY KEY, email text);\n",
 		"2_index.sql": "-- atlas:txmode none\n" +
 			"CREATE INDEX CONCURRENTLY users_email_idx ON " + quotePostgresIdentifier(schema) + ".users (email);\n",
 	})
-	if err != nil {
-		return migrateRuntimeFail(fixture, "setup", err)
-	}
-	defer cleanup()
-	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
-		return *result
-	}
-	if result := cleanupPostgresRuntimeSchema(dbURL, schema, fixture); result != nil {
-		return *result
-	}
-	defer cleanupPostgresRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
-
-	output, err := commandOutput(bin, []string{
-		"migrate", "apply",
-		"--url", dbURL,
-		"--dir", fileURL(migrations),
-		"--revisions-schema", schema,
-	})
-	if err != nil {
-		return migrateRuntimeExit(fixture, "apply", output, err)
-	}
-
-	conn, err := openMigrateRuntimeConnection(dbURL)
-	if err != nil {
-		return migrateRuntimeFail(fixture, "inspect", err)
-	}
-	defer func() { _ = conn.Close() }()
-	if detail := comparePostgresIndexes(conn, schema, "users", []string{"users_email_idx", "users_pkey"}); detail != "" {
-		return migrateRuntimeGap(fixture, "inspect", detail)
-	}
-	if detail := comparePostgresRevisions(conn, schema, []sqliteRevisionFact{
-		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
-		{Version: "2", Description: "index", Applied: 1, Total: 1, OperatorVersion: "Ptah"},
-	}); detail != "" {
-		return migrateRuntimeGap(fixture, "revisions", detail)
-	}
-	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
-		"`-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction", ""}
+	return migrations, cleanup, err
 }
 
 func postgresMigrateTxtarCheckEscapeString(bin, dbURL string) Result {
