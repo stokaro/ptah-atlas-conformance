@@ -84,15 +84,20 @@ is **"unknown — not measured"**, not "works".
 
 The SQLite transaction-mode runtime matrix now covers all 12 Atlas CE v1.3
 global/file-directive combinations, malformed and misplaced directives,
-whitespace header boundaries, amount and baseline selection, complete stable
-revision metadata, converted golang-migrate pairs, txtar section controls, and
-the native `+ptah no_transaction` control. It leaves ten observations red: the
-eight exact diagnostic differences tracked by `stokaro/ptah#1076`, the
-whitespace-only separator behavior tracked by `stokaro/ptah#1077`, and the
-failed-file revision row tracked by `stokaro/ptah#887`. Atlas CE `migrate down`
-is a measured community-version boundary that rejects execution before runtime
-flags can be supplied, so split-file and txtar down behavior is reported as
-Ptah-side evidence rather than mislabeled Atlas parity.
+exact LF, CRLF, space, tab, mixed-whitespace, and missing-separator header
+boundaries, amount and baseline selection, complete stable revision metadata,
+converted golang-migrate pairs, txtar section controls, and the native
+`+ptah no_transaction` control. It leaves nine observations red: the eight
+exact diagnostic differences tracked by `stokaro/ptah#1076` and the failed-file
+revision row tracked by `stokaro/ptah#887`. The `\r`-sensitive and
+missing-separator differences tracked by `stokaro/ptah#1077` and
+`stokaro/ptah#1081` are explicit green `ptah-better` observations:
+Atlas CE drops the user's `none` directive, while Ptah intentionally honors it.
+The converted golang-migrate `.up.sql` control applies the same classification
+when Atlas CE discards an explicit source directive but Ptah preserves it.
+Atlas CE `migrate down` is a measured community-version boundary that rejects
+execution before runtime flags can be supplied, so split-file and txtar down
+behavior is reported as Ptah-side evidence rather than mislabeled Atlas parity.
 
 ## Honest framing, both directions
 

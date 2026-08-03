@@ -103,3 +103,108 @@ func TestCompareFileTxModeBookkeeping_AggregatesEveryBodyExecutionCell(t *testin
 	c.Assert(result.Detail, qt.Contains, "differs in 7/7 body-execution cells")
 	c.Assert(result.Detail, qt.Contains, `partial_hashes="null"`)
 }
+
+func TestCompareFileTxModeMatrixCase_RecordsIntentionalDivergence(t *testing.T) {
+	c := qt.New(t)
+	atlasExpected := fileTxModeExpectedState{
+		Tables:    []string{"atlas_schema_revisions"},
+		Revisions: []fileTxModeRevisionFact{},
+	}
+	ptahRevision := fileTxModeRevisionFact{
+		Version:         "1",
+		Description:     "case",
+		Type:            2,
+		Applied:         1,
+		Total:           2,
+		ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+		OperatorVersion: "Ptah",
+	}
+	testCase := fileTxModeMatrixCase{
+		GlobalMode:    "file",
+		AtlasExpected: atlasExpected,
+		PtahExpected: fileTxModeExpectedState{
+			BodyTable: true,
+			Tables:    []string{"atlas_schema_revisions", fileTxModeBodyTable},
+			Revisions: []fileTxModeRevisionFact{ptahRevision},
+		},
+		IntentionalDivergence: "Ptah preserves the explicit directive",
+		Issue:                 fileTxModeWhitespaceIssue,
+	}
+	pair := fileTxModePair{
+		Atlas: fileTxModeObservation{
+			Process: integrityProcessResult{exitCode: 1, stderr: fileTxModeMissingTable},
+			Tables:  []string{"atlas_schema_revisions"},
+		},
+		Ptah: fileTxModeObservation{
+			Process: integrityProcessResult{exitCode: 1, stderr: fileTxModeMissingTable},
+			Tables:  []string{"atlas_schema_revisions", fileTxModeBodyTable},
+			Revisions: []projectConfigRevisionMetadata{
+				{
+					Version:         "1",
+					Description:     "case",
+					Type:            2,
+					Applied:         1,
+					Total:           2,
+					ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+					OperatorVersion: "Ptah",
+				},
+			},
+		},
+	}
+
+	result := compareFileTxModeMatrixCase("fixture", testCase, pair)
+
+	c.Assert(result, qt.DeepEquals, Result{
+		Probe:   migrateRuntimeProbeName,
+		Fixture: "fixture",
+		Stage:   fileTxModePtahBetterStage,
+		Outcome: OK,
+		Detail:  "Ptah preserves the explicit directive; measured state: Atlas body=false/revisions=0, Ptah body=true/revisions=1",
+		Issue:   fileTxModeWhitespaceIssue,
+	})
+}
+
+func TestCompareFileTxModeMatrixCase_RejectsWrongRevisionState(t *testing.T) {
+	c := qt.New(t)
+	testCase := fileTxModeMatrixCase{
+		GlobalMode: "file",
+		AtlasExpected: fileTxModeExpectedState{
+			Tables:    []string{"atlas_schema_revisions"},
+			Revisions: []fileTxModeRevisionFact{},
+		},
+		PtahExpected: fileTxModeExpectedState{
+			BodyTable: true,
+			Tables:    []string{"atlas_schema_revisions", fileTxModeBodyTable},
+			Revisions: []fileTxModeRevisionFact{
+				{
+					Version:         "1",
+					Description:     "case",
+					Type:            2,
+					Applied:         1,
+					Total:           2,
+					ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+					OperatorVersion: "Ptah",
+				},
+			},
+		},
+		IntentionalDivergence: "Ptah preserves the explicit directive",
+		Issue:                 fileTxModeWhitespaceIssue,
+	}
+	pair := fileTxModePair{
+		Atlas: fileTxModeObservation{
+			Process: integrityProcessResult{exitCode: 1, stderr: fileTxModeMissingTable},
+			Tables:  []string{"atlas_schema_revisions"},
+		},
+		Ptah: fileTxModeObservation{
+			Process:   integrityProcessResult{exitCode: 1, stderr: fileTxModeMissingTable},
+			Tables:    []string{"atlas_schema_revisions", fileTxModeBodyTable},
+			Revisions: []projectConfigRevisionMetadata{{Version: "1"}},
+		},
+	}
+
+	result := compareFileTxModeMatrixCase("fixture", testCase, pair)
+
+	c.Assert(result.Outcome, qt.Equals, Gap)
+	c.Assert(result.Stage, qt.Equals, "ptah")
+	c.Assert(result.Detail, qt.Contains, "revision facts")
+}

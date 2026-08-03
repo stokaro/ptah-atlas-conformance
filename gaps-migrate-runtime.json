@@ -148,11 +148,55 @@
   },
   {
     "probe": "migrate-runtime",
-    "fixture": "sqlite/per-file-txmode/matrix/whitespace-only-header-separator",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah body table exists = true, want false",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-empty-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (empty separator with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-spaces-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (spaces with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-tabs-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (tabs with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-mixed-whitespace-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (mixed whitespace with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-empty-crlf-intentional-divergence",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 drops the explicit txmode directive when the empty separator uses CRLF; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent; measured state: Atlas body=false/revisions=0, Ptah body=true/revisions=1",
     "issue": "stokaro/ptah#1077"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-mixed-whitespace-crlf-intentional-divergence",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 drops the explicit txmode directive when the whitespace separator contains a carriage return; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent; measured state: Atlas body=false/revisions=0, Ptah body=true/revisions=1",
+    "issue": "stokaro/ptah#1077"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/missing-separator-intentional-divergence",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 drops the explicit txmode directive when the statement immediately follows it; Ptah honors it instead of copying behavior that discards user intent; measured state: Atlas body=false/revisions=0, Ptah body=true/revisions=1",
+    "issue": "stokaro/ptah#1081"
   },
   {
     "probe": "migrate-runtime",
@@ -187,9 +231,10 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/plain-split-up",
-    "stage": "compare",
+    "stage": "ptah-better",
     "outcome": "ok",
-    "detail": "both binaries discarded the source .up.sql txmode directive during golang-migrate format conversion and rolled back the failing migration"
+    "detail": "Atlas CE v1.3 discarded the explicit source .up.sql txmode directive during golang-migrate format conversion and rolled back the body (0 revision rows); Ptah preserved the directive, kept the successful statement, and recorded the failed nontransactional migration (1 revision row)",
+    "issue": "stokaro/ptah#1082"
   },
   {
     "probe": "migrate-runtime",
@@ -449,5 +494,195 @@
     "stage": "shape",
     "outcome": "ok",
     "detail": "lint --format sarif emits SARIF 2.1.0 with a named driver and a result carrying ruleId, level, and a file:line location"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/custom-revisions-schema",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/apply-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "PostgreSQL apply dry-run read the custom-schema stored revision, planned only version 2, and left relations and revision identity state unchanged"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/no-transaction-concurrent-index",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "on live PostgreSQL, Atlas CE v1.3 dropped `-- atlas:txmode none` directly above CREATE INDEX CONCURRENTLY, failed, and left one revision with no concurrent index; Ptah honored the directive, created the index outside a transaction, and recorded both revisions",
+    "issue": "stokaro/ptah#1081"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/txtar-check-escape-string",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "PostgreSQL E-string semicolons remained inside one assertion and the guarded migration applied"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/txtar-check-session-isolation",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "the check ran on a disposable PostgreSQL session: migration.sql applied and its advisory lock was available afterward"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "postgres/generate-diff-skip-drop-table",
+    "stage": "generate",
+    "outcome": "ok",
+    "detail": "`diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/add-table",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/drop-table",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/add-column",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/drop-column",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-nullability",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-type-category",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-type-width",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-varchar-length",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-decimal-scale",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/modify-column-varchar-unbounded",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "schema-planning",
+    "fixture": "postgres/mixed-add/drop/modify",
+    "stage": "end-state",
+    "outcome": "ok",
+    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/apply-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply created expected MySQL tables and Atlas revision rows"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/apply-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/txtar-check-comment-semantics",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL executable comments and short numeric comment bodies retained their SQL semantics in named checks"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/txtar-check-hidden-statements",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mysql/txtar-check-short-numeric-body",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MySQL treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/apply-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "apply created expected MariaDB tables and Atlas revision rows"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/apply-dry-run-stored-state",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/txtar-check-comment-semantics",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB executable comments and short numeric comment bodies retained their SQL semantics in named checks"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/txtar-check-hidden-statements",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/txtar-check-short-numeric-body",
+    "stage": "inspect",
+    "outcome": "ok",
+    "detail": "MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
   }
 ]

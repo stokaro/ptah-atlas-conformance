@@ -20,7 +20,8 @@ import (
 type Outcome string
 
 const (
-	// OK — Ptah handled the fixture the way Atlas would expect.
+	// OK — the observation met its declared contract: Atlas parity, a Ptah-only
+	// capability, or an explicitly measured Ptah-better divergence.
 	OK Outcome = "ok"
 	// Gap — Ptah ran without error but does not cover what Atlas expresses.
 	Gap Outcome = "gap"

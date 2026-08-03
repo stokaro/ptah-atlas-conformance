@@ -103,21 +103,32 @@ deterministic report.
 The migrate-runtime transaction-mode coverage includes every Atlas CE v1.3
 global `file`/`all`/`none` by file directive absent/`file`/`none`/`all` cell,
 exact rejection diagnostics and exit codes, amount and baseline selection, and
-whitespace or misplaced directive boundaries. A converted golang-migrate pair
-pins that both binaries discard the source `.up.sql` transaction directive;
-Atlas CE's community gate prevents a `.down.sql` execution oracle, so the
+misplaced directives plus exact LF, CRLF, space, tab, mixed-whitespace, and
+missing-separator boundaries. LF-, space-, and tab-only separators match Atlas.
+Atlas CE silently drops the explicit directive when the separator contains
+`\r` or when no separator exists, while Ptah honors the instruction. Those
+cells remain measured `ok` results at the `ptah-better` stage: making
+Ptah match would copy a line-ending-sensitive defect and remove behavior the
+migration author explicitly requested. A converted golang-migrate `.up.sql`
+pair records the same policy boundary: Atlas CE discards the explicit source
+transaction directive during conversion, while Ptah preserves it as an
+intentional divergence. For the corresponding `.down.sql` path, Atlas CE's
+community gate prevents an execution oracle, so the
 converted down path is explicitly Ptah-side evidence. Txtar is likewise
 classified without claiming an oracle that CE cannot provide: CE treats archive
 markers as plain SQL on apply, and its community `migrate down` command rejects
 execution before runtime flags can be supplied, while Ptah-side live controls
 prove the section-local `migration.sql` and `down.sql` extension independently.
 
-The current report intentionally keeps ten observations red: eight exact
-stderr mismatches under `stokaro/ptah#1076`, one whitespace-boundary semantic
-gap under `stokaro/ptah#1077`, and one failed-file revision-bookkeeping gap
-under `stokaro/ptah#887`. The regression budget is ten so known gaps do not
-block unrelated improvements; `make gate-migrate-runtime` remains red until all
-three tracked gaps are fixed.
+The current report intentionally keeps nine observations red: eight exact
+stderr mismatches under `stokaro/ptah#1076` and one failed-file
+revision-bookkeeping gap under `stokaro/ptah#887`. The regression budget is nine
+so known gaps do not block unrelated improvements; `make gate-migrate-runtime`
+remains red until both tracked gaps are fixed. The `\r` and missing-separator
+differences linked to `stokaro/ptah#1077` and `stokaro/ptah#1081` are green only
+because the report records both products' distinct database states and
+classifies the user-benefiting difference explicitly; they are not omitted or
+treated as accidental parity.
 
 The migrate-runtime tier also runs a Goose-format checksum differential against
 the pinned Atlas CE binary: both tools must generate byte-identical

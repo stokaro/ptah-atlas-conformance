@@ -14,10 +14,12 @@ const (
 	fileTxModeIssue            = "stokaro/ptah#998"
 	fileTxModeBookkeepingIssue = "stokaro/ptah#887"
 	fileTxModeDiagnosticIssue  = "stokaro/ptah#1076"
+	fileTxModeNoSeparatorIssue = "stokaro/ptah#1081"
 	fileTxModeWhitespaceIssue  = "stokaro/ptah#1077"
 	fileTxModeFilename         = "1_case.sql"
 	fileTxModeBodyTable        = "txmode_body"
 	fileTxModeMissingTable     = "txmode_missing"
+	fileTxModePtahBetterStage  = "ptah-better"
 )
 
 const fileTxModeFailingBody = `CREATE TABLE txmode_body (id INTEGER PRIMARY KEY);
@@ -25,13 +27,33 @@ INSERT INTO txmode_missing (id) VALUES (1);
 `
 
 type fileTxModeMatrixCase struct {
-	Name           string
-	GlobalMode     string
-	Directive      string
-	DirectiveLabel string
-	WantTable      bool
-	WantError      string
-	Issue          string
+	Name                  string
+	GlobalMode            string
+	Directive             string
+	DirectiveLabel        string
+	AtlasExpected         fileTxModeExpectedState
+	PtahExpected          fileTxModeExpectedState
+	WantError             string
+	IntentionalDivergence string
+	Issue                 string
+}
+
+type fileTxModeExpectedState struct {
+	BodyTable bool
+	Tables    []string
+	Revisions []fileTxModeRevisionFact
+}
+
+type fileTxModeRevisionFact struct {
+	Version              string
+	Description          string
+	Type                 int64
+	Applied              int64
+	Total                int64
+	ErrorIsNull          bool
+	ErrorStatementIsNull bool
+	ErrorStatement       string
+	OperatorVersion      string
 }
 
 type fileTxModeObservation struct {
@@ -54,10 +76,50 @@ type fileTxModePair struct {
 }
 
 func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result {
+	atlasRolledBack := fileTxModeExpectedState{
+		Tables:    []string{"atlas_schema_revisions"},
+		Revisions: []fileTxModeRevisionFact{},
+	}
+	atlasNoTransaction := fileTxModeExpectedState{
+		BodyTable: true,
+		Tables:    []string{"atlas_schema_revisions", fileTxModeBodyTable},
+		Revisions: []fileTxModeRevisionFact{
+			{
+				Version:         "1",
+				Description:     "case",
+				Type:            2,
+				Applied:         1,
+				Total:           2,
+				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
+				OperatorVersion: "Atlas CLI v1.3.0",
+			},
+		},
+	}
+	ptahNoTransaction := fileTxModeExpectedState{
+		BodyTable: true,
+		Tables:    []string{"atlas_schema_revisions", fileTxModeBodyTable},
+		Revisions: []fileTxModeRevisionFact{
+			{
+				Version:         "1",
+				Description:     "case",
+				Type:            2,
+				Applied:         1,
+				Total:           2,
+				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+				OperatorVersion: "Ptah",
+			},
+		},
+	}
 	cases := []fileTxModeMatrixCase{
 		{Name: "global-file-directive-absent", GlobalMode: "file"},
 		{Name: "global-file-directive-file", GlobalMode: "file", Directive: "-- atlas:txmode file\n\n"},
-		{Name: "global-file-directive-none", GlobalMode: "file", Directive: "-- atlas:txmode none\n\n", WantTable: true},
+		{
+			Name:          "global-file-directive-none",
+			GlobalMode:    "file",
+			Directive:     "-- atlas:txmode none\n\n",
+			AtlasExpected: fileTxModeExpectedState{BodyTable: true},
+			PtahExpected:  fileTxModeExpectedState{BodyTable: true},
+		},
 		{
 			Name:       "global-file-directive-all",
 			GlobalMode: "file",
@@ -83,9 +145,20 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 			Directive:  "-- atlas:txmode all\n\n",
 			WantError:  `txmode "all" is not allowed in file directive "1_case.sql". Use "file" instead`,
 		},
-		{Name: "global-none-directive-absent", GlobalMode: "none", WantTable: true},
+		{
+			Name:          "global-none-directive-absent",
+			GlobalMode:    "none",
+			AtlasExpected: fileTxModeExpectedState{BodyTable: true},
+			PtahExpected:  fileTxModeExpectedState{BodyTable: true},
+		},
 		{Name: "global-none-directive-file", GlobalMode: "none", Directive: "-- atlas:txmode file\n\n"},
-		{Name: "global-none-directive-none", GlobalMode: "none", Directive: "-- atlas:txmode none\n\n", WantTable: true},
+		{
+			Name:          "global-none-directive-none",
+			GlobalMode:    "none",
+			Directive:     "-- atlas:txmode none\n\n",
+			AtlasExpected: fileTxModeExpectedState{BodyTable: true},
+			PtahExpected:  fileTxModeExpectedState{BodyTable: true},
+		},
 		{
 			Name:       "global-none-directive-all",
 			GlobalMode: "none",
@@ -111,10 +184,66 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 			DirectiveLabel: "none (misplaced; ignored)",
 		},
 		{
-			Name:       "whitespace-only-header-separator",
-			GlobalMode: "file",
-			Directive:  "-- atlas:txmode none\n \t\r\n",
-			Issue:      fileTxModeWhitespaceIssue,
+			Name:           "separator-empty-lf",
+			GlobalMode:     "file",
+			Directive:      "-- atlas:txmode none\n\n",
+			DirectiveLabel: `none (empty separator with LF)`,
+			AtlasExpected:  atlasNoTransaction,
+			PtahExpected:   ptahNoTransaction,
+		},
+		{
+			Name:           "separator-spaces-lf",
+			GlobalMode:     "file",
+			Directive:      "-- atlas:txmode none\n   \n",
+			DirectiveLabel: `none (spaces with LF)`,
+			AtlasExpected:  atlasNoTransaction,
+			PtahExpected:   ptahNoTransaction,
+		},
+		{
+			Name:           "separator-tabs-lf",
+			GlobalMode:     "file",
+			Directive:      "-- atlas:txmode none\n\t\t\n",
+			DirectiveLabel: `none (tabs with LF)`,
+			AtlasExpected:  atlasNoTransaction,
+			PtahExpected:   ptahNoTransaction,
+		},
+		{
+			Name:           "separator-mixed-whitespace-lf",
+			GlobalMode:     "file",
+			Directive:      "-- atlas:txmode none\n \t \n",
+			DirectiveLabel: `none (mixed whitespace with LF)`,
+			AtlasExpected:  atlasNoTransaction,
+			PtahExpected:   ptahNoTransaction,
+		},
+		{
+			Name:                  "separator-empty-crlf-intentional-divergence",
+			GlobalMode:            "file",
+			Directive:             "-- atlas:txmode none\r\n\r\n",
+			DirectiveLabel:        `none (empty separator with CRLF)`,
+			AtlasExpected:         atlasRolledBack,
+			PtahExpected:          ptahNoTransaction,
+			IntentionalDivergence: "Atlas CE v1.3 drops the explicit txmode directive when the empty separator uses CRLF; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent",
+			Issue:                 fileTxModeWhitespaceIssue,
+		},
+		{
+			Name:                  "separator-mixed-whitespace-crlf-intentional-divergence",
+			GlobalMode:            "file",
+			Directive:             "-- atlas:txmode none\n \t\r\n",
+			DirectiveLabel:        `none (mixed whitespace with CRLF)`,
+			AtlasExpected:         atlasRolledBack,
+			PtahExpected:          ptahNoTransaction,
+			IntentionalDivergence: "Atlas CE v1.3 drops the explicit txmode directive when the whitespace separator contains a carriage return; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent",
+			Issue:                 fileTxModeWhitespaceIssue,
+		},
+		{
+			Name:                  "missing-separator-intentional-divergence",
+			GlobalMode:            "file",
+			Directive:             "-- atlas:txmode none\n",
+			DirectiveLabel:        "none (no separator)",
+			AtlasExpected:         atlasRolledBack,
+			PtahExpected:          ptahNoTransaction,
+			IntentionalDivergence: "Atlas CE v1.3 drops the explicit txmode directive when the statement immediately follows it; Ptah honors it instead of copying behavior that discards user intent",
+			Issue:                 fileTxModeNoSeparatorIssue,
 		},
 	}
 
@@ -318,11 +447,38 @@ func compareFileTxModeMatrixCase(
 	tc fileTxModeMatrixCase,
 	pair fileTxModePair,
 ) Result {
-	if detail, issue := compareFileTxModeMatrixObservation("Atlas CE", tc, pair.Atlas); detail != "" {
+	if detail, issue := compareFileTxModeMatrixObservation(
+		"Atlas CE",
+		tc,
+		pair.Atlas,
+		tc.AtlasExpected,
+	); detail != "" {
 		return fileTxModeGapForIssue(fixture, "atlas-oracle", detail, issue)
 	}
-	if detail, issue := compareFileTxModeMatrixObservation("Ptah", tc, pair.Ptah); detail != "" {
+	if detail, issue := compareFileTxModeMatrixObservation(
+		"Ptah",
+		tc,
+		pair.Ptah,
+		tc.PtahExpected,
+	); detail != "" {
 		return fileTxModeGapForIssue(fixture, "ptah", detail, issue)
+	}
+	if tc.IntentionalDivergence != "" {
+		return Result{
+			migrateRuntimeProbeName,
+			fixture,
+			fileTxModePtahBetterStage,
+			OK,
+			fmt.Sprintf(
+				"%s; measured state: Atlas body=%t/revisions=%d, Ptah body=%t/revisions=%d",
+				tc.IntentionalDivergence,
+				tableExists(pair.Atlas.Tables, fileTxModeBodyTable),
+				len(pair.Atlas.Revisions),
+				tableExists(pair.Ptah.Tables, fileTxModeBodyTable),
+				len(pair.Ptah.Revisions),
+			),
+			tc.Issue,
+		}
 	}
 	if tableExists(pair.Atlas.Tables, fileTxModeBodyTable) != tableExists(pair.Ptah.Tables, fileTxModeBodyTable) {
 		return fileTxModeGapForIssue(fixture, "compare", "Atlas CE and Ptah left different body table state", fileTxModeMatrixIssue(tc))
@@ -342,6 +498,7 @@ func compareFileTxModeMatrixObservation(
 	label string,
 	tc fileTxModeMatrixCase,
 	observation fileTxModeObservation,
+	expected fileTxModeExpectedState,
 ) (string, string) {
 	issue := fileTxModeMatrixIssue(tc)
 	if observation.Process.exitCode != 1 {
@@ -366,10 +523,42 @@ func compareFileTxModeMatrixObservation(
 	if !strings.Contains(observation.Process.stdout+observation.Process.stderr, fileTxModeMissingTable) {
 		return label + " did not reach the deliberately failing body statement", issue
 	}
-	if got := tableExists(observation.Tables, fileTxModeBodyTable); got != tc.WantTable {
-		return fmt.Sprintf("%s body table exists = %t, want %t", label, got, tc.WantTable), issue
+	if got := tableExists(observation.Tables, fileTxModeBodyTable); got != expected.BodyTable {
+		return fmt.Sprintf("%s body table exists = %t, want %t", label, got, expected.BodyTable), issue
+	}
+	if expected.Tables != nil && !slices.Equal(observation.Tables, expected.Tables) {
+		return fmt.Sprintf(
+			"%s tables = %v, want %v",
+			label,
+			observation.Tables,
+			expected.Tables,
+		), issue
+	}
+	if expected.Revisions != nil {
+		got := fileTxModeRevisionFacts(observation.Revisions)
+		if !slices.Equal(got, expected.Revisions) {
+			return fmt.Sprintf("%s revision facts = %v, want %v", label, got, expected.Revisions), issue
+		}
 	}
 	return "", ""
+}
+
+func fileTxModeRevisionFacts(revisions []projectConfigRevisionMetadata) []fileTxModeRevisionFact {
+	facts := make([]fileTxModeRevisionFact, len(revisions))
+	for i, revision := range revisions {
+		facts[i] = fileTxModeRevisionFact{
+			Version:              revision.Version,
+			Description:          revision.Description,
+			Type:                 revision.Type,
+			Applied:              revision.Applied,
+			Total:                revision.Total,
+			ErrorIsNull:          revision.ErrorIsNull,
+			ErrorStatementIsNull: revision.ErrorStatementIsNull,
+			ErrorStatement:       revision.ErrorStatement,
+			OperatorVersion:      revision.OperatorVersion,
+		}
+	}
+	return facts
 }
 
 func fileTxModeMatrixIssue(tc fileTxModeMatrixCase) string {
@@ -603,14 +792,53 @@ func fileTxModeSplitFileUpOracle(ptahBin, atlasBin string) Result {
 	if pair.Atlas.Process.exitCode != 1 || pair.Ptah.Process.exitCode != 1 {
 		return fileTxModeGap(fixture, "apply", "both binaries must reach the deliberately failing split up body")
 	}
-	if tableExists(pair.Atlas.Tables, fileTxModeBodyTable) {
-		return fileTxModeGap(fixture, "atlas-oracle", "Atlas CE unexpectedly interpreted the source .up.sql txmode directive after format conversion")
+	if !strings.Contains(pair.Atlas.Process.stdout+pair.Atlas.Process.stderr, fileTxModeMissingTable) {
+		return fileTxModeGap(fixture, "atlas-oracle", "Atlas CE did not reach the deliberately failing split up statement")
 	}
-	if tableExists(pair.Ptah.Tables, fileTxModeBodyTable) != tableExists(pair.Atlas.Tables, fileTxModeBodyTable) {
-		return fileTxModeGap(fixture, "compare", "Ptah interpreted a source .up.sql txmode directive that Atlas CE discarded during golang-migrate format conversion")
+	if !strings.Contains(pair.Ptah.Process.stdout+pair.Ptah.Process.stderr, fileTxModeMissingTable) {
+		return fileTxModeGap(fixture, "ptah", "Ptah did not reach the deliberately failing split up statement")
 	}
-	return Result{migrateRuntimeProbeName, fixture, "compare", OK,
-		"both binaries discarded the source .up.sql txmode directive during golang-migrate format conversion and rolled back the failing migration", ""}
+	if !slices.Equal(pair.Atlas.Tables, []string{"atlas_schema_revisions"}) {
+		return fileTxModeGap(fixture, "atlas-oracle", fmt.Sprintf(
+			"Atlas CE tables = %v, want only the revision table after rolling back the converted .up.sql migration",
+			pair.Atlas.Tables,
+		))
+	}
+	if len(pair.Atlas.Revisions) != 0 {
+		return fileTxModeGap(fixture, "atlas-oracle", fmt.Sprintf(
+			"Atlas CE left %d revision row(s), want 0 after rolling back the converted .up.sql migration",
+			len(pair.Atlas.Revisions),
+		))
+	}
+	wantPtahTables := []string{"atlas_schema_revisions", fileTxModeBodyTable}
+	if !slices.Equal(pair.Ptah.Tables, wantPtahTables) {
+		return fileTxModeGap(fixture, "ptah", fmt.Sprintf(
+			"Ptah tables = %v, want %v after honoring the converted .up.sql txmode directive",
+			pair.Ptah.Tables,
+			wantPtahTables,
+		))
+	}
+	wantPtahRevisions := []fileTxModeRevisionFact{
+		{
+			Version:         "1",
+			Description:     "case",
+			Type:            2,
+			Applied:         1,
+			Total:           2,
+			ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+			OperatorVersion: "Ptah",
+		},
+	}
+	if got := fileTxModeRevisionFacts(pair.Ptah.Revisions); !slices.Equal(got, wantPtahRevisions) {
+		return fileTxModeGap(fixture, "ptah", fmt.Sprintf(
+			"Ptah revision facts = %v, want %v after honoring the converted .up.sql txmode directive",
+			got,
+			wantPtahRevisions,
+		))
+	}
+	return Result{migrateRuntimeProbeName, fixture, fileTxModePtahBetterStage, OK,
+		"Atlas CE v1.3 discarded the explicit source .up.sql txmode directive during golang-migrate format conversion and rolled back the body (0 revision rows); Ptah preserved the directive, kept the successful statement, and recorded the failed nontransactional migration (1 revision row)",
+		"stokaro/ptah#1082"}
 }
 
 func fileTxModeSplitFileDownControl(ptahBin, atlasBin string) Result {
