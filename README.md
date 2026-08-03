@@ -100,6 +100,25 @@ deterministic report.
 | `migrate-runtime` | [`conformance-migrate-runtime`](./.github/workflows/conformance-migrate-runtime.yml) | Do real ptah-compat `atlas migrate apply/status/set/down` and native `ptah migrations up` executions leave the supported migration state callers rely on? This tier inspects schema objects and revision metadata directly. Apply dry-run reads stored state on SQLite, PostgreSQL, MySQL, and MariaDB; SQLite additionally covers native and compat command paths, formatted and default-output down dry-runs, a fresh target that must not initialize revision metadata, fully applied no-op planning, complete logical state snapshots, rollback-set validation before any mutation, named `checks/*.sql` archive order, `oneof` groups (including empty groups), and exact one-row/one-column enforcement. PostgreSQL checks pin escape-string parsing and physical-session lock release. MySQL and MariaDB checks pin executable-comment semantics, short numeric prefixes, and rejection of hidden statements before query execution. For project configuration, Atlas CE applies the first migration, the harness clones that exact brownfield database, and Atlas CE and Ptah independently apply the remainder from the same untouched `atlas.hcl` without explicit URL or directory flags. The oracle compares status facts, end schema, stable revision fields, storage classes, producer identity, measured timing bounds, and Atlas CE readback. Exact dynamic timing equality is intentionally not claimed: the pinned Atlas CE rewrites `executed_at` during per-statement revision writes, while Ptah records the migration start and full elapsed duration. CI also covers SQLite `--revisions-schema main` and `--tx-mode all/file/none`, PostgreSQL custom revision schemas and `CREATE INDEX CONCURRENTLY` with `atlas:txmode none`, and MySQL/MariaDB apply/status revision state. Externally produced checkpoints are covered too: a `-- atlas:checkpoint` directory bootstraps a fresh database from the checkpoint alone (single `type=2` revision row) and is skipped silently on a database that already applied the pre-checkpoint history, and Atlas's own vendored `partial-checkpoint` fixture pins latest-checkpoint selection plus post-checkpoint continuation against upstream-authored files. Apply-time `atlas.sum` integrity is measured on both Atlas branches: a hashed directory edited after hashing is refused with the checksum-mismatch shape, and a directory that was never hashed is refused with the checksum-file-not-found shape (stokaro/ptah#972), each asserted on exit code, output shape, and the target database never being created. | built `ptah-compat` and `ptah` binaries; pinned Atlas CE (`ATLAS_BIN`); local SQLite databases; `CONFORMANCE_POSTGRES_URL` / `CONFORMANCE_MYSQL_URL` / `CONFORMANCE_MARIADB_URL` |
 | `orm-provider-smoke` | [`conformance-orm-providers`](./.github/workflows/conformance-orm-providers.yml) | Do pinned GORM and SQLAlchemy providers emit the expected schema facts, and does Ptah preserve those facts when it executes the providers through `--schema-cmd`? | Go and Python package downloads; isolated temporary Go module and Python virtual environment; the built `ptah` binary |
 
+The migrate-runtime transaction-mode coverage includes every Atlas CE v1.3
+global `file`/`all`/`none` by file directive absent/`file`/`none`/`all` cell,
+exact rejection diagnostics and exit codes, amount and baseline selection, and
+whitespace or misplaced directive boundaries. A converted golang-migrate pair
+pins that both binaries discard the source `.up.sql` transaction directive;
+Atlas CE's community gate prevents a `.down.sql` execution oracle, so the
+converted down path is explicitly Ptah-side evidence. Txtar is likewise
+classified without claiming an oracle that CE cannot provide: CE treats archive
+markers as plain SQL on apply, and its community `migrate down` command rejects
+execution before runtime flags can be supplied, while Ptah-side live controls
+prove the section-local `migration.sql` and `down.sql` extension independently.
+
+The current report intentionally keeps ten observations red: eight exact
+stderr mismatches under `stokaro/ptah#1076`, one whitespace-boundary semantic
+gap under `stokaro/ptah#1077`, and one failed-file revision-bookkeeping gap
+under `stokaro/ptah#887`. The regression budget is ten so known gaps do not
+block unrelated improvements; `make gate-migrate-runtime` remains red until all
+three tracked gaps are fixed.
+
 The migrate-runtime tier also runs a Goose-format checksum differential against
 the pinned Atlas CE binary: both tools must generate byte-identical
 `atlas.sum` files, accept each other's checksum, remain silent on clean

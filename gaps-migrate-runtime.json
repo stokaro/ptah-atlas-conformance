@@ -36,6 +36,191 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-absent",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive absent matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-file",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive file matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-none",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-all",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-absent",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global all plus file directive absent matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-file",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: cannot set txmode directive to \\\"file\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\", want \"cannot set txmode directive to \\\"file\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-none",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: cannot set txmode directive to \\\"none\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\", want \"cannot set txmode directive to \\\"none\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-all",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-absent",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global none plus file directive absent matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-file",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global none plus file directive file matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-none",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global none plus file directive none matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-all",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/unknown-directive",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: unknown txmode \\\"statement\\\" found in file directive \\\"1_case.sql\\\"\", want \"unknown txmode \\\"statement\\\" found in file directive \\\"1_case.sql\\\"\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/duplicate-directive",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: multiple txmode values found in file \\\"1_case.sql\\\": [\\\"none\\\" \\\"file\\\"]\", want \"multiple txmode values found in file \\\"1_case.sql\\\": [\\\"none\\\" \\\"file\\\"]\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/misplaced-directive-is-ignored",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (misplaced; ignored) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/whitespace-only-header-separator",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah body table exists = true, want false",
+    "issue": "stokaro/ptah#1077"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/revision-bookkeeping",
+    "stage": "compare",
+    "outcome": "gap",
+    "detail": "full stable revision metadata differs in 7/7 body-execution cells: global-file-directive-absent count=1, Atlas=0; global-file-directive-absent Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"7frovHPq1HOv7ySiqon9rz8xqPGu5xu0dCuHEaNEQXE=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-file-directive-file count=1, Atlas=0; global-file-directive-file Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"bBn711m0B3EEfC9yd2TZ5AzG8IfEuT5VHOlR2QOzp9M=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-file-directive-none revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"; global-all-directive-absent count=1, Atlas=0; global-all-directive-absent Ptah extra row {version=\"1\" description=\"case\" type=2 applied=0 total=2 executed_at_type=\"text\" error_null=false error=\"failed to apply migration 1: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"7frovHPq1HOv7ySiqon9rz8xqPGu5xu0dCuHEaNEQXE=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-none-directive-absent revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"; global-none-directive-file count=1, Atlas=0; global-none-directive-file Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"bBn711m0B3EEfC9yd2TZ5AzG8IfEuT5VHOlR2QOzp9M=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-none-directive-none revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"",
+    "issue": "stokaro/ptah#887"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/selection/amount-one-global-file",
+    "stage": "ptah-retry",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: unknown txmode \\\"bogus\\\" found in file directive \\\"2_invalid.sql\\\"\", want \"unknown txmode \\\"bogus\\\" found in file directive \\\"2_invalid.sql\\\"\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/selection/amount-one-global-all",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "amount 1 validated only the selected first migration under global all; the later invalid directive remained untouched"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/selection/baseline-two",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "baseline 2 skipped validation and execution of the invalid baseline migration while both binaries applied version 3"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/plain-split-up",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "both binaries discarded the source .up.sql txmode directive during golang-migrate format conversion and rolled back the failing migration"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/plain-split-down",
+    "stage": "ptah-control",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 applied the split up migration, but its community migrate down command rejects execution before runtime flags can be supplied; the Ptah-side live control discarded the source .down.sql directive during golang-migrate conversion and rolled back the failing down without changing tables or stable revision metadata"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/txtar-up-extension",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 ignored section-local txtar txmode and rolled back the up body; Ptah intentionally extends txtar by applying migration.sql mode independently"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/txtar-down-extension",
+    "stage": "ptah-control",
+    "outcome": "ok",
+    "detail": "Ptah-side live evidence proved migration.sql=file and down.sql=none remain independent: the successful first down statement persisted, the failing statement stopped execution, and stable revision metadata remained unchanged"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/native-no-transaction",
+    "stage": "ptah-control",
+    "outcome": "ok",
+    "detail": "native -- +ptah no_transaction preserved the successful statement before failure while the identical transactional control rolled it back"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/project-config-apply-oracle",
     "stage": "compare",
     "outcome": "ok",
@@ -264,194 +449,5 @@
     "stage": "shape",
     "outcome": "ok",
     "detail": "lint --format sarif emits SARIF 2.1.0 with a named driver and a result carrying ruleId, level, and a file:line location"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "postgres/custom-revisions-schema",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "postgres/apply-dry-run-stored-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "PostgreSQL apply dry-run read the custom-schema stored revision, planned only version 2, and left relations and revision identity state unchanged"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "postgres/no-transaction-concurrent-index",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "`-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "postgres/txtar-check-escape-string",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "PostgreSQL E-string semicolons remained inside one assertion and the guarded migration applied"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "postgres/txtar-check-session-isolation",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "the check ran on a disposable PostgreSQL session: migration.sql applied and its advisory lock was available afterward"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "postgres/generate-diff-skip-drop-table",
-    "stage": "generate",
-    "outcome": "ok",
-    "detail": "`diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/add-table",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/drop-table",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/add-column",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/drop-column",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/modify-column-nullability",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/modify-column-type-category",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/modify-column-type-width",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/modify-column-varchar-length",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/modify-column-decimal-scale",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/modify-column-varchar-unbounded",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "schema-planning",
-    "fixture": "postgres/mixed-add/drop/modify",
-    "stage": "end-state",
-    "outcome": "ok",
-    "detail": "the A-\u003eB plan reaches the same canonical schema as building B directly"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mysql/apply-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "apply created expected MySQL tables and Atlas revision rows"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mysql/apply-dry-run-stored-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mysql/txtar-check-comment-semantics",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL executable comments and short numeric comment bodies retained their SQL semantics in named checks"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mysql/txtar-check-hidden-statements",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mysql/txtar-check-short-numeric-body",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mariadb/apply-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "apply created expected MariaDB tables and Atlas revision rows"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mariadb/apply-dry-run-stored-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mariadb/txtar-check-comment-semantics",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB executable comments and short numeric comment bodies retained their SQL semantics in named checks"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mariadb/txtar-check-hidden-statements",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
-  },
-  {
-    "probe": "migrate-runtime",
-    "fixture": "mariadb/txtar-check-short-numeric-body",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
   }
 ]
