@@ -1,4 +1,4 @@
 # Maximum allowed unwaived non-OK observations in gaps-migrate-runtime.json.
 # Lower this whenever Ptah runtime behavior matches Atlas on another measured
 # contour; CI fails on regressions above it.
-9
+1
