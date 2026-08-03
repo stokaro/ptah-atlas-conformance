@@ -58,10 +58,9 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-all",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive all matched Atlas CE v1.3 on exit, validation, and SQLite body state"
   },
   {
     "probe": "migrate-runtime",
@@ -73,26 +72,23 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-file",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: cannot set txmode directive to \\\"file\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\", want \"cannot set txmode directive to \\\"file\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global all plus file directive file matched Atlas CE v1.3 on exit, validation, and SQLite body state"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-none",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: cannot set txmode directive to \\\"none\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\", want \"cannot set txmode directive to \\\"none\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global all plus file directive none matched Atlas CE v1.3 on exit, validation, and SQLite body state"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-all",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global all plus file directive all matched Atlas CE v1.3 on exit, validation, and SQLite body state"
   },
   {
     "probe": "migrate-runtime",
@@ -118,26 +114,23 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-all",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global none plus file directive all matched Atlas CE v1.3 on exit, validation, and SQLite body state"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/matrix/unknown-directive",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: unknown txmode \\\"statement\\\" found in file directive \\\"1_case.sql\\\"\", want \"unknown txmode \\\"statement\\\" found in file directive \\\"1_case.sql\\\"\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive statement matched Atlas CE v1.3 on exit, validation, and SQLite body state"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/matrix/duplicate-directive",
-    "stage": "ptah",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: multiple txmode values found in file \\\"1_case.sql\\\": [\\\"none\\\" \\\"file\\\"]\", want \"multiple txmode values found in file \\\"1_case.sql\\\": [\\\"none\\\" \\\"file\\\"]\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none\n-- atlas:txmode file matched Atlas CE v1.3 on exit, validation, and SQLite body state"
   },
   {
     "probe": "migrate-runtime",
@@ -209,10 +202,9 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/selection/amount-one-global-file",
-    "stage": "ptah-retry",
-    "outcome": "gap",
-    "detail": "Ptah diagnostic = \"error applying migrations: unknown txmode \\\"bogus\\\" found in file directive \\\"2_invalid.sql\\\"\", want \"unknown txmode \\\"bogus\\\" found in file directive \\\"2_invalid.sql\\\"\"",
-    "issue": "stokaro/ptah#1076"
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "amount 1 validated only the selected first migration under global file; the later invalid directive remained untouched"
   },
   {
     "probe": "migrate-runtime",
