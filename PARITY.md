@@ -82,6 +82,23 @@ is **"unknown — not measured"**, not "works".
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
 | The migration **apply** path | **Partially** — migrate-runtime checks Atlas-compatible apply behavior, including an Atlas CE control versus Ptah project-config apply differential from identical brownfield state, checkpoint-directive bootstrap-or-skip semantics on both first-party and Atlas-authored directories, and apply-time `atlas.sum` verification on both hashed and never-hashed directories; `dbtest-workflow` checks native migration up/down on SQLite | broader Atlas fixture execution and failure-state equivalence; parser gaps remain distinct because apply executes migration SQL directly |
 
+The SQLite transaction-mode runtime matrix now covers all 12 Atlas CE v1.3
+global/file-directive combinations, malformed and misplaced directives,
+exact LF, CRLF, space, tab, mixed-whitespace, and missing-separator header
+boundaries, amount and baseline selection, complete stable revision metadata,
+converted golang-migrate pairs, txtar section controls, and the native
+`+ptah no_transaction` control. It leaves nine observations red: the eight
+exact diagnostic differences tracked by `stokaro/ptah#1076` and the failed-file
+revision row tracked by `stokaro/ptah#887`. The `\r`-sensitive and
+missing-separator differences tracked by `stokaro/ptah#1077` and
+`stokaro/ptah#1081` are explicit green `ptah-better` observations:
+Atlas CE drops the user's `none` directive, while Ptah intentionally honors it.
+The converted golang-migrate `.up.sql` control applies the same classification
+when Atlas CE discards an explicit source directive but Ptah preserves it.
+Atlas CE `migrate down` is a measured community-version boundary that rejects
+execution before runtime flags can be supplied, so split-file and txtar down
+behavior is reported as Ptah-side evidence rather than mislabeled Atlas parity.
+
 ## Honest framing, both directions
 
 - A `sql-parse` gap is a **round-trip** gap, not "Ptah cannot do it". Ptah

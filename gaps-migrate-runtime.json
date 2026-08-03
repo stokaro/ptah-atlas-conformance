@@ -36,6 +36,236 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-absent",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive absent matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-file",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive file matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-none",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-file-directive-all",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-absent",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global all plus file directive absent matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-file",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: cannot set txmode directive to \\\"file\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\", want \"cannot set txmode directive to \\\"file\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-none",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: cannot set txmode directive to \\\"none\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\", want \"cannot set txmode directive to \\\"none\\\" in \\\"1_case.sql\\\" when txmode \\\"all\\\" is set globally\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-all-directive-all",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-absent",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global none plus file directive absent matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-file",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global none plus file directive file matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-none",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global none plus file directive none matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/global-none-directive-all",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\", want \"txmode \\\"all\\\" is not allowed in file directive \\\"1_case.sql\\\". Use \\\"file\\\" instead\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/unknown-directive",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: unknown txmode \\\"statement\\\" found in file directive \\\"1_case.sql\\\"\", want \"unknown txmode \\\"statement\\\" found in file directive \\\"1_case.sql\\\"\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/duplicate-directive",
+    "stage": "ptah",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: multiple txmode values found in file \\\"1_case.sql\\\": [\\\"none\\\" \\\"file\\\"]\", want \"multiple txmode values found in file \\\"1_case.sql\\\": [\\\"none\\\" \\\"file\\\"]\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/misplaced-directive-is-ignored",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (misplaced; ignored) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-empty-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (empty separator with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-spaces-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (spaces with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-tabs-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (tabs with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-mixed-whitespace-lf",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "global file plus file directive none (mixed whitespace with LF) matched Atlas CE v1.3 on exit, validation, and SQLite body state"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-empty-crlf-intentional-divergence",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 drops the explicit txmode directive when the empty separator uses CRLF; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent; measured state: Atlas body=false/revisions=0, Ptah body=true/revisions=1",
+    "issue": "stokaro/ptah#1077"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/separator-mixed-whitespace-crlf-intentional-divergence",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 drops the explicit txmode directive when the whitespace separator contains a carriage return; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent; measured state: Atlas body=false/revisions=0, Ptah body=true/revisions=1",
+    "issue": "stokaro/ptah#1077"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/matrix/missing-separator-intentional-divergence",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 drops the explicit txmode directive when the statement immediately follows it; Ptah honors it instead of copying behavior that discards user intent; measured state: Atlas body=false/revisions=0, Ptah body=true/revisions=1",
+    "issue": "stokaro/ptah#1081"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/revision-bookkeeping",
+    "stage": "compare",
+    "outcome": "gap",
+    "detail": "full stable revision metadata differs in 7/7 body-execution cells: global-file-directive-absent count=1, Atlas=0; global-file-directive-absent Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"7frovHPq1HOv7ySiqon9rz8xqPGu5xu0dCuHEaNEQXE=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-file-directive-file count=1, Atlas=0; global-file-directive-file Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"bBn711m0B3EEfC9yd2TZ5AzG8IfEuT5VHOlR2QOzp9M=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-file-directive-none revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"; global-all-directive-absent count=1, Atlas=0; global-all-directive-absent Ptah extra row {version=\"1\" description=\"case\" type=2 applied=0 total=2 executed_at_type=\"text\" error_null=false error=\"failed to apply migration 1: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"7frovHPq1HOv7ySiqon9rz8xqPGu5xu0dCuHEaNEQXE=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-none-directive-absent revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"; global-none-directive-file count=1, Atlas=0; global-none-directive-file Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"bBn711m0B3EEfC9yd2TZ5AzG8IfEuT5VHOlR2QOzp9M=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-none-directive-none revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"",
+    "issue": "stokaro/ptah#887"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/selection/amount-one-global-file",
+    "stage": "ptah-retry",
+    "outcome": "gap",
+    "detail": "Ptah diagnostic = \"error applying migrations: unknown txmode \\\"bogus\\\" found in file directive \\\"2_invalid.sql\\\"\", want \"unknown txmode \\\"bogus\\\" found in file directive \\\"2_invalid.sql\\\"\"",
+    "issue": "stokaro/ptah#1076"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/selection/amount-one-global-all",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "amount 1 validated only the selected first migration under global all; the later invalid directive remained untouched"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/selection/baseline-two",
+    "stage": "compare",
+    "outcome": "ok",
+    "detail": "baseline 2 skipped validation and execution of the invalid baseline migration while both binaries applied version 3"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/plain-split-up",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 discarded the explicit source .up.sql txmode directive during golang-migrate format conversion and rolled back the body (0 revision rows); Ptah preserved the directive, kept the successful statement, and recorded the failed nontransactional migration (1 revision row)",
+    "issue": "stokaro/ptah#1082"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/plain-split-down",
+    "stage": "ptah-control",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 applied the split up migration, but its community migrate down command rejects execution before runtime flags can be supplied; the Ptah-side live control discarded the source .down.sql directive during golang-migrate conversion and rolled back the failing down without changing tables or stable revision metadata"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/txtar-up-extension",
+    "stage": "classify",
+    "outcome": "ok",
+    "detail": "Atlas CE v1.3 ignored section-local txtar txmode and rolled back the up body; Ptah intentionally extends txtar by applying migration.sql mode independently"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/txtar-down-extension",
+    "stage": "ptah-control",
+    "outcome": "ok",
+    "detail": "Ptah-side live evidence proved migration.sql=file and down.sql=none remain independent: the successful first down statement persisted, the failing statement stopped execution, and stable revision metadata remained unchanged"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "sqlite/per-file-txmode/native-no-transaction",
+    "stage": "ptah-control",
+    "outcome": "ok",
+    "detail": "native -- +ptah no_transaction preserved the successful statement before failure while the identical transactional control rolled it back"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "sqlite/project-config-apply-oracle",
     "stage": "compare",
     "outcome": "ok",
@@ -282,9 +512,10 @@
   {
     "probe": "migrate-runtime",
     "fixture": "postgres/no-transaction-concurrent-index",
-    "stage": "inspect",
+    "stage": "ptah-better",
     "outcome": "ok",
-    "detail": "`-- atlas:txmode none` applied PostgreSQL CREATE INDEX CONCURRENTLY outside the migration transaction"
+    "detail": "on live PostgreSQL, Atlas CE v1.3 dropped `-- atlas:txmode none` directly above CREATE INDEX CONCURRENTLY, failed, and left one revision with no concurrent index; Ptah honored the directive, created the index outside a transaction, and recorded both revisions",
+    "issue": "stokaro/ptah#1081"
   },
   {
     "probe": "migrate-runtime",
