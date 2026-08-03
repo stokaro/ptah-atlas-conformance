@@ -15,6 +15,12 @@ import (
 // directories directly, independently of the measured CLI, so a probe's
 // verdict never depends on the command output alone.
 
+type sqliteColumnFact struct {
+	Name       string
+	Type       string
+	PrimaryKey int64
+}
+
 // execSQLiteStatement runs one statement against a SQLite database file,
 // creating the file when it does not exist. Probes use it to seed targets and
 // pre-litter dev databases outside the measured CLI.
@@ -47,6 +53,86 @@ func (w *proWorkflowRuntime) expectSQLiteTablesAt(fixture, stage, dbPath string,
 	}
 	if !slices.Equal(got, want) {
 		gap := w.gap(fixture, stage, fmt.Sprintf("%s tables = %v, want %v", filepath.Base(dbPath), got, want))
+		return &gap
+	}
+	return nil
+}
+
+// expectSQLiteInt64ColumnAt runs a read-only query and compares its single
+// integer column in row order. Workflow probes use it to prove that a command
+// preserved brownfield data, not merely the containing table.
+func (w *proWorkflowRuntime) expectSQLiteInt64ColumnAt(fixture, stage, dbPath, query string, want []int64) *Result {
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		failure := w.harnessFailure(stage, fmt.Errorf("open %s: %w", dbPath, err))
+		return &failure
+	}
+	defer func() { _ = db.Close() }()
+	rows, err := db.QueryContext(context.Background(), query)
+	if err != nil {
+		failure := w.harnessFailure(stage, fmt.Errorf("query %s: %w", dbPath, err))
+		return &failure
+	}
+	defer func() { _ = rows.Close() }()
+	got := make([]int64, 0, len(want))
+	for rows.Next() {
+		var value int64
+		if err := rows.Scan(&value); err != nil {
+			failure := w.harnessFailure(stage, fmt.Errorf("scan %s: %w", dbPath, err))
+			return &failure
+		}
+		got = append(got, value)
+	}
+	if err := rows.Err(); err != nil {
+		failure := w.harnessFailure(stage, fmt.Errorf("read %s: %w", dbPath, err))
+		return &failure
+	}
+	if !slices.Equal(got, want) {
+		gap := w.gap(fixture, stage, fmt.Sprintf("%s query values = %v, want %v", filepath.Base(dbPath), got, want))
+		return &gap
+	}
+	return nil
+}
+
+// expectSQLiteColumnFactsAt compares the complete ordered column set for one
+// table, including declared types and primary-key positions.
+func (w *proWorkflowRuntime) expectSQLiteColumnFactsAt(
+	fixture string,
+	stage string,
+	dbPath string,
+	table string,
+	want []sqliteColumnFact,
+) *Result {
+	db, err := openSQLiteRuntimeDB(dbPath)
+	if err != nil {
+		failure := w.harnessFailure(stage, fmt.Errorf("open %s: %w", dbPath, err))
+		return &failure
+	}
+	defer func() { _ = db.Close() }()
+	rows, err := db.QueryContext(context.Background(), `
+SELECT name, lower(type), pk
+FROM pragma_table_info(?)
+ORDER BY cid`, table)
+	if err != nil {
+		failure := w.harnessFailure(stage, fmt.Errorf("read %s.%s columns: %w", dbPath, table, err))
+		return &failure
+	}
+	defer func() { _ = rows.Close() }()
+	got := make([]sqliteColumnFact, 0, len(want))
+	for rows.Next() {
+		var fact sqliteColumnFact
+		if err := rows.Scan(&fact.Name, &fact.Type, &fact.PrimaryKey); err != nil {
+			failure := w.harnessFailure(stage, fmt.Errorf("scan %s.%s columns: %w", dbPath, table, err))
+			return &failure
+		}
+		got = append(got, fact)
+	}
+	if err := rows.Err(); err != nil {
+		failure := w.harnessFailure(stage, fmt.Errorf("iterate %s.%s columns: %w", dbPath, table, err))
+		return &failure
+	}
+	if !slices.Equal(got, want) {
+		gap := w.gap(fixture, stage, fmt.Sprintf("%s.%s columns = %v, want %v", filepath.Base(dbPath), table, got, want))
 		return &gap
 	}
 	return nil

@@ -32,13 +32,16 @@ func TestDesiredStateWorkflowProbe_HappyPath(t *testing.T) {
 		Name: "_capability/desired-state-workflow/SENTINEL",
 	})
 
-	c.Assert(results, qt.HasLen, 5)
+	c.Assert(results, qt.HasLen, 8)
 	assertWorkflowContours(c, "desired-state-workflow", results, []string{
 		"atlas schema diff|database-url --from source",
 		"atlas schema apply|database-url --to source",
 		"atlas schema apply|migration-dir source replay",
 		"atlas schema apply|migration-dir source without dev database",
 		"atlas schema apply|env:// source resolution",
+		"atlas migrate diff|database-url --to source converges",
+		"atlas migrate diff|env://url source with project defaults",
+		"atlas migrate diff|desired and dev path alias rejected",
 	})
 }
 

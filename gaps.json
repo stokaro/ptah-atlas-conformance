@@ -5573,6 +5573,27 @@
     "detail": "`schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target"
   },
   {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas migrate diff",
+    "stage": "database-url --to source converges",
+    "outcome": "ok",
+    "detail": "`migrate diff --to sqlite://...` introspected the live desired database, wrote one validated migration that replayed on a fresh target, converged without rewriting artifacts, and preserved the source data"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas migrate diff",
+    "stage": "env://url source with project defaults",
+    "outcome": "ok",
+    "detail": "`migrate diff --to env://url` resolved the live desired database, took dev and migration defaults from atlas.hcl, generated a validated migration that replayed on a fresh target, and preserved the source data"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas migrate diff",
+    "stage": "desired and dev path alias rejected",
+    "outcome": "ok",
+    "detail": "textually different SQLite URLs resolving to the same desired/dev database were rejected before destructive replay; the source table and data survived and no migration directory was created"
+  },
+  {
     "probe": "apply-simulation-workflow",
     "fixture": "atlas schema apply --lock-timeout",
     "stage": "lockless dialect note",

@@ -129,7 +129,7 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
 			"Goose checksum integrity: byte-identical Atlas CE/Ptah atlas.sum generation, cross-validation of each other's checksum, explicit measurement of Atlas CE's stateful first-error advisory, and byte-identical stable rejection after tampering.",
-			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`.",
+			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`; the Atlas CE v1.3 global/file-directive precedence matrix; exact validation diagnostics; selected-only amount/baseline validation; converted golang-migrate pairs; and Ptah-side txtar/down controls behind Atlas CE's measured community boundary.",
 			"Pre-migration checks: checks.sql and ordered checks/*.sql groups run before migration.sql; oneof groups, including empty groups, fail closed; every assertion must return exactly one row and one column; blocked migrations write no revision row.",
 			"Check isolation and dialect semantics: PostgreSQL E-strings and advisory-lock release; MySQL and MariaDB executable comments, short numeric comment bodies, and hidden-statement rejection before query execution.",
 			"Failed rollback bookkeeping: a down whose statement fails leaves the Atlas revision rows byte-identical and status still reporting the version applied, matching Atlas.",
@@ -336,4 +336,9 @@ func badge(o Outcome) string {
 	return string(o)
 }
 
-func escapePipe(s string) string { return strings.ReplaceAll(s, "|", "\\|") }
+func escapePipe(s string) string {
+	s = strings.ReplaceAll(s, "\r\n", "\n")
+	s = strings.ReplaceAll(s, "\r", "\n")
+	s = strings.ReplaceAll(s, "\n", "<br>")
+	return strings.ReplaceAll(s, "|", "\\|")
+}

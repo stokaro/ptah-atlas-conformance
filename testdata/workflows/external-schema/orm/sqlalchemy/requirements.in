@@ -1,0 +1,2 @@
+atlas-provider-sqlalchemy==0.5.0
+SQLAlchemy==2.0.51

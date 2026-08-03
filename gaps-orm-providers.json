@@ -18,13 +18,13 @@
     "fixture": "sqlalchemy",
     "stage": "provider output",
     "outcome": "ok",
-    "detail": "SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 provider output preserved two tables, primary keys, a unique index, and a foreign key"
+    "detail": "SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 provider output preserved two tables, primary keys, a unique index, and a foreign key"
   },
   {
     "probe": "orm-provider-smoke",
     "fixture": "sqlalchemy",
     "stage": "ptah schema render",
     "outcome": "ok",
-    "detail": "SQLAlchemy provider 0.4.1 with SQLAlchemy 2.0.50 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key"
+    "detail": "SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key"
   }
 ]
