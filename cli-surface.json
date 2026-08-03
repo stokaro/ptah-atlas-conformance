@@ -186,7 +186,7 @@
     "fixture": "atlas migrate apply",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var"
+    "detail": "long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var; plus Pro-surface flags implemented openly: --lock-name --skip-lock --to-version"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -326,7 +326,7 @@
     "fixture": "atlas schema apply",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "long flags match Atlas: --auto-approve --config --dev-url --dry-run --edit --env --exclude --format --include --lock-timeout --plan --schema --to --tx-mode --url --var"
+    "detail": "long flags match Atlas: --auto-approve --config --dev-url --dry-run --edit --env --exclude --format --include --lock-timeout --plan --schema --to --tx-mode --url --var; plus Pro-surface flags implemented openly: --lock-name --skip-lint --skip-lock"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -340,7 +340,7 @@
     "fixture": "atlas schema clean",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "long flags match Atlas: --auto-approve --config --dry-run --env --format --url --var"
+    "detail": "long flags match Atlas: --auto-approve --config --dry-run --env --format --url --var; plus Pro-surface flags implemented openly: --exclude --include"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -354,7 +354,7 @@
     "fixture": "atlas schema diff",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --from --include --schema --to --var"
+    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --from --include --schema --to --var; plus Pro-surface flags implemented openly: --export"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -382,7 +382,7 @@
     "fixture": "atlas schema inspect",
     "stage": "flags",
     "outcome": "ok",
-    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var; plus Pro-surface flags implemented openly: --include"
+    "detail": "long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var; plus Pro-surface flags implemented openly: --include --output --web"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",

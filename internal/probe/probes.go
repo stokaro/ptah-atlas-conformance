@@ -160,6 +160,7 @@ func (AtlasHCLProbe) Run(fx Fixture) []Result {
 	if detail, ok := atlasSchemaHCLNonSchemaFixture(fx.Name, data); ok {
 		return []Result{{"atlas-hcl-parse", fx.Name, "parse", OK, detail, ""}}
 	}
+	projectFile := atlasProjectFileFixture(data, fx.Files[0])
 
 	var tableCount int
 	var fieldCount int
@@ -177,12 +178,77 @@ func (AtlasHCLProbe) Run(fx Fixture) []Result {
 	case panicked:
 		return []Result{{"atlas-hcl-parse", fx.Name, "parse", Panic,
 			"Atlas HCL parser panicked: " + oneLine(pmsg), "stokaro/ptah#128"}}
+	case projectFile:
+		return []Result{atlasProjectFileRefusal(fx.Name, parseErr)}
 	case parseErr != nil:
 		return []Result{{"atlas-hcl-parse", fx.Name, "parse", Gap,
 			"Ptah cannot model this Atlas HCL schema file: " + oneLine(parseErr.Error()), "stokaro/ptah#276"}}
 	default:
 		return []Result{{"atlas-hcl-parse", fx.Name, "parse", OK,
 			fmt.Sprintf("parsed Atlas HCL schema file: %d table(s), %d field(s)", tableCount, fieldCount), ""}}
+	}
+}
+
+// atlasProjectFileRefusalContract is the refusal the pinned Atlas community
+// binary produces when a project file is handed to a schema source. Measured on
+// Atlas community version v1.3.0 with
+//
+//	atlas schema inspect --url file://<atlas.hcl> --dev-url sqlite://d?mode=memory
+//
+// which exits non-zero with `Error: cannot parse project file "<path>" as a
+// schema file`. Ptah refuses with the same sentence plus the offending block's
+// position, so the contract is matched on the two invariant halves rather than
+// on the whole line.
+const (
+	atlasProjectFileRefusalPrefix = "cannot parse project file"
+	atlasProjectFileRefusalSuffix = "as a schema file"
+)
+
+// atlasProjectFileFixture reports whether an HCL fixture is an Atlas project
+// file rather than a schema file: it carries at least one top-level `env` block
+// and declares no schema object. A schema file that merely fails to parse is not
+// a project file, and a file that declares both is treated as a schema file, so
+// the classification cannot absorb an unrelated parse failure.
+func atlasProjectFileFixture(data []byte, filename string) bool {
+	file, diags := hclsyntax.ParseConfig(data, filename, hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		return false
+	}
+	body, ok := file.Body.(*hclsyntax.Body)
+	if !ok {
+		return false
+	}
+	var env bool
+	for _, block := range body.Blocks {
+		switch block.Type {
+		case "schema", "table", "view", "enum", "domain", "sequence", "function", "procedure", "trigger", "materialized":
+			return false
+		case "env":
+			env = true
+		}
+	}
+	return env
+}
+
+// atlasProjectFileRefusal pins the capability stokaro/ptah#1073 added: a project
+// file handed to the schema-file frontend must be refused the way the pinned
+// Atlas community binary refuses it. Accepting the file again, or refusing it
+// for an unrelated reason, is a divergence from that measured oracle.
+func atlasProjectFileRefusal(name string, parseErr error) Result {
+	switch {
+	case parseErr == nil:
+		return Result{"atlas-hcl-parse", name, "parse", Gap,
+			"Ptah ingested an Atlas project file through the schema-file frontend; the pinned Atlas community binary refuses it as a schema source",
+			"stokaro/ptah#276"}
+	case strings.Contains(parseErr.Error(), atlasProjectFileRefusalPrefix) &&
+		strings.Contains(parseErr.Error(), atlasProjectFileRefusalSuffix):
+		return Result{"atlas-hcl-parse", name, "parse", OK,
+			"refused an Atlas project file handed to the schema-file frontend, matching the pinned Atlas community binary's `cannot parse project file ... as a schema file`",
+			""}
+	default:
+		return Result{"atlas-hcl-parse", name, "parse", Gap,
+			"Ptah refused an Atlas project file for a reason the pinned Atlas community binary does not use: " + oneLine(parseErr.Error()),
+			"stokaro/ptah#276"}
 	}
 }
 

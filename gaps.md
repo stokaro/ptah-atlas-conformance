@@ -7,21 +7,32 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: PARITY on the current corpus
+## Status: NOT DONE — 10 non-OK observation(s)
 
-Every fixture is covered. The conformance gate is green.
+The conformance gate is **red** and stays red until these close. This is by
+design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803105339-da1c4cd2754c`
-- Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
-- Full gate: **0 non-OK** (passes CI)
-- Regression budget input: **0 unwaived non-OK**, 0 waived
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803170454-d29a44f4538c`
+- Outcomes: **809 ok**, **0 gap**, **10 fail**, **0 panic**
+- Full gate: **10 non-OK** (fails CI)
+- Regression budget input: **10 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | cmpshow logs 2.sql did not match: got "Table \"script_column_array.logs\" Column \| Type \| Collation \| Nullable \| Default --------+------+-----------+----------+-------- records \| character varying(100) array \| \| not null \|" want "Table \"sc… | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | synced 4.nochange.hcl did not match: got "-- Create \"logs\" table CREATE TABLE \"logs\" (\"records\" varchar(100) array NOT NULL);" want "-- Create \"logs\" table CREATE TABLE \"logs\" (\"records\" varchar(100) [10][] NOT NULL);" | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | cmpshow logs 5.sql did not match: got "Table \"script_column_array.logs\" Column \| Type \| Collation \| Nullable \| Default --------+------+-----------+----------+-------- a \| int[1] \| \| not null \| b \| int array[1] \| \| not null \| c \| character… | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | cmphcl 1.inspect.hcl did not match: got "table \"users\" { schema = schema.script_column_domain column \"c1\" { null = false type = script_column_domain.positive_int } } schema \"script_column_domain\" { }" want "table \"users\" { schema = … | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmpshow enums 1.sql did not match: got "Table \"script_column_enum_array.enums\" Column \| Type \| Collation \| Nullable \| Default --------+------+-----------+----------+-------- statuses \| status[] \| \| not null \|" want "Table \"script_column_… | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmpshow enums 3.sql did not match: got "Table \"script_column_enum_array.enums\" Column \| Type \| Collation \| Nullable \| Default --------+------+-----------+----------+-------- a \| integer \| \| not null \| statuses \| status[] \| \| not null \|" w… | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmpshow enums 4.sql did not match: got "Table \"script_column_enum_array.enums\" Column \| Type \| Collation \| Nullable \| Default --------+------+-----------+----------+-------- a \| integer \| \| not null \| statuses \| status[] \| \| not null \| st… | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmphcl 5.inspect.hcl did not match: got "table \"enums\" { schema = schema.script_column_enum_array column \"a\" { null = false type = integer } column \"statuses\" { null = false type = status[] } column \"status\" { null = false type = en… | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | cmp schema.v1.hcl.inspected got did not match: got "table \"t\" { schema = schema.main column \"c\" { null = true type = sql(\"USER_DEFINED\") } } schema \"main\" { }" want "table \"t\" { schema = schema.main column \"c\" { null = true type = user_defined } } schema \"main\" { }" | #285 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | cmp schema.v2.hcl.inspected got did not match: got "table \"t\" { schema = schema.main column \"c\" { null = true type = sql(\"USER_TYPE\") } } schema \"main\" { }" want "table \"t\" { schema = schema.main column \"c\" { null = true type = user_type } } schema \"main\" { }" | #285 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
@@ -47,10 +58,14 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate lint --dir-format goose` | execute | `atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate new` | execute | `atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate new --dir-format goose` | execute | `atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir ?format=goose` | execute | `atlas migrate set --dir ?format=goose` sets revisions from a directory laid out in Goose's convention; the read-back reports both migrations applied |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` sets revisions from a directory laid out in Goose's convention; the read-back reports both migrations applied |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format verbatim` | flags | `atlas migrate set --dir-format verbatim` refuses every near-miss format spelling ("Goose", "GOOSE", " goose", "goose "), echoing each rejected value verbatim |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate set --revisions-schema` | execute | `atlas migrate set --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status` | execute | `atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir ?format=goose` | execute | `atlas migrate status --dir ?format=goose` reads a directory laid out in Goose's convention and reports its two migrations as pending |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` reads a directory laid out in Goose's convention and reports its two migrations as pending |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format verbatim` | flags | `atlas migrate status --dir-format verbatim` refuses every near-miss format spelling ("Goose", "GOOSE", " goose", "goose "), echoing each rejected value verbatim |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --revisions-schema` | execute | `atlas migrate status --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | `atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
 | — | ok | atlas-cli-report-format | `atlas migrate apply --format json` | format | `atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
@@ -95,10 +110,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-compat-binary-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-compat-binary-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-compat-binary-surface | `atlas version` | resolve | `atlas version` resolves through a ptah-compat binary named `atlas` |  |
-| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
+| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | refused an Atlas project file handed to the schema-file frontend, matching the pinned Atlas community binary's `cannot parse project file ... as a schema file` |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 1 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 2 field(s) |  |
-| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
+| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | parse | refused an Atlas project file handed to the schema-file frontend, matching the pinned Atlas community binary's `cannot parse project file ... as a schema file` |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/a.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | Atlas schemahcl fixture has no schema objects; outside Ptah schema surface |  |
@@ -458,8 +473,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101, BC101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101, BC101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | no substantive lint findings expected |  |
@@ -771,12 +786,9 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff-unsupported.txtar` | script-runtime | script surface: atlas migrate diff=2, atlas migrate hash=1, cmpmig=1, executed 3 supported command(s), checked 2 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-diff.txtar` | script-runtime | script surface: atlas migrate diff=4, cmpmig=2, mkdir=1, executed 5 supported command(s), checked 4 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/cli-migrate-status.txtar` | script-runtime | script surface: atlas migrate status=3, atlas migrate apply=2, atlas migrate hash=1, executed 6 supported command(s), checked 3 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-array.txtar` | script-runtime | script surface: apply=3, cmpshow=3, synced=2, executed 8 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-bit.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | script surface: apply=2, cmpshow=2, atlas schema inspect=1, executed 5 supported command(s), checked 1 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, execsql=1, executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | script surface: apply=5, cmpshow=5, atlas schema inspect=1, executed 11 supported command(s), checked 1 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | script surface: apply=1, cmphcl=1, executed 2 supported command(s) |  |
@@ -826,8 +838,11 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-schema-project-file.txtar` | script-runtime | script surface: atlas schema apply=5, atlas schema inspect=3, executed 8 supported command(s), checked 6 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/column-default.txtar` | script-runtime | script surface: cmphcl=1, execsql=1, executed 2 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/column-generated.txtar` | script-runtime | script surface: apply=4, cmpshow=4, execsql=1, executed 9 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/column-user-defined.txtar` | script-runtime | script surface: atlas schema apply=4, atlas schema inspect=2, executed 6 supported command(s), checked 4 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-desc.txtar` | script-runtime | script surface: apply=3, cmpshow=3, synced=1, executed 7 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | script surface: cmpshow=4, apply=2, executed 6 supported command(s) |  |
+
+## Gaps by related issue
+
+- **stokaro/ptah#285** — 10 finding(s)

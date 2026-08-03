@@ -125,6 +125,7 @@ func RunMigrateRuntime() []Result {
 		}
 	}
 	out := gooseMigrateIntegrityOracle(compatBin, atlasBin)
+	out = append(out, gooseMigrateConvertedDirOracle(compatBin, atlasBin)...)
 	out = append(out, sqliteMigrateFileTxModeOracle(compatBin, nativeBin, atlasBin)...)
 	out = slices.Grow(out, len(checks))
 	for _, check := range checks {

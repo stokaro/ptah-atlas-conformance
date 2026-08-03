@@ -922,6 +922,98 @@ table "users" {
 	assertResultDetailContains(t, results, "Ptah cannot model this Atlas HCL schema file")
 }
 
+// A project file handed to the schema-file frontend must be refused the way the
+// pinned Atlas community binary refuses it. Measured on Atlas community version
+// v1.3.0:
+//
+//	$ atlas schema inspect --url file://atlas.hcl --dev-url sqlite://d?mode=memory
+//	Error: cannot parse project file "atlas.hcl" as a schema file
+func TestAtlasHCLProbePinsProjectFileRefusal(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "atlas.hcl")
+	writeTestFile(t, path, `
+env "local" {
+  migration {
+    dir = "file://migrations"
+  }
+}
+`)
+
+	results := AtlasHCLProbe{}.Run(Fixture{
+		Name:  "atlasexec/testdata/atlas.hcl",
+		Kind:  FixtureKindHCL,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome != OK {
+		t.Fatalf("expected the project-file refusal to be OK, got %#v", results[0])
+	}
+	assertResultDetailContains(t, results, "refused an Atlas project file handed to the schema-file frontend")
+}
+
+// The classifier must separate a project file from a schema file that merely
+// also carries an env block: only the former may be scored on the refusal
+// contract, or an unrelated schema-parse failure would be absorbed as OK.
+func TestAtlasHCLProbeDoesNotTreatSchemaCarryingFileAsProjectFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "mixed.hcl")
+	writeTestFile(t, path, `
+env "local" {
+  migration {
+    dir = "file://migrations"
+  }
+}
+
+schema "main" {}
+`)
+
+	results := AtlasHCLProbe{}.Run(Fixture{
+		Name:  "atlasexec/testdata/mixed.hcl",
+		Kind:  FixtureKindHCL,
+		Dir:   dir,
+		Files: []string{path},
+	})
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
+	}
+	if results[0].Outcome == OK {
+		t.Fatalf("expected a file declaring a schema object not to be scored as a project file, got %#v", results[0])
+	}
+}
+
+func TestAtlasProjectFileFixtureRequiresAnEnvBlock(t *testing.T) {
+	if atlasProjectFileFixture([]byte("schema \"main\" {}\n"), "schema.hcl") {
+		t.Fatal("a schema file with no env block must not be classified as a project file")
+	}
+	if atlasProjectFileFixture([]byte("this is not hcl {{{\n"), "broken.hcl") {
+		t.Fatal("an unparsable file must not be classified as a project file")
+	}
+	if !atlasProjectFileFixture([]byte("env \"local\" {}\n"), "atlas.hcl") {
+		t.Fatal("a top-level env block with no schema object is a project file")
+	}
+}
+
+func TestAtlasProjectFileRefusalScoresDivergence(t *testing.T) {
+	accepted := atlasProjectFileRefusal("atlasexec/testdata/atlas.hcl", nil)
+	if accepted.Outcome != Gap {
+		t.Fatalf("accepting a project file as a schema file must be a gap, got %#v", accepted)
+	}
+	unrelated := atlasProjectFileRefusal("atlasexec/testdata/atlas.hcl", errors.New("unexpected token"))
+	if unrelated.Outcome != Gap {
+		t.Fatalf("refusing for an unrelated reason must be a gap, got %#v", unrelated)
+	}
+	matched := atlasProjectFileRefusal("atlasexec/testdata/atlas.hcl",
+		errors.New(`cannot parse project file "atlas.hcl" as a schema file: top-level "env" block`))
+	if matched.Outcome != OK {
+		t.Fatalf("the measured community-binary refusal must be OK, got %#v", matched)
+	}
+}
+
 func TestParseProbeRendersAtlasSQLTemplates(t *testing.T) {
 	dir := t.TempDir()
 	first := filepath.Join(dir, "1.sql")

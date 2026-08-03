@@ -151,9 +151,11 @@ func DiscoverCLISurface(atlasBin string) (CLISurfaceInventory, error) {
 // data has to be static.
 //
 // PROVENANCE: Atlas's own help surface for these commands, recorded
-// 2026-08-01. Each entry is Atlas's long-flag set for the command minus the
-// pinned CE binary's long-flag set for the same command (`--help` excluded, as
-// everywhere else in this file).
+// 2026-08-01, and Atlas's published CLI reference for the same commands,
+// recorded 2026-08-03. Each entry is Atlas's long-flag set for the command minus
+// the pinned CE binary's long-flag set for the same command (`--help` excluded,
+// as everywhere else in this file); the CE side of every delta below was read
+// back off the pinned binary's own `--help` on the day it was added.
 //
 // Why an allow-list and not a waivers.txt line: a waiver key is (probe,
 // fixture, stage), so waiving `atlas schema inspect`/`flags` would hide EVERY
@@ -175,6 +177,26 @@ func proSurfaceFlags() map[string][]string {
 		// they are part of the same measured Atlas-only delta, and listing
 		// them keeps an unimplemented Pro flag from ever reading as a Ptah gap.
 		"schema inspect": {"--export", "--include", "--output", "--web"},
+		// CE v1.3.0 registers --allow-dirty --baseline --config --dir --dry-run
+		// --env --exec-order --format --lock-timeout --revisions-schema --tx-mode
+		// --url --var on `atlas migrate apply`; Atlas registers these three in
+		// addition. ptah-compat implements all three (stokaro/ptah#951).
+		"migrate apply": {"--lock-name", "--skip-lock", "--to-version"},
+		// CE v1.3.0 registers --auto-approve --config --dev-url --dry-run --edit
+		// --env --exclude --format --include --lock-timeout --plan --schema --to
+		// --tx-mode --url --var on `atlas schema apply`; Atlas registers these
+		// three in addition. ptah-compat implements all three (stokaro/ptah#951).
+		"schema apply": {"--lock-name", "--skip-lint", "--skip-lock"},
+		// CE v1.3.0 registers --auto-approve --config --dry-run --env --format
+		// --url --var on `atlas schema clean`; Atlas registers the two selector
+		// flags in addition. ptah-compat implements both (stokaro/ptah#940).
+		"schema clean": {"--exclude", "--include"},
+		// CE v1.3.0 registers --config --dev-url --env --exclude --format --from
+		// --include --schema --to --var on `atlas schema diff`; Atlas registers
+		// these two in addition. ptah-compat implements --export; --web is listed
+		// because it is part of the same measured Atlas-only delta, and listing it
+		// keeps an unimplemented Pro flag from ever reading as a Ptah gap.
+		"schema diff": {"--export", "--web"},
 	}
 }
 

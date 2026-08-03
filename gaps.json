@@ -1229,7 +1229,7 @@
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+    "detail": "refused an Atlas project file handed to the schema-file frontend, matching the pinned Atlas community binary's `cannot parse project file ... as a schema file`"
   },
   {
     "probe": "atlas-hcl-parse",
@@ -1250,7 +1250,7 @@
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+    "detail": "refused an Atlas project file handed to the schema-file frontend, matching the pinned Atlas community binary's `cannot parse project file ... as a schema file`"
   },
   {
     "probe": "atlas-hcl-parse",
@@ -2747,8 +2747,25 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-array.txtar",
     "stage": "script-runtime",
-    "outcome": "ok",
-    "detail": "script surface: apply=3, cmpshow=3, synced=2, executed 8 supported command(s)"
+    "outcome": "fail",
+    "detail": "cmpshow logs 2.sql did not match: got \"Table \\\"script_column_array.logs\\\" Column | Type | Collation | Nullable | Default --------+------+-----------+----------+-------- records | character varying(100) array | | not null |\" want \"Table \\\"sc…",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-array.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "synced 4.nochange.hcl did not match: got \"-- Create \\\"logs\\\" table CREATE TABLE \\\"logs\\\" (\\\"records\\\" varchar(100) array NOT NULL);\" want \"-- Create \\\"logs\\\" table CREATE TABLE \\\"logs\\\" (\\\"records\\\" varchar(100) [10][] NOT NULL);\"",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-array.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "cmpshow logs 5.sql did not match: got \"Table \\\"script_column_array.logs\\\" Column | Type | Collation | Nullable | Default --------+------+-----------+----------+-------- a | int[1] | | not null | b | int array[1] | | not null | c | character…",
+    "issue": "stokaro/ptah#285"
   },
   {
     "probe": "txtar-script",
@@ -2775,15 +2792,41 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-domain.txtar",
     "stage": "script-runtime",
-    "outcome": "ok",
-    "detail": "script surface: apply=1, cmphcl=1, cmpshow=1, execsql=1, executed 4 supported command(s)"
+    "outcome": "fail",
+    "detail": "cmphcl 1.inspect.hcl did not match: got \"table \\\"users\\\" { schema = schema.script_column_domain column \\\"c1\\\" { null = false type = script_column_domain.positive_int } } schema \\\"script_column_domain\\\" { }\" want \"table \\\"users\\\" { schema = …",
+    "issue": "stokaro/ptah#285"
   },
   {
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
     "stage": "script-runtime",
-    "outcome": "ok",
-    "detail": "script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s)"
+    "outcome": "fail",
+    "detail": "cmpshow enums 1.sql did not match: got \"Table \\\"script_column_enum_array.enums\\\" Column | Type | Collation | Nullable | Default --------+------+-----------+----------+-------- statuses | status[] | | not null |\" want \"Table \\\"script_column_…",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "cmpshow enums 3.sql did not match: got \"Table \\\"script_column_enum_array.enums\\\" Column | Type | Collation | Nullable | Default --------+------+-----------+----------+-------- a | integer | | not null | statuses | status[] | | not null |\" w…",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "cmpshow enums 4.sql did not match: got \"Table \\\"script_column_enum_array.enums\\\" Column | Type | Collation | Nullable | Default --------+------+-----------+----------+-------- a | integer | | not null | statuses | status[] | | not null | st…",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "cmphcl 5.inspect.hcl did not match: got \"table \\\"enums\\\" { schema = schema.script_column_enum_array column \\\"a\\\" { null = false type = integer } column \\\"statuses\\\" { null = false type = status[] } column \\\"status\\\" { null = false type = en…",
+    "issue": "stokaro/ptah#285"
   },
   {
     "probe": "txtar-script",
@@ -3132,8 +3175,17 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/column-user-defined.txtar",
     "stage": "script-runtime",
-    "outcome": "ok",
-    "detail": "script surface: atlas schema apply=4, atlas schema inspect=2, executed 6 supported command(s), checked 4 assertion(s)"
+    "outcome": "fail",
+    "detail": "cmp schema.v1.hcl.inspected got did not match: got \"table \\\"t\\\" { schema = schema.main column \\\"c\\\" { null = true type = sql(\\\"USER_DEFINED\\\") } } schema \\\"main\\\" { }\" want \"table \\\"t\\\" { schema = schema.main column \\\"c\\\" { null = true type = user_defined } } schema \\\"main\\\" { }\"",
+    "issue": "stokaro/ptah#285"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/column-user-defined.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "cmp schema.v2.hcl.inspected got did not match: got \"table \\\"t\\\" { schema = schema.main column \\\"c\\\" { null = true type = sql(\\\"USER_TYPE\\\") } } schema \\\"main\\\" { }\" want \"table \\\"t\\\" { schema = schema.main column \\\"c\\\" { null = true type = user_type } } schema \\\"main\\\" { }\"",
+    "issue": "stokaro/ptah#285"
   },
   {
     "probe": "txtar-script",
@@ -3652,14 +3704,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101, BC101"
+    "detail": "content findings: DS101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101, BC101"
+    "detail": "content findings: DS101"
   },
   {
     "probe": "lint-parity",
