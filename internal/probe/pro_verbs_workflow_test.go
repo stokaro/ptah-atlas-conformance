@@ -95,7 +95,7 @@ func TestProDownWorkflowProbe_HappyPath(t *testing.T) {
 		Name: "_capability/pro-down-workflow/SENTINEL",
 	})
 
-	c.Assert(results, qt.HasLen, 2)
+	c.Assert(results, qt.HasLen, 3)
 	gotContours := make([]string, 0, len(results))
 	for _, result := range results {
 		gotContours = append(gotContours, result.Fixture+"|"+result.Stage)
@@ -105,6 +105,7 @@ func TestProDownWorkflowProbe_HappyPath(t *testing.T) {
 	}
 	c.Assert(gotContours, qt.DeepEquals, []string{
 		"atlas migrate apply|atlas-format application",
+		"atlas migrate down --format|formatted rollback",
 		"atlas migrate down|bare rollback",
 	})
 }

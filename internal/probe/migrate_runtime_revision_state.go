@@ -418,7 +418,7 @@ func sqliteMigrateDownMissingBodyPreservesState(bin string) Result {
 		},
 		{
 			stage: "rollback",
-			args:  []string{"migrate", "down", "--url", sqliteURL(dbPath), "--dir", fileURL(migrations), "--confirm"},
+			args:  []string{"migrate", "down", "--url", sqliteURL(dbPath), "--dir", fileURL(migrations)},
 		},
 	} {
 		stdout, stderr, err := commandStreams(bin, attempt.args, "")

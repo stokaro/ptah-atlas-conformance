@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"slices"
@@ -8,16 +9,14 @@ import (
 
 const proDownWorkflowSentinel = "_capability/pro-down-workflow/SENTINEL"
 
-// ProDownWorkflowProbe proves the bare `atlas migrate down` revision-format
-// default decided in stokaro/ptah#810: `atlas migrate apply` records its
-// history in Atlas-format `atlas_schema_revisions` rows, and a bare `atlas
-// migrate down` — no `--revision-format` flag — must read exactly those rows
-// and actually revert. Before #810 the bare verb defaulted to Ptah's native
-// revision table and silently rolled back nothing. Atlas keeps `migrate down`
-// in its Pro build, so this is a first-party capability probe on a real
-// SQLite database through the real `atlas ...` CLI. The only extra flag
-// passed is `--confirm`, the non-interactive stand-in for the interactive
-// rollback confirmation; it does not touch revision-format resolution.
+// ProDownWorkflowProbe proves the Atlas-shaped rollback contracts decided in
+// stokaro/ptah#810 and #971. `atlas migrate apply` records Atlas-format
+// `atlas_schema_revisions` rows; formatted and default-output down paths must
+// read those rows, execute the down bodies without stdin or a Ptah-only
+// confirmation flag, and reach the expected live SQLite state. Before #810
+// the bare verb silently read Ptah's native revision table; before #971 both
+// paths prompted interactively. Atlas keeps `migrate down` in its Pro build,
+// so this is a first-party capability probe through the real `atlas ...` CLI.
 type ProDownWorkflowProbe struct {
 	// FixtureRoot contains the committed Atlas-format txtar migrations with
 	// embedded down.sql sections. Relative paths are resolved from the probe
@@ -43,6 +42,7 @@ func (p ProDownWorkflowProbe) Run(fx Fixture) []Result {
 	d := &proDownWorkflow{proWorkflowRuntime: w}
 	return w.runSteps([]func() Result{
 		d.atlasFormatApplication,
+		d.formattedRollback,
 		d.bareRollback,
 	})
 }
@@ -85,6 +85,41 @@ func (d *proDownWorkflow) atlasFormatApplication() Result {
 		"`atlas migrate apply` executed both txtar migrations and recorded Atlas-format revision rows in atlas_schema_revisions")
 }
 
+func (d *proDownWorkflow) formattedRollback() Result {
+	const (
+		fixture = "atlas migrate down --format"
+		stage   = "formatted rollback"
+	)
+	result, harness := d.runCLI(stage,
+		"migrate", "down",
+		"--url", d.appURL(),
+		"--dir", "file://migrations",
+		"--to-version", "20260101000001",
+		"--format", "{{ json . }}",
+	)
+	if harness != nil {
+		return *harness
+	}
+	if gap := d.expectExit(fixture, stage, result, 0); gap != nil {
+		return *gap
+	}
+	var report atlasMigrateDownRevisionStateReport
+	if err := json.Unmarshal([]byte(result.stdout), &report); err != nil {
+		return d.gap(fixture, stage, "formatted rollback did not emit valid JSON: "+oneLine(err.Error()))
+	}
+	if detail := compareMigrationVersions(report.Reverted, []string{"20260101000002"}); detail != "" {
+		return d.gap(fixture, stage, "reverted "+detail)
+	}
+	if gap := d.expectRevisionVersions(fixture, stage, []string{"20260101000001"}); gap != nil {
+		return *gap
+	}
+	if gap := d.expectTables(fixture, stage, []string{"atlas_schema_revisions", "users"}); gap != nil {
+		return *gap
+	}
+	return d.ok(fixture, stage,
+		"formatted `atlas migrate down` ran without stdin, reported version 20260101000002 reverted, removed its table, and preserved only the version 20260101000001 revision")
+}
+
 func (d *proDownWorkflow) bareRollback() Result {
 	const (
 		fixture = "atlas migrate down"
@@ -94,7 +129,6 @@ func (d *proDownWorkflow) bareRollback() Result {
 		"migrate", "down",
 		"--url", d.appURL(),
 		"--dir", "file://migrations",
-		"--confirm",
 	)
 	if harness != nil {
 		return *harness
@@ -114,7 +148,7 @@ func (d *proDownWorkflow) bareRollback() Result {
 		return *gap
 	}
 	return d.ok(fixture, stage,
-		"bare `atlas migrate down` — no --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)")
+		"bare `atlas migrate down` — no stdin, --confirm, or --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)")
 }
 
 func (d *proDownWorkflow) appURL() string {

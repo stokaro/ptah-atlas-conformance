@@ -747,17 +747,6 @@ func runSQLiteTxtarCheckFailure(bin string, scenario sqliteTxtarCheckFailureScen
 	return Result{migrateRuntimeProbeName, scenario.fixture, "inspect", OK, scenario.detail, ""}
 }
 
-// migrateRuntimeRollbackConfirmation is what `ptah-compat migrate down` reads
-// from stdin at its confirmation prompt. Atlas's own `migrate down` has no
-// prompt at all, which is tracked as a drop-in divergence in
-// stokaro/ptah#971; supplying it here only stops the probe from measuring the
-// prompt instead of the rollback.
-const migrateRuntimeRollbackConfirmation = "YES\n"
-
-// migrateRuntimePromptAbortMarker appears when the child reached the prompt and
-// found no answer. Any probe that sees it measured nothing.
-const migrateRuntimePromptAbortMarker = "read rollback confirmation"
-
 // migrateRuntimeFailingDownStatement is the deliberately invalid statement in
 // the failed-down fixture's down.sql. Ptah echoes the failing statement in its
 // error, so seeing it is proof the down body actually executed rather than the
@@ -816,28 +805,23 @@ func sqliteMigrateDownFailureLeavesRevisionsIntact(bin string) Result {
 		return migrateRuntimeFail(fixture, "inspect", err)
 	}
 
-	down, err := commandOutputStdin(bin, []string{
+	down, err := commandOutput(bin, []string{
 		"migrate", "down",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--to-version", "1",
-	}, migrateRuntimeRollbackConfirmation)
+	})
 	if err == nil {
 		return Result{migrateRuntimeProbeName, fixture, "down", Gap,
 			"the broken down migration unexpectedly succeeded: " + oneLine(down), issue}
 	}
 	// Liveness guards. Several unrelated failures also exit 1 while writing
 	// nothing, which would make every assertion below trivially true:
-	//   - an unanswered confirmation prompt (no stdin),
 	//   - a down.sql section that is missing entirely, which fails with
 	//     "no Atlas down migration" before any statement runs.
 	// "Rolling back migration" is logged before the body executes, so it is not
 	// enough on its own; the down body is only proven to have run by the failing
 	// statement appearing in the error.
-	if strings.Contains(down, migrateRuntimePromptAbortMarker) {
-		return migrateRuntimeFail(fixture, "down",
-			fmt.Errorf("the rollback aborted at the confirmation prompt, so nothing was measured: %s", oneLine(down)))
-	}
 	if strings.Contains(down, "no Atlas down migration") {
 		return migrateRuntimeFail(fixture, "down",
 			fmt.Errorf("the fixture lost its down.sql section, so no down body ran: %s", oneLine(down)))

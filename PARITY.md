@@ -53,7 +53,7 @@ against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 | `pro-test-workflow` | Do the forwarded Atlas Pro test verbs preserve their end-to-end CLI contracts? | `atlas migrate test` applies the Atlas-format directory to a real SQLite dev database and runs the committed case set (exit 0); a deliberately failing assertion exits 1 with a structured FAIL report; `atlas schema test` provisions the desired schema from a local Go-annotation source and holds the same pass/fail exit contract. |
 | `pro-maint-workflow` | Do the forwarded Atlas Pro directory-maintenance verbs keep the directory valid? | `atlas migrate edit` applies a hermetic scripted `$EDITOR` change and rewrites `atlas.sum`; `atlas migrate rebase` moves a migration to the end of history under the deterministic next version; `atlas migrate rm` removes a migration and its checksum entry; `ptah migrations validate` passes after every verb. |
 | `pro-plan-workflow` | Does the local `schema plan` workflow bind plans to fingerprints? | `atlas schema plan --save` and `atlas schema plan new` write fingerprinted local plan files against real SQLite targets; `atlas schema plan validate` accepts a fresh plan without mutating the target and rejects a stale one; `atlas schema apply --plan file://...` replays the reviewed plan and refuses a target mutated after planning. |
-| `pro-down-workflow` | Does bare `atlas migrate down` revert Atlas-format revisions by default? | `atlas migrate apply` records Atlas-format revision rows; a bare `atlas migrate down` — no `--revision-format` flag — reads exactly those rows, executes the embedded txtar down bodies, and clears the revision history (the stokaro/ptah#810 default; previously a silent no-op). |
+| `pro-down-workflow` | Do default-output and formatted `atlas migrate down` runs revert Atlas-format revisions non-interactively? | `atlas migrate apply` records two Atlas-format revision rows; `atlas migrate down --format` reverts one with a checked JSON report and live database end state, then a bare `atlas migrate down` — no stdin, Ptah-only `--confirm`, or `--revision-format` flag — reverts the other and clears the revision history (stokaro/ptah#810 and #971; previously a silent no-op or an interactive rollback). |
 | `desired-state-workflow` | Do the Atlas desired-state source URLs drive `schema diff`/`schema apply`? | A live SQLite URL works as the `--from` diff source (only the missing table is planned) and as the `--to` apply source (the target mirrors the source database); an atlas.sum-covered migration directory replays on a dev database into the target, and without `--dev-url` it is refused with a deterministic diagnostic before the target file is created; `--to env://src` resolves through the evaluated atlas.hcl environment (stokaro/ptah#811). |
 | `apply-simulation-workflow` | Do the `schema apply` locking and dev-simulation guard rails hold? | `--lock-timeout` on lockless SQLite is an explicit no-op with a deterministic stderr note and the apply proceeds; `--dev-url` resets a pre-littered dev database and rehearses the exact plan there before the target is touched; a rehearsal made to fail (via a hermetic scripted `$EDITOR` and `--edit`) refuses the apply with exit 1 and zero user tables on the target; `--dev-url` pointing at the target is refused before the destructive dev reset (stokaro/ptah#812). |
 | `schema-scope-workflow` | Does `--schema`/`--include` scoping hold end to end? | A scoped apply creates only the selected table while desired-but-unselected tables stay uncreated and a pre-existing out-of-scope table survives; repeated `--include` values union; selecting a table whose foreign key points at an unselected table is refused with the cross-scope dependency diagnostic and remediation guidance; a malformed selector fails before the dev database file exists (stokaro/ptah#813). |
@@ -105,8 +105,8 @@ is **"unknown — not measured"**, not "works".
   by `pro-plan-workflow`, including `schema plan new`, `schema plan validate`,
   and stale-fingerprint refusals; the seven Cloud-only plan registry sub-verbs
   stay CE-boundary stubs. The bare
-  `atlas migrate down` Atlas revision-format default (ptah#810) is measured by
-  `pro-down-workflow`. Composite desired
+  `atlas migrate down` non-interactive execution and Atlas revision-format
+  default (ptah#810 and #971) are measured by `pro-down-workflow`. Composite desired
   schemas (ptah#666) are measured by `composite-schema-workflow`, which proves
   source composition against a hand-merged oracle and a live SQLite end state.
   Declarative reference/seed data management (ptah#663) is measured by
@@ -324,8 +324,9 @@ workflow probes are fixture-driven and make only the claims listed below.
   command and `schema plan new`, validates fresh and stale plans without target
   mutation, replays a reviewed plan with `schema apply --plan`, and proves a post-plan target
   mutation is refused as stale with the database untouched; the down probe
-  proves bare `atlas migrate down` reads the Atlas-format revision rows
-  `atlas migrate apply` wrote and actually reverts. These are representative
+  proves both formatted and default-output `atlas migrate down` read no stdin,
+  accept no Ptah-only `--confirm`, read the Atlas-format revision rows
+  `atlas migrate apply` wrote, and actually revert. These are representative
   workflow contours, not exhaustive CLI matrices — flag-by-flag coverage
   stays owned by Ptah's own command tests, and the CLI-surface tier owns the
   usage/flag contracts. Atlas keeps every one of these verbs outside CE, so

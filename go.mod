@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/zclconf/go-cty v1.19.0
-	go.5x5.cz/ptah v0.2.1-0.20260802220522-4e648be5cc7c
+	go.5x5.cz/ptah v0.2.1-0.20260803000711-ba6c81ffd86b
 	modernc.org/sqlite v1.55.0
 )
 
