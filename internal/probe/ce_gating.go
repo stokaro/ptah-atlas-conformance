@@ -564,6 +564,29 @@ func (rt *ceGatingRuntime) mkdir(name string) error {
 	return nil
 }
 
+// writeOutsideFile writes one fixture file into the scenario scratch directory,
+// which is the PARENT of the work directory where atlas.hcl lives and where the
+// measured command runs. Scenarios use it to place a file that an atlas.hcl
+// `file()` call can only reach by leaving its own directory. It returns the
+// absolute path, because the absolute-path scenario has to name it.
+func (rt *ceGatingRuntime) writeOutsideFile(name, content string) (string, error) {
+	path := filepath.Join(rt.scratch, name)
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		return "", fmt.Errorf("write outside fixture %s: %w", name, err)
+	}
+	return path, nil
+}
+
+// symlink creates a symbolic link inside the scenario work directory pointing
+// at target. Scenarios use it for the third way out of the atlas.hcl directory:
+// a name that is inside it but resolves outside it.
+func (rt *ceGatingRuntime) symlink(target, name string) error {
+	if err := os.Symlink(target, filepath.Join(rt.workDir, name)); err != nil {
+		return fmt.Errorf("create fixture symlink %s: %w", name, err)
+	}
+	return nil
+}
+
 // execSQLite executes one statement against a SQLite database file in the
 // scenario work directory, using the same driver the rest of the probe
 // package uses. Scenarios use it to establish data states (for example a row
@@ -832,6 +855,19 @@ var ceExternalSchemaErrorPattern = regexp.MustCompile(`data\.external_schema is 
 // different message family than the rest of the file uses.
 var ceStrictVariableErrorPattern = regexp.MustCompile(
 	`Unsupported argument; An argument named "frobnicate" is not expected here`)
+
+// ceFileContentReachedURLParserPattern is the failure raised when an outside
+// file that file() DID read holds something that is not a URL. It is the
+// control for the three file() confinement rows: the three prove exit 0, this
+// one proves the exit 0 came from reading the outside file rather than from
+// ignoring the call and falling through to a default.
+//
+// The obvious control -- point file() at a path that does not exist -- was
+// measured first and rejected: the community binary reports the RESOLVED
+// absolute path in that message, so the evidence column would carry this
+// machine's temporary directory and ce-gating.md would churn on every run.
+// This shape carries no path at all.
+var ceFileContentReachedURLParserPattern = regexp.MustCompile(`missing scheme`)
 
 // ceIgnoredBlockBadRefErrorPattern is the failure from evaluating the body of a
 // block whose NAME was dropped.
@@ -1355,6 +1391,90 @@ func ceGatingScenarios() []ceGatingScenario {
 				SilentFragments:       []string{"20260101000003"},
 				SilentAbsentFragments: []string{"drift", "does not match expected state"},
 			},
+		},
+		// atlas.hcl file() confinement, measured 2026-08-06 against v1.3.0.
+		//
+		// Ptah's ptah-compat sandboxes file() to the directory holding
+		// atlas.hcl and refuses all three of these; the community binary reads
+		// all three. That divergence is deliberate and is recorded on the Ptah
+		// side (stokaro/ptah#1042). These rows exist so the COMMUNITY half of
+		// it stops being remembered and starts being measured: the day a
+		// community build begins confining file(), they go red and the
+		// divergence can be retired rather than carried forever.
+		//
+		// The works predicate is exit 0 plus the inspected schema, but the
+		// stronger evidence is on disk: the URL each command connects to comes
+		// from the outside file, so a run that silently ignored the file()
+		// would fail to find a database at all. Each fixture names a DIFFERENT
+		// database file so the three rows cannot pass on each other's work.
+		{
+			fixture: "atlas.hcl file() reads an absolute path outside its directory",
+			setup: func(rt *ceGatingRuntime) error {
+				outside, err := rt.writeOutsideFile("abs-url.txt", "sqlite://ce-gating-abs.db")
+				if err != nil {
+					return err
+				}
+				return rt.writeFile("atlas.hcl",
+					fmt.Sprintf("env \"outside\" {\n  url = file(%q)\n}\n", outside))
+			},
+			argv:     []string{"schema", "inspect", "--env", "outside"},
+			expected: CEGatingWorks,
+			rules:    CEGatingRules{SuccessFragments: []string{`schema "main"`}},
+		},
+		{
+			fixture: "atlas.hcl file() reads a parent-traversal path outside its directory",
+			setup: func(rt *ceGatingRuntime) error {
+				if _, err := rt.writeOutsideFile(
+					"parent-url.txt", "sqlite://ce-gating-parent.db"); err != nil {
+					return err
+				}
+				return rt.writeFile("atlas.hcl",
+					"env \"outside\" {\n  url = file(\"../parent-url.txt\")\n}\n")
+			},
+			argv:     []string{"schema", "inspect", "--env", "outside"},
+			expected: CEGatingWorks,
+			rules:    CEGatingRules{SuccessFragments: []string{`schema "main"`}},
+		},
+		{
+			// The third way out, and the one a path-string check misses: the
+			// argument is a plain relative name INSIDE the atlas.hcl directory,
+			// and only resolving it reaches outside.
+			fixture: "atlas.hcl file() reads through a symbolic link out of its directory",
+			setup: func(rt *ceGatingRuntime) error {
+				outside, err := rt.writeOutsideFile(
+					"linked-url.txt", "sqlite://ce-gating-symlink.db")
+				if err != nil {
+					return err
+				}
+				if err := rt.symlink(outside, "link.txt"); err != nil {
+					return err
+				}
+				return rt.writeFile("atlas.hcl",
+					"env \"outside\" {\n  url = file(\"link.txt\")\n}\n")
+			},
+			argv:     []string{"schema", "inspect", "--env", "outside"},
+			expected: CEGatingWorks,
+			rules:    CEGatingRules{SuccessFragments: []string{`schema "main"`}},
+		},
+		{
+			// Without this row the three above are ambiguous between "the
+			// community binary read the outside file" and "the community binary
+			// ignored file() and fell through to some default". Same shape,
+			// same argv; only the outside file's CONTENT changes, from a usable
+			// URL to text that is not one. The refusal names what the content
+			// lacks, so the content demonstrably reached the URL parser.
+			fixture: "control: atlas.hcl file() reads outside content that is not a URL",
+			setup: func(rt *ceGatingRuntime) error {
+				outside, err := rt.writeOutsideFile("not-a-url.txt", "definitely-not-a-url")
+				if err != nil {
+					return err
+				}
+				return rt.writeFile("atlas.hcl",
+					fmt.Sprintf("env \"outside\" {\n  url = file(%q)\n}\n", outside))
+			},
+			argv:     []string{"schema", "inspect", "--env", "outside"},
+			expected: CEGatingNamedError,
+			rules:    CEGatingRules{NamedErrorPattern: ceFileContentReachedURLParserPattern},
 		},
 	}
 	return append(scenarios, ceGatingNonOSSSentinelScenarios()...)
