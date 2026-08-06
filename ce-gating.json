@@ -225,6 +225,34 @@
   },
   {
     "probe": "ce-gating",
+    "fixture": "atlas.hcl file() reads an absolute path outside its directory",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"schema \\\"main\\\"\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas.hcl file() reads a parent-traversal path outside its directory",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"schema \\\"main\\\"\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "atlas.hcl file() reads through a symbolic link out of its directory",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"schema \\\"main\\\"\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: atlas.hcl file() reads outside content that is not a URL",
+    "stage": "named-error",
+    "outcome": "ok",
+    "detail": "class: named-error — Error: missing scheme. See: https://atlasgo.io/url"
+  },
+  {
+    "probe": "ce-gating",
     "fixture": "atlas schema test (bare CE sentinel)",
     "stage": "community-abort",
     "outcome": "ok",

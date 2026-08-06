@@ -424,7 +424,15 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		"atlas.hcl unknown argument inside variable (strict)": probe.CEGatingNamedError,
 		"atlas.hcl bad reference inside an ignored block":     probe.CEGatingNamedError,
 		"control: ignored block with a literal value":         probe.CEGatingWorks,
-		"atlas.hcl unknown name nested inside env":            probe.CEGatingWorks,
+		// atlas.hcl file() is not confined to the directory holding atlas.hcl:
+		// all three ways out are read. ptah-compat refuses all three on purpose
+		// (stokaro/ptah#1042); these rows measure the community half so the
+		// divergence can be retired the day it stops existing.
+		"atlas.hcl file() reads an absolute path outside its directory":        probe.CEGatingWorks,
+		"atlas.hcl file() reads a parent-traversal path outside its directory": probe.CEGatingWorks,
+		"atlas.hcl file() reads through a symbolic link out of its directory":  probe.CEGatingWorks,
+		"control: atlas.hcl file() reads outside content that is not a URL":    probe.CEGatingNamedError,
+		"atlas.hcl unknown name nested inside env":                             probe.CEGatingWorks,
 	})
 
 	counts := map[probe.CEGatingClass]int{}
@@ -432,12 +440,12 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		counts[class]++
 	}
 	c.Check(counts, qt.DeepEquals, map[probe.CEGatingClass]int{
-		probe.CEGatingWorks:               12,
+		probe.CEGatingWorks:               15,
 		probe.CEGatingCommunityAbort:      39,
 		probe.CEGatingAbsent:              5,
 		probe.CEGatingUnregisteredCommand: 3,
 		probe.CEGatingSilentUnenforced:    4,
-		probe.CEGatingNamedError:          4,
+		probe.CEGatingNamedError:          5,
 		probe.CEGatingUnknownFlag:         3,
 	})
 }
