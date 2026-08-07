@@ -105,7 +105,7 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 				Type:            2,
 				Applied:         1,
 				Total:           2,
-				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
 				OperatorVersion: "Ptah",
 			},
 		},
@@ -825,7 +825,7 @@ func fileTxModeSplitFileUpOracle(ptahBin, atlasBin string) Result {
 			Type:            2,
 			Applied:         1,
 			Total:           2,
-			ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+			ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
 			OperatorVersion: "Ptah",
 		},
 	}

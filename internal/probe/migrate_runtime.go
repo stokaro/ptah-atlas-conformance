@@ -197,8 +197,14 @@ func sqliteMigrateApplyRecordsState(bin string) Result {
 	if err != nil {
 		return migrateRuntimeExit(fixture, "status", status, err)
 	}
-	if !strings.Contains(status, "Applied Migrations: 2") || !strings.Contains(status, "Pending Migrations: 0") {
-		return migrateRuntimeGap(fixture, "status", "status did not report 2 applied and 0 pending migrations: "+oneLine(status))
+	// The wording is the pinned community binary's own. Measured on the same
+	// fixture, both it and ptah-compat print `-- Executed Files:  2` and
+	// `-- Pending Files:   0`; the strings this used to look for -- "Applied
+	// Migrations" and "Pending Migrations" -- are emitted by neither, and were
+	// Ptah's older native phrasing. The probe was pinning a divergence rather
+	// than the parity it exists to measure.
+	if !strings.Contains(status, "Executed Files:  2") || !strings.Contains(status, "Pending Files:   0") {
+		return migrateRuntimeGap(fixture, "status", "status did not report 2 executed and 0 pending files: "+oneLine(status))
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
 		"apply created expected SQLite tables, Atlas revision rows, and applied status", ""}
