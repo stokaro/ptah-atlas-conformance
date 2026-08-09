@@ -196,7 +196,7 @@
     "fixture": "sqlite/per-file-txmode/revision-bookkeeping",
     "stage": "compare",
     "outcome": "gap",
-    "detail": "full stable revision metadata differs in 7/7 body-execution cells: global-file-directive-absent count=1, Atlas=0; global-file-directive-absent Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"7frovHPq1HOv7ySiqon9rz8xqPGu5xu0dCuHEaNEQXE=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-file-directive-file count=1, Atlas=0; global-file-directive-file Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"bBn711m0B3EEfC9yd2TZ5AzG8IfEuT5VHOlR2QOzp9M=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-file-directive-none revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"; global-all-directive-absent count=1, Atlas=0; global-all-directive-absent Ptah extra row {version=\"1\" description=\"case\" type=2 applied=0 total=2 executed_at_type=\"text\" error_null=false error=\"failed to apply migration 1: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"7frovHPq1HOv7ySiqon9rz8xqPGu5xu0dCuHEaNEQXE=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-none-directive-absent revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"; global-none-directive-file count=1, Atlas=0; global-none-directive-file Ptah extra row {version=\"1\" description=\"case\" type=2 applied=1 total=2 executed_at_type=\"text\" error_null=false error=\"failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\" error_type=\"text\" error_stmt_null=false error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\" error_stmt_type=\"text\" hash=\"bBn711m0B3EEfC9yd2TZ5AzG8IfEuT5VHOlR2QOzp9M=\" partial_hashes_null=false partial_hashes=\"null\" partial_hashes_type=\"blob\"}; global-none-directive-none revision 1 differs: error=\"failed to execute migration SQL: SQL logic error: no such table: txmode_missing (1)\\nSQL: INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"no such table: txmode_missing\", error_stmt=\"INSERT INTO txmode_missing (id) VALUES (1)\", Atlas=\"INSERT INTO txmode_missing (id) VALUES (1);\", partial_hashes=\"null\", Atlas=\"[\\\"h1:YG6I9i3XJ94/l+rSfna7yLoUh3Z54G71zVeJKNp/IVI=\\\"]\"",
+    "detail": "full stable revision metadata differs in 3/7 body-execution cells: global-file-directive-none revision 1 differs: error=\"SQL logic error: no such table: txmode_missing (1)\", Atlas=\"no such table: txmode_missing\"; global-none-directive-absent revision 1 differs: error=\"SQL logic error: no such table: txmode_missing (1)\", Atlas=\"no such table: txmode_missing\"; global-none-directive-none revision 1 differs: error=\"SQL logic error: no such table: txmode_missing (1)\", Atlas=\"no such table: txmode_missing\"",
     "issue": "stokaro/ptah#887"
   },
   {
@@ -245,9 +245,9 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/txtar-down-extension",
-    "stage": "ptah-control",
+    "stage": "ptah-better",
     "outcome": "ok",
-    "detail": "Ptah-side live evidence proved migration.sql=file and down.sql=none remain independent: the successful first down statement persisted, the failing statement stopped execution, and stable revision metadata remained unchanged"
+    "detail": "Ptah-side live evidence proved migration.sql=file and down.sql=none remain independent: the successful first down statement persisted, the failing statement stopped execution, and the revision retained 1/2 rollback progress, its partial hash, failure, and down direction for repair"
   },
   {
     "probe": "migrate-runtime",
@@ -448,9 +448,10 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/down-failure-revisions",
-    "stage": "inspect",
+    "stage": "ptah-better",
     "outcome": "ok",
-    "detail": "a failed down left all 12 Atlas revision columns byte-identical, including an Atlas Pro metadata row, and status still reports the version applied, matching Atlas"
+    "detail": "unlike Atlas's measured hidden failed-down state, Ptah rolled back the preceding DROP TABLE, preserved the pets sentinel row and every Pro metadata row, and marked version 2 as a dirty down with 0/2 progress, the failing statement, timing, and operator direction; status exposed the partial rollback for repair",
+    "issue": "stokaro/ptah#957"
   },
   {
     "probe": "migrate-runtime",

@@ -1229,14 +1229,14 @@
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl",
     "stage": "workflow",
     "outcome": "ok",
-    "detail": "the untouched Atlas v1.3.0 multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture"
+    "detail": "the pinned multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture"
   },
   {
     "probe": "atlasexec-project-workflow",
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
     "stage": "workflow",
     "outcome": "ok",
-    "detail": "the untouched Atlas v1.3.0 versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct"
+    "detail": "the pinned versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct"
   },
   {
     "probe": "atlas-hcl-parse",
@@ -4219,21 +4219,21 @@
     "fixture": "atlas migrate lint --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate lint --dir-format goose` hashed, loaded, replayed, and analyzed the Goose migration"
+    "detail": "`atlas migrate lint --dir-format goose` replayed the first Goose Up section as a baseline, analyzed the destructive second Up section, ignored its invalid Down section, and exited 1 with the expected diagnostic"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "atlas migrate new --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate new --dir-format goose` writes Atlas's Goose skeleton and refreshes atlas.sum"
+    "detail": "`atlas migrate new --dir-format goose` writes exactly one Goose skeleton and an atlas.sum that independently verifies against it"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "atlas migrate set --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate set --dir-format goose` records the selected Goose revision with Atlas metadata"
+    "detail": "`atlas migrate set --dir-format goose` records exactly one selected Goose revision with version, description, zero progress, and operator metadata without applying the migration SQL"
   },
   {
     "probe": "atlas-cli-metadata-runtime",

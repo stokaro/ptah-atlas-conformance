@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809013331-39ad9b93fa20`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
 - Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -44,10 +44,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate apply --dir-format` | flags | `atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate apply --revisions-schema` | execute | `atlas migrate apply --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate hash` | execute | `atlas migrate hash` defaults to Atlas directory format and writes atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate lint --dir-format goose` | execute | `atlas migrate lint --dir-format goose` hashed, loaded, replayed, and analyzed the Goose migration |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate lint --dir-format goose` | execute | `atlas migrate lint --dir-format goose` replayed the first Goose Up section as a baseline, analyzed the destructive second Up section, ignored its invalid Down section, and exited 1 with the expected diagnostic |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate new` | execute | `atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate new --dir-format goose` | execute | `atlas migrate new --dir-format goose` writes Atlas's Goose skeleton and refreshes atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` records the selected Goose revision with Atlas metadata |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate new --dir-format goose` | execute | `atlas migrate new --dir-format goose` writes exactly one Goose skeleton and an atlas.sum that independently verifies against it |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` records exactly one selected Goose revision with version, description, zero progress, and operator metadata without applying the migration SQL |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate set --revisions-schema` | execute | `atlas migrate set --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status` | execute | `atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` reads the hashed Goose directory and reports one pending file |  |
@@ -101,8 +101,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | Atlas schemahcl fixture has no schema objects; outside Ptah schema surface |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/variables.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: variable |  |
-| — | ok | atlasexec-project-workflow | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | workflow | the untouched Atlas v1.3.0 multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture |  |
-| — | ok | atlasexec-project-workflow | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | workflow | the untouched Atlas v1.3.0 versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct |  |
+| — | ok | atlasexec-project-workflow | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | workflow | the pinned multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture |  |
+| — | ok | atlasexec-project-workflow | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | workflow | the pinned versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct |  |
 | — | ok | checkpoint-workflow | `SQLite schema facts` | bootstrap schema equivalence | the checkpoint-bootstrapped schema is structurally identical to the full-history replay (tables, columns, defaults, primary keys, foreign keys, and indexes) |  |
 | — | ok | checkpoint-workflow | `SQLite schema facts` | post-checkpoint schema equivalence | the full-history path (1-3 then 5) and the checkpoint bootstrap path (4 then 5) converged to structurally identical schemas |  |
 | — | ok | checkpoint-workflow | `ptah migrations checkpoint` | checkpoint creation | the shadow replay produced the deterministic version-4 checkpoint pair with the cumulative schema, and ptah.sum was rewritten to cover it |  |
