@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
+.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime check-budget-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -77,11 +77,15 @@ gate-diff:
 probe-migrate-runtime:
 	$(GO_OFF) run ./cmd/gap-probe-migrate-runtime
 
-# CI progress gate for migrate runtime behavior: fail only when the current
-# runtime report exceeds the committed budget. Full migrate runtime parity is
-# still `make gate-migrate-runtime`.
-budget-migrate-runtime: probe-migrate-runtime
+# Check an already generated runtime report without rerunning stateful live
+# database probes. CI uses this after its explicit freshness check.
+check-budget-migrate-runtime:
 	$(GO_OFF) run ./cmd/gap-budget -report gaps-migrate-runtime.json -budget gap-migrate-runtime-budget.txt
+
+# Developer-facing progress gate: regenerate the runtime report, then fail only
+# when it exceeds the committed budget. Full migrate runtime parity is still
+# `make gate-migrate-runtime`.
+budget-migrate-runtime: probe-migrate-runtime check-budget-migrate-runtime
 
 # The migrate runtime conformance gate: regenerate the report AND fail if any
 # supported runtime check disagrees with Atlas-compatible semantics.

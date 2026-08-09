@@ -87,4 +87,4 @@ jobs:
           fi
 
       - name: Enforce migrate runtime regression budget
-        run: make budget-migrate-runtime
+        run: make check-budget-migrate-runtime
