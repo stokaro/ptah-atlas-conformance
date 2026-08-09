@@ -230,9 +230,9 @@ jobs:
       - name: CE gating baseline gate
         run: make gate-ce-gating
 
-  # The CLI-surface full-parity signal. This is separate from
-  # conformance-regression, which enforces only the committed CLI-surface
-  # regression budget.
+  # The CLI-surface full-parity signal covers Atlas CE help/flags and the public
+  # documented Pro-only flags. It is separate from conformance-regression,
+  # which enforces only the committed CLI-surface regression budget.
   cli-surface-gate:
     runs-on: ubuntu-latest
     env:

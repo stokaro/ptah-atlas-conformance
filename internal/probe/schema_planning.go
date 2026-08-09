@@ -2,6 +2,9 @@ package probe
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -88,20 +91,41 @@ var planningCatalog = []planningCase{
 // proving the generated plan reaches the intended end state.
 const planningProbeName = "schema-planning"
 
-func (c planningCase) runPostgres(bin, dbURL string) Result {
+const planningPostgresDevDatabasePrefix = "ptah_conformance_dev"
+
+func (c planningCase) runPostgres(bin, dbURL string) (result Result) {
 	fixture := "postgres/" + strings.ReplaceAll(c.Name, " ", "-")
+	devDatabase := migrateRuntimeIdentifier(planningPostgresDevDatabasePrefix)
+	targetURL, devURL, err := planningPostgresURLs(dbURL, devDatabase)
+	if err != nil {
+		return Result{planningProbeName, fixture, "setup", Fail, err.Error(), ""}
+	}
 
 	// Path 1: empty -> A -> B (exercise the plan).
 	if detail := resetPostgresPublic(dbURL); detail != "" {
 		return Result{planningProbeName, fixture, "reset", Fail, detail, ""}
 	}
-	if detail := applySchema(bin, dbURL, c.A); detail != "" {
+	if detail := createPostgresDatabase(dbURL, devDatabase); detail != "" {
+		return Result{planningProbeName, fixture, "reset-dev", Fail, detail, ""}
+	}
+	defer func() {
+		detail := dropPostgresDatabase(dbURL, devDatabase)
+		if detail == "" {
+			return
+		}
+		if result.Outcome == OK {
+			result = Result{planningProbeName, fixture, "cleanup-dev", Fail, detail, ""}
+			return
+		}
+		result.Detail += "; cleanup-dev failed: " + detail
+	}()
+	if detail := applySchema(bin, targetURL, devURL, c.A); detail != "" {
 		return Result{planningProbeName, fixture, "apply-a", Fail, "applying schema A failed: " + detail, "stokaro/ptah#652"}
 	}
-	if detail := applySchema(bin, dbURL, c.B); detail != "" {
+	if detail := applySchema(bin, targetURL, devURL, c.B); detail != "" {
 		return Result{planningProbeName, fixture, "apply-b-onto-a", Gap, "applying the A->B plan failed: " + detail, "stokaro/ptah#652"}
 	}
-	planned, detail := inspectSchema(bin, dbURL)
+	planned, detail := inspectSchema(bin, targetURL)
 	if detail != "" {
 		return Result{planningProbeName, fixture, "inspect", Fail, detail, ""}
 	}
@@ -110,10 +134,10 @@ func (c planningCase) runPostgres(bin, dbURL string) Result {
 	if detail := resetPostgresPublic(dbURL); detail != "" {
 		return Result{planningProbeName, fixture, "reset", Fail, detail, ""}
 	}
-	if detail := applySchema(bin, dbURL, c.B); detail != "" {
+	if detail := applySchema(bin, targetURL, devURL, c.B); detail != "" {
 		return Result{planningProbeName, fixture, "apply-b", Fail, "applying schema B failed: " + detail, "stokaro/ptah#652"}
 	}
-	intended, detail := inspectSchema(bin, dbURL)
+	intended, detail := inspectSchema(bin, targetURL)
 	if detail != "" {
 		return Result{planningProbeName, fixture, "inspect", Fail, detail, ""}
 	}
@@ -129,14 +153,18 @@ func (c planningCase) runPostgres(bin, dbURL string) Result {
 // applySchema applies a desired-state SQL schema to dbURL via
 // `atlas schema apply --to file://... --auto-approve` (ptah-compat), returning "" on
 // success or a one-line error detail.
-func applySchema(bin, dbURL, schema string) string {
+func applySchema(bin, dbURL, devURL, schema string) string {
 	path, cleanup, err := writeSchemaFile(schema)
 	if err != nil {
 		return oneLine(err.Error())
 	}
 	defer cleanup()
 	output, err := commandOutput(bin, []string{
-		"schema", "apply", "--url", dbURL, "--to", "file://" + path, "--auto-approve",
+		"schema", "apply",
+		"--url", dbURL,
+		"--dev-url", devURL,
+		"--to", "file://" + path,
+		"--auto-approve",
 	})
 	if err != nil {
 		return oneLine(output)
@@ -228,12 +256,72 @@ func quoteOrNone(s string) string {
 // resetPostgresPublic drops and recreates the public schema so each planning path
 // starts from an empty database.
 func resetPostgresPublic(dbURL string) string {
+	return resetPostgresSchema(dbURL, "public")
+}
+
+func resetPostgresSchema(dbURL, schema string) string {
 	conn, err := openMigrateRuntimeConnection(dbURL)
 	if err != nil {
 		return oneLine(err.Error())
 	}
 	defer func() { _ = conn.Close() }()
-	if _, err := conn.ExecContext(context.Background(), "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public"); err != nil {
+	quoted := quotePostgresIdentifier(schema)
+	statement := "DROP SCHEMA IF EXISTS " + quoted + " CASCADE; CREATE SCHEMA " + quoted
+	if _, err := conn.ExecContext(context.Background(), statement); err != nil {
+		return oneLine(err.Error())
+	}
+	return ""
+}
+
+func planningPostgresURLs(raw, devDatabase string) (target, dev string, err error) {
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			err = urlErr.Err
+		}
+		return "", "", fmt.Errorf("parse PostgreSQL URL: %w", err)
+	}
+	target = postgresURLWithSearchPath(*parsed, "public")
+	parsed.Path = "/" + devDatabase
+	parsed.RawPath = ""
+	dev = postgresURLWithSearchPath(*parsed, "public")
+	return target, dev, nil
+}
+
+func postgresURLWithSearchPath(parsed url.URL, schema string) string {
+	query := parsed.Query()
+	query.Set("search_path", schema)
+	parsed.RawQuery = query.Encode()
+	return parsed.String()
+}
+
+func createPostgresDatabase(dbURL, database string) string {
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return oneLine(err.Error())
+	}
+	defer func() { _ = conn.Close() }()
+
+	statement := "CREATE DATABASE " + quotePostgresIdentifier(database)
+	if _, err := conn.ExecContext(context.Background(), statement); err != nil {
+		return oneLine(err.Error())
+	}
+	return ""
+}
+
+func dropPostgresDatabase(dbURL, database string) string {
+	if !strings.HasPrefix(database, planningPostgresDevDatabasePrefix+"_") {
+		return fmt.Sprintf("refusing to drop non-conformance database %q", database)
+	}
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		return oneLine(err.Error())
+	}
+	defer func() { _ = conn.Close() }()
+
+	statement := "DROP DATABASE " + quotePostgresIdentifier(database)
+	if _, err := conn.ExecContext(context.Background(), statement); err != nil {
 		return oneLine(err.Error())
 	}
 	return ""

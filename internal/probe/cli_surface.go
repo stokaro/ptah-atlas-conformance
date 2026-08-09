@@ -15,6 +15,8 @@ import (
 const (
 	cliSurfaceIssue       = "stokaro/ptah#632"
 	cliSurfaceCompatIssue = "stokaro/ptah#514"
+	cliProSurfaceIssue    = "stokaro/ptah#951"
+	cliProSurfaceProbe    = "atlas-cli-pro-surface-ptah-compat"
 )
 
 // CLISurfaceCommand is one command discovered from the pinned Atlas CE binary.
@@ -140,40 +142,37 @@ func DiscoverCLISurface(atlasBin string) (CLISurfaceInventory, error) {
 	return CLISurfaceInventory{AtlasVersion: version, Commands: commands}, nil
 }
 
-// proSurfaceFlags is a closed, per-command allow-list of long flags that Atlas
-// registers on a command the pinned CE binary also ships, but which CE itself
-// does not register. Implementing one of these on
-// ptah-compat is deliberate — stokaro/ptah#951 wants Ptah to be a drop-in even
-// for Atlas Pro — so it must not be reported as a non-Atlas flag.
+// proSurfaceFlags is a closed, per-command contract of long flags that Atlas
+// documents on a command the pinned CE binary also ships, but which CE itself
+// does not register. These flags are removed from the CE extra-flag comparison
+// and measured separately as required full-distribution surface.
 //
 // It cannot be discovered. DiscoverCLISurface reads the pinned CE binary, and
 // that binary answers `Error: unknown flag: --include` for these flags, so the
 // data has to be static.
 //
-// PROVENANCE: Atlas's own help surface for these commands, recorded
-// 2026-08-01. Each entry is Atlas's long-flag set for the command minus the
-// pinned CE binary's long-flag set for the same command (`--help` excluded, as
+// PROVENANCE: the published Atlas CLI Reference at
+// https://atlasgo.io/cli-reference, retrieved 2026-08-08. Each entry is the
+// documented full-distribution long-flag set for the command minus the pinned
+// CE binary's long-flag set for the same command (`--help` excluded, as
 // everywhere else in this file).
 //
-// Why an allow-list and not a waivers.txt line: a waiver key is (probe,
-// fixture, stage), so waiving `atlas schema inspect`/`flags` would hide EVERY
-// extra flag on that command from then on, including a genuinely non-Atlas one.
-// The single property this tier protects is that ptah-compat exposes no flag
-// Atlas does not have, so the allowance has to name the exact flags. waivers.txt
-// also stays empty as standing policy: a red tier stays red rather than waived.
-//
-// Adding an entry never relaxes the missing-flag direction — compareFlags still
-// requires every CE flag — and a listed flag that ptah-compat does not
-// implement stays invisible until it does, at which point it is named in the
-// report detail.
+// Why a typed contract and not a waivers.txt line: a waiver key is (probe,
+// fixture, stage), so waiving `atlas schema inspect`/`flags` would hide every
+// future extra flag on that command, including a genuinely non-Atlas one.
+// compareFlags therefore keeps CE parity exact after projecting out this named
+// set, while compareRequiredProFlags turns every missing documented flag red.
 func proSurfaceFlags() map[string][]string {
 	return map[string][]string{
-		// CE v1.2.0 registers --config --dev-url --env --exclude --format
-		// --schema --url --var on `atlas schema inspect`; Atlas
-		// registers these four in addition. ptah-compat implements --include
-		// (stokaro/ptah#977); --export, --output, and --web are listed because
-		// they are part of the same measured Atlas-only delta, and listing
-		// them keeps an unimplemented Pro flag from ever reading as a Ptah gap.
+		"migrate apply": {"--lock-name", "--skip-lock", "--to-version"},
+		"schema apply":  {"--lock-name", "--skip-lint", "--skip-lock"},
+		"schema clean":  {"--exclude", "--include"},
+		"schema diff":   {"--export", "--web"},
+		// CE v1.3.0 registers --config --dev-url --env --exclude --format
+		// --schema --url --var on `atlas schema inspect`; the full distribution
+		// registers these four in addition. The current ptah-compat pin implements
+		// --include, --output, and --web; the separate Pro-surface result keeps
+		// --export red until Ptah implements it.
 		"schema inspect": {"--export", "--include", "--output", "--web"},
 	}
 }
@@ -229,6 +228,9 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 		}
 		out = append(out, compareUsage(probeName, display, atlasCmd, target, issue))
 		out = append(out, compareFlags(probeName, display, atlasCmd, target, issue))
+		if len(atlasCmd.ProFlags) > 0 {
+			out = append(out, compareRequiredProFlags(display, atlasCmd, target))
+		}
 	}
 	return out
 }
@@ -484,38 +486,18 @@ func compareUsage(probeName, display string, atlasCmd CLISurfaceCommand, target 
 		"usage mismatch; Atlas has `" + atlasCmd.Usage + "`, Ptah has `" + target.Usage + "`", issue}
 }
 
-// compareFlags compares ptah-compat's long-flag surface for an OSS Atlas
-// command against the pinned CE binary. The two directions are deliberately
-// asymmetric:
-//
-//   - missing is measured against the CE flag set ONLY. A Pro-surface flag
-//     ptah-compat has not implemented is not a gap: CE does not expose it
-//     either, so a drop-in replacement for CE is complete without it.
-//   - extra is measured against the CE flag set PLUS this command's
-//     proSurfaceFlags allowance, so a flag Atlas registers on
-//     this same command is not reported as a non-Atlas flag. Anything outside
-//     both sets is still a gap — the allowance is closed and per-command, so an
-//     arbitrary extra flag stays red.
-//
-// A command that adopted part of that surface does NOT collapse to a
-// bare OK: the adopted flags are named in the detail so the committed report
-// keeps showing which Pro surface ptah-compat has taken on, and so a mistaken
-// allow-list entry is visible instead of silently permanent.
+// compareFlags compares ptah-compat's long-flag surface against the pinned CE
+// binary. Documented Pro flags are projected out of the extra direction and
+// checked by compareRequiredProFlags; every other extra and every missing CE
+// flag remains a CE parity gap.
 func compareFlags(probeName, display string, atlasCmd CLISurfaceCommand, target helpDetails, issue string) Result {
 	missing := missingStrings(atlasCmd.Flags, target.Flags)
 	allowed := append(append([]string(nil), atlasCmd.Flags...), atlasCmd.ProFlags...)
 	extra := missingStrings(target.Flags, allowed)
 	if len(missing) == 0 && len(extra) == 0 {
-		detail := "long flags match Atlas: " + strings.Join(atlasCmd.Flags, " ")
+		detail := "long flags match Atlas CE: " + strings.Join(atlasCmd.Flags, " ")
 		if len(atlasCmd.Flags) == 0 {
-			detail = "long flags match Atlas: no long flags"
-		}
-		// Only flags the pinned CE binary does NOT register count as adopted Pro
-		// surface: once an atlas.version bump moves a listed flag into CE's own
-		// help, it is ordinary CE parity and the allowance entry is dead weight.
-		proOnly := missingStrings(atlasCmd.ProFlags, atlasCmd.Flags)
-		if adopted := commonStrings(proOnly, target.Flags); len(adopted) > 0 {
-			detail += "; plus Pro-surface flags implemented openly: " + strings.Join(adopted, " ")
+			detail = "long flags match Atlas CE: no long flags"
 		}
 		return Result{probeName, display, "flags", OK, detail, ""}
 	}
@@ -527,6 +509,17 @@ func compareFlags(probeName, display string, atlasCmd CLISurfaceCommand, target 
 		parts = append(parts, "extra "+strings.Join(extra, ", "))
 	}
 	return Result{probeName, display, "flags", Gap, "flag mismatch: " + strings.Join(parts, "; "), issue}
+}
+
+func compareRequiredProFlags(display string, atlasCmd CLISurfaceCommand, target helpDetails) Result {
+	required := missingStrings(atlasCmd.ProFlags, atlasCmd.Flags)
+	missing := missingStrings(required, target.Flags)
+	if len(missing) == 0 {
+		return Result{cliProSurfaceProbe, display, "required-flags", OK,
+			"documented Pro-surface flags are present: " + strings.Join(required, " "), ""}
+	}
+	return Result{cliProSurfaceProbe, display, "required-flags", Gap,
+		"missing documented Pro-surface flags: " + strings.Join(missing, ", "), cliProSurfaceIssue}
 }
 
 func readCommandSurface(bin string, path []string) (helpDetails, error) {
@@ -717,22 +710,6 @@ func remapUsageBinary(usage, atlasUsagePrefix, ptahUsagePrefix string) string {
 
 func normalizeUsage(usage string) string {
 	return strings.Join(strings.Fields(usage), " ")
-}
-
-// commonStrings returns the members of want that also appear in got, keeping
-// want's order so the rendered detail is deterministic.
-func commonStrings(want, got []string) []string {
-	have := make(map[string]bool, len(got))
-	for _, value := range got {
-		have[value] = true
-	}
-	var common []string
-	for _, value := range want {
-		if have[value] {
-			common = append(common, value)
-		}
-	}
-	return common
 }
 
 func missingStrings(want, got []string) []string {

@@ -1,13 +1,13 @@
 -- Statement 1/4
 CREATE TABLE "users" (
-  "id" integer PRIMARY KEY,
+  "id" integer NOT NULL PRIMARY KEY,
   "email" TEXT NOT NULL
 );
 
 
 -- Statement 2/4
 CREATE TABLE "posts" (
-  "id" integer PRIMARY KEY,
+  "id" integer NOT NULL PRIMARY KEY,
   "user_id" integer NOT NULL CONSTRAINT "fk_posts_user" REFERENCES "users" ("id") ON DELETE CASCADE,
   "title" TEXT NOT NULL
 );

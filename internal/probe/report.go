@@ -132,7 +132,7 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`; the Atlas CE v1.3 global/file-directive precedence matrix; exact validation diagnostics; selected-only amount/baseline validation; converted golang-migrate pairs; and Ptah-side txtar/down controls behind Atlas CE's measured community boundary.",
 			"Pre-migration checks: checks.sql and ordered checks/*.sql groups run before migration.sql; oneof groups, including empty groups, fail closed; every assertion must return exactly one row and one column; blocked migrations write no revision row.",
 			"Check isolation and dialect semantics: PostgreSQL E-strings and advisory-lock release; MySQL and MariaDB executable comments, short numeric comment bodies, and hidden-statement rejection before query execution.",
-			"Failed rollback bookkeeping: a down whose statement fails leaves the Atlas revision rows byte-identical and status still reporting the version applied, matching Atlas.",
+			"Failed rollback bookkeeping: Ptah intentionally records a dirty down revision with exact progress, failure, timing, and direction while preserving unrelated and Atlas Pro metadata rows, so status exposes repairable state instead of hiding the failed rollback.",
 			"Revision metadata rows: dot-prefixed Atlas Pro rows (`.atlas_cloud_identifier`) are skipped by status math and preserved byte-identically.",
 			"PostgreSQL runtime behavior: custom revision schemas and `atlas:txmode none` for `CREATE INDEX CONCURRENTLY`.",
 			"MySQL and MariaDB runtime behavior: applied schema objects, Atlas revision rows, stored-state dry-runs, and dialect-specific pre-migration checks.",

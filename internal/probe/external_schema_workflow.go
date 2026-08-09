@@ -10,6 +10,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 const (
@@ -710,7 +712,11 @@ func (w *externalSchemaWorkflow) renderResult(
 		return externalSchemaGap(fixture, stage, err.Error()+": "+result.command.diagnostic())
 	}
 	if expected != "" && rendered != expected {
-		return externalSchemaGap(fixture, stage, "rendered SQL differs from the expected SQLite snapshot")
+		return externalSchemaGap(
+			fixture,
+			stage,
+			"rendered SQL differs from the expected SQLite snapshot (-want +got):\n"+cmp.Diff(expected, rendered),
+		)
 	}
 	for _, fragment := range []string{
 		`CREATE TABLE "users"`,

@@ -11,6 +11,8 @@ import (
 	"testing"
 	"testing/fstest"
 
+	qt "github.com/frankban/quicktest"
+
 	"go.5x5.cz/ptah/atlascompat"
 	"go.5x5.cz/ptah/core/ast"
 	"go.5x5.cz/ptah/migration/migrator"
@@ -292,29 +294,15 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution(t *testing.T) {
 }
 
 func TestAtlasCLIMetadataRuntimeProbeAcceptsAtlasDefaults(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("fake executable uses a POSIX shell script")
-	}
-
-	dir := t.TempDir()
-	bin := filepath.Join(dir, "ptah")
-	writeTestFile(t, bin, fakeMetadataRuntimeScript())
-	if err := os.Chmod(bin, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	setFakePtahCLIBinaries(t, bin)
+	c := qt.New(t)
 
 	results := AtlasCLIMetadataRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 11 {
-		t.Fatalf("expected 11 results, got %d: %#v", len(results), results)
-	}
-	for _, r := range results {
-		if r.Probe != "atlas-cli-metadata-runtime" {
-			t.Fatalf("unexpected probe name: %#v", r)
-		}
-		if r.Outcome != OK {
-			t.Fatalf("expected metadata runtime OK, got %#v", r)
-		}
+
+	c.Assert(results, qt.HasLen, 11)
+	for _, result := range results {
+		c.Check(result.Probe, qt.Equals, "atlas-cli-metadata-runtime")
+		c.Check(result.Outcome, qt.Equals, OK,
+			qt.Commentf("%s/%s: %s", result.Fixture, result.Stage, result.Detail))
 	}
 }
 
@@ -602,56 +590,6 @@ case "$*" in
     printf 'schema "main" {}\n' > a_schema.hcl
     printf 'schema "nested" {}\n' > nested/z_schema.hcl
     printf 'a_schema.hcl\nnested/z_schema.hcl\n'
-    ;;
-  *)
-    printf 'unsupported %s\n' "$*" >&2
-    exit 1
-    ;;
-esac
-`
-}
-
-func fakeMetadataRuntimeScript() string {
-	return `#!/bin/sh
-case "$*" in
-  "migrate hash --dir file://"*" --dir-format goose")
-    dir=${4#file://}
-    printf 'h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n20240101000000_init.sql h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n' > "$dir/atlas.sum"
-    printf 'Wrote %s/atlas.sum\n1 migration file(s) hashed\n' "$dir"
-    ;;
-  "migrate validate --dir file://"*" --dir-format goose")
-    ;;
-  "migrate lint --latest 1 --dir file://"*" --dir-format goose"|"migrate new init --dir file://"*" --dir-format goose"|"migrate set --url sqlite://ignored.db 20240101000000 --dir file://"*" --dir-format goose"|"migrate status --url sqlite://ignored.db --dir file://"*" --dir-format goose")
-    printf 'error: Atlas accepts --dir-format=goose, but Ptah does not implement that directory format yet\n' >&2
-    exit 2
-    ;;
-  "migrate new init --dir file://"*)
-    dir=${5#file://}
-    mkdir -p "$dir"
-    printf 'CREATE TABLE users (id INTEGER PRIMARY KEY);\n' > "$dir/20240101000000_init.sql"
-    printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
-    printf 'Generated empty migration file:\nSQL:  %s/20240101000000_init.sql\n' "$dir"
-    ;;
-  "migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema main")
-    printf 'Migrating to version 20240101000000 from 1 pending migrations.\nMigration complete. Current version: 20240101000000\n'
-    ;;
-  "migrate set --url sqlite://"*" --dir file://"*" --revisions-schema main 20240101000000")
-    printf 'Repaired migration 20240101000000\n'
-    ;;
-  "migrate status --url sqlite://"*" --dir file://"*" --revisions-schema main")
-    printf 'Total Migrations: 1\nPending Migrations: 1\n'
-    ;;
-  "migrate hash --dir file://"*)
-    dir=${4#file://}
-    printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
-    printf 'Wrote %s/atlas.sum\n1 migration file(s) hashed\n' "$dir"
-    ;;
-  "migrate status --url sqlite://"*" --dir file://"*)
-    printf 'Total Migrations: 1\nPending Migrations: 1\n'
-    ;;
-  "migrate apply --dir-format atlas --help")
-    printf 'Error: unknown flag: --dir-format\n' >&2
-    exit 1
     ;;
   *)
     printf 'unsupported %s\n' "$*" >&2
@@ -2047,6 +1985,17 @@ func TestTxtarScriptProbeCmpToleratesOnlyFinalNewline(t *testing.T) {
 	}
 }
 
+func TestTxtarFilesMismatchLabelsCallerActualAndExpected(t *testing.T) {
+	c := qt.New(t)
+	files := map[string]string{
+		"expected.sql": "expected contents\n",
+		"actual.sql":   "actual contents\n",
+	}
+
+	got := txtarFilesMismatch(files, "actual.sql", "expected.sql")
+	c.Assert(got, qt.Equals, `cmp actual.sql expected.sql did not match: got "actual contents" want "expected contents"`)
+}
+
 func TestTxtarScriptProbeKeepsUnsupportedSchemaInspectHCLAsGap(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "case.txtar")
@@ -3308,83 +3257,133 @@ func TestTxtarPostgresGeneratedColumnHCLRendering(t *testing.T) {
 }
 
 func TestTxtarPostgresEnumColumnHCLShowAndSQLRendering(t *testing.T) {
+	c := qt.New(t)
 	fx := Fixture{Name: "postgres/column-enum-array.txtar"}
 	statements := []ast.Node{
 		ast.NewEnum("status", "active", "inactive", "unknown"),
 		&ast.CreateTableNode{
 			Name: "enums",
 			Columns: []*ast.ColumnNode{
-				{Name: "statuses", Type: `sql("status[]")`, Nullable: false},
+				{Name: "statuses", Type: "status[]", TypeRawSQL: true, Nullable: false},
 				{Name: "status", Type: "status", Nullable: false, Default: &ast.DefaultValue{Value: "inactive", ValueSet: true}},
 			},
 		},
 	}
 
 	actualHCL, err := renderAtlasInspectHCL("postgresql", txtarFixtureSchemaName(fx), statements)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(actualHCL, `type = sql("status[]")`) {
-		t.Fatalf("inspect HCL should keep enum array raw SQL type:\n%s", actualHCL)
-	}
-	if !strings.Contains(actualHCL, `type    = enum.status`) {
-		t.Fatalf("inspect HCL should render scalar enum type as enum ref:\n%s", actualHCL)
-	}
-	if !strings.Contains(actualHCL, `enum "status"`) ||
-		!strings.Contains(actualHCL, `values = ["active", "inactive", "unknown"]`) {
-		t.Fatalf("inspect HCL should render enum block:\n%s", actualHCL)
-	}
+	c.Assert(err, qt.IsNil)
+	c.Assert(actualHCL, qt.Contains, `type = sql("status[]")`)
+	c.Assert(actualHCL, qt.Contains, `type    = enum.status`)
+	c.Assert(actualHCL, qt.Contains, `enum "status"`)
+	c.Assert(actualHCL, qt.Contains, `values = ["active", "inactive", "unknown"]`)
 
 	actualShow, ok := txtarTableShowSQL(fx, statements, "enums")
-	if !ok {
-		t.Fatal("expected PostgreSQL show SQL")
-	}
-	if !strings.Contains(actualShow, "statuses | script_column_enum_array.status[] |  | not null |") {
-		t.Fatalf("show SQL should qualify enum array type:\n%s", actualShow)
-	}
-	if !strings.Contains(actualShow, "status | script_column_enum_array.status |  | not null | 'inactive'::script_column_enum_array.status") {
-		t.Fatalf("show SQL should qualify enum type and default cast:\n%s", actualShow)
-	}
+	c.Assert(ok, qt.IsTrue)
+	c.Assert(actualShow, qt.Contains, "statuses | script_column_enum_array.status[] |  | not null |")
+	c.Assert(actualShow, qt.Contains, "status | script_column_enum_array.status |  | not null | 'inactive'::script_column_enum_array.status")
 
 	actualSQL, err := renderAtlasInspectSQL("postgresql", statements, "  ")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(actualSQL, `CREATE TYPE "status" AS ENUM ('active', 'inactive', 'unknown');`) {
-		t.Fatalf("inspect SQL should render enum DDL:\n%s", actualSQL)
-	}
-	if !strings.Contains(actualSQL, `"status" "status" NOT NULL DEFAULT 'inactive'`) {
-		t.Fatalf("inspect SQL should quote enum column type:\n%s", actualSQL)
-	}
+	c.Assert(err, qt.IsNil)
+	c.Assert(actualSQL, qt.Contains, `CREATE TYPE "status" AS ENUM ('active', 'inactive', 'unknown');`)
+	c.Assert(actualSQL, qt.Contains, `"status" "status" NOT NULL DEFAULT 'inactive'`)
 }
 
 func TestTxtarPostgresDomainColumnHCLAndShowRendering(t *testing.T) {
+	c := qt.New(t)
 	fx := Fixture{Name: "postgres/column-domain.txtar"}
 	statements := []ast.Node{
 		ast.NewCreateType("script_column_domain.positive_int", ast.NewDomainTypeDef("bigint").SetCheck("VALUE > 0")),
 		&ast.CreateTableNode{
 			Name: "users",
 			Columns: []*ast.ColumnNode{
-				{Name: "c1", Type: `sql("script_column_domain.positive_int")`, Nullable: false},
+				{Name: "c1", Type: "script_column_domain.positive_int", TypeRawSQL: true, Nullable: false},
 			},
 		},
 	}
 
 	actualHCL, err := renderAtlasInspectHCL("postgresql", txtarFixtureSchemaName(fx), statements)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(actualHCL, `type = sql("positive_int")`) {
-		t.Fatalf("inspect HCL should unqualify same-schema domain type:\n%s", actualHCL)
-	}
+	c.Assert(err, qt.IsNil)
+	c.Assert(actualHCL, qt.Contains, `type = sql("positive_int")`)
 
 	actualShow, ok := txtarTableShowSQL(fx, statements, "users")
-	if !ok {
-		t.Fatal("expected PostgreSQL show SQL")
+	c.Assert(ok, qt.IsTrue)
+	c.Assert(actualShow, qt.Contains, "c1 | script_column_domain.positive_int |  | not null |")
+}
+
+func TestAtlasColumnTypeRenderingUsesTypeRawSQL(t *testing.T) {
+	c := qt.New(t)
+	enums := map[string]*ast.EnumNode{"status": ast.NewEnum("status", "active")}
+	domains := map[string]bool{"script_types.positive_int": true}
+	tests := []struct {
+		name    string
+		dialect string
+		schema  string
+		column  *ast.ColumnNode
+		wantHCL string
+		wantSQL string
+	}{
+		{name: "postgres raw array", dialect: "postgresql", schema: "script_types", column: &ast.ColumnNode{Type: "int[1]", TypeRawSQL: true}, wantHCL: `sql("int[1]")`, wantSQL: "integer[]"},
+		{name: "postgres enum array", dialect: "postgresql", schema: "script_types", column: &ast.ColumnNode{Type: "status[]", TypeRawSQL: true}, wantHCL: `sql("status[]")`, wantSQL: `"status"[]`},
+		{name: "postgres domain", dialect: "postgresql", schema: "script_types", column: &ast.ColumnNode{Type: "script_types.positive_int", TypeRawSQL: true}, wantHCL: `sql("positive_int")`, wantSQL: "script_types.positive_int"},
+		{name: "sqlite raw user type", dialect: "sqlite", schema: "main", column: &ast.ColumnNode{Type: "USER_DEFINED", TypeRawSQL: true}, wantHCL: `sql("USER_DEFINED")`, wantSQL: "USER_DEFINED"},
+		{name: "sqlite ordinary type control", dialect: "sqlite", schema: "main", column: &ast.ColumnNode{Type: "USER_DEFINED"}, wantHCL: "user_defined", wantSQL: "user_defined"},
 	}
-	if !strings.Contains(actualShow, "c1 | script_column_domain.positive_int |  | not null |") {
-		t.Fatalf("show SQL should keep qualified domain type:\n%s", actualShow)
+
+	for _, test := range tests {
+		c.Run(test.name, func(c *qt.C) {
+			gotHCL := atlasColumnHCLType(test.dialect, test.schema, test.column, domains, enums)
+			c.Assert(gotHCL, qt.Equals, test.wantHCL)
+
+			gotSQL := atlasColumnSQLType(test.dialect, test.column, atlasInspectSQLOptions{postgresEnums: enums})
+			c.Assert(gotSQL, qt.Equals, test.wantSQL)
+		})
 	}
+}
+
+func TestAtlasInspectPrimaryKeyNullabilityIsDialectControlled(t *testing.T) {
+	c := qt.New(t)
+	statements := []ast.Node{
+		&ast.CreateTableNode{
+			Name: "inline_primary",
+			Columns: []*ast.ColumnNode{
+				{Name: "id", Type: "integer", Nullable: true, Primary: true},
+			},
+		},
+		&ast.CreateTableNode{
+			Name: "table_primary",
+			Columns: []*ast.ColumnNode{
+				{Name: "id", Type: "integer", Nullable: true},
+			},
+			Constraints: []*ast.ConstraintNode{ast.NewPrimaryKeyConstraint("id")},
+		},
+	}
+
+	postgresHCL, err := renderAtlasInspectHCL("postgresql", "public", statements)
+	c.Assert(err, qt.IsNil)
+	c.Assert(strings.Count(postgresHCL, "null = false"), qt.Equals, 2)
+	c.Assert(strings.Count(postgresHCL, "null = true"), qt.Equals, 0)
+
+	sqliteHCL, err := renderAtlasInspectHCL("sqlite", "main", statements)
+	c.Assert(err, qt.IsNil)
+	c.Assert(strings.Count(sqliteHCL, "null = true"), qt.Equals, 2)
+	c.Assert(strings.Count(sqliteHCL, "null = false"), qt.Equals, 0)
+
+	postgresSQL, err := renderAtlasInspectSQL("postgresql", statements, "")
+	c.Assert(err, qt.IsNil)
+	c.Assert(strings.Count(postgresSQL, " NOT NULL"), qt.Equals, 2)
+
+	sqliteSQL, err := renderAtlasInspectSQL("sqlite", statements, "")
+	c.Assert(err, qt.IsNil)
+	c.Assert(strings.Count(sqliteSQL, " NOT NULL"), qt.Equals, 0)
+
+	sqliteRowID := renderAtlasColumnSQL(
+		"sqlite",
+		atlasIdentifierQuoter("sqlite"),
+		&ast.ColumnNode{Name: "id", Type: "integer", Nullable: true, Primary: true, AutoInc: true},
+		true,
+		atlasInspectSQLOptions{},
+	)
+	c.Assert(sqliteRowID, qt.Equals, "`id` integer PRIMARY KEY AUTOINCREMENT")
 }
 
 func TestTxtarHCLStatementsPreservePostgresIndexIncludeAndWhere(t *testing.T) {

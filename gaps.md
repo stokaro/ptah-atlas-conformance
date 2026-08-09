@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803105339-da1c4cd2754c`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
 - Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -22,7 +22,7 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --lock-timeout` | lockless dialect note | `schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds |  |
@@ -44,13 +44,13 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate apply --dir-format` | flags | `atlas migrate apply` rejects --dir-format, matching Atlas OSS flag surface |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate apply --revisions-schema` | execute | `atlas migrate apply --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate hash` | execute | `atlas migrate hash` defaults to Atlas directory format and writes atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate lint --dir-format goose` | execute | `atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate lint --dir-format goose` | execute | `atlas migrate lint --dir-format goose` replayed the first Goose Up section as a baseline, analyzed the destructive second Up section, ignored its invalid Down section, and exited 1 with the expected diagnostic |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate new` | execute | `atlas migrate new` defaults to Atlas single-file migrations and writes atlas.sum |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate new --dir-format goose` | execute | `atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate new --dir-format goose` | execute | `atlas migrate new --dir-format goose` writes exactly one Goose skeleton and an atlas.sum that independently verifies against it |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate set --dir-format goose` | execute | `atlas migrate set --dir-format goose` records exactly one selected Goose revision with version, description, zero progress, and operator metadata without applying the migration SQL |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate set --revisions-schema` | execute | `atlas migrate set --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status` | execute | `atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
-| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files |  |
+| — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` reads the hashed Goose directory and reports one pending file |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --revisions-schema` | execute | `atlas migrate status --revisions-schema main` executed successfully |  |
 | — | ok | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | `atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
 | — | ok | atlas-cli-report-format | `atlas migrate apply --format json` | format | `atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
@@ -95,14 +95,14 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-compat-binary-surface | `atlas schema push` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-compat-binary-surface | `atlas schema test` | out-of-scope | cloud/registry or Pro-only Atlas command; not an OSS drop-in target |  |
 | — | ok | atlas-compat-binary-surface | `atlas version` | resolve | `atlas version` resolves through a ptah-compat binary named `atlas` |  |
-| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 1 field(s) |  |
 | — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | parse | parsed Atlas HCL schema file: 1 table(s), 2 field(s) |  |
-| — | ok | atlas-hcl-parse | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | parse | parsed Atlas HCL schema file: 0 table(s), 0 field(s) |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/a.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/b.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: person |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/nested/c.hcl` | parse | Atlas schemahcl fixture has no schema objects; outside Ptah schema surface |  |
 | — | ok | atlas-hcl-parse | `schemahcl/testdata/variables.hcl` | parse | Atlas schemahcl fixture has only non-schema top-level blocks: variable |  |
+| — | ok | atlasexec-project-workflow | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | workflow | the pinned multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture |  |
+| — | ok | atlasexec-project-workflow | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | workflow | the pinned versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct |  |
 | — | ok | checkpoint-workflow | `SQLite schema facts` | bootstrap schema equivalence | the checkpoint-bootstrapped schema is structurally identical to the full-history replay (tables, columns, defaults, primary keys, foreign keys, and indexes) |  |
 | — | ok | checkpoint-workflow | `SQLite schema facts` | post-checkpoint schema equivalence | the full-history path (1-3 then 5) and the checkpoint bootstrap path (4 then 5) converged to structurally identical schemas |  |
 | — | ok | checkpoint-workflow | `ptah migrations checkpoint` | checkpoint creation | the shadow replay produced the deterministic version-4 checkpoint pair with the cumulative schema, and ptah.sum was rewritten to cover it |  |
@@ -162,11 +162,11 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | corpus-inventory | `_capability/pro-test-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/qualifier-txmode-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
 | — | ok | corpus-inventory | `_capability/schema-scope-workflow/SENTINEL` | capability | first-party capability sentinel; its reds are owned by the matching capability probe |  |
-| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl` | import | imported Atlas project config; execution surface is measured by atlasexec-project-workflow |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | import | imported SQL directory: 2 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-1.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/schema-plan/schema-2.lt.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
-| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | import | imported HCL fixture; schema parse surface is measured by atlas-hcl-parse |  |
+| — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl` | import | imported Atlas project config; execution surface is measured by atlasexec-project-workflow |  |
 | — | ok | corpus-inventory | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/testdata/broken` | import | imported SQL directory: 1 sql file(s), atlas.sum=true, 0 support file(s) |  |
 | — | ok | corpus-inventory | `atlasexec/testdata/migrations` | import | imported SQL directory: 3 sql file(s), atlas.sum=true, 0 support file(s) |  |
@@ -362,8 +362,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | external-schema-workflow | `schema render config trust gate` | config trust denial | command rejected config-sourced execution before the provider ran or wrote migrations |  |
 | — | ok | external-schema-workflow | `static SQL schema` | offline render | desired schema rendered with all expected SQLite facts |  |
 | — | ok | inspect-source-workflow | `atlas schema inspect` | local schema file over dev database | `schema inspect --url file://schema.sql --dev-url ...` materialized the file on the dev database and rendered its HCL; a scheme-less path resolves to the identical local-file inspection |  |
-| — | ok | inspect-source-workflow | `atlas schema inspect` | split export writes a deterministic tree | `{{ hcl . \| split \| write "exported" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout |  |
-| — | ok | inspect-source-workflow | `atlas schema inspect` | written tree reloads to the same schema | the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema |  |
+| — | ok | inspect-source-workflow | `atlas schema inspect` | split export writes a deterministic tree | `{{ hcl . \| split \| write "exported" }}` wrote the deterministic, schema-qualified tree schemas/main.hcl and tables/main_{posts,users}.hcl with collision-safe names, ownership references, and nothing on stdout |  |
+| — | ok | inspect-source-workflow | `atlas schema inspect` | written tree reloads to the same schema | the exported schema and both schema-qualified table files reload as a multi-file desired state that diffs as synced against the original schema |  |
 | — | ok | inspect-source-workflow | `atlas schema inspect --exclude` | resource and field selectors | --exclude filters resource selectors, accepts the documented [type=extension].version field selector, and refuses unsupported field-selector forms with a deterministic diagnostic |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/1.sql` | split | Ptah splits into the same 6 statement(s) as Atlas |  |
 | — | ok | lex-split-parity | `sql/migrate/testdata/lex/10_delimiter_comment.sql` | split | Ptah splits into the same 2 statement(s) as Atlas |  |
@@ -458,8 +458,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101, BC101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101, BC101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | no substantive lint findings expected |  |

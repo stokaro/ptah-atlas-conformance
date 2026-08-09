@@ -88,7 +88,7 @@ func RunMigrateRuntime() []Result {
 		sqliteMigrateApplyTxtarMultiColumnFailure,
 		sqliteMigrateApplyTxtarZeroRowFailure,
 		sqliteMigrateStatusToleratesRevisionMetadataRow,
-		sqliteMigrateDownFailureLeavesRevisionsIntact,
+		sqliteMigrateDownFailureRecordsRepairState,
 		func(string) Result { return migrationsImportGolangMigrate(nativeBin) },
 		func(string) Result { return migrationsImportGoose(nativeBin) },
 		func(string) Result { return migrationsImportFlyway(nativeBin) },
@@ -197,8 +197,8 @@ func sqliteMigrateApplyRecordsState(bin string) Result {
 	if err != nil {
 		return migrateRuntimeExit(fixture, "status", status, err)
 	}
-	if !strings.Contains(status, "Applied Migrations: 2") || !strings.Contains(status, "Pending Migrations: 0") {
-		return migrateRuntimeGap(fixture, "status", "status did not report 2 applied and 0 pending migrations: "+oneLine(status))
+	if detail := compareMigrateRuntimeStatus(status, "2", 2, 0); detail != "" {
+		return migrateRuntimeGap(fixture, "status", detail)
 	}
 	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
 		"apply created expected SQLite tables, Atlas revision rows, and applied status", ""}
@@ -324,11 +324,11 @@ type migrateRuntimeStatusFacts struct {
 
 // parseMigrateRuntimeStatus reads status facts from either spelling.
 //
-// Ptah prints "Current Version:", "Applied Migrations:" and "Pending
-// Migrations:"; the pinned Atlas CE v1.2.0 prints "-- Current Version:",
-// "-- Executed Files:" and "-- Pending Files:" for the same database. Asserting
-// Ptah's wording would pin a Ptah-ism and go red the day the compat surface
-// aligns with Atlas, so probes compare the parsed values instead.
+// Older Ptah builds printed "Current Version:", "Applied Migrations:" and
+// "Pending Migrations:"; the pinned Atlas CE and current ptah-compat surface
+// print "-- Current Version:", "-- Executed Files:" and "-- Pending Files:".
+// The probe accepts both vocabularies and compares their parsed values so it
+// measures status semantics rather than alignment whitespace.
 //
 // Parsing also makes the comparison exact. `strings.Contains(status,
 // "Current Version: 2")` is satisfied by "Current Version: 20260801000002" —
@@ -756,26 +756,27 @@ func runSQLiteTxtarCheckFailure(bin string, scenario sqliteTxtarCheckFailureScen
 // run failing earlier for an unrelated reason.
 const migrateRuntimeFailingDownStatement = "THIS IS A FAILING STATEMENT"
 
-// sqliteMigrateDownFailureLeavesRevisionsIntact pins the Atlas-shaped surface's
-// failed-down bookkeeping (stokaro/ptah#957): measured against Atlas,
-// a down whose statement fails rolls the body back and leaves the revision rows
-// byte-identical, so `atlas migrate status` and `ptah-compat migrate status`
-// agree that the version is still applied.
+// sqliteMigrateDownFailureRecordsRepairState pins Ptah's intentional safety
+// divergence for Atlas-shaped failed-down bookkeeping (stokaro/ptah#957).
+// Atlas hides the failed rollback behind an applied row; Ptah records a dirty
+// down row so status and repair can recover it without losing evidence.
 //
 // The database also carries an Atlas Pro `.atlas_cloud_identifier` row, which
 // is the shape a real Pro user's database has when this happens: Pro writes
 // that row on `migrate down`, so a failed down and a dot row co-occur.
-func sqliteMigrateDownFailureLeavesRevisionsIntact(bin string) Result {
+func sqliteMigrateDownFailureRecordsRepairState(bin string) Result {
 	const fixture = "sqlite/down-failure-revisions"
 	const issue = "stokaro/ptah#957"
+	const firstMigration = "CREATE TABLE users (id INTEGER PRIMARY KEY);\n"
+	const secondMigration = "-- atlas:txtar\n\n" +
+		"-- migration.sql --\n" +
+		"CREATE TABLE pets (id INTEGER PRIMARY KEY);\n\n" +
+		"-- down.sql --\n" +
+		"DROP TABLE pets;\n" +
+		migrateRuntimeFailingDownStatement + ";\n"
 	root, migrations, cleanup, err := migrateRuntimeDir(map[string]string{
-		"1_first.sql": "CREATE TABLE users (id INTEGER PRIMARY KEY);\n",
-		"2_second.sql": "-- atlas:txtar\n\n" +
-			"-- migration.sql --\n" +
-			"CREATE TABLE pets (id INTEGER PRIMARY KEY);\n\n" +
-			"-- down.sql --\n" +
-			"DROP TABLE pets;\n" +
-			migrateRuntimeFailingDownStatement + ";\n",
+		"1_first.sql":  firstMigration,
+		"2_second.sql": secondMigration,
 	})
 	if err != nil {
 		return migrateRuntimeFail(fixture, "setup", err)
@@ -803,17 +804,22 @@ func sqliteMigrateDownFailureLeavesRevisionsIntact(bin string) Result {
 	if err := seedAtlasCloudIdentifierRow(db, "d66dcf67-8da4-4996-8157-926c77d073be"); err != nil {
 		return migrateRuntimeFail(fixture, "seed-metadata-row", err)
 	}
+	if _, err := db.ExecContext(context.Background(), `INSERT INTO pets (id) VALUES (42)`); err != nil {
+		return migrateRuntimeFail(fixture, "seed-user-row", err)
+	}
 	before, err := projectConfigRevisionMetadataFacts(db)
 	if err != nil {
 		return migrateRuntimeFail(fixture, "inspect", err)
 	}
 
+	downStartedAt := time.Now()
 	down, err := commandOutput(bin, []string{
 		"migrate", "down",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--to-version", "1",
 	})
+	downFinishedAt := time.Now()
 	if err == nil {
 		return Result{migrateRuntimeProbeName, fixture, "down", Gap,
 			"the broken down migration unexpectedly succeeded: " + oneLine(down), issue}
@@ -842,9 +848,29 @@ func sqliteMigrateDownFailureLeavesRevisionsIntact(bin string) Result {
 	if err != nil {
 		return migrateRuntimeFail(fixture, "inspect", err)
 	}
-	if !slices.Equal(before, after) {
+	if err := validateFailedDownRevisionTransition(before, after, failedDownRevisionExpectation{
+		version:             "2",
+		baselineDescription: "second",
+		baselineTotal:       1,
+		baselineHash: atlasMetadataChainedEntryHash(
+			atlasMetadataHashInput{name: "1_first.sql", contents: []byte(firstMigration)},
+			atlasMetadataHashInput{name: "2_second.sql", contents: []byte(secondMigration)},
+		),
+		applied:        0,
+		total:          2,
+		errorFragment:  "syntax error",
+		errorStatement: migrateRuntimeFailingDownStatement + ";",
+		window: projectConfigApplyWindow{
+			startedAt:  downStartedAt,
+			finishedAt: downFinishedAt,
+		},
+	}); err != nil {
 		return Result{migrateRuntimeProbeName, fixture, "revisions", Gap,
-			fmt.Sprintf("failed down rewrote revision rows: before %v, after %v", before, after), issue}
+			err.Error(), issue}
+	}
+	if err := validateFailedDownPetsState(db); err != nil {
+		return Result{migrateRuntimeProbeName, fixture, "database", Gap,
+			err.Error(), issue}
 	}
 
 	status, err := commandOutput(bin, []string{
@@ -855,12 +881,40 @@ func sqliteMigrateDownFailureLeavesRevisionsIntact(bin string) Result {
 	if err != nil {
 		return migrateRuntimeExit(fixture, "status", status, err)
 	}
-	if detail := compareMigrateRuntimeStatus(status, "2", 2, 0); detail != "" {
-		return Result{migrateRuntimeProbeName, fixture, "status", Gap,
-			"after the failed down, " + detail, issue}
+	for _, fragment := range []string{
+		"Migration Status: PENDING",
+		"-- Current Version: 2 (0 statements applied)",
+		"-- Next Version:    2 (2 statements left)",
+		"-- Executed Files:  2 (last one partially)",
+		"-- Pending Files:   1",
+		"Last migration attempt had errors:",
+		"-- SQL:   " + migrateRuntimeFailingDownStatement + ";",
+	} {
+		if !strings.Contains(status, fragment) {
+			return Result{migrateRuntimeProbeName, fixture, "status", Gap,
+				fmt.Sprintf("failed-down status is missing %q: %s", fragment, oneLine(status)), issue}
+		}
 	}
-	return Result{migrateRuntimeProbeName, fixture, "inspect", OK,
-		"a failed down left all 12 Atlas revision columns byte-identical, including an Atlas Pro metadata row, and status still reports the version applied, matching Atlas", ""}
+	if !strings.Contains(status, "-- ERROR: ") {
+		return Result{migrateRuntimeProbeName, fixture, "status", Gap,
+			"failed-down status omitted the stored error: " + oneLine(status), issue}
+	}
+	return Result{migrateRuntimeProbeName, fixture, "ptah-better", OK,
+		"unlike Atlas's measured hidden failed-down state, Ptah rolled back the preceding DROP TABLE, preserved the pets sentinel row and every Pro metadata row, and marked version 2 as a dirty down with 0/2 progress, the failing statement, timing, and operator direction; status exposed the partial rollback for repair", issue}
+}
+
+func validateFailedDownPetsState(db *sql.DB) error {
+	var count, minimumID, maximumID int
+	err := db.QueryRowContext(context.Background(),
+		`SELECT COUNT(*), MIN(id), MAX(id) FROM pets`,
+	).Scan(&count, &minimumID, &maximumID)
+	if err != nil {
+		return fmt.Errorf("inspect pets after failed down: %w", err)
+	}
+	if count != 1 || minimumID != 42 || maximumID != 42 {
+		return fmt.Errorf("pets rows after failed down = count %d, min id %d, max id %d; want the sole sentinel id 42", count, minimumID, maximumID)
+	}
+	return nil
 }
 
 // seedAtlasCloudIdentifierRow inserts the measured Atlas Pro metadata row:

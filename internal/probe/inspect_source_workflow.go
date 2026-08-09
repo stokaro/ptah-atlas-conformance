@@ -123,25 +123,31 @@ func (i *inspectSourceWorkflow) splitWriteDeterministicTree() Result {
 	if err != nil {
 		return i.harnessFailure(stage, err)
 	}
-	want := []string{"tables/posts.hcl", "tables/users.hcl"}
+	want := []string{"schemas/main.hcl", "tables/main_posts.hcl", "tables/main_users.hcl"}
 	if !slices.Equal(files, want) {
 		return i.gap(fixture, stage,
 			"the split/write export tree is not the documented per-object shape: got "+strings.Join(files, ", ")+", want "+strings.Join(want, ", "))
 	}
-	for _, check := range []struct{ file, fragment string }{
-		{"tables/users.hcl", `table "users"`},
-		{"tables/posts.hcl", `table "posts"`},
+	for _, check := range []struct {
+		file      string
+		fragments []string
+	}{
+		{"schemas/main.hcl", []string{`schema "main"`}},
+		{"tables/main_posts.hcl", []string{`table "posts"`, `schema = schema.main`, `ref_columns = [table.users.column.id]`}},
+		{"tables/main_users.hcl", []string{`table "users"`, `schema = schema.main`}},
 	} {
 		content, err := readRunFile(i.runRoot, filepath.Join("exported", check.file))
 		if err != nil {
 			return i.harnessFailure(stage, err)
 		}
-		if !strings.Contains(content, check.fragment) {
-			return i.gap(fixture, stage, check.file+" does not contain "+check.fragment)
+		for _, fragment := range check.fragments {
+			if !strings.Contains(content, fragment) {
+				return i.gap(fixture, stage, check.file+" does not contain "+fragment)
+			}
 		}
 	}
 	return i.ok(fixture, stage,
-		"`{{ hcl . | split | write \"exported\" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout")
+		"`{{ hcl . | split | write \"exported\" }}` wrote the deterministic, schema-qualified tree schemas/main.hcl and tables/main_{posts,users}.hcl with collision-safe names, ownership references, and nothing on stdout")
 }
 
 func (i *inspectSourceWorkflow) writtenTreeReloads() Result {
@@ -151,8 +157,9 @@ func (i *inspectSourceWorkflow) writtenTreeReloads() Result {
 	)
 	result, failure := i.runCLI(stage,
 		"schema", "diff",
-		"--from", "file://exported/tables/users.hcl",
-		"--from", "file://exported/tables/posts.hcl",
+		"--from", "file://exported/schemas/main.hcl",
+		"--from", "file://exported/tables/main_posts.hcl",
+		"--from", "file://exported/tables/main_users.hcl",
 		"--to", "file://schema.sql",
 		"--dev-url", sqliteURL(filepath.Join(i.runRoot, "reload-dev.db")),
 	)
@@ -168,7 +175,7 @@ func (i *inspectSourceWorkflow) writtenTreeReloads() Result {
 		return *gap
 	}
 	return i.ok(fixture, stage,
-		"the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema")
+		"the exported schema and both schema-qualified table files reload as a multi-file desired state that diffs as synced against the original schema")
 }
 
 func (i *inspectSourceWorkflow) excludeSelectors() Result {

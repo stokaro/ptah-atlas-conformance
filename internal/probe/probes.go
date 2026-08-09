@@ -22,6 +22,7 @@ import (
 func AllProbes() []Probe {
 	return []Probe{
 		CorpusProbe{},
+		AtlasExecProjectWorkflowProbe{},
 		AtlasHCLProbe{},
 		ParseProbe{},
 		MigDirProbe{},
@@ -96,12 +97,16 @@ func (CorpusProbe) Run(fx Fixture) []Result {
 			Detail:  "imported txtar fixture; command/runtime surface is measured by txtar-script",
 		}}
 	case FixtureKindHCL:
+		detail := "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
+		if atlasExecProjectConfigFixture(fx.Name) {
+			detail = "imported Atlas project config; execution surface is measured by atlasexec-project-workflow"
+		}
 		return []Result{{
 			Probe:   "corpus-inventory",
 			Fixture: fx.Name,
 			Stage:   "import",
 			Outcome: OK,
-			Detail:  "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse",
+			Detail:  detail,
 		}}
 	default:
 		if isCapabilitySentinel(fx.Name) {
@@ -145,7 +150,7 @@ type AtlasHCLProbe struct{}
 func (AtlasHCLProbe) Name() string { return "atlas-hcl-parse" }
 
 func (AtlasHCLProbe) Run(fx Fixture) []Result {
-	if fx.Kind != FixtureKindHCL {
+	if fx.Kind != FixtureKindHCL || atlasExecProjectConfigFixture(fx.Name) {
 		return nil
 	}
 	if len(fx.Files) != 1 {

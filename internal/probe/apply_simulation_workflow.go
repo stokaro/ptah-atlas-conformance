@@ -68,6 +68,7 @@ func (s *applySimulationWorkflow) lockTimeoutNotedNoOp() Result {
 		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
+		"--dev-url", sqliteURL(filepath.Join(s.runRoot, "lock-dev.db")),
 		"--lock-timeout", "10s",
 		"--auto-approve",
 	)
@@ -128,13 +129,15 @@ func (s *applySimulationWorkflow) simulationSuccess() Result {
 	if gap := s.expectSQLiteTablesAt(fixture, stage, targetDB, []string{"users"}); gap != nil {
 		return *gap
 	}
-	// The dev database ends at the rehearsed desired state with the stale
-	// litter gone, proving the plan was actually executed there.
-	if gap := s.expectSQLiteTablesAt(fixture, stage, devDB, []string{"users"}); gap != nil {
+	// Atlas CE v1.3.0 cleans the dev database after a successful rehearsal.
+	// The failed-rehearsal step below proves plan execution independently; this
+	// assertion pins the successful cleanup contract and proves the stale table
+	// was not restored.
+	if gap := s.expectSQLiteTablesAt(fixture, stage, devDB, nil); gap != nil {
 		return *gap
 	}
 	return s.ok(fixture, stage,
-		"`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target")
+		"`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0")
 }
 
 func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {

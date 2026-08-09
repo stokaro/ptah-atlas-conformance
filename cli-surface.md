@@ -10,17 +10,20 @@ the `ptah-compat` binary named `atlas` (stokaro/ptah#850 removed the former
 The Atlas CE inventory is discovery-only. Rows under `ptah-non-oss-sentinel`
 are separately labeled first-party Ptah policy checks for Pro/Cloud paths; they
 are not Atlas OSS parity evidence. The CE side of those sentinels is measured in
-the dedicated CE-gating report.
+the dedicated CE-gating report. Rows under `atlas-cli-pro-surface-ptah-compat`
+separately require the long flags documented by the public Atlas CLI Reference
+but absent from CE help, so CE parity cannot hide missing full-distribution surface.
 
-## Status: OSS CLI SURFACE PARITY
+## Status: NOT DONE — 2 non-OK observation(s)
 
-Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
+The full CLI-surface gate is red until Ptah's drop-in compatibility binary
+matches the pinned Atlas CE help surface and documented Pro-surface flags.
 
 - Atlas CE binary: `atlas community version v1.3.0`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260803105339-da1c4cd2754c`
-- Outcomes: **105 ok**, **0 gap**, **0 fail**, **0 panic**
-- Full gate: **0 non-OK** (passes CI)
-- Regression budget input: **0 unwaived non-OK**, 0 waived
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
+- Outcomes: **108 ok**, **2 gap**, **0 fail**, **0 panic**
+- Full gate: **2 non-OK** (fails CI)
+- Regression budget input: **2 unwaived non-OK**, 0 waived
 
 ## Atlas CE Inventory
 
@@ -50,6 +53,11 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 
 | Gate | Outcome | Probe | Command | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **gap** | atlas-cli-pro-surface-ptah-compat | `atlas schema diff` | required-flags | missing documented Pro-surface flags: --web | #951 |
+| **RED** | **gap** | atlas-cli-pro-surface-ptah-compat | `atlas schema inspect` | required-flags | missing documented Pro-surface flags: --export | #951 |
+| — | ok | atlas-cli-pro-surface-ptah-compat | `atlas migrate apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lock --to-version |  |
+| — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lint --skip-lock |  |
+| — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema clean` | required-flags | documented Pro-surface flags are present: --exclude --include |  |
 | — | ok | atlas-cli-surface-inventory | `atlas` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas license` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
@@ -69,43 +77,43 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | atlas-cli-surface-inventory | `atlas schema fmt` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas schema inspect` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas version` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas` | flags | long flags match Atlas: no long flags |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas` | flags | long flags match Atlas CE: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas` | usage | usage matches Atlas: `atlas [command]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas license` | flags | long flags match Atlas: no long flags |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas license` | flags | long flags match Atlas CE: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas license` | usage | usage matches Atlas: `atlas license [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate` | flags | long flags match Atlas: --config --env --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate` | flags | long flags match Atlas CE: --config --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate` | usage | usage matches Atlas: `atlas migrate [command]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | flags | long flags match Atlas: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | flags | long flags match Atlas CE: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | usage | usage matches Atlas: `atlas migrate apply [flags] [amount]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | flags | long flags match Atlas CE: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | usage | usage matches Atlas: `atlas migrate diff [flags] [name]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | flags | long flags match Atlas: --config --dir --dir-format --env --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | flags | long flags match Atlas CE: --config --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | usage | usage matches Atlas: `atlas migrate hash [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate import` | flags | long flags match Atlas: --config --dir-format --env --from --to --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate import` | flags | long flags match Atlas CE: --config --dir-format --env --from --to --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate import` | usage | usage matches Atlas: `atlas migrate import [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate lint` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --format --git-base --git-dir --latest --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate lint` | flags | long flags match Atlas CE: --config --dev-url --dir --dir-format --env --format --git-base --git-dir --latest --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate lint` | usage | usage matches Atlas: `atlas migrate lint [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate new` | flags | long flags match Atlas: --config --dir --dir-format --edit --env --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate new` | flags | long flags match Atlas CE: --config --dir --dir-format --edit --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate new` | usage | usage matches Atlas: `atlas migrate new [flags] [name]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate set` | flags | long flags match Atlas: --config --dir --dir-format --env --revisions-schema --url --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate set` | flags | long flags match Atlas CE: --config --dir --dir-format --env --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate set` | usage | usage matches Atlas: `atlas migrate set [flags] [version]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate status` | flags | long flags match Atlas: --config --dir --dir-format --env --format --revisions-schema --url --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate status` | flags | long flags match Atlas CE: --config --dir --dir-format --env --format --revisions-schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate status` | usage | usage matches Atlas: `atlas migrate status [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate validate` | flags | long flags match Atlas: --config --dev-url --dir --dir-format --env --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate validate` | flags | long flags match Atlas CE: --config --dev-url --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate validate` | usage | usage matches Atlas: `atlas migrate validate [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema` | flags | long flags match Atlas: --config --env --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema` | flags | long flags match Atlas CE: --config --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema` | usage | usage matches Atlas: `atlas schema [command]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema apply` | flags | long flags match Atlas: --auto-approve --config --dev-url --dry-run --edit --env --exclude --format --include --lock-timeout --plan --schema --to --tx-mode --url --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema apply` | flags | long flags match Atlas CE: --auto-approve --config --dev-url --dry-run --edit --env --exclude --format --include --lock-timeout --plan --schema --to --tx-mode --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema apply` | usage | usage matches Atlas: `atlas schema apply [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema clean` | flags | long flags match Atlas: --auto-approve --config --dry-run --env --format --url --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema clean` | flags | long flags match Atlas CE: --auto-approve --config --dry-run --env --format --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema clean` | usage | usage matches Atlas: `atlas schema clean [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema diff` | flags | long flags match Atlas: --config --dev-url --env --exclude --format --from --include --schema --to --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema diff` | flags | long flags match Atlas CE: --config --dev-url --env --exclude --format --from --include --schema --to --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema diff` | usage | usage matches Atlas: `atlas schema diff [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | flags | long flags match Atlas: --config --env --var |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | flags | long flags match Atlas CE: --config --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema fmt` | usage | usage matches Atlas: `atlas schema fmt [path ...] [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | flags | long flags match Atlas: --config --dev-url --env --exclude --format --schema --url --var; plus Pro-surface flags implemented openly: --include |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | flags | long flags match Atlas CE: --config --dev-url --env --exclude --format --schema --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas schema inspect` | usage | usage matches Atlas: `atlas schema inspect [flags]` |  |
-| — | ok | atlas-cli-surface-ptah-compat | `atlas version` | flags | long flags match Atlas: no long flags |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas version` | flags | long flags match Atlas CE: no long flags |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas version` | usage | usage matches Atlas: `atlas version [flags]` |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate checkpoint` | availability-boundary | `atlas migrate checkpoint` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas migrate checkpoint` | flags | exposes the first-party required long flags: --dev-url --dir --dir-format (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
@@ -155,3 +163,7 @@ Every discovered OSS Atlas CE command has matching Ptah help usage and flags.
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | availability-boundary | `atlas schema test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | flags | exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | usage | usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb) |  |
+
+## Gaps by related issue
+
+- **stokaro/ptah#951** — 2 finding(s)

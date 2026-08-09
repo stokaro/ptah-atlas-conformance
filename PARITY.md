@@ -6,7 +6,7 @@ should be read as one.**
 It is a deterministic coverage probe over the full vendored Atlas
 `*/testdata/*` snapshot plus first-party Atlas-compatible regression and
 workflow fixtures, run through Ptah's public API and real CLI. Most observations
-are structural and database-free; the `dbtest-workflow`,
+are structural and database-free; the `atlasexec-project-workflow`, `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
 `external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
 `pro-plan-workflow`, `pro-down-workflow`, `desired-state-workflow`,
@@ -20,7 +20,7 @@ to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files plus first-party
 regression and capability fixtures, grouped into 158 imported Atlas fixtures,
-17 first-party capability sentinels, and 805 deterministic observations, with
+17 first-party capability sentinels, and 809 deterministic observations, with
 **0 unwaived non-OK observations**. Every imported fixture and capability
 sentinel is measured by at least one current probe. This means the
 deterministic report is green; it does **not** mean full Atlas OSS runtime
@@ -28,7 +28,7 @@ parity, because several runtime dimensions remain unmeasured.
 
 ## What the probe found broken
 
-Corpus probes are offline and structural. The `dbtest-workflow`,
+Corpus probes are offline and structural. The `atlasexec-project-workflow`, `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
 `external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
 `pro-plan-workflow`, `pro-down-workflow`, `desired-state-workflow`,
@@ -45,6 +45,7 @@ against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 | `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Current measured fixtures pass the parsed/recomputed sum compatibility probe. |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Current analyzer catalog and fixture-level lint parity probes are green on the committed corpus. |
+| `atlasexec-project-workflow` | Can `ptah-compat` execute the vendored atlasexec project configurations from the pinned fixture snapshot as committed? | The versioned-basic project checks pending status, first apply, no-op apply, live SQLite state, and revision rows. The multi-tenants project checks dynamic `for_each` environment expansion, two ordered compact-JSON reports separated by exactly one newline, one-tenant failure, retry behavior, and both independent live SQLite end states. |
 | `dbtest-workflow` | Do Ptah's native declarative migration and schema test commands preserve their key end-to-end CLI contracts? | Both commands execute committed fixtures against isolated SQLite databases; numeric/latest/zero migration targets, desired-schema application and drift repair, seed steps, all assertion kinds, `--run`, text/JSON/HTML reports, invalid schema steps, and command-specific exit codes 1/2 are checked. |
 | `composite-schema-workflow` | Do multiple desired-schema sources behave exactly like one hand-merged source? | Complete executable-SQL stdout snapshots, source conflicts, generated up/down equivalence, direct live SQLite schema facts, clean mixed/hand-merged comparisons, and a drift-detecting negative control are checked. |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data round-trip apply, introspect, and converge? | A model's `//ptah:schema:data` rows are applied via `ptah migrations data`, the seeded rows are introspected and matched to the declared desired state, a re-diff converges to "no data changes", a divergent desired set is refused by the destructive gate (exit 2), and rolling the data migration back removes exactly the inserted rows. |
@@ -75,27 +76,29 @@ is **"unknown — not measured"**, not "works".
 | **End-state equivalence** (apply a schema, then compare what Atlas and Ptah each report about the result) | **Partially** — the `conformance-diff` differential tier compares Atlas CE's `schema inspect` against Ptah's introspect → render on live Postgres, MySQL, and SQLite targets, scoped to CE-visible object kinds | `conformance-diff` workflow; deeper apply-with-each-tool equivalence is still ptah#285 |
 | **HCL** schema language | **Partially** — Atlas CE inspect HCL is parsed in the differential tier and the imported offline corpus is green, but this is not broad Atlas HCL language parity | broader HCL schema fixtures and runtime command probes |
 | Versioned-migrate **runtime semantics** (tx-mode, execution order, baseline, advisory lock, revision-table shape) | **Partially** — the migrate-runtime tier checks real SQLite/PostgreSQL/MySQL apply/status/set state, `all`/`file`/`none` transaction behavior, apply dry-run against stored revision state on all three dialects, SQLite down dry-run through both formatted and default-output paths, fresh-target dry-run without metadata mutation, and missing-down rollback atomicity; it also covers externally produced `-- atlas:checkpoint` directories (fresh-database bootstrap from the checkpoint alone, silent skip on a pre-checkpoint database, and Atlas's own vendored `partial-checkpoint` fixture for latest-checkpoint selection plus post-checkpoint continuation), byte-identical Goose checksum generation and cross-validation against Atlas CE with an explicitly measured Atlas first-error advisory and exact stable tamper rejection, and apply-time `atlas.sum` integrity on both Atlas branches (a hashed directory edited after hashing, and a directory that was never hashed); its project-config apply oracle clones an Atlas CE-created brownfield database, independently applies the remainder with Atlas CE and Ptah, then compares status, end schema, stable full revision metadata, producer-specific dynamic-field validity, and Atlas readback | broader baseline, lock-contention, failure-recovery, and multi-process contours |
-| Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against the `ptah-compat` binary named `atlas`, Ptah's single Atlas-shaped surface since stokaro/ptah#850; the current committed report is green on the pinned Atlas CE surface | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
+| Atlas CLI **help and flag surface** | **Measured separately** — `cli-surface.md` compares the pinned Atlas CE binary's command tree, usage strings, and long flags against the `ptah-compat` binary named `atlas`, then requires public documented Pro-only flags in separate rows; CE parity is green, while the full gate remains red for two missing Pro flags | `cli-surface.md` / `cli-surface.json`, `make gate-cli-surface` |
 | The full Atlas **documentation surface** (every atlasgo.io docs page) | **Inventoried, triage in progress** — `docs-surface.md` indexes every atlasgo.io docs page from the committed sitemap snapshot and requires each to carry an explicit Ptah stance (`open`/`partial`/`gap`/`pro`/`cloud`/`out-of-scope`); the seed registry triages 29 Cloud pages and leaves 322 untriaged, and a weekly sitemap re-fetch fails CI on docs drift. This is a triage-coverage inventory, not behavioral evidence: a page marked `open` is a stance, not a probe | `docs-surface.md` / `docs-surface.json`, `docs-surface-registry.json`, `make gate-docs-surface` |
 | **sqlcheck analyzers**, rule by rule | **Yes** — the `lint-analyzer-catalog` fidelity matrix maps every default-firing Atlas concern to the covering Ptah rule, severity, and line, classified covered/mapped/unsupported/missing, and enforces suppression, config disable/severity-override, attribution, and SARIF-shape fidelity | `lint-analyzer-catalog` rows in `gaps.md` + `fidelity: sarif output shape` in `gaps-migrate-runtime.md` |
 | **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI; Atlas CE differential runs on Postgres, MySQL, and SQLite | deeper dialect runtime probes |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
-| The migration **apply** path | **Partially** — migrate-runtime checks Atlas-compatible apply behavior, including an Atlas CE control versus Ptah project-config apply differential from identical brownfield state, checkpoint-directive bootstrap-or-skip semantics on both first-party and Atlas-authored directories, and apply-time `atlas.sum` verification on both hashed and never-hashed directories; `dbtest-workflow` checks native migration up/down on SQLite | broader Atlas fixture execution and failure-state equivalence; parser gaps remain distinct because apply executes migration SQL directly |
+| The migration **apply** path | **Partially** — migrate-runtime checks Atlas-compatible apply behavior, including an Atlas CE control versus Ptah project-config apply differential from identical brownfield state, checkpoint-directive bootstrap-or-skip semantics on both first-party and Atlas-authored directories, and apply-time `atlas.sum` verification on both hashed and never-hashed directories; `atlasexec-project-workflow` executes the vendored versioned-basic and multi-tenants project configurations against live SQLite, including partial failure and retry; `dbtest-workflow` checks native migration up/down on SQLite | broader Atlas fixture execution and failure-state equivalence; parser gaps remain distinct because apply executes migration SQL directly |
 
 The SQLite transaction-mode runtime matrix now covers all 12 Atlas CE v1.3
 global/file-directive combinations, malformed and misplaced directives,
 exact LF, CRLF, space, tab, mixed-whitespace, and missing-separator header
 boundaries, amount and baseline selection, complete stable revision metadata,
 converted golang-migrate pairs, txtar section controls, and the native
-`+ptah no_transaction` control. It leaves nine observations red: the eight
-exact diagnostic differences tracked by `stokaro/ptah#1076` and the failed-file
-revision row tracked by `stokaro/ptah#887`. The `\r`-sensitive and
+`+ptah no_transaction` control. It leaves one observation red: the
+failed-file revision diagnostic tracked by `stokaro/ptah#887`. Failed down
+bookkeeping under `stokaro/ptah#957` is an explicit green `ptah-better`
+observation because Ptah preserves repairable dirty-down evidence instead of
+hiding the failure behind an applied revision. The `\r`-sensitive and
 missing-separator differences tracked by `stokaro/ptah#1077` and
-`stokaro/ptah#1081` are explicit green `ptah-better` observations:
-Atlas CE drops the user's `none` directive, while Ptah intentionally honors it.
-The converted golang-migrate `.up.sql` control applies the same classification
-when Atlas CE discards an explicit source directive but Ptah preserves it.
-Atlas CE `migrate down` is a measured community-version boundary that rejects
+`stokaro/ptah#1081` use the same explicit classification: Atlas CE drops the
+user's `none` directive, while Ptah intentionally honors it. The converted
+golang-migrate `.up.sql` control applies that classification when Atlas CE
+discards an explicit source directive but Ptah preserves it. Atlas CE
+`migrate down` is a measured community-version boundary that rejects
 execution before runtime flags can be supplied, so split-file and txtar down
 behavior is reported as Ptah-side evidence rather than mislabeled Atlas parity.
 
@@ -200,9 +203,11 @@ workflow probes are fixture-driven and make only the claims listed below.
   whitespace drift, generic or wrong-command output, and the old copied CE
   message are all gaps. Resolution proves only the CLI surface; dedicated workflow probes
   own behavioral evidence for extra Ptah capabilities. The current full gate is green on the
-  pinned Atlas CE surface; future Atlas changes should either keep this green
-  by implementing Ptah parity, or create explicit tracked gaps instead of
-  dropping commands from the inventory.
+  pinned Atlas CE surface. Separate `atlas-cli-pro-surface-ptah-compat` rows
+  require the public documented Pro-only flags; the full gate remains red for
+  `schema diff --web` and `schema inspect --export`. Future Atlas changes
+  should either preserve parity or create explicit tracked gaps instead of
+  dropping commands or flags from the inventory.
 - **`ce-gating.md`** is the **executed** counterpart to the CLI-surface
   inventory: help text says what the pinned Atlas CE binary registers, this
   tier measures what it actually does. Every scenario runs the real binary
