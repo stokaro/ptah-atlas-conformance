@@ -52,7 +52,7 @@ jobs:
           --health-timeout 5s
           --health-retries 15
       mariadb:
-        image: mariadb:10.11
+        image: mariadb:12.3
         env:
           MARIADB_ROOT_PASSWORD: pw
           MARIADB_DATABASE: conf
@@ -164,7 +164,7 @@ jobs:
           --health-timeout 5s
           --health-retries 15
       mariadb:
-        image: mariadb:10.11
+        image: mariadb:12.3
         env:
           MARIADB_ROOT_PASSWORD: pw
           MARIADB_DATABASE: conf
