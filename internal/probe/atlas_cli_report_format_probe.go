@@ -298,6 +298,7 @@ func createAtlasReportFormatSchemaCleanFixture(bin string) (string, string, *Res
 		"schema", "apply",
 		"--url", "sqlite://" + dbPath,
 		"--to", "file://" + schemaPath,
+		"--dev-url", "sqlite://" + filepath.Join(dir, "dev.db"),
 		"--auto-approve",
 	}, dir)
 	if err != nil {

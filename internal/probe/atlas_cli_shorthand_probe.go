@@ -71,11 +71,13 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 			"writing desired schema failed: " + oneLine(err.Error()), ""}
 	}
 	targetURL := "sqlite://" + filepath.Join(dir, "apply.db")
+	devURL := "sqlite://" + filepath.Join(dir, "dev.db")
 
 	shortOut, err := commandOutputDir(bin, []string{
 		"schema", "apply",
 		"--url", targetURL,
 		"--to", "file://" + schemaPath,
+		"--dev-url", devURL,
 		"-s", "main",
 		"--dry-run",
 	}, dir)
@@ -92,6 +94,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 		"schema", "apply",
 		"--url", targetURL,
 		"--to", "file://" + schemaPath,
+		"--dev-url", devURL,
 		"--schema", "main",
 		"--dry-run",
 	}, dir)
@@ -104,6 +107,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 		"schema", "apply",
 		"--url", targetURL,
 		"--to", "file://" + schemaPath,
+		"--dev-url", devURL,
 		"-s", "out_of_scope",
 		"--dry-run",
 	}, dir)
@@ -146,6 +150,7 @@ func runAtlasSchemaApplyHiddenFileShorthand(bin string) Result {
 		"schema", "apply",
 		"--url", "sqlite://" + filepath.Join(dir, "apply.db"),
 		"-f", schemaPath,
+		"--dev-url", "sqlite://" + filepath.Join(dir, "dev.db"),
 		"--dry-run",
 	}, dir)
 	if err != nil {

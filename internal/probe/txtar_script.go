@@ -2414,6 +2414,21 @@ func txtarTablePrimaryKey(table *ast.CreateTableNode) (txtarPrimaryKey, bool) {
 	return txtarPrimaryKey{columns: primaryColumns, include: includeColumns}, len(primaryColumns) > 0
 }
 
+func atlasInspectColumn(dialect string, table *ast.CreateTableNode, column *ast.ColumnNode) *ast.ColumnNode {
+	if dialect != "postgresql" || !column.Nullable {
+		return column
+	}
+	primaryKey, ok := txtarTablePrimaryKey(table)
+	if !ok || !slices.ContainsFunc(primaryKey.columns, func(primaryColumn ast.ConstraintColumn) bool {
+		return atlasSQLIdentifier(primaryColumn.Name) == atlasSQLIdentifier(column.Name)
+	}) {
+		return column
+	}
+	normalized := *column
+	normalized.Nullable = false
+	return &normalized
+}
+
 func txtarPrimaryKeyColumnsEqual(left, right txtarPrimaryKey) bool {
 	if len(left.columns) != len(right.columns) || len(left.include) != len(right.include) {
 		return false
@@ -4481,7 +4496,7 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[st
 	}
 	for _, column := range table.Columns {
 		if !txtarPostgresApplyGeneratedColumnSupported(column) ||
-			!txtarPostgresApplyColumnTypeSupported(column.Type, domains, enums) ||
+			!txtarPostgresApplyColumnTypeSupported(column, domains, enums) ||
 			!txtarPostgresApplyColumnDefaultSupported(column, enums) ||
 			!txtarPostgresApplyColumnForeignKeySupported(column) {
 			return false
@@ -4632,18 +4647,14 @@ func txtarPostgresApplyExpressionDefaultSupported(column *ast.ColumnNode) bool {
 		postgresCurrentTimestampRE.MatchString(expr)
 }
 
-func txtarPostgresApplyColumnTypeSupported(columnType string, domains map[string]bool, enums map[string]*ast.EnumNode) bool {
-	normalized := strings.ToLower(strings.TrimSpace(columnType))
-	if strings.HasPrefix(normalized, "sql(") {
-		raw, ok := atlasSQLRawType(columnType)
-		if !ok {
-			return false
-		}
-		return txtarPostgresRawArrayType(columnType) != "" ||
-			txtarPostgresEnumArrayType(raw, enums) != "" ||
-			domains[atlasSQLIdentifier(raw)]
+func txtarPostgresApplyColumnTypeSupported(column *ast.ColumnNode, domains map[string]bool, enums map[string]*ast.EnumNode) bool {
+	normalized := strings.ToLower(strings.TrimSpace(column.Type))
+	if column.TypeRawSQL {
+		return txtarPostgresRawArrayType(column) != "" ||
+			txtarPostgresEnumArrayType(column.Type, enums) != "" ||
+			domains[atlasSQLIdentifier(column.Type)]
 	}
-	if _, ok := enums[atlasSQLIdentifier(columnType)]; ok {
+	if _, ok := enums[atlasSQLIdentifier(column.Type)]; ok {
 		return true
 	}
 	switch normalized {
@@ -5690,6 +5701,7 @@ func txtarWritePostgresTableShowSQL(
 	out.WriteString("Column | Type | Collation | Nullable | Default\n")
 	out.WriteString("--------+------+-----------+----------+--------\n")
 	for _, column := range table.Columns {
+		column = atlasInspectColumn("postgresql", table, column)
 		nullable := ""
 		if !column.Nullable {
 			nullable = "not null"
@@ -6041,11 +6053,11 @@ func txtarPostgresShowForeignKeyAction(action string) string {
 }
 
 func txtarPostgresColumnType(column *ast.ColumnNode) string {
-	if rawArrayType := txtarPostgresRawArrayType(column.Type); rawArrayType != "" {
+	if rawArrayType := txtarPostgresRawArrayType(column); rawArrayType != "" {
 		return rawArrayType
 	}
-	if raw, ok := atlasSQLRawType(column.Type); ok {
-		return raw
+	if column.TypeRawSQL {
+		return column.Type
 	}
 	typ := atlasColumnType("postgresql", column.Type)
 	normalized := strings.ToLower(typ)
@@ -6106,8 +6118,8 @@ func txtarPostgresColumnType(column *ast.ColumnNode) string {
 }
 
 func txtarPostgresColumnTypeWithEnums(schemaName string, column *ast.ColumnNode, enums map[string]*ast.EnumNode) string {
-	if raw, ok := atlasSQLRawType(column.Type); ok {
-		if enumArrayType := txtarPostgresEnumArrayType(raw, enums); enumArrayType != "" {
+	if column.TypeRawSQL {
+		if enumArrayType := txtarPostgresEnumArrayType(column.Type, enums); enumArrayType != "" {
 			return schemaName + "." + enumArrayType
 		}
 	}
@@ -6144,12 +6156,11 @@ func txtarPostgresIdentityDefault(column *ast.ColumnNode) string {
 	}
 }
 
-func txtarPostgresRawArrayType(columnType string) string {
-	raw, ok := atlasSQLRawType(columnType)
-	if !ok {
+func txtarPostgresRawArrayType(column *ast.ColumnNode) string {
+	if !column.TypeRawSQL {
 		return ""
 	}
-	normalized := spaceRunRE.ReplaceAllString(strings.ToLower(strings.TrimSpace(raw)), " ")
+	normalized := spaceRunRE.ReplaceAllString(strings.ToLower(strings.TrimSpace(column.Type)), " ")
 	switch {
 	case normalized == "int[1]" || normalized == "int array[1]":
 		return "integer[]"
@@ -6180,19 +6191,6 @@ func txtarPostgresEnumArrayType(raw string, enums map[string]*ast.EnumNode) stri
 		return ""
 	}
 	return base + "[]"
-}
-
-func atlasSQLRawType(columnType string) (string, bool) {
-	trimmed := strings.TrimSpace(columnType)
-	if !strings.HasPrefix(trimmed, "sql(") || !strings.HasSuffix(trimmed, ")") {
-		return "", false
-	}
-	quoted := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(trimmed, "sql("), ")"))
-	raw, err := strconv.Unquote(quoted)
-	if err != nil {
-		return "", false
-	}
-	return raw, true
 }
 
 func txtarPostgresArrayTypeSize(raw, prefix string) (string, bool) {
@@ -8097,14 +8095,15 @@ func renderAtlasTableHCL(
 	var foreignKeys []*atlasHCLForeignKey
 	var uniques []*atlasHCLUnique
 	for _, column := range table.Columns {
+		inspectColumn := atlasInspectColumn(dialect, table, column)
 		fmt.Fprintf(b, "  column %q {\n", atlasHCLIdentifier(column.Name))
 		if column.Default != nil {
-			fmt.Fprintf(b, "    null    = %t\n", column.Nullable)
-			fmt.Fprintf(b, "    type    = %s\n", atlasColumnHCLType(dialect, schemaName, column.Type, domains, enums))
+			fmt.Fprintf(b, "    null    = %t\n", inspectColumn.Nullable)
+			fmt.Fprintf(b, "    type    = %s\n", atlasColumnHCLType(dialect, schemaName, inspectColumn, domains, enums))
 			fmt.Fprintf(b, "    default = %s\n", atlasColumnDefaultHCL(dialect, column))
 		} else {
-			fmt.Fprintf(b, "    null = %t\n", column.Nullable)
-			fmt.Fprintf(b, "    type = %s\n", atlasColumnHCLType(dialect, schemaName, column.Type, domains, enums))
+			fmt.Fprintf(b, "    null = %t\n", inspectColumn.Nullable)
+			fmt.Fprintf(b, "    type = %s\n", atlasColumnHCLType(dialect, schemaName, inspectColumn, domains, enums))
 		}
 		if dialect == "mysql" || dialect == "mariadb" {
 			if column.Charset != "" {
@@ -8317,15 +8316,19 @@ func atlasSQLExpressionHCL(expr string) string {
 	return "sql(" + strconv.Quote(expr) + ")"
 }
 
-func atlasColumnHCLType(dialect, schemaName, typ string, domains map[string]bool, enums map[string]*ast.EnumNode) string {
+func atlasColumnHCLType(dialect, schemaName string, column *ast.ColumnNode, domains map[string]bool, enums map[string]*ast.EnumNode) string {
 	if dialect == "postgresql" {
-		if hclType, ok := atlasPostgresEnumHCLType(typ, enums); ok {
+		if hclType, ok := atlasPostgresEnumHCLType(column, enums); ok {
 			return hclType
 		}
-		if hclType, ok := atlasPostgresDomainHCLType(schemaName, typ, domains); ok {
+		if hclType, ok := atlasPostgresDomainHCLType(schemaName, column, domains); ok {
 			return hclType
 		}
 	}
+	if column.TypeRawSQL {
+		return atlasSQLExpressionHCL(column.Type)
+	}
+	typ := column.Type
 	normalized := strings.ToLower(strings.TrimSpace(atlasSQLIdentifier(typ)))
 	if dialect == "mysql" && (normalized == "bool" || normalized == "boolean" || normalized == "tinyint(1)") {
 		return "bool"
@@ -8336,28 +8339,26 @@ func atlasColumnHCLType(dialect, schemaName, typ string, domains map[string]bool
 	return atlasColumnType(dialect, typ)
 }
 
-func atlasPostgresEnumHCLType(typ string, enums map[string]*ast.EnumNode) (string, bool) {
-	if raw, ok := atlasSQLRawType(typ); ok {
-		if txtarPostgresEnumArrayType(raw, enums) != "" {
-			return atlasSQLExpressionHCL(raw), true
-		}
+func atlasPostgresEnumHCLType(column *ast.ColumnNode, enums map[string]*ast.EnumNode) (string, bool) {
+	if column.TypeRawSQL && txtarPostgresEnumArrayType(column.Type, enums) != "" {
+		return atlasSQLExpressionHCL(column.Type), true
 	}
+	typ := column.Type
 	if _, ok := enums[atlasSQLIdentifier(typ)]; ok {
 		return "enum." + atlasHCLIdentifier(typ), true
 	}
 	return "", false
 }
 
-func atlasPostgresDomainHCLType(schemaName, typ string, domains map[string]bool) (string, bool) {
-	raw, ok := atlasSQLRawType(typ)
-	if !ok || !domains[atlasSQLIdentifier(raw)] {
+func atlasPostgresDomainHCLType(schemaName string, column *ast.ColumnNode, domains map[string]bool) (string, bool) {
+	if !column.TypeRawSQL || !domains[atlasSQLIdentifier(column.Type)] {
 		return "", false
 	}
 	prefix := schemaName + "."
-	if unqualified, ok := strings.CutPrefix(raw, prefix); ok {
+	if unqualified, ok := strings.CutPrefix(column.Type, prefix); ok {
 		return atlasSQLExpressionHCL(unqualified), true
 	}
-	return atlasSQLExpressionHCL(raw), true
+	return atlasSQLExpressionHCL(column.Type), true
 }
 
 func atlasGeneratedHCLKind(kind string) string {
@@ -9335,7 +9336,8 @@ func renderAtlasCreateTableSQL(
 	var primaryColumns []ast.ConstraintColumn
 	var columnForeignKeys []*ast.ColumnNode
 	for _, column := range table.Columns {
-		parts = append(parts, renderAtlasColumnSQL(dialect, quote, column, indent != "" || dialect == "sqlite", tableOpts))
+		inspectColumn := atlasInspectColumn(dialect, table, column)
+		parts = append(parts, renderAtlasColumnSQL(dialect, quote, inspectColumn, indent != "" || dialect == "sqlite", tableOpts))
 		if column.Primary && !atlasColumnPrimaryKeyInline(dialect, column) {
 			primaryColumns = append(primaryColumns, ast.ConstraintColumn{Name: column.Name})
 		}
@@ -9527,7 +9529,10 @@ func renderAtlasColumnSQL(
 	}
 	generated := column.GeneratedExpression != ""
 	if atlasColumnPrimaryKeyInline(dialect, column) {
-		b.WriteString(" NOT NULL PRIMARY KEY")
+		if !column.Nullable {
+			b.WriteString(" NOT NULL")
+		}
+		b.WriteString(" PRIMARY KEY")
 		if column.AutoInc {
 			b.WriteString(" AUTOINCREMENT")
 		}
@@ -9565,15 +9570,18 @@ func atlasColumnSQLType(dialect string, column *ast.ColumnNode, opts atlasInspec
 		if _, ok := opts.postgresEnums[atlasSQLIdentifier(column.Type)]; ok {
 			return fmt.Sprintf("%q", atlasSQLIdentifier(column.Type))
 		}
-		if raw, ok := atlasSQLRawType(column.Type); ok {
-			if enumArrayType := txtarPostgresEnumArrayType(raw, opts.postgresEnums); enumArrayType != "" {
+		if column.TypeRawSQL {
+			if enumArrayType := txtarPostgresEnumArrayType(column.Type, opts.postgresEnums); enumArrayType != "" {
 				base := strings.TrimSuffix(enumArrayType, "[]")
 				return fmt.Sprintf("%q[]", base)
 			}
 		}
-		if rawArrayType := txtarPostgresRawArrayType(column.Type); rawArrayType != "" {
+		if rawArrayType := txtarPostgresRawArrayType(column); rawArrayType != "" {
 			return rawArrayType
 		}
+	}
+	if column.TypeRawSQL {
+		return column.Type
 	}
 	return atlasColumnType(dialect, column.Type)
 }
@@ -10063,9 +10071,6 @@ func renderAtlasPrimaryKeySQL(quote func(string) string, columns []ast.Constrain
 }
 
 func atlasColumnType(dialect, typ string) string {
-	if strings.HasPrefix(typ, "sql(") {
-		return typ
-	}
 	normalized := strings.ToLower(typ)
 	if dialect == "sqlite" {
 		if base, _, ok := strings.Cut(normalized, "("); ok {
@@ -10304,7 +10309,7 @@ func txtarFilesMismatchAny(files map[string]string, left string, rights []string
 	if len(missing) == len(rights) {
 		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, rights[0], rights[0])
 	}
-	return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, rights[0], oneLine(l), oneLine(files[rights[0]]))
+	return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, rights[0], oneLine(files[rights[0]]), oneLine(l))
 }
 
 func txtarVariantExpectedFiles(fx Fixture, runtime *txtarRuntime, expected string) []string {

@@ -37,11 +37,11 @@ func (AtlasCLIMetadataRuntimeProbe) Run(fx Fixture) []Result {
 		atlasMigrateApplyRejectsDirFormat,
 	}
 
-	out := make([]Result, 0, len(checks)+6)
+	out := make([]Result, 0, len(checks)+4)
 	for _, check := range checks {
 		out = append(out, check(bin))
 	}
-	out = append(out, atlasMigrateRejectsUnsupportedMetadataDirFormats(bin)...)
+	out = append(out, atlasMigrateSupportsGooseDirFormats(bin)...)
 	return out
 }
 
@@ -104,7 +104,7 @@ func atlasMigrateStatusDefaultsToAtlasDir(bin string) Result {
 	if err != nil {
 		return atlasMetadataRuntimeExit("atlas migrate status", "execute", output, err)
 	}
-	if !strings.Contains(output, "Total Migrations: 1") || !strings.Contains(output, "Pending Migrations: 1") {
+	if !strings.Contains(output, "-- Executed Files:  0") || !strings.Contains(output, "-- Pending Files:   1") {
 		return Result{"atlas-cli-metadata-runtime", "atlas migrate status", "execute", Gap,
 			"`atlas migrate status` did not report the Atlas migration directory as one pending migration: " + oneLine(output),
 			"stokaro/ptah#622"}
@@ -186,59 +186,153 @@ func atlasMigrateSetAcceptsRevisionsSchema(bin string) Result {
 		"`atlas migrate set --revisions-schema main` executed successfully", ""}
 }
 
-func atlasMigrateRejectsUnsupportedMetadataDirFormats(bin string) []Result {
-	checks := []struct {
-		fixture string
-		args    []string
-	}{
-		{
-			fixture: "atlas migrate lint --dir-format goose",
-			args:    []string{"migrate", "lint", "--latest", "1"},
-		},
-		{
-			fixture: "atlas migrate new --dir-format goose",
-			args:    []string{"migrate", "new", "init"},
-		},
-		{
-			fixture: "atlas migrate set --dir-format goose",
-			args:    []string{"migrate", "set", "--url", "sqlite://ignored.db", "20240101000000"},
-		},
-		{
-			fixture: "atlas migrate status --dir-format goose",
-			args:    []string{"migrate", "status", "--url", "sqlite://ignored.db"},
-		},
+func atlasMigrateSupportsGooseDirFormats(bin string) []Result {
+	return []Result{
+		atlasMigrateLintSupportsGooseDirFormat(bin),
+		atlasMigrateNewSupportsGooseDirFormat(bin),
+		atlasMigrateSetSupportsGooseDirFormat(bin),
+		atlasMigrateStatusSupportsGooseDirFormat(bin),
 	}
-
-	out := make([]Result, 0, len(checks))
-	for _, check := range checks {
-		out = append(out, atlasMigrateRejectsUnsupportedMetadataDirFormat(bin, check.fixture, check.args))
-	}
-	return out
 }
 
-func atlasMigrateRejectsUnsupportedMetadataDirFormat(bin, fixture string, prefix []string) Result {
+func atlasMigrateLintSupportsGooseDirFormat(bin string) Result {
+	const fixture = "atlas migrate lint --dir-format goose"
+
+	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
+	if err != nil {
+		return atlasMetadataRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := prepareGooseMetadataMigration(bin, migrations, fixture); result != nil {
+		return *result
+	}
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "lint",
+		"--latest", "1",
+		"--dir", fileURL(migrations),
+		"--dir-format", "goose",
+		"--dev-url", "sqlite://" + filepath.Join(root, "lint-dev.db"),
+	})
+	if err != nil {
+		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+	}
+	if !strings.Contains(output, "no diagnostics found") || !strings.Contains(output, "1 version ok") {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`atlas migrate lint --dir-format goose` did not analyze the Goose migration: " + oneLine(output),
+			"stokaro/ptah#622"}
+	}
+	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
+		"`atlas migrate lint --dir-format goose` hashed, loaded, replayed, and analyzed the Goose migration", ""}
+}
+
+func atlasMigrateNewSupportsGooseDirFormat(bin string) Result {
+	const fixture = "atlas migrate new --dir-format goose"
+
 	_, migrations, cleanup, err := atlasMetadataRuntimeDir()
 	if err != nil {
 		return atlasMetadataRuntimeFail(fixture, "setup", err)
 	}
 	defer cleanup()
-	if err := writeAtlasMigration(migrations); err != nil {
-		return atlasMetadataRuntimeFail(fixture, "setup", err)
-	}
 
-	args := append([]string{}, prefix...)
-	args = append(args, "--dir", fileURL(migrations), "--dir-format", "goose")
-	output, err := commandOutput(bin, args)
-	if err == nil {
-		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
-			"`" + fixture + "` succeeded, but Ptah does not implement external Atlas migration formats yet",
-			"stokaro/ptah#622"}
-	}
-	if !strings.Contains(output, "does not implement that directory format yet") {
+	output, err := commandOutput(bin, []string{
+		"migrate", "new", "init",
+		"--dir", fileURL(migrations),
+		"--dir-format", "goose",
+	})
+	if err != nil {
 		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
 	}
+	entries, err := os.ReadDir(migrations)
+	if err != nil {
+		return atlasMetadataRuntimeFail(fixture, "files", err)
+	}
+	var migrationPath string
+	for _, entry := range entries {
+		if strings.HasSuffix(entry.Name(), "_init.sql") {
+			migrationPath = filepath.Join(migrations, entry.Name())
+		}
+	}
+	if migrationPath == "" {
+		return Result{"atlas-cli-metadata-runtime", fixture, "files", Gap,
+			"`atlas migrate new --dir-format goose` did not write the Goose migration file", "stokaro/ptah#622"}
+	}
+	data, err := os.ReadFile(migrationPath)
+	if err != nil {
+		return atlasMetadataRuntimeFail(fixture, "files", err)
+	}
+	if string(data) != "-- +goose Up\n\n-- +goose Down\n" {
+		return Result{"atlas-cli-metadata-runtime", fixture, "files", Gap,
+			"`atlas migrate new --dir-format goose` wrote the wrong skeleton: " + oneLine(string(data)),
+			"stokaro/ptah#622"}
+	}
+	if _, err := os.Stat(filepath.Join(migrations, "atlas.sum")); err != nil {
+		return atlasMetadataRuntimeFail(fixture, "files", err)
+	}
 	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
-		"`" + fixture + "` fails explicitly instead of treating external-format files as Atlas files", ""}
+		"`atlas migrate new --dir-format goose` writes Atlas's Goose skeleton and refreshes atlas.sum", ""}
+}
+
+func atlasMigrateSetSupportsGooseDirFormat(bin string) Result {
+	const fixture = "atlas migrate set --dir-format goose"
+
+	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
+	if err != nil {
+		return atlasMetadataRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := prepareGooseMetadataMigration(bin, migrations, fixture); result != nil {
+		return *result
+	}
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "set",
+		"--url", "sqlite://" + filepath.Join(root, "set-goose.db"),
+		atlasMetadataMigrationVersion,
+		"--dir", fileURL(migrations),
+		"--dir-format", "goose",
+	})
+	if err != nil {
+		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+	}
+	if !strings.Contains(output, "Current version is "+atlasMetadataMigrationVersion) || !strings.Contains(output, "(init)") {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`atlas migrate set --dir-format goose` did not record the Goose revision: " + oneLine(output),
+			"stokaro/ptah#622"}
+	}
+	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
+		"`atlas migrate set --dir-format goose` records the selected Goose revision with Atlas metadata", ""}
+}
+
+func atlasMigrateStatusSupportsGooseDirFormat(bin string) Result {
+	const fixture = "atlas migrate status --dir-format goose"
+
+	root, migrations, cleanup, err := atlasMetadataRuntimeDir()
+	if err != nil {
+		return atlasMetadataRuntimeFail(fixture, "setup", err)
+	}
+	defer cleanup()
+	if result := prepareGooseMetadataMigration(bin, migrations, fixture); result != nil {
+		return *result
+	}
+
+	output, err := commandOutput(bin, []string{
+		"migrate", "status",
+		"--url", "sqlite://" + filepath.Join(root, "status-goose.db"),
+		"--dir", fileURL(migrations),
+		"--dir-format", "goose",
+	})
+	if err != nil {
+		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+	}
+	if !strings.Contains(output, "-- Next Version:    "+atlasMetadataMigrationVersion) ||
+		!strings.Contains(output, "-- Pending Files:   1") {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`atlas migrate status --dir-format goose` did not report the Goose migration as pending: " + oneLine(output),
+			"stokaro/ptah#622"}
+	}
+	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
+		"`atlas migrate status --dir-format goose` reads the hashed Goose directory and reports one pending file", ""}
 }
 
 func atlasMigrateApplyRejectsDirFormat(bin string) Result {
@@ -282,10 +376,37 @@ func prepareAtlasMetadataMigration(bin, migrations, fixture string) *Result {
 	return nil
 }
 
+func prepareGooseMetadataMigration(bin, migrations, fixture string) *Result {
+	if err := writeGooseMetadataMigration(migrations); err != nil {
+		result := atlasMetadataRuntimeFail(fixture, "setup", err)
+		return &result
+	}
+	output, err := commandOutput(bin, []string{
+		"migrate", "hash",
+		"--dir", fileURL(migrations),
+		"--dir-format", "goose",
+	})
+	if err != nil {
+		result := atlasMetadataRuntimeExit(fixture, "setup", output, err)
+		return &result
+	}
+	return nil
+}
+
+const atlasMetadataMigrationVersion = "20240101000000"
+
 func writeAtlasMigration(migrations string) error {
 	return os.WriteFile(
-		filepath.Join(migrations, "20240101000000_init.sql"),
+		filepath.Join(migrations, atlasMetadataMigrationVersion+"_init.sql"),
 		[]byte("CREATE TABLE users (id INTEGER PRIMARY KEY);\n"),
+		0o600,
+	)
+}
+
+func writeGooseMetadataMigration(migrations string) error {
+	return os.WriteFile(
+		filepath.Join(migrations, atlasMetadataMigrationVersion+"_init.sql"),
+		[]byte("-- +goose Up\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n\n-- +goose Down\nDROP TABLE users;\n"),
 		0o600,
 	)
 }

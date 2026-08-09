@@ -218,6 +218,7 @@ func (d *desiredStateWorkflow) envSourceResolution() Result {
 		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "env://src",
+		"--dev-url", sqliteURL(filepath.Join(d.runRoot, "dev-env.db")),
 		"--env", "dev",
 		"--auto-approve",
 	)

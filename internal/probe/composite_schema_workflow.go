@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -13,6 +14,12 @@ import (
 const (
 	compositeSchemaSentinel = "_capability/composite-schema/SENTINEL"
 	compositeSchemaIssue    = "stokaro/ptah#666"
+	schemaComparisonClean   = "No schema differences detected."
+)
+
+var (
+	schemaComparisonDifferenceHeader = regexp.MustCompile(`^Differences detected \([1-9][0-9]* categor(?:y|ies)\):(?:\n|$)`)
+	schemaComparisonCategoryLine     = regexp.MustCompile(`(?m)^  [a-z][a-z0-9_]* \([1-9][0-9]*\): .+$`)
 )
 
 // CompositeSchemaWorkflowProbe verifies that independently owned desired-schema
@@ -605,33 +612,11 @@ func compositeLiveCompareResult(
 	if drift.err != nil {
 		return compositeSchemaHarnessFailure("live end state", drift.err)
 	}
-	if drift.command.exitCode != 1 {
+	if err := validateDriftSchemaComparison(drift); err != nil {
 		return compositeSchemaGap(
 			"live comparison controls",
 			"live end state",
-			fmt.Sprintf(
-				"intentionally drifted desired schema exit code = %d, want 1: %s",
-				drift.command.exitCode,
-				drift.command.diagnostic(),
-			),
-		)
-	}
-	driftDiff, err := schemaComparisonSection(drift.command.stdout)
-	if err != nil {
-		return compositeSchemaGap("live comparison controls", "live end state", err.Error())
-	}
-	if driftDiff == "[]" {
-		return compositeSchemaGap(
-			"live comparison controls",
-			"live end state",
-			"intentionally drifted desired schema unexpectedly reported an empty diff",
-		)
-	}
-	if strings.Contains(drift.command.stderr, "panic:") {
-		return compositeSchemaGap(
-			"live comparison controls",
-			"live end state",
-			"intentionally drifted desired schema comparison panicked",
+			"intentionally drifted desired schema: "+err.Error()+": "+drift.command.diagnostic(),
 		)
 	}
 	return Result{
@@ -651,8 +636,25 @@ func validateCleanSchemaComparison(result compositeCommandResult) error {
 	if err != nil {
 		return err
 	}
-	if diff != "[]" {
-		return fmt.Errorf("expected empty [] diff, got %q", diff)
+	if diff != schemaComparisonClean {
+		return fmt.Errorf("expected exact clean sentinel %q, got %q", schemaComparisonClean, diff)
+	}
+	if strings.Contains(result.command.stderr, "panic:") {
+		return fmt.Errorf("comparison panicked")
+	}
+	return nil
+}
+
+func validateDriftSchemaComparison(result compositeCommandResult) error {
+	if result.command.exitCode != 1 {
+		return fmt.Errorf("expected exit code 1, got %d", result.command.exitCode)
+	}
+	diff, err := schemaComparisonSection(result.command.stdout)
+	if err != nil {
+		return err
+	}
+	if !schemaComparisonDifferenceHeader.MatchString(diff) || !schemaComparisonCategoryLine.MatchString(diff) {
+		return fmt.Errorf("expected category-bearing difference output, got %q", diff)
 	}
 	if strings.Contains(result.command.stderr, "panic:") {
 		return fmt.Errorf("comparison panicked")

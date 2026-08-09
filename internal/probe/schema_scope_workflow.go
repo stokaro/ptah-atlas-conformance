@@ -66,6 +66,7 @@ func (s *schemaScopeWorkflow) scopedApplyLeavesOutOfScopeUntouched() Result {
 		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
+		"--dev-url", sqliteURL(filepath.Join(s.runRoot, "scope-dev.db")),
 		"--include", "scope_users",
 		"--auto-approve",
 	)
@@ -97,6 +98,7 @@ func (s *schemaScopeWorkflow) includeValuesUnion() Result {
 		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
+		"--dev-url", sqliteURL(filepath.Join(s.runRoot, "union-dev.db")),
 		"--include", "scope_users",
 		"--include", "scope_archive",
 		"--auto-approve",
@@ -124,6 +126,7 @@ func (s *schemaScopeWorkflow) crossScopeForeignKeyRefusal() Result {
 		"schema", "apply",
 		"--url", sqliteURL(targetDB),
 		"--to", "file://schema.sql",
+		"--dev-url", sqliteURL(filepath.Join(s.runRoot, "fk-dev.db")),
 		"--include", "scope_groups",
 		"--dry-run",
 	)
