@@ -4,7 +4,7 @@
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl",
     "stage": "import",
     "outcome": "ok",
-    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
+    "detail": "imported Atlas project config; execution surface is measured by atlasexec-project-workflow"
   },
   {
     "probe": "corpus-inventory",
@@ -32,7 +32,7 @@
     "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
     "stage": "import",
     "outcome": "ok",
-    "detail": "imported HCL fixture; schema parse surface is measured by atlas-hcl-parse"
+    "detail": "imported Atlas project config; execution surface is measured by atlasexec-project-workflow"
   },
   {
     "probe": "corpus-inventory",
@@ -1225,11 +1225,18 @@
     "detail": "imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s)"
   },
   {
-    "probe": "atlas-hcl-parse",
+    "probe": "atlasexec-project-workflow",
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/atlas.hcl",
-    "stage": "parse",
+    "stage": "workflow",
     "outcome": "ok",
-    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
+    "detail": "the untouched Atlas v1.3.0 multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture"
+  },
+  {
+    "probe": "atlasexec-project-workflow",
+    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
+    "stage": "workflow",
+    "outcome": "ok",
+    "detail": "the untouched Atlas v1.3.0 versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct"
   },
   {
     "probe": "atlas-hcl-parse",
@@ -1244,13 +1251,6 @@
     "stage": "parse",
     "outcome": "ok",
     "detail": "parsed Atlas HCL schema file: 1 table(s), 2 field(s)"
-  },
-  {
-    "probe": "atlas-hcl-parse",
-    "fixture": "atlasexec/internal/e2e/testdata/versioned-basic/atlas.hcl",
-    "stage": "parse",
-    "outcome": "ok",
-    "detail": "parsed Atlas HCL schema file: 0 table(s), 0 field(s)"
   },
   {
     "probe": "atlas-hcl-parse",
@@ -3652,14 +3652,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101, BC101"
+    "detail": "content findings: DS101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101, BC101"
+    "detail": "content findings: DS101"
   },
   {
     "probe": "lint-parity",
@@ -4219,28 +4219,28 @@
     "fixture": "atlas migrate lint --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate lint --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate lint --dir-format goose` hashed, loaded, replayed, and analyzed the Goose migration"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "atlas migrate new --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate new --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate new --dir-format goose` writes Atlas's Goose skeleton and refreshes atlas.sum"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "atlas migrate set --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate set --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate set --dir-format goose` records the selected Goose revision with Atlas metadata"
   },
   {
     "probe": "atlas-cli-metadata-runtime",
     "fixture": "atlas migrate status --dir-format goose",
     "stage": "execute",
     "outcome": "ok",
-    "detail": "`atlas migrate status --dir-format goose` fails explicitly instead of treating external-format files as Atlas files"
+    "detail": "`atlas migrate status --dir-format goose` reads the hashed Goose directory and reports one pending file"
   },
   {
     "probe": "atlas-cli-shorthands",
@@ -5577,7 +5577,7 @@
     "fixture": "atlas schema apply --dev-url",
     "stage": "plan simulation success",
     "outcome": "ok",
-    "detail": "`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan on it, and only then applied the plan to the target"
+    "detail": "`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0"
   },
   {
     "probe": "apply-simulation-workflow",
@@ -5633,14 +5633,14 @@
     "fixture": "atlas schema inspect",
     "stage": "split export writes a deterministic tree",
     "outcome": "ok",
-    "detail": "`{{ hcl . | split | write \"exported\" }}` wrote the deterministic per-object tree tables/{posts,users}.hcl with one table block per file and nothing on stdout"
+    "detail": "`{{ hcl . | split | write \"exported\" }}` wrote the deterministic, schema-qualified tree schemas/main.hcl and tables/main_{posts,users}.hcl with collision-safe names, ownership references, and nothing on stdout"
   },
   {
     "probe": "inspect-source-workflow",
     "fixture": "atlas schema inspect",
     "stage": "written tree reloads to the same schema",
     "outcome": "ok",
-    "detail": "the exported per-object files reload as a multi-file desired state that diffs as synced against the original schema"
+    "detail": "the exported schema and both schema-qualified table files reload as a multi-file desired state that diffs as synced against the original schema"
   },
   {
     "probe": "inspect-source-workflow",
