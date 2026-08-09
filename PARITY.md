@@ -6,7 +6,7 @@ should be read as one.**
 It is a deterministic coverage probe over the full vendored Atlas
 `*/testdata/*` snapshot plus first-party Atlas-compatible regression and
 workflow fixtures, run through Ptah's public API and real CLI. Most observations
-are structural and database-free; the `dbtest-workflow`,
+are structural and database-free; the `atlasexec-project-workflow`, `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
 `external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
 `pro-plan-workflow`, `pro-down-workflow`, `desired-state-workflow`,
@@ -20,7 +20,7 @@ to Atlas, never a ceiling.
 
 Generated snapshot: 286 vendored upstream testdata files plus first-party
 regression and capability fixtures, grouped into 158 imported Atlas fixtures,
-17 first-party capability sentinels, and 805 deterministic observations, with
+17 first-party capability sentinels, and 809 deterministic observations, with
 **0 unwaived non-OK observations**. Every imported fixture and capability
 sentinel is measured by at least one current probe. This means the
 deterministic report is green; it does **not** mean full Atlas OSS runtime
@@ -28,7 +28,7 @@ parity, because several runtime dimensions remain unmeasured.
 
 ## What the probe found broken
 
-Corpus probes are offline and structural. The `dbtest-workflow`,
+Corpus probes are offline and structural. The `atlasexec-project-workflow`, `dbtest-workflow`,
 `composite-schema-workflow`, `managed-data-workflow`, `checkpoint-workflow`,
 `external-schema-workflow`, `pro-test-workflow`, `pro-maint-workflow`,
 `pro-plan-workflow`, `pro-down-workflow`, `desired-state-workflow`,
@@ -45,6 +45,7 @@ against ephemeral SQLite databases (`pro-maint-workflow` is fully offline).
 | `txtar-script` | Can the harness consume Atlas integration `.txtar` scripts? | Imported `.txtar` scripts are parsed and reported; supported command contours are green in the current offline corpus, and each OK row lists the script surface exercised or asserted by that fixture. |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does its own hash reproduce it? | Current measured fixtures pass the parsed/recomputed sum compatibility probe. |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content? | Current analyzer catalog and fixture-level lint parity probes are green on the committed corpus. |
+| `atlasexec-project-workflow` | Can `ptah-compat` execute the vendored v1.3.0 atlasexec project configurations as committed? | The versioned-basic project checks pending status, first apply, no-op apply, live SQLite state, and revision rows. The multi-tenants project checks dynamic `for_each` environment expansion, two ordered compact-JSON reports separated by exactly one newline, one-tenant failure, retry behavior, and both independent live SQLite end states. |
 | `dbtest-workflow` | Do Ptah's native declarative migration and schema test commands preserve their key end-to-end CLI contracts? | Both commands execute committed fixtures against isolated SQLite databases; numeric/latest/zero migration targets, desired-schema application and drift repair, seed steps, all assertion kinds, `--run`, text/JSON/HTML reports, invalid schema steps, and command-specific exit codes 1/2 are checked. |
 | `composite-schema-workflow` | Do multiple desired-schema sources behave exactly like one hand-merged source? | Complete executable-SQL stdout snapshots, source conflicts, generated up/down equivalence, direct live SQLite schema facts, clean mixed/hand-merged comparisons, and a drift-detecting negative control are checked. |
 | `managed-data-workflow` | Does Ptah's declarative reference/seed data round-trip apply, introspect, and converge? | A model's `//ptah:schema:data` rows are applied via `ptah migrations data`, the seeded rows are introspected and matched to the declared desired state, a re-diff converges to "no data changes", a divergent desired set is refused by the destructive gate (exit 2), and rolling the data migration back removes exactly the inserted rows. |
@@ -80,7 +81,7 @@ is **"unknown — not measured"**, not "works".
 | **sqlcheck analyzers**, rule by rule | **Yes** — the `lint-analyzer-catalog` fidelity matrix maps every default-firing Atlas concern to the covering Ptah rule, severity, and line, classified covered/mapped/unsupported/missing, and enforces suppression, config disable/severity-override, attribution, and SARIF-shape fidelity | `lint-analyzer-catalog` rows in `gaps.md` + `fidelity: sarif output shape` in `gaps-migrate-runtime.md` |
 | **Multi-dialect** depth (MySQL, SQLite, MariaDB) | **Partially measured** — live round trips run on Postgres, MySQL, MariaDB, and SQLite in CI; Atlas CE differential runs on Postgres, MySQL, and SQLite | deeper dialect runtime probes |
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
-| The migration **apply** path | **Partially** — migrate-runtime checks Atlas-compatible apply behavior, including an Atlas CE control versus Ptah project-config apply differential from identical brownfield state, checkpoint-directive bootstrap-or-skip semantics on both first-party and Atlas-authored directories, and apply-time `atlas.sum` verification on both hashed and never-hashed directories; `dbtest-workflow` checks native migration up/down on SQLite | broader Atlas fixture execution and failure-state equivalence; parser gaps remain distinct because apply executes migration SQL directly |
+| The migration **apply** path | **Partially** — migrate-runtime checks Atlas-compatible apply behavior, including an Atlas CE control versus Ptah project-config apply differential from identical brownfield state, checkpoint-directive bootstrap-or-skip semantics on both first-party and Atlas-authored directories, and apply-time `atlas.sum` verification on both hashed and never-hashed directories; `atlasexec-project-workflow` executes the vendored versioned-basic and multi-tenants project configurations against live SQLite, including partial failure and retry; `dbtest-workflow` checks native migration up/down on SQLite | broader Atlas fixture execution and failure-state equivalence; parser gaps remain distinct because apply executes migration SQL directly |
 
 The SQLite transaction-mode runtime matrix now covers all 12 Atlas CE v1.3
 global/file-directive combinations, malformed and misplaced directives,
