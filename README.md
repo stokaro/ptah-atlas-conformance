@@ -56,8 +56,8 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `atlas-compat-binary-surface` | Does `atlas <verb>` resolve on the ptah-compat binary for every OSS Atlas CLI verb? Since stokaro/ptah#850 removed the `ptah atlas ...` namespace, the ptah-compat binary named `atlas` is Ptah's only Atlas-shaped surface; the probe builds it and checks each command, so it flips to green on its own when Ptah registers the command. | the built `ptah-compat` binary |
 | `atlas-cli-flags` | Beyond resolving, does each `atlas <verb>` on the ptah-compat binary accept the Atlas flags a drop-in caller passes (`--url`, `--dev-url`, `--to`, `--dir`, `--format`, …)? A resolving stub is not a drop-in. | the built `ptah-compat` binary |
 | `cli-exit-behavior` | Does `ptah-compat` match Atlas CE's exact process exit code and stdout/stderr contract for representative success, argument, configuration, and migration-checksum paths? Stable checksum and unknown-command output is byte-checked. The catalog is also run directly against the pinned Atlas binary so Ptah-specific expectations cannot make the probe false-green. The probe additionally pins the stokaro/ptah#850 removal: the main `ptah` binary must keep rejecting the `atlas` namespace with exit 2 and the unknown-command diagnostic. | `bin/atlas`, the built `ptah` binary, the built `ptah-compat` binary |
-| `atlas-cli-surface-inventory` / `atlas-cli-surface-ptah-compat` | Dedicated CLI surface report over the current pinned Atlas CE binary: command paths, help usage, and long flags, compared against the binary-level `ptah-compat` drop-in surface. | `bin/atlas`, the built `ptah-compat` binary |
-| `atlasexec-project-workflow` | Can `ptah-compat` execute the vendored v1.3.0 atlasexec project configurations without rewriting them? The versioned-basic fixture checks pending status, first apply, no-op apply, live SQLite state, and revision rows. The multi-tenants fixture checks dynamic `for_each` environment expansion, deterministic report order and separators, partial failure, retry, and the independent live state of both tenant databases. | the built `ptah-compat` binary, evaluated `atlas.hcl`, ephemeral SQLite |
+| `atlas-cli-surface-inventory` / `atlas-cli-surface-ptah-compat` / `atlas-cli-pro-surface-ptah-compat` | Dedicated CLI surface report: pinned Atlas CE command paths, help usage, and long flags are compared exactly against `ptah-compat`, while public documented Pro-only flags are required in separate rows. | `bin/atlas`, the built `ptah-compat` binary, the public Atlas CLI Reference |
+| `atlasexec-project-workflow` | Can `ptah-compat` execute the vendored atlasexec project configurations from the pinned fixture snapshot without rewriting them? The versioned-basic fixture checks pending status, first apply, no-op apply, live SQLite state, and revision rows. The multi-tenants fixture checks dynamic `for_each` environment expansion, deterministic report order and separators, partial failure, retry, and the independent live state of both tenant databases. | the built `ptah-compat` binary, evaluated `atlas.hcl`, ephemeral SQLite |
 | `migrate-runtime` | Do Atlas-form `migrate ...` commands on the ptah-compat binary preserve Atlas-compatible runtime state against real databases: applied schema objects, Atlas revision rows, stored-state-aware apply/down dry-runs, rollback preflight atomicity, `set` repair behavior, transaction-mode rollback/partial-apply semantics, fail-closed txtar pre-migration checks, externally produced `-- atlas:checkpoint` bootstrap-or-skip semantics (including Atlas's own vendored multi-checkpoint directory, so latest-checkpoint selection and post-checkpoint continuation are pinned against upstream-authored files), byte-identical Goose `atlas.sum` generation and cross-validation against Atlas CE, explicit measurement of Atlas CE's stateful first-error advisory, exact stable tamper rejection, apply-time integrity, and project-config apply equivalence against pinned Atlas CE? | the built `ptah-compat` and `ptah` binaries, pinned Atlas CE, live SQLite/PostgreSQL/MySQL/MariaDB databases |
 | `lint-analyzer-catalog` | For each Atlas sqlcheck analyzer concern, does Ptah's linter flag the same dangerous change? Behavioral, one synthetic migration per analyzer, so it flips green when Ptah gains the rule. | `migration/lint` |
 | `lex-split-parity` | Does Ptah split a migration into the same statements Atlas does? A differential check against Atlas's own `.golden` lexer outputs (no live Atlas needed), normalized so it measures statement boundaries, not comment preservation. Surfaces real drop-in blockers: function bodies, `BEGIN ATOMIC`, MySQL `DELIMITER`. | `core/sqlutil` dialect-aware statement splitting |
@@ -121,15 +121,18 @@ markers as plain SQL on apply, and its community `migrate down` command rejects
 execution before runtime flags can be supplied, while Ptah-side live controls
 prove the section-local `migration.sql` and `down.sql` extension independently.
 
-The current report intentionally keeps nine observations red: eight exact
-stderr mismatches under `stokaro/ptah#1076` and one failed-file
-revision-bookkeeping gap under `stokaro/ptah#887`. The regression budget is nine
-so known gaps do not block unrelated improvements; `make gate-migrate-runtime`
-remains red until both tracked gaps are fixed. The `\r` and missing-separator
-differences linked to `stokaro/ptah#1077` and `stokaro/ptah#1081` are green only
-because the report records both products' distinct database states and
-classifies the user-benefiting difference explicitly; they are not omitted or
-treated as accidental parity.
+The current report intentionally keeps one observation red: the failed-file
+revision-bookkeeping diagnostic mismatch tracked by `stokaro/ptah#887`. The
+regression budget is one so that known gap does not block unrelated
+improvements; `make gate-migrate-runtime` remains red until it is fixed. A
+failed down migration is green under `stokaro/ptah#957` only as an explicit
+`ptah-better` result: Ptah records repairable dirty-down state instead of
+hiding the failed rollback behind an applied revision. The `\r` and
+missing-separator differences linked to `stokaro/ptah#1077` and
+`stokaro/ptah#1081` use the same explicit classification because the report
+records both products' distinct database states and the user-benefiting
+difference; none of these divergences is omitted or treated as accidental
+parity.
 
 The migrate-runtime tier also runs a Goose-format checksum differential against
 the pinned Atlas CE binary: both tools must generate byte-identical
@@ -253,25 +256,26 @@ help, then records:
   single Atlas-shaped surface since stokaro/ptah#850 removed the
   `ptah atlas ...` namespace (the offline `cli-exit-behavior` probe pins that
   the main `ptah` binary keeps rejecting the namespace with exit 2);
-- a closed, per-command allow-list of **Pro-surface long flags** on OSS
-  commands (`proSurfaceFlags` in `internal/probe/cli_surface.go`). A licensed
-  Atlas build registers flags the pinned CE binary does not — for example
-  `atlas schema inspect --include`, which CE answers with `unknown flag` (the
-  CE gating tier measures exactly that) and which Ptah implements deliberately,
-  because stokaro/ptah#951 wants `ptah-compat` to be a drop-in even for Atlas
-  Pro. Such a flag is allowed only on a command where Atlas
-  actually registers it, and the report names it (`plus Pro-surface flags
-  implemented openly: --include`) instead of collapsing to a plain OK. Every
-  other extra flag is still a gap, missing flags are still measured against the
-  CE set alone, and an allow-listed flag Ptah has not implemented never counts
-  against it. This is deliberately not a `waivers.txt` line: a waiver is keyed
-  on (probe, fixture, stage) and would hide every future extra flag on that
-  command.
+- a closed, per-command contract of **Pro-surface long flags** on OSS
+  commands (`proSurfaceFlags` in `internal/probe/cli_surface.go`). The
+  published [Atlas CLI Reference](https://atlasgo.io/cli-reference) documents
+  flags the pinned CE binary does not
+  register — for example `atlas migrate apply --to-version`, `atlas schema
+  clean --include`, and `atlas schema inspect --output`, which CE answers
+  with `unknown flag` and Ptah implements deliberately because
+  stokaro/ptah#951 wants `ptah-compat` to be a drop-in even for Atlas Pro.
+  The CE comparison projects out only those named flags, so every other extra
+  remains a CE gap. Separate `atlas-cli-pro-surface-ptah-compat` rows require
+  the complete documented set and turn every missing Pro flag red. This is
+  deliberately not a `waivers.txt` line: a waiver is keyed on (probe, fixture,
+  stage) and would hide future drift on that command.
 
 The regression budget is [`cli-surface-budget.txt`](./cli-surface-budget.txt).
 `make budget-cli-surface` must stay green when Ptah preserves the current known
 CLI surface. `make gate-cli-surface` is the full-parity signal for the pinned
-Atlas CE OSS help/flag surface and is green on the current committed report.
+Atlas CE OSS help/flag surface plus the public documented Pro flags. It remains
+red while `atlas schema diff --web` and `atlas schema inspect --export` are
+missing; the regression budget records those two explicit gaps separately.
 
 Refresh this tier whenever [`atlas.version`](./atlas.version) changes, or after
 bumping Ptah in `go.mod`:
@@ -365,7 +369,8 @@ publishes two separate pipelines:
   `make gate-migrate-runtime`, and `make gate-cli-surface` as separate jobs. It
   is green only when Ptah covers the committed offline corpus, live round-trip
   corpus, Atlas CE differential corpus, Atlas migrate runtime contours, and
-  Atlas CE CLI help/flag surface. When probes become stricter, a generated
+  Atlas CE CLI help/flag surface plus the public documented Pro-only flags.
+  When probes become stricter, a generated
   report may expose more non-OK observations even without a Ptah code change;
   that is a measurement hardening and must be committed explicitly with the new
   report/budget baseline. This workflow is a visible yardstick, not the

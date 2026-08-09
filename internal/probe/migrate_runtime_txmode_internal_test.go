@@ -116,7 +116,7 @@ func TestCompareFileTxModeMatrixCase_RecordsIntentionalDivergence(t *testing.T) 
 		Type:            2,
 		Applied:         1,
 		Total:           2,
-		ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+		ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
 		OperatorVersion: "Ptah",
 	}
 	testCase := fileTxModeMatrixCase{
@@ -145,7 +145,7 @@ func TestCompareFileTxModeMatrixCase_RecordsIntentionalDivergence(t *testing.T) 
 					Type:            2,
 					Applied:         1,
 					Total:           2,
-					ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+					ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
 					OperatorVersion: "Ptah",
 				},
 			},
@@ -182,7 +182,7 @@ func TestCompareFileTxModeMatrixCase_RejectsWrongRevisionState(t *testing.T) {
 					Type:            2,
 					Applied:         1,
 					Total:           2,
-					ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+					ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
 					OperatorVersion: "Ptah",
 				},
 			},

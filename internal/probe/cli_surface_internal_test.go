@@ -568,6 +568,64 @@ esac
 // out to the binary.
 var ceInspectFlags = []string{"--config", "--dev-url", "--env", "--exclude", "--format", "--schema", "--url", "--var"}
 
+func TestCompareFlags_AdoptedProSurfaceFlagsAreAllowedPerCommand(t *testing.T) {
+	c := qt.New(t)
+
+	tests := []struct {
+		name    string
+		command string
+		path    []string
+		ceFlags []string
+		adopted []string
+	}{
+		{
+			name:    "migrate apply",
+			command: "migrate apply",
+			path:    []string{"migrate", "apply"},
+			ceFlags: []string{"--allow-dirty", "--baseline", "--config", "--dir", "--dry-run", "--env", "--exec-order", "--format", "--lock-timeout", "--revisions-schema", "--tx-mode", "--url", "--var"},
+			adopted: []string{"--lock-name", "--skip-lock", "--to-version"},
+		},
+		{
+			name:    "schema apply",
+			command: "schema apply",
+			path:    []string{"schema", "apply"},
+			ceFlags: []string{"--auto-approve", "--config", "--dev-url", "--dry-run", "--edit", "--env", "--exclude", "--format", "--include", "--lock-timeout", "--plan", "--schema", "--to", "--tx-mode", "--url", "--var"},
+			adopted: []string{"--lock-name", "--skip-lint", "--skip-lock"},
+		},
+		{
+			name:    "schema clean",
+			command: "schema clean",
+			path:    []string{"schema", "clean"},
+			ceFlags: []string{"--auto-approve", "--config", "--dry-run", "--env", "--format", "--url", "--var"},
+			adopted: []string{"--exclude", "--include"},
+		},
+		{
+			name:    "schema diff",
+			command: "schema diff",
+			path:    []string{"schema", "diff"},
+			ceFlags: []string{"--config", "--dev-url", "--env", "--exclude", "--format", "--from", "--include", "--schema", "--to", "--var"},
+			adopted: []string{"--export"},
+		},
+	}
+
+	for _, test := range tests {
+		c.Run(test.name, func(c *qt.C) {
+			targetFlags := append(append([]string(nil), test.ceFlags...), test.adopted...)
+			sort.Strings(targetFlags)
+			got := compareFlags(
+				"atlas-cli-surface-ptah-compat",
+				"atlas "+test.command,
+				CLISurfaceCommand{Path: test.path, Flags: test.ceFlags, ProFlags: proSurfaceFlags()[test.command]},
+				helpDetails{Flags: targetFlags},
+				cliSurfaceCompatIssue,
+			)
+
+			c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
+			c.Check(got.Detail, qt.Equals, "long flags match Atlas CE: "+strings.Join(test.ceFlags, " "))
+		})
+	}
+}
+
 func TestProSurfaceFlags_TableIsWellFormed(t *testing.T) {
 	c := qt.New(t)
 
@@ -594,7 +652,7 @@ func TestProSurfaceFlags_TableIsWellFormed(t *testing.T) {
 	}
 }
 
-func TestCompareFlags_ProSurfaceFlagIsAllowedAndNamed(t *testing.T) {
+func TestCompareFlags_ProSurfaceFlagDoesNotPolluteCEComparison(t *testing.T) {
 	c := qt.New(t)
 
 	// `atlas schema inspect --include` is registered by Atlas
@@ -610,31 +668,40 @@ func TestCompareFlags_ProSurfaceFlagIsAllowedAndNamed(t *testing.T) {
 	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
 
 	c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
-	// A bare OK would make a mistaken allow-list entry invisible forever, so
-	// the adopted Pro surface has to be named in the committed report.
-	c.Check(got.Detail, qt.Contains, "plus Pro-surface flags implemented openly: --include")
-	c.Check(got.Detail, qt.Contains, "long flags match Atlas: "+strings.Join(ceInspectFlags, " "))
+	c.Check(got.Detail, qt.Equals, "long flags match Atlas CE: "+strings.Join(ceInspectFlags, " "))
 }
 
-func TestCompareFlags_UnimplementedProSurfaceFlagIsNotAGap(t *testing.T) {
+func TestCompareRequiredProFlags_HappyPath(t *testing.T) {
 	c := qt.New(t)
 
-	// --export is on the same Atlas-only delta but ptah-compat does not
-	// implement it. Missing flags are measured against the CE set only, so an
-	// unimplemented Pro flag must never turn the tier red — and must not be
-	// announced as adopted either.
 	atlasCmd := CLISurfaceCommand{
 		Path:     []string{"schema", "inspect"},
 		Flags:    ceInspectFlags,
 		ProFlags: proSurfaceFlags()["schema inspect"],
 	}
-	target := helpDetails{Flags: ceInspectFlags}
+	target := helpDetails{Flags: append(append([]string(nil), ceInspectFlags...), atlasCmd.ProFlags...)}
 
-	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
+	got := compareRequiredProFlags("atlas schema inspect", atlasCmd, target)
 
 	c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
-	c.Check(got.Detail, qt.Not(qt.Contains), "--export")
-	c.Check(got.Detail, qt.Not(qt.Contains), "Pro-surface flags implemented openly")
+	c.Check(got.Detail, qt.Equals, "documented Pro-surface flags are present: --export --include --output --web")
+	c.Check(got.Probe, qt.Equals, cliProSurfaceProbe)
+}
+
+func TestCompareRequiredProFlags_FailurePath(t *testing.T) {
+	c := qt.New(t)
+	atlasCmd := CLISurfaceCommand{
+		Path:     []string{"schema", "inspect"},
+		Flags:    ceInspectFlags,
+		ProFlags: proSurfaceFlags()["schema inspect"],
+	}
+	target := helpDetails{Flags: append(append([]string(nil), ceInspectFlags...), "--include", "--output", "--web")}
+
+	got := compareRequiredProFlags("atlas schema inspect", atlasCmd, target)
+
+	c.Assert(got.Outcome, qt.Equals, Gap, qt.Commentf("detail: %s", got.Detail))
+	c.Check(got.Detail, qt.Equals, "missing documented Pro-surface flags: --export")
+	c.Check(got.Issue, qt.Equals, cliProSurfaceIssue)
 }
 
 func TestCompareFlags_ProFlagAdoptedByCEIsNoLongerAnnouncedAsProSurface(t *testing.T) {
@@ -656,8 +723,7 @@ func TestCompareFlags_ProFlagAdoptedByCEIsNoLongerAnnouncedAsProSurface(t *testi
 	got := compareFlags("atlas-cli-surface-ptah-compat", "atlas schema inspect", atlasCmd, target, cliSurfaceCompatIssue)
 
 	c.Assert(got.Outcome, qt.Equals, OK, qt.Commentf("detail: %s", got.Detail))
-	c.Check(got.Detail, qt.Equals, "long flags match Atlas: "+strings.Join(ceFlags, " "))
-	c.Check(got.Detail, qt.Not(qt.Contains), "Pro-surface flags implemented openly")
+	c.Check(got.Detail, qt.Equals, "long flags match Atlas CE: "+strings.Join(ceFlags, " "))
 }
 
 func TestCompareFlags_ArbitraryExtraFlagOnAnAllowedCommandIsStillAGap(t *testing.T) {

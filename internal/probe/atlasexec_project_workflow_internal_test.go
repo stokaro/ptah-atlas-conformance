@@ -101,6 +101,12 @@ func TestValidateAtlasExecStreams_FailurePath(t *testing.T) {
 			reportCount: 2,
 			wantErr:     `stdout JSON report 1 has separator-adjacent whitespace`,
 		},
+		{
+			name:        "report is not compact",
+			result:      ptahCommandResult{stdout: `{"Applied": []}`},
+			reportCount: 1,
+			wantErr:     `stdout JSON report 1 is not compact`,
+		},
 	}
 
 	for _, test := range tests {
@@ -221,9 +227,11 @@ func TestValidateAtlasExecTenantState_RejectsUnexpectedDirtyRevision(t *testing.
 func createAtlasExecStateDatabase(c *qt.C, path string, statements []string) {
 	db, err := openSQLiteRuntimeDB(path)
 	c.Assert(err, qt.IsNil)
+	c.Cleanup(func() {
+		c.Check(db.Close(), qt.IsNil)
+	})
 	for _, statement := range statements {
 		_, err := db.Exec(statement)
 		c.Assert(err, qt.IsNil, qt.Commentf("%s", statement))
 	}
-	c.Assert(db.Close(), qt.IsNil)
 }

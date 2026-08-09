@@ -69,13 +69,13 @@ func main() {
 			for _, r := range nonOK {
 				fmt.Fprintf(os.Stderr, "  [%s] %s / %s / %s: %s\n", r.Outcome, r.Probe, r.Fixture, r.Stage, r.Detail)
 			}
-			fmt.Fprintln(os.Stderr, "\nThis is expected until Ptah matches the pinned Atlas CE CLI surface.")
+			fmt.Fprintln(os.Stderr, "\nThis is expected until Ptah matches the pinned Atlas CE and documented Pro CLI surfaces.")
 			os.Exit(1)
 		}
 		if len(stale) > 0 {
 			os.Exit(1)
 		}
-		fmt.Println("CLI SURFACE GATE: GREEN — every OSS Atlas command surface matches.")
+		fmt.Println("CLI SURFACE GATE: GREEN — every OSS Atlas CE and documented Pro command surface matches.")
 	}
 }
 

@@ -52,9 +52,9 @@ jobs:
           fi
 
   # The Atlas CLI surface regression gate. This compares the pinned Atlas CE
-  # help/flag inventory to both Ptah command surfaces and fails only on a
-  # regression above cli-surface-budget.txt. Full help parity is a separate
-  # full-conformance job.
+  # help/flag inventory and public documented Pro-only flags to ptah-compat,
+  # and fails only on a regression above cli-surface-budget.txt. Full parity is
+  # a separate full-conformance job.
   cli-surface-budget:
     runs-on: ubuntu-latest
     env:

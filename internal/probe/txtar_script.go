@@ -1396,7 +1396,7 @@ func runTxtarMigrateDiffCreate(fx Fixture, runtime *txtarRuntime, args txtarMigr
 		return txtarCommandResult{err: err}
 	}
 	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
-		targetStatements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), targetStatements)
+		targetStatements = atlasUnqualifySchemaStatements(txtarFixtureSchemaName(fx), targetStatements)
 	}
 	migrationFiles := txtarMigrationSQLFilesInDir(runtime, args.dir)
 	sql, err := renderTxtarMigrateDiffSQLStatements(fx, targetStatements, args.indent, args.qualifier)
@@ -2701,7 +2701,7 @@ func renderTxtarMigrateDiffSQLTargets(fx Fixture, runtime *txtarRuntime, targets
 		return "", err
 	}
 	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
-		statements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), statements)
+		statements = atlasUnqualifySchemaStatements(txtarFixtureSchemaName(fx), statements)
 	}
 	return renderTxtarMigrateDiffSQLStatements(fx, statements, indent, "")
 }
@@ -2747,7 +2747,7 @@ func renderTxtarMigrateDiffSQL(fx Fixture, runtime *txtarRuntime, target string,
 		return "", err
 	}
 	if txtarMigrateDiffShouldUnqualifyTables(txtarFixtureDialect(fx)) {
-		statements = atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), statements)
+		statements = atlasUnqualifySchemaStatements(txtarFixtureSchemaName(fx), statements)
 	}
 	return renderTxtarMigrateDiffSQLStatements(fx, statements, indent, "")
 }
@@ -2809,14 +2809,24 @@ func txtarMigrateDiffShouldUnqualifyTables(dialect string) bool {
 	}
 }
 
-func atlasUnqualifyTableStatements(schemaName string, statements []ast.Node) []ast.Node {
+func atlasUnqualifySchemaStatements(schemaName string, statements []ast.Node) []ast.Node {
 	out := make([]ast.Node, 0, len(statements))
 	for _, stmt := range statements {
 		switch node := stmt.(type) {
 		case *ast.CreateTableNode:
 			tableCopy := *node
 			tableCopy.Name = atlasUnqualifyTableName(schemaName, node.Name)
+			tableCopy.Columns = make([]*ast.ColumnNode, len(node.Columns))
+			for i, column := range node.Columns {
+				columnCopy := *column
+				columnCopy.Type = atlasUnqualifyTableName(schemaName, column.Type)
+				tableCopy.Columns[i] = &columnCopy
+			}
 			out = append(out, &tableCopy)
+		case *ast.EnumNode:
+			enumCopy := *node
+			enumCopy.Name = atlasUnqualifyTableName(schemaName, node.Name)
+			out = append(out, &enumCopy)
 		case *ast.IndexNode:
 			indexCopy := *node
 			indexCopy.Table = atlasUnqualifyTableName(schemaName, node.Table)
@@ -4556,10 +4566,22 @@ func txtarPostgresApplyGeneratedColumnSupported(column *ast.ColumnNode) bool {
 
 func txtarPostgresEnumsByName(statements []ast.Node) map[string]*ast.EnumNode {
 	enums := map[string]*ast.EnumNode{}
+	unqualifiedCounts := map[string]int{}
+	var enumList []*ast.EnumNode
 	for _, stmt := range statements {
 		enum, ok := stmt.(*ast.EnumNode)
 		if ok {
-			enums[atlasSQLIdentifier(enum.Name)] = enum
+			name := atlasSQLIdentifier(enum.Name)
+			enums[name] = enum
+			enumList = append(enumList, enum)
+			_, unqualified := atlasSplitQualifiedTableName(name)
+			unqualifiedCounts[unqualified]++
+		}
+	}
+	for _, enum := range enumList {
+		_, unqualified := atlasSplitQualifiedTableName(enum.Name)
+		if unqualifiedCounts[unqualified] == 1 {
+			enums[unqualified] = enum
 		}
 	}
 	return enums
@@ -5513,7 +5535,7 @@ func atlasNormalizeMySQLParsedUniqueKeys(dialect string, statements []ast.Node) 
 
 func txtarVirtualStateShowSQL(fx Fixture, statements []ast.Node) (string, bool) {
 	schemaName := txtarFixtureSchemaName(fx)
-	unqualified := atlasUnqualifyTableStatements(schemaName, statements)
+	unqualified := atlasUnqualifySchemaStatements(schemaName, statements)
 	out, err := renderAtlasInspectSQLWithOptions(txtarFixtureDialect(fx), unqualified, "", atlasInspectSQLOptions{
 		mariaDBJSONStorage: true,
 		showDefaultNull:    true,
@@ -5643,7 +5665,7 @@ func txtarTablesShowSQLWithPartitionChildren(
 	if txtarFixtureFamily(fx) == "postgres" {
 		return txtarPostgresTablesShowSQL(schemaName, filtered, statements, names, partitionChildren)
 	}
-	filtered = atlasUnqualifyTableStatements(schemaName, filtered)
+	filtered = atlasUnqualifySchemaStatements(schemaName, filtered)
 	out, err := renderAtlasInspectSQLWithOptions(dialect, filtered, "", atlasInspectSQLOptions{
 		mariaDBJSONStorage: true,
 		showDefaultNull:    true,
@@ -6120,11 +6142,12 @@ func txtarPostgresColumnType(column *ast.ColumnNode) string {
 func txtarPostgresColumnTypeWithEnums(schemaName string, column *ast.ColumnNode, enums map[string]*ast.EnumNode) string {
 	if column.TypeRawSQL {
 		if enumArrayType := txtarPostgresEnumArrayType(column.Type, enums); enumArrayType != "" {
-			return schemaName + "." + enumArrayType
+			base := strings.TrimSuffix(enumArrayType, "[]")
+			return txtarPostgresQualifiedTableName(schemaName, base) + "[]"
 		}
 	}
-	if _, ok := enums[atlasSQLIdentifier(column.Type)]; ok {
-		return schemaName + "." + atlasSQLIdentifier(column.Type)
+	if enum, ok := enums[atlasSQLIdentifier(column.Type)]; ok {
+		return txtarPostgresQualifiedTableName(schemaName, enum.Name)
 	}
 	return txtarPostgresColumnType(column)
 }
@@ -6187,10 +6210,11 @@ func txtarPostgresEnumArrayType(raw string, enums map[string]*ast.EnumNode) stri
 		return ""
 	}
 	base = atlasSQLIdentifier(strings.TrimSpace(base))
-	if _, ok := enums[base]; !ok {
+	enum, ok := enums[base]
+	if !ok {
 		return ""
 	}
-	return base + "[]"
+	return atlasSQLIdentifier(enum.Name) + "[]"
 }
 
 func txtarPostgresArrayTypeSize(raw, prefix string) (string, bool) {
@@ -6249,12 +6273,11 @@ func txtarPostgresDefaultSQLWithEnums(schemaName string, column *ast.ColumnNode,
 	if column.Default == nil {
 		return ""
 	}
-	if _, ok := enums[atlasSQLIdentifier(column.Type)]; ok && column.Default.Expression == "" {
+	if enum, ok := enums[atlasSQLIdentifier(column.Type)]; ok && column.Default.Expression == "" {
 		return fmt.Sprintf(
-			"%s::%s.%s",
+			"%s::%s",
 			atlasDefaultSQL("postgresql", column.Default),
-			schemaName,
-			atlasSQLIdentifier(column.Type),
+			txtarPostgresQualifiedTableName(schemaName, enum.Name),
 		)
 	}
 	return txtarPostgresDefaultSQL(column)
@@ -6735,7 +6758,7 @@ func txtarSchemaApplyOutput(fx Fixture, args txtarSchemaApplyArgs, statements []
 }
 
 func txtarSchemaApplyTenantJSONLog(fx Fixture, args txtarSchemaApplyArgs, statements []ast.Node) string {
-	unqualified := atlasUnqualifyTableStatements(args.tenant, statements)
+	unqualified := atlasUnqualifySchemaStatements(args.tenant, statements)
 	applied, err := txtarSchemaApplyTenantLogApplied(txtarFixtureDialect(fx), unqualified)
 	if err != nil {
 		return ""
@@ -7877,7 +7900,7 @@ func renderTxtarDBStateInspectHCL(fx Fixture, statements []ast.Node, excludes []
 		}
 		return out, nil
 	case "{{ sql . }}", `{{ sql . "  " }}`:
-		unqualified := atlasUnqualifyTableStatements(txtarFixtureSchemaName(fx), filtered)
+		unqualified := atlasUnqualifySchemaStatements(txtarFixtureSchemaName(fx), filtered)
 		out, err := renderAtlasInspectSQL(txtarFixtureDialect(fx), unqualified, txtarSQLFormatIndent(format))
 		if err != nil {
 			return "", fmt.Errorf("render inspect SQL: %w", err)
@@ -8318,7 +8341,7 @@ func atlasSQLExpressionHCL(expr string) string {
 
 func atlasColumnHCLType(dialect, schemaName string, column *ast.ColumnNode, domains map[string]bool, enums map[string]*ast.EnumNode) string {
 	if dialect == "postgresql" {
-		if hclType, ok := atlasPostgresEnumHCLType(column, enums); ok {
+		if hclType, ok := atlasPostgresEnumHCLType(schemaName, column, enums); ok {
 			return hclType
 		}
 		if hclType, ok := atlasPostgresDomainHCLType(schemaName, column, domains); ok {
@@ -8339,13 +8362,17 @@ func atlasColumnHCLType(dialect, schemaName string, column *ast.ColumnNode, doma
 	return atlasColumnType(dialect, typ)
 }
 
-func atlasPostgresEnumHCLType(column *ast.ColumnNode, enums map[string]*ast.EnumNode) (string, bool) {
+func atlasPostgresEnumHCLType(
+	schemaName string,
+	column *ast.ColumnNode,
+	enums map[string]*ast.EnumNode,
+) (string, bool) {
 	if column.TypeRawSQL && txtarPostgresEnumArrayType(column.Type, enums) != "" {
 		return atlasSQLExpressionHCL(column.Type), true
 	}
 	typ := column.Type
-	if _, ok := enums[atlasSQLIdentifier(typ)]; ok {
-		return "enum." + atlasHCLIdentifier(typ), true
+	if enum, ok := enums[atlasSQLIdentifier(typ)]; ok {
+		return "enum." + atlasHCLTableIdentifier(enum.Name, schemaName), true
 	}
 	return "", false
 }
@@ -8761,8 +8788,12 @@ func atlasDefaultSchemaAttrs(dialect string) atlasSchemaAttrs {
 }
 
 func renderAtlasEnumHCL(b *strings.Builder, schemaName string, enum *ast.EnumNode) {
-	fmt.Fprintf(b, "enum %q {\n", atlasHCLIdentifier(enum.Name))
-	fmt.Fprintf(b, "  schema = schema.%s\n", schemaName)
+	enumSchema, enumName := atlasSplitQualifiedTableName(enum.Name)
+	if enumSchema == "" {
+		enumSchema = schemaName
+	}
+	fmt.Fprintf(b, "enum %q {\n", atlasHCLIdentifier(enumName))
+	fmt.Fprintf(b, "  schema = schema.%s\n", enumSchema)
 	fmt.Fprintf(b, "  values = [%s]\n", atlasHCLStringList(enum.Values))
 	b.WriteString("}\n")
 }
@@ -9308,7 +9339,12 @@ func renderAtlasEnumSQL(b *strings.Builder, enum *ast.EnumNode) {
 		quotedValues = append(quotedValues, atlasSQLStringLiteral(value))
 	}
 	fmt.Fprintf(b, "-- Create enum type %q\n", atlasSQLIdentifier(enum.Name))
-	fmt.Fprintf(b, "CREATE TYPE %q AS ENUM (%s);\n", atlasSQLIdentifier(enum.Name), strings.Join(quotedValues, ", "))
+	fmt.Fprintf(
+		b,
+		"CREATE TYPE %s AS ENUM (%s);\n",
+		atlasIdentifierQuoter("postgresql")(enum.Name),
+		strings.Join(quotedValues, ", "),
+	)
 }
 
 func atlasSQLStringLiteral(value string) string {
@@ -9567,13 +9603,14 @@ func atlasColumnSQLType(dialect string, column *ast.ColumnNode, opts atlasInspec
 		return "longtext"
 	}
 	if dialect == "postgresql" {
-		if _, ok := opts.postgresEnums[atlasSQLIdentifier(column.Type)]; ok {
-			return fmt.Sprintf("%q", atlasSQLIdentifier(column.Type))
+		quote := atlasIdentifierQuoter("postgresql")
+		if enum, ok := opts.postgresEnums[atlasSQLIdentifier(column.Type)]; ok {
+			return quote(enum.Name)
 		}
 		if column.TypeRawSQL {
 			if enumArrayType := txtarPostgresEnumArrayType(column.Type, opts.postgresEnums); enumArrayType != "" {
 				base := strings.TrimSuffix(enumArrayType, "[]")
-				return fmt.Sprintf("%q[]", base)
+				return quote(base) + "[]"
 			}
 		}
 		if rawArrayType := txtarPostgresRawArrayType(column); rawArrayType != "" {
@@ -10309,7 +10346,7 @@ func txtarFilesMismatchAny(files map[string]string, left string, rights []string
 	if len(missing) == len(rights) {
 		return fmt.Sprintf("cmp %s %s did not match: %s missing", left, rights[0], rights[0])
 	}
-	return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, rights[0], oneLine(files[rights[0]]), oneLine(l))
+	return fmt.Sprintf("cmp %s %s did not match: got %q want %q", left, rights[0], oneLine(l), oneLine(files[rights[0]]))
 }
 
 func txtarVariantExpectedFiles(fx Fixture, runtime *txtarRuntime, expected string) []string {

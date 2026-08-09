@@ -145,8 +145,8 @@ github.com/zclconf/go-cty v1.19.0 h1:IV8WdqYZc2c5rLX9bEoLNXKojBAp0MZPBHMIrCoa/s4
 github.com/zclconf/go-cty v1.19.0/go.mod h1:12W89jGn3JCOIQi7infWr9m80rOkb5RNYJqXMZcN4c8=
 github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940 h1:4r45xpDWB6ZMSMNJFMOjqrGHynW3DIBuR2H9j0ug+Mo=
 github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940/go.mod h1:CmBdvvj3nqzfzJ6nTCIwDTPZ56aVGvDrmztiO5g3qrM=
-go.5x5.cz/ptah v0.2.1-0.20260809013331-39ad9b93fa20 h1:OXgX5qO5juhe2sYWx4LZuzNnb1AdrppwgUuwcvBsPu0=
-go.5x5.cz/ptah v0.2.1-0.20260809013331-39ad9b93fa20/go.mod h1:cweIt5rYMTluJ0CWXwwTOLb5u6pvGWxub8Lm3WCJSsc=
+go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550 h1:YMML6nGCZPtz7W+VpOH4CX5af+mFVz2OocaPwaoz6S8=
+go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550/go.mod h1:cweIt5rYMTluJ0CWXwwTOLb5u6pvGWxub8Lm3WCJSsc=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/otel v1.45.0 h1:pdrWmLHofpubmArBv1LgFSv1Z0Ie/ppdZzu+kUN5EeU=

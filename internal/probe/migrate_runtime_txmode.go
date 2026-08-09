@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 )
 
 const (
@@ -105,7 +106,7 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 				Type:            2,
 				Applied:         1,
 				Total:           2,
-				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
 				OperatorVersion: "Ptah",
 			},
 		},
@@ -825,7 +826,7 @@ func fileTxModeSplitFileUpOracle(ptahBin, atlasBin string) Result {
 			Type:            2,
 			Applied:         1,
 			Total:           2,
-			ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1)",
+			ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
 			OperatorVersion: "Ptah",
 		},
 	}
@@ -1054,7 +1055,9 @@ THIS IS A TXMODE DOWN FAILURE;
 	if detail := compareSuccessfulFileTxModeSelection(ptahUp, wantUpTables, []string{"1"}); detail != "" {
 		return fileTxModeGap(fixture, "ptah-up", detail)
 	}
+	downStartedAt := time.Now()
 	ptahDown, err := ptah.down("0")
+	downFinishedAt := time.Now()
 	if err != nil {
 		return fileTxModeFailure(fixture, "ptah-down", err)
 	}
@@ -1065,11 +1068,33 @@ THIS IS A TXMODE DOWN FAILURE;
 	if !slices.Equal(ptahDown.Tables, wantDownTables) {
 		return fileTxModeGap(fixture, "ptah-down-state", fmt.Sprintf("Ptah tables = %v, want %v", ptahDown.Tables, wantDownTables))
 	}
-	if detail := comparePreservedFileTxModeRevisions(ptahUp, ptahDown); detail != "" {
-		return fileTxModeGap(fixture, "ptah-down-state", detail)
+	if err := validateFailedDownRevisionTransition(
+		ptahUp.Revisions,
+		ptahDown.Revisions,
+		failedDownRevisionExpectation{
+			version:             "1",
+			baselineDescription: "txtar",
+			baselineTotal:       2,
+			baselineHash: atlasMetadataChainedEntryHash(
+				atlasMetadataHashInput{name: "1_txtar.sql", contents: []byte(migration)},
+			),
+			applied:        1,
+			total:          2,
+			errorFragment:  "syntax error",
+			errorStatement: "THIS IS A TXMODE DOWN FAILURE;",
+			partialHashes: []string{
+				failedDownStatementHash("DROP TABLE txtar_down_second;"),
+			},
+			window: projectConfigApplyWindow{
+				startedAt:  downStartedAt,
+				finishedAt: downFinishedAt,
+			},
+		},
+	); err != nil {
+		return fileTxModeGap(fixture, "ptah-down-state", err.Error())
 	}
-	return Result{migrateRuntimeProbeName, fixture, "ptah-control", OK,
-		"Ptah-side live evidence proved migration.sql=file and down.sql=none remain independent: the successful first down statement persisted, the failing statement stopped execution, and stable revision metadata remained unchanged", ""}
+	return Result{migrateRuntimeProbeName, fixture, "ptah-better", OK,
+		"Ptah-side live evidence proved migration.sql=file and down.sql=none remain independent: the successful first down statement persisted, the failing statement stopped execution, and the revision retained 1/2 rollback progress, its partial hash, failure, and down direction for repair", ""}
 }
 
 func requireFileTxModeCEDownBoundary(observation fileTxModeObservation) string {

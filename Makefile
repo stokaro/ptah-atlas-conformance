@@ -106,22 +106,21 @@ budget-orm-providers: probe-orm-providers
 gate-orm-providers:
 	$(GO_OFF) run ./cmd/gap-probe-orm-providers -gate
 
-# The CLI surface tier: build/read the pinned Atlas CE binary and compare its
-# command help/usage/flag inventory to the ptah-compat binary named `atlas` —
-# the single Atlas-shaped surface since stokaro/ptah#850 removed the
-# `ptah atlas ...` namespace. Regenerates cli-surface.md / cli-surface.json and
-# always exits 0.
+# The CLI surface tier: build/read the pinned Atlas CE binary, compare its
+# command help/usage/flag inventory to the ptah-compat binary named `atlas`,
+# and separately require the public documented Pro-only flags. Regenerates
+# cli-surface.md / cli-surface.json and always exits 0.
 probe-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe
 
 # CI progress gate for the CLI surface tier: fail only when the current
-# CLI-surface report exceeds the committed budget. Corpus help/flag parity is
+# CLI-surface report exceeds the committed budget. Full help/flag parity is
 # still `make gate-cli-surface`.
 budget-cli-surface: probe-cli-surface
 	$(GO_OFF) run ./cmd/gap-budget -report cli-surface.json -budget cli-surface-budget.txt
 
-# The full CLI surface gate: fail while any committed Atlas CE OSS command,
-# usage string, or long flag is not mirrored by the ptah-compat binary.
+# The full CLI surface gate: fail while any Atlas CE OSS command, usage string,
+# CE long flag, or public documented Pro-only flag is missing from ptah-compat.
 gate-cli-surface:
 	$(GO_OFF) run ./cmd/cli-surface-probe -gate
 

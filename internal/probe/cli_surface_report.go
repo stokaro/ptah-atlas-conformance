@@ -24,15 +24,17 @@ func RenderCLISurfaceMarkdown(results []Result, w *Waivers, inventory CLISurface
 	b.WriteString("The Atlas CE inventory is discovery-only. Rows under `ptah-non-oss-sentinel`\n")
 	b.WriteString("are separately labeled first-party Ptah policy checks for Pro/Cloud paths; they\n")
 	b.WriteString("are not Atlas OSS parity evidence. The CE side of those sentinels is measured in\n")
-	b.WriteString("the dedicated CE-gating report.\n\n")
+	b.WriteString("the dedicated CE-gating report. Rows under `atlas-cli-pro-surface-ptah-compat`\n")
+	b.WriteString("separately require the long flags documented by the public Atlas CLI Reference\n")
+	b.WriteString("but absent from CE help, so CE parity cannot hide missing full-distribution surface.\n\n")
 
 	if len(nonOK) == 0 {
-		b.WriteString("## Status: OSS CLI SURFACE PARITY\n\n")
-		b.WriteString("Every discovered OSS Atlas CE command has matching Ptah help usage and flags.\n\n")
+		b.WriteString("## Status: CLI SURFACE PARITY\n\n")
+		b.WriteString("Every discovered OSS Atlas CE command and documented Pro-surface flag is present.\n\n")
 	} else {
 		fmt.Fprintf(&b, "## Status: NOT DONE — %d non-OK observation(s)\n\n", len(nonOK))
 		b.WriteString("The full CLI-surface gate is red until Ptah's drop-in compatibility binary\n")
-		b.WriteString("matches the pinned Atlas CE help surface.\n\n")
+		b.WriteString("matches the pinned Atlas CE help surface and documented Pro-surface flags.\n\n")
 	}
 
 	fmt.Fprintf(&b, "- Atlas CE binary: `%s`\n", inventory.AtlasVersion)

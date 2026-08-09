@@ -1,10 +1,14 @@
 package probe
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -203,27 +207,50 @@ func atlasMigrateLintSupportsGooseDirFormat(bin string) Result {
 		return atlasMetadataRuntimeFail(fixture, "setup", err)
 	}
 	defer cleanup()
-	if result := prepareGooseMetadataMigration(bin, migrations, fixture); result != nil {
+	if result := prepareGooseLintMigrations(bin, migrations, fixture); result != nil {
 		return *result
 	}
 
-	output, err := commandOutput(bin, []string{
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "lint",
 		"--latest", "1",
 		"--dir", fileURL(migrations),
 		"--dir-format", "goose",
 		"--dev-url", "sqlite://" + filepath.Join(root, "lint-dev.db"),
-	})
-	if err != nil {
-		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
-	}
-	if !strings.Contains(output, "no diagnostics found") || !strings.Contains(output, "1 version ok") {
+	}, "")
+	var exitErr *exec.ExitError
+	switch {
+	case err == nil:
 		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
-			"`atlas migrate lint --dir-format goose` did not analyze the Goose migration: " + oneLine(output),
+			"`atlas migrate lint --dir-format goose` exited 0 despite the destructive diagnostic",
+			"stokaro/ptah#622"}
+	case !errors.As(err, &exitErr):
+		return atlasMetadataRuntimeFail(fixture, "execute", err)
+	case exitErr.ExitCode() != 1:
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			fmt.Sprintf("`atlas migrate lint --dir-format goose` exited %d, want 1: %s", exitErr.ExitCode(), oneLine(stdout+stderr)),
 			"stokaro/ptah#622"}
 	}
+	if stderr != "" {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`atlas migrate lint --dir-format goose` wrote unexpected stderr: " + oneLine(stderr),
+			"stokaro/ptah#622"}
+	}
+	for _, fragment := range []string{
+		"Analyzing changes from version " + atlasMetadataMigrationVersion + " to " + atlasMetadataLintVersion,
+		`Dropping table "users"`,
+		"1 version with errors",
+		"1 diagnostic",
+	} {
+		if !strings.Contains(stdout, fragment) {
+			return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+				"`atlas migrate lint --dir-format goose` did not report the semantic Goose control " +
+					fmt.Sprintf("%q: %s", fragment, oneLine(stdout)),
+				"stokaro/ptah#622"}
+		}
+	}
 	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
-		"`atlas migrate lint --dir-format goose` hashed, loaded, replayed, and analyzed the Goose migration", ""}
+		"`atlas migrate lint --dir-format goose` replayed the first Goose Up section as a baseline, analyzed the destructive second Up section, ignored its invalid Down section, and exited 1 with the expected diagnostic", ""}
 }
 
 func atlasMigrateNewSupportsGooseDirFormat(bin string) Result {
@@ -235,29 +262,35 @@ func atlasMigrateNewSupportsGooseDirFormat(bin string) Result {
 	}
 	defer cleanup()
 
-	output, err := commandOutput(bin, []string{
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "new", "init",
 		"--dir", fileURL(migrations),
 		"--dir-format", "goose",
-	})
+	}, "")
 	if err != nil {
-		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+		return atlasMetadataRuntimeExit(fixture, "execute", stdout+stderr, err)
+	}
+	if stderr != "" {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`atlas migrate new --dir-format goose` wrote unexpected stderr: " + oneLine(stderr),
+			"stokaro/ptah#622"}
 	}
 	entries, err := os.ReadDir(migrations)
 	if err != nil {
 		return atlasMetadataRuntimeFail(fixture, "files", err)
 	}
-	var migrationPath string
+	var migrationPaths []string
 	for _, entry := range entries {
 		if strings.HasSuffix(entry.Name(), "_init.sql") {
-			migrationPath = filepath.Join(migrations, entry.Name())
+			migrationPaths = append(migrationPaths, filepath.Join(migrations, entry.Name()))
 		}
 	}
-	if migrationPath == "" {
+	if len(migrationPaths) != 1 {
 		return Result{"atlas-cli-metadata-runtime", fixture, "files", Gap,
-			"`atlas migrate new --dir-format goose` did not write the Goose migration file", "stokaro/ptah#622"}
+			fmt.Sprintf("`atlas migrate new --dir-format goose` wrote %d matching migration files, want exactly 1", len(migrationPaths)),
+			"stokaro/ptah#622"}
 	}
-	data, err := os.ReadFile(migrationPath)
+	data, err := os.ReadFile(migrationPaths[0])
 	if err != nil {
 		return atlasMetadataRuntimeFail(fixture, "files", err)
 	}
@@ -266,11 +299,13 @@ func atlasMigrateNewSupportsGooseDirFormat(bin string) Result {
 			"`atlas migrate new --dir-format goose` wrote the wrong skeleton: " + oneLine(string(data)),
 			"stokaro/ptah#622"}
 	}
-	if _, err := os.Stat(filepath.Join(migrations, "atlas.sum")); err != nil {
-		return atlasMetadataRuntimeFail(fixture, "files", err)
+	if err := validateAtlasMetadataSum(migrations, migrationPaths[0]); err != nil {
+		return Result{"atlas-cli-metadata-runtime", fixture, "files", Gap,
+			"`atlas migrate new --dir-format goose` wrote an invalid atlas.sum: " + oneLine(err.Error()),
+			"stokaro/ptah#622"}
 	}
 	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
-		"`atlas migrate new --dir-format goose` writes Atlas's Goose skeleton and refreshes atlas.sum", ""}
+		"`atlas migrate new --dir-format goose` writes exactly one Goose skeleton and an atlas.sum that independently verifies against it", ""}
 }
 
 func atlasMigrateSetSupportsGooseDirFormat(bin string) Result {
@@ -285,23 +320,34 @@ func atlasMigrateSetSupportsGooseDirFormat(bin string) Result {
 		return *result
 	}
 
-	output, err := commandOutput(bin, []string{
+	dbPath := filepath.Join(root, "set-goose.db")
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "set",
-		"--url", "sqlite://" + filepath.Join(root, "set-goose.db"),
+		"--url", "sqlite://" + dbPath,
 		atlasMetadataMigrationVersion,
 		"--dir", fileURL(migrations),
 		"--dir-format", "goose",
-	})
+	}, "")
 	if err != nil {
-		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+		return atlasMetadataRuntimeExit(fixture, "execute", stdout+stderr, err)
 	}
-	if !strings.Contains(output, "Current version is "+atlasMetadataMigrationVersion) || !strings.Contains(output, "(init)") {
+	if stderr != "" {
 		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
-			"`atlas migrate set --dir-format goose` did not record the Goose revision: " + oneLine(output),
+			"`atlas migrate set --dir-format goose` wrote unexpected stderr: " + oneLine(stderr),
+			"stokaro/ptah#622"}
+	}
+	if !strings.Contains(stdout, "Current version is "+atlasMetadataMigrationVersion) || !strings.Contains(stdout, "(init)") {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`atlas migrate set --dir-format goose` did not report the selected Goose revision: " + oneLine(stdout),
+			"stokaro/ptah#622"}
+	}
+	if err := validateGooseSetDatabase(dbPath); err != nil {
+		return Result{"atlas-cli-metadata-runtime", fixture, "database", Gap,
+			"`atlas migrate set --dir-format goose` did not persist the selected revision exactly: " + err.Error(),
 			"stokaro/ptah#622"}
 	}
 	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
-		"`atlas migrate set --dir-format goose` records the selected Goose revision with Atlas metadata", ""}
+		"`atlas migrate set --dir-format goose` records exactly one selected Goose revision with version, description, zero progress, and operator metadata without applying the migration SQL", ""}
 }
 
 func atlasMigrateStatusSupportsGooseDirFormat(bin string) Result {
@@ -316,19 +362,24 @@ func atlasMigrateStatusSupportsGooseDirFormat(bin string) Result {
 		return *result
 	}
 
-	output, err := commandOutput(bin, []string{
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "status",
 		"--url", "sqlite://" + filepath.Join(root, "status-goose.db"),
 		"--dir", fileURL(migrations),
 		"--dir-format", "goose",
-	})
+	}, "")
 	if err != nil {
-		return atlasMetadataRuntimeExit(fixture, "execute", output, err)
+		return atlasMetadataRuntimeExit(fixture, "execute", stdout+stderr, err)
 	}
-	if !strings.Contains(output, "-- Next Version:    "+atlasMetadataMigrationVersion) ||
-		!strings.Contains(output, "-- Pending Files:   1") {
+	if stderr != "" {
 		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
-			"`atlas migrate status --dir-format goose` did not report the Goose migration as pending: " + oneLine(output),
+			"`atlas migrate status --dir-format goose` wrote unexpected stderr: " + oneLine(stderr),
+			"stokaro/ptah#622"}
+	}
+	if !strings.Contains(stdout, "-- Next Version:    "+atlasMetadataMigrationVersion) ||
+		!strings.Contains(stdout, "-- Pending Files:   1") {
+		return Result{"atlas-cli-metadata-runtime", fixture, "execute", Gap,
+			"`atlas migrate status --dir-format goose` did not report the Goose migration as pending: " + oneLine(stdout),
 			"stokaro/ptah#622"}
 	}
 	return Result{"atlas-cli-metadata-runtime", fixture, "execute", OK,
@@ -381,19 +432,40 @@ func prepareGooseMetadataMigration(bin, migrations, fixture string) *Result {
 		result := atlasMetadataRuntimeFail(fixture, "setup", err)
 		return &result
 	}
-	output, err := commandOutput(bin, []string{
+	return hashGooseMetadataMigrations(bin, migrations, fixture)
+}
+
+func prepareGooseLintMigrations(bin, migrations, fixture string) *Result {
+	if err := writeGooseLintMigrations(migrations); err != nil {
+		result := atlasMetadataRuntimeFail(fixture, "setup", err)
+		return &result
+	}
+	return hashGooseMetadataMigrations(bin, migrations, fixture)
+}
+
+func hashGooseMetadataMigrations(bin, migrations, fixture string) *Result {
+	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "hash",
 		"--dir", fileURL(migrations),
 		"--dir-format", "goose",
-	})
+	}, "")
 	if err != nil {
-		result := atlasMetadataRuntimeExit(fixture, "setup", output, err)
+		result := atlasMetadataRuntimeExit(fixture, "setup", stdout+stderr, err)
+		return &result
+	}
+	if stdout != "" || stderr != "" {
+		result := Result{"atlas-cli-metadata-runtime", fixture, "setup", Gap,
+			fmt.Sprintf("`atlas migrate hash --dir-format goose` was not silent: stdout=%q stderr=%q", oneLine(stdout), oneLine(stderr)),
+			"stokaro/ptah#622"}
 		return &result
 	}
 	return nil
 }
 
-const atlasMetadataMigrationVersion = "20240101000000"
+const (
+	atlasMetadataMigrationVersion = "20240101000000"
+	atlasMetadataLintVersion      = "20240102000000"
+)
 
 func writeAtlasMigration(migrations string) error {
 	return os.WriteFile(
@@ -409,6 +481,107 @@ func writeGooseMetadataMigration(migrations string) error {
 		[]byte("-- +goose Up\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n\n-- +goose Down\nDROP TABLE users;\n"),
 		0o600,
 	)
+}
+
+func writeGooseLintMigrations(migrations string) error {
+	if err := writeGooseMetadataMigration(migrations); err != nil {
+		return err
+	}
+	return os.WriteFile(
+		filepath.Join(migrations, atlasMetadataLintVersion+"_drop.sql"),
+		[]byte("-- +goose Up\nDROP TABLE users;\n\n-- +goose Down\nTHIS IS NOT VALID SQL;\n"),
+		0o600,
+	)
+}
+
+func validateAtlasMetadataSum(migrations, migrationPath string) error {
+	migrationName := filepath.Base(migrationPath)
+	entries, err := os.ReadDir(migrations)
+	if err != nil {
+		return err
+	}
+	names := make([]string, len(entries))
+	for i, entry := range entries {
+		names[i] = entry.Name()
+	}
+	wantNames := []string{migrationName, "atlas.sum"}
+	slices.Sort(wantNames)
+	if !slices.Equal(names, wantNames) {
+		return fmt.Errorf("directory entries = %v, want %v", names, wantNames)
+	}
+
+	migration, err := os.ReadFile(migrationPath)
+	if err != nil {
+		return err
+	}
+	expected := atlasMetadataSingleFileSum(migrationName, migration)
+	actual, err := os.ReadFile(filepath.Join(migrations, "atlas.sum"))
+	if err != nil {
+		return err
+	}
+	if !slices.Equal(actual, expected) {
+		return fmt.Errorf("atlas.sum bytes = %q, want %q", string(actual), string(expected))
+	}
+	return nil
+}
+
+// atlasMetadataSingleFileSum independently renders the two-level chained hash
+// for one migration. It intentionally does not call Ptah's checksum packages:
+// this probe must detect product regressions rather than reproduce them.
+func atlasMetadataSingleFileSum(name string, contents []byte) []byte {
+	entryDigestText := atlasMetadataChainedEntryHash(atlasMetadataHashInput{name: name, contents: contents})
+
+	directoryHasher := sha256.New()
+	_, _ = directoryHasher.Write([]byte(name))
+	_, _ = directoryHasher.Write([]byte(entryDigestText))
+	directoryDigestText := base64.StdEncoding.EncodeToString(directoryHasher.Sum(nil))
+
+	return fmt.Appendf(nil, "h1:%s\n%s h1:%s\n", directoryDigestText, name, entryDigestText)
+}
+
+type atlasMetadataHashInput struct {
+	name     string
+	contents []byte
+}
+
+func atlasMetadataChainedEntryHash(files ...atlasMetadataHashInput) string {
+	hasher := sha256.New()
+	for _, file := range files {
+		_, _ = hasher.Write([]byte(file.name))
+		_, _ = hasher.Write(file.contents)
+	}
+	return base64.StdEncoding.EncodeToString(hasher.Sum(nil))
+}
+
+func validateGooseSetDatabase(path string) error {
+	db, err := openSQLiteRuntimeDB(path)
+	if err != nil {
+		return fmt.Errorf("open database: %w", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	tables, err := sqliteTableNames(db)
+	if err != nil {
+		return fmt.Errorf("inspect tables: %w", err)
+	}
+	if !slices.Equal(tables, []string{"atlas_schema_revisions"}) {
+		return fmt.Errorf("tables = %v, want only atlas_schema_revisions", tables)
+	}
+	revisions, err := sqliteRevisionFacts(db)
+	if err != nil {
+		return fmt.Errorf("inspect revisions: %w", err)
+	}
+	want := []sqliteRevisionFact{{
+		Version:         atlasMetadataMigrationVersion,
+		Description:     "init",
+		Applied:         0,
+		Total:           0,
+		OperatorVersion: "Ptah",
+	}}
+	if !slices.Equal(revisions, want) {
+		return fmt.Errorf("revision rows = %+v, want %+v", revisions, want)
+	}
+	return nil
 }
 
 func atlasMigrationDirLooksNativeAtlas(root, migrations string) (bool, string) {

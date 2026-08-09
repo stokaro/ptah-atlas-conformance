@@ -294,29 +294,15 @@ func TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution(t *testing.T) {
 }
 
 func TestAtlasCLIMetadataRuntimeProbeAcceptsAtlasDefaults(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("fake executable uses a POSIX shell script")
-	}
-
-	dir := t.TempDir()
-	bin := filepath.Join(dir, "ptah")
-	writeTestFile(t, bin, fakeMetadataRuntimeScript())
-	if err := os.Chmod(bin, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	setFakePtahCLIBinaries(t, bin)
+	c := qt.New(t)
 
 	results := AtlasCLIMetadataRuntimeProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 11 {
-		t.Fatalf("expected 11 results, got %d: %#v", len(results), results)
-	}
-	for _, r := range results {
-		if r.Probe != "atlas-cli-metadata-runtime" {
-			t.Fatalf("unexpected probe name: %#v", r)
-		}
-		if r.Outcome != OK {
-			t.Fatalf("expected metadata runtime OK, got %#v", r)
-		}
+
+	c.Assert(results, qt.HasLen, 11)
+	for _, result := range results {
+		c.Check(result.Probe, qt.Equals, "atlas-cli-metadata-runtime")
+		c.Check(result.Outcome, qt.Equals, OK,
+			qt.Commentf("%s/%s: %s", result.Fixture, result.Stage, result.Detail))
 	}
 }
 
@@ -604,66 +590,6 @@ case "$*" in
     printf 'schema "main" {}\n' > a_schema.hcl
     printf 'schema "nested" {}\n' > nested/z_schema.hcl
     printf 'a_schema.hcl\nnested/z_schema.hcl\n'
-    ;;
-  *)
-    printf 'unsupported %s\n' "$*" >&2
-    exit 1
-    ;;
-esac
-`
-}
-
-func fakeMetadataRuntimeScript() string {
-	return `#!/bin/sh
-case "$*" in
-  "migrate hash --dir file://"*" --dir-format goose")
-    dir=${4#file://}
-    printf 'h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n20240101000000_init.sql h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n' > "$dir/atlas.sum"
-    printf 'Wrote %s/atlas.sum\n1 migration file(s) hashed\n' "$dir"
-    ;;
-  "migrate validate --dir file://"*" --dir-format goose")
-    ;;
-  "migrate lint --latest 1 --dir file://"*" --dir-format goose --dev-url sqlite://"*)
-    printf 'Analyzing changes until version 20240101000000 (1 migration in total):\n\n  -- analyzing version 20240101000000\n    -- no diagnostics found\n  -- ok\n\n  -- 1 version ok\n'
-    ;;
-  "migrate new init --dir file://"*" --dir-format goose")
-    dir=${5#file://}
-    printf '%s\n\n%s\n' '-- +goose Up' '-- +goose Down' > "$dir/20240101000000_init.sql"
-    printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
-    ;;
-  "migrate set --url sqlite://"*" 20240101000000 --dir file://"*" --dir-format goose")
-    printf 'Current version is 20240101000000 (1 set):\n\n  + 20240101000000 (init)\n'
-    ;;
-  "migrate status --url sqlite://"*" --dir file://"*" --dir-format goose")
-    printf 'Migration Status: PENDING\n  -- Current Version: No migration applied yet\n  -- Next Version:    20240101000000\n  -- Executed Files:  0\n  -- Pending Files:   1\n'
-    ;;
-  "migrate new init --dir file://"*)
-    dir=${5#file://}
-    mkdir -p "$dir"
-    printf 'CREATE TABLE users (id INTEGER PRIMARY KEY);\n' > "$dir/20240101000000_init.sql"
-    printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
-    printf 'Generated empty migration file:\nSQL:  %s/20240101000000_init.sql\n' "$dir"
-    ;;
-  "migrate apply --url sqlite://"*" --dir file://"*" --revisions-schema main")
-    printf 'Migrating to version 20240101000000 from 1 pending migrations.\nMigration complete. Current version: 20240101000000\n'
-    ;;
-  "migrate set --url sqlite://"*" --dir file://"*" --revisions-schema main 20240101000000")
-    printf 'Repaired migration 20240101000000\n'
-    ;;
-  "migrate status --url sqlite://"*" --dir file://"*" --revisions-schema main")
-    printf 'Migration Status: PENDING\n  -- Current Version: No migration applied yet\n  -- Next Version:    20240101000000\n  -- Executed Files:  0\n  -- Pending Files:   1\n'
-    ;;
-  "migrate hash --dir file://"*)
-    dir=${4#file://}
-    printf 'h1:test\n20240101000000_init.sql h1:test\n' > "$dir/atlas.sum"
-    printf 'Wrote %s/atlas.sum\n1 migration file(s) hashed\n' "$dir"
-    ;;
-  "migrate status --url sqlite://"*" --dir file://"*)
-    printf 'Migration Status: PENDING\n  -- Current Version: No migration applied yet\n  -- Next Version:    20240101000000\n  -- Executed Files:  0\n  -- Pending Files:   1\n'
-    ;;
-  "migrate apply --dir-format atlas --help")
-    printf 'Error: unknown flag: --dir-format\n' >&2
-    exit 1
     ;;
   *)
     printf 'unsupported %s\n' "$*" >&2
@@ -2059,15 +1985,15 @@ func TestTxtarScriptProbeCmpToleratesOnlyFinalNewline(t *testing.T) {
 	}
 }
 
-func TestTxtarFilesMismatchLabelsActualAndExpected(t *testing.T) {
+func TestTxtarFilesMismatchLabelsCallerActualAndExpected(t *testing.T) {
 	c := qt.New(t)
 	files := map[string]string{
 		"expected.sql": "expected contents\n",
 		"actual.sql":   "actual contents\n",
 	}
 
-	got := txtarFilesMismatch(files, "expected.sql", "actual.sql")
-	c.Assert(got, qt.Equals, `cmp expected.sql actual.sql did not match: got "actual contents" want "expected contents"`)
+	got := txtarFilesMismatch(files, "actual.sql", "expected.sql")
+	c.Assert(got, qt.Equals, `cmp actual.sql expected.sql did not match: got "actual contents" want "expected contents"`)
 }
 
 func TestTxtarScriptProbeKeepsUnsupportedSchemaInspectHCLAsGap(t *testing.T) {

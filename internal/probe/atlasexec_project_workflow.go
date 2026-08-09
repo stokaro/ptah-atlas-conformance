@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -25,10 +26,10 @@ const (
 	atlasExecReportFormat  = "{{ json . }}"
 )
 
-// AtlasExecProjectWorkflowProbe executes the vendored Atlas v1.3.0 atlasexec
-// SQLite project fixtures. Each fixture is copied to scratch before the real
-// ptah-compat binary runs, preserving its atlas.hcl, migration files, and
-// checksums byte-for-byte in the corpus.
+// AtlasExecProjectWorkflowProbe executes the vendored atlasexec SQLite project
+// fixtures from the pinned fixture snapshot. Each fixture is copied to scratch
+// before the real ptah-compat binary runs, preserving its atlas.hcl, migration
+// files, and checksums byte-for-byte in the corpus.
 type AtlasExecProjectWorkflowProbe struct {
 	// Binary overrides the go.mod-pinned ptah-compat build for focused tests.
 	Binary string
@@ -103,7 +104,7 @@ func (w *atlasExecVersionedBasicWorkflow) run() Result {
 	return w.ok(
 		w.fixture,
 		"workflow",
-		"the untouched Atlas v1.3.0 versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct",
+		"the pinned versioned-basic project reported one pending migration, applied version 20240112070806 once, and returned an empty Applied result on the second apply; live SQLite state and Atlas revision state remained correct",
 	)
 }
 
@@ -246,7 +247,7 @@ func (w *atlasExecMultiTenantsWorkflow) run() Result {
 	return w.ok(
 		w.fixture,
 		"workflow",
-		"the untouched Atlas v1.3.0 multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture",
+		"the pinned multi-tenants project produced two ordered reports per apply: amount 1 migrated both databases, the UNIQUE migration completed only for bar, and retry left bar a no-op while retrying foo; both live SQLite end states matched the atlasexec fixture",
 	)
 }
 
@@ -434,6 +435,13 @@ func validateAtlasExecStreams(result ptahCommandResult, reportCount int) error {
 		if strings.TrimSpace(report) != report {
 			return fmt.Errorf("stdout JSON report %d has separator-adjacent whitespace", i+1)
 		}
+		var compact bytes.Buffer
+		if err := json.Compact(&compact, []byte(report)); err != nil {
+			return fmt.Errorf("stdout JSON report %d is invalid: %w", i+1, err)
+		}
+		if compact.String() != report {
+			return fmt.Errorf("stdout JSON report %d is not compact", i+1)
+		}
 	}
 	return nil
 }
@@ -616,15 +624,16 @@ func validateAtlasExecTenantState(path string, want atlasExecTenantState) error 
 		return fmt.Errorf("t1 row count = %d, want %d", rows, want.rows)
 	}
 
-	var indexes int
-	if err := db.QueryRowContext(
-		context.Background(),
-		"SELECT count(*) FROM sqlite_schema WHERE type = 'index' AND name = 'c1_unique'",
-	).Scan(&indexes); err != nil {
-		return fmt.Errorf("inspect c1_unique: %w", err)
+	indexFacts, err := sqliteIndexStructureFacts(context.Background(), db, "t1")
+	if err != nil {
+		return fmt.Errorf("inspect t1 indexes: %w", err)
 	}
-	if got := indexes == 1; got != want.uniqueIndex {
-		return fmt.Errorf("c1_unique present = %t, want %t", got, want.uniqueIndex)
+	var wantIndexFacts []string
+	if want.uniqueIndex {
+		wantIndexFacts = []string{"table t1 index c1_unique unique=1 columns=c1"}
+	}
+	if !slices.Equal(indexFacts, wantIndexFacts) {
+		return fmt.Errorf("t1 index structure = %v, want %v", indexFacts, wantIndexFacts)
 	}
 
 	revisions, err := sqliteRevisionFacts(db)

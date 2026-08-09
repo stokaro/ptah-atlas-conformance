@@ -341,7 +341,7 @@ func indexFactSignature(idx goschema.Index, cols string) string {
 
 func indexFactCoreSignature(idx goschema.Index, cols string) string {
 	sig := "columns=" + cols
-	if typ := normIdent(idx.Type); typ != "" {
+	if typ := normIndexType(idx.Type); typ != "" {
 		sig += " type=" + typ
 	}
 	if parser := normIdent(idx.Parser); parser != "" {
@@ -354,6 +354,18 @@ func indexFactCoreSignature(idx goschema.Index, cols string) string {
 		sig += " where=" + condition
 	}
 	return sig
+}
+
+// normIndexType folds the default B-tree access method into the omitted form.
+// Schema inspectors may either preserve the catalog's explicit `btree` value
+// or omit it as the engine default; those representations describe the same
+// index. Non-default methods remain part of the differential fact signature.
+func normIndexType(raw string) string {
+	typ := normIdent(raw)
+	if typ == "btree" {
+		return ""
+	}
+	return typ
 }
 
 func nullsDistinctSignature(value *bool) string {
