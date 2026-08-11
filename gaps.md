@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260811192102-605247b23750`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260811221224-fc305da5ae35`
 - Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived

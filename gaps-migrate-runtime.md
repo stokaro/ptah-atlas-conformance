@@ -14,7 +14,7 @@ The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles pinned by atlas.version
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260811192102-605247b23750`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260811221224-fc305da5ae35`
 - Outcomes: **95 ok**, **1 gap**, **0 fail**, **0 panic**
 - Full gate: **1 non-OK** (fails CI)
 - Regression budget input: **1 unwaived non-OK**, 0 waived
