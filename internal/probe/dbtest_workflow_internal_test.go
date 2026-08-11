@@ -27,6 +27,30 @@ func TestPtahCommandEnvironment_StripsPtahVariables(t *testing.T) {
 	c.Assert(environment, qt.Contains, "DBTEST_KEEP=present")
 }
 
+func TestPtahStrictCECommandEnvironmentAddsOnlyTheStrictSelector(t *testing.T) {
+	t.Setenv("PTAH_DB_URL", "sqlite://must-not-escape")
+	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "false")
+	c := qt.New(t)
+
+	environment := ptahStrictCECommandEnvironment()
+
+	c.Assert(environment, qt.Not(qt.Contains), "PTAH_DB_URL=sqlite://must-not-escape")
+	c.Assert(environment, qt.Not(qt.Contains), "PTAH_ATLAS_STRICT_COMPAT=false")
+	c.Assert(environment, qt.Contains, "PTAH_ATLAS_STRICT_COMPAT=1")
+}
+
+func TestAtlasVerbFlagEnvironmentKeepsFullCapabilitiesSeparate(t *testing.T) {
+	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "true")
+	c := qt.New(t)
+
+	strictEnvironment := atlasVerbFlagEnvironment(atlasVerbFlagStrictCE)
+	fullEnvironment := atlasVerbFlagEnvironment(atlasVerbFlagFullCompatibility)
+
+	c.Assert(strictEnvironment, qt.Contains, "PTAH_ATLAS_STRICT_COMPAT=1")
+	c.Assert(fullEnvironment, qt.Not(qt.Contains), "PTAH_ATLAS_STRICT_COMPAT=true")
+	c.Assert(fullEnvironment, qt.Not(qt.Contains), "PTAH_ATLAS_STRICT_COMPAT=1")
+}
+
 func TestDBTestWorkflowSetupChecks_RejectPanicWithExpectedExitAndFragments(t *testing.T) {
 	c := qt.New(t)
 	dir := t.TempDir()

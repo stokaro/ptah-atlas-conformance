@@ -6,8 +6,11 @@ import (
 	"strings"
 )
 
-// AtlasCLISchemaCleanRuntimeProbe measures non-trivial `atlas schema clean`
-// behavior that help-output flag checks cannot prove.
+// AtlasCLISchemaCleanRuntimeProbe measures schema-clean dry-run and format
+// behavior that help-output flag checks cannot prove. These invocations use the
+// full compatibility surface: strict CE mode reproduces the community abort
+// for these gated runtime combinations, while this probe prevents that strict
+// boundary from erasing the open capability.
 type AtlasCLISchemaCleanRuntimeProbe struct{}
 
 func (AtlasCLISchemaCleanRuntimeProbe) Name() string { return "atlas-cli-schema-clean-runtime" }

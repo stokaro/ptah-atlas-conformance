@@ -368,6 +368,7 @@ type cliExitSurface struct {
 	label  string
 	binary func() (string, error)
 	prefix []string // prepended to the Atlas-form args
+	env    []string
 }
 
 func cliExitSurfaces() []cliExitSurface {
@@ -375,7 +376,12 @@ func cliExitSurfaces() []cliExitSurface {
 	// surface; the main `ptah` binary rejects the `atlas` namespace, which the
 	// namespace-removal check below pins.
 	return []cliExitSurface{
-		{label: "ptah-compat", binary: ptahCompatAtlasBinary, prefix: nil},
+		{
+			label:  "ptah-compat",
+			binary: ptahCompatAtlasBinary,
+			prefix: nil,
+			env:    ptahStrictCECommandEnvironment(),
+		},
 	}
 }
 
@@ -466,11 +472,11 @@ func runCompatPlanFlagImplementedCheck() Result {
 				int(exitFail), res.exit, streamChoice(res.stdout, res.stderr)), "stokaro/ptah#965"}
 	case strings.Contains(res.stderr, "does not implement"):
 		return Result{cliExitProbeName, compatPlanFlagFixture, "content", Gap,
-			"`schema apply --plan` regressed to accepted-but-unimplemented; stokaro/ptah#965 shipped it as an open capability: "+
+			"`schema apply --plan` regressed to accepted-but-unimplemented; stokaro/ptah#965 shipped it as an open capability: " +
 				oneLine(res.stderr), "stokaro/ptah#965"}
 	case !strings.Contains(res.stderr, "read plan file"):
 		return Result{cliExitProbeName, compatPlanFlagFixture, "content", Gap,
-			"`schema apply --plan` did not reach reading the plan file, so the flag is not being executed: "+
+			"`schema apply --plan` did not reach reading the plan file, so the flag is not being executed: " +
 				oneLine(res.stderr), "stokaro/ptah#965"}
 	}
 	// The detail names no Atlas release on purpose: what is asserted is the
@@ -548,7 +554,7 @@ func runCLIExitCase(bin string, surface cliExitSurface, c cliExitCase) Result {
 		return Result{cliExitProbeName, label, "setup", Fail, err.Error(), ""}
 	}
 	args := append(append([]string{}, surface.prefix...), caseArgs...)
-	res := runCLIExit(bin, args, tmp)
+	res := runCLIExitWithEnvironment(bin, args, tmp, surface.env)
 	return classifyCLIExitResult(label, c, res)
 }
 
@@ -641,7 +647,11 @@ type cliExitResult struct {
 }
 
 func runCLIExit(bin string, args []string, dir string) cliExitResult {
-	return runCLIExitWithLimits(bin, args, dir, 30*time.Second, 2*time.Second)
+	return runCLIExitWithEnvironment(bin, args, dir, ptahCommandEnvironment())
+}
+
+func runCLIExitWithEnvironment(bin string, args []string, dir string, env []string) cliExitResult {
+	return runCLIExitWithLimitsAndEnvironment(bin, args, dir, 30*time.Second, 2*time.Second, env)
 }
 
 func runCLIExitWithLimits(
@@ -651,10 +661,24 @@ func runCLIExitWithLimits(
 	timeout time.Duration,
 	waitDelay time.Duration,
 ) cliExitResult {
+	return runCLIExitWithLimitsAndEnvironment(bin, args, dir, timeout, waitDelay, nil)
+}
+
+func runCLIExitWithLimitsAndEnvironment(
+	bin string,
+	args []string,
+	dir string,
+	timeout time.Duration,
+	waitDelay time.Duration,
+	env []string,
+) cliExitResult {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = dir
+	if env != nil {
+		cmd.Env = env
+	}
 	cmd.WaitDelay = waitDelay
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

@@ -178,7 +178,7 @@ type atlasUtilityRuntimeCheck struct {
 }
 
 func (c atlasUtilityRuntimeCheck) run() Result {
-	output, err := commandOutput(c.bin, c.path)
+	output, err := commandOutputStrictCE(c.bin, c.path)
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
 			return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
@@ -242,7 +242,7 @@ func (c atlasSchemaFmtRuntimeCheck) run() Result {
 			"writing ignored non-HCL fixture failed: " + oneLine(err.Error()), ""}
 	}
 
-	output, err := commandOutputDir(c.bin, c.path, dir)
+	output, err := commandOutputDirStrictCE(c.bin, c.path, dir)
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
 			return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
@@ -320,6 +320,7 @@ func commandResolves(bin string, path []string, wantUsage string) (bool, error) 
 	defer cancel()
 	args := append(append([]string{}, path...), "--help")
 	cmd := exec.CommandContext(ctx, bin, args...)
+	cmd.Env = ptahStrictCECommandEnvironment()
 	outBytes, err := cmd.CombinedOutput()
 	if err != nil {
 		// cobra prints help and exits 0 for `--help`, even for an unknown command
@@ -345,10 +346,32 @@ func commandOutput(bin string, path []string) (string, error) {
 }
 
 func commandOutputDir(bin string, path []string, dir string) (string, error) {
+	return commandOutputDirWithExactEnv(bin, path, dir, ptahCommandEnvironment())
+}
+
+func commandOutputStrictCE(bin string, path []string) (string, error) {
+	return commandOutputDirStrictCE(bin, path, "")
+}
+
+func commandOutputDirStrictCE(bin string, path []string, dir string) (string, error) {
+	return commandOutputDirWithExactEnv(bin, path, dir, ptahStrictCECommandEnvironment())
+}
+
+func commandOutputDirWithExactEnv(bin string, path []string, dir string, env []string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, path...)
 	cmd.Dir = dir
+	cmd.Env = env
+	outBytes, err := cmd.CombinedOutput()
+	return string(outBytes), err
+}
+
+func commandOutputWithExactEnv(bin string, path, env []string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, bin, path...)
+	cmd.Env = env
 	outBytes, err := cmd.CombinedOutput()
 	return string(outBytes), err
 }
@@ -359,7 +382,11 @@ func commandOutputDir(bin string, path []string, dir string) (string, error) {
 // (e.g. Atlas migrate-lint writes its analysis report to stdout while genuine
 // errors go to stderr).
 func commandStreams(bin string, args []string, dir string) (stdout, stderr string, err error) {
-	return commandStreamsWithEnv(bin, args, dir, nil)
+	return commandStreamsWithExactEnv(bin, args, dir, ptahCommandEnvironment())
+}
+
+func commandStreamsStrictCE(bin string, args []string, dir string) (stdout, stderr string, err error) {
+	return commandStreamsWithExactEnv(bin, args, dir, ptahStrictCECommandEnvironment())
 }
 
 func commandStreamsWithEnv(
@@ -372,9 +399,25 @@ func commandStreamsWithEnv(
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = dir
-	if len(env) > 0 {
-		cmd.Env = append(os.Environ(), env...)
-	}
+	cmd.Env = append(ptahCommandEnvironment(), env...)
+	var out, errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	err = cmd.Run()
+	return out.String(), errOut.String(), err
+}
+
+func commandStreamsWithExactEnv(
+	bin string,
+	args []string,
+	dir string,
+	env []string,
+) (stdout, stderr string, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, bin, args...)
+	cmd.Dir = dir
+	cmd.Env = env
 	var out, errOut bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut

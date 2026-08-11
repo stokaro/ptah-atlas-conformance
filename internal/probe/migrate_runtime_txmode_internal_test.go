@@ -164,6 +164,15 @@ func TestCompareFileTxModeMatrixCase_RecordsIntentionalDivergence(t *testing.T) 
 	})
 }
 
+func TestFileTxModeSurfaceSeparatesCEAndIntentionalBetterRows(t *testing.T) {
+	c := qt.New(t)
+
+	c.Assert(fileTxModeSurface(fileTxModeMatrixCase{}), qt.Equals, ptahStrictCESurface)
+	c.Assert(fileTxModeSurface(fileTxModeMatrixCase{
+		IntentionalDivergence: "Ptah preserves authored transaction metadata",
+	}), qt.Equals, ptahFullSurface)
+}
+
 func TestCompareFileTxModeMatrixCase_RejectsWrongRevisionState(t *testing.T) {
 	c := qt.New(t)
 	testCase := fileTxModeMatrixCase{

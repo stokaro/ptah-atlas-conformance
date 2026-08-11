@@ -68,6 +68,7 @@ type fileTxModeRuntime struct {
 	migrations string
 	dbPath     string
 	env        []string
+	exactEnv   bool
 	dirFormat  string
 }
 
@@ -252,9 +253,9 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 	observations := make(map[string]fileTxModePair, len(cases))
 	for _, tc := range cases {
 		fixture := "sqlite/per-file-txmode/matrix/" + tc.Name
-		pair, err := runFileTxModePair(ptahBin, atlasBin, map[string]string{
+		pair, err := runFileTxModePairWithFormatPolicy(ptahBin, atlasBin, map[string]string{
 			fileTxModeFilename: tc.Directive + fileTxModeFailingBody,
-		}, []string{"--tx-mode", tc.GlobalMode})
+		}, []string{"--tx-mode", tc.GlobalMode}, "", fileTxModeSurface(tc))
 		if err != nil {
 			results = append(results, fileTxModeFailure(fixture, "execute", err))
 			continue
@@ -273,12 +274,19 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 	return results
 }
 
+func fileTxModeSurface(testCase fileTxModeMatrixCase) ptahCommandSurface {
+	if testCase.IntentionalDivergence != "" {
+		return ptahFullSurface
+	}
+	return ptahStrictCESurface
+}
+
 func runFileTxModePair(
 	ptahBin, atlasBin string,
 	files map[string]string,
 	applyArgs []string,
 ) (fileTxModePair, error) {
-	return runFileTxModePairWithFormat(ptahBin, atlasBin, files, applyArgs, "")
+	return runFileTxModePairWithFormatPolicy(ptahBin, atlasBin, files, applyArgs, "", ptahStrictCESurface)
 }
 
 func runFileTxModePairWithFormat(
@@ -286,6 +294,24 @@ func runFileTxModePairWithFormat(
 	files map[string]string,
 	applyArgs []string,
 	dirFormat string,
+) (fileTxModePair, error) {
+	return runFileTxModePairWithFormatPolicy(ptahBin, atlasBin, files, applyArgs, dirFormat, ptahStrictCESurface)
+}
+
+func runFullFileTxModePair(
+	ptahBin, atlasBin string,
+	files map[string]string,
+	applyArgs []string,
+) (fileTxModePair, error) {
+	return runFileTxModePairWithFormatPolicy(ptahBin, atlasBin, files, applyArgs, "", ptahFullSurface)
+}
+
+func runFileTxModePairWithFormatPolicy(
+	ptahBin, atlasBin string,
+	files map[string]string,
+	applyArgs []string,
+	dirFormat string,
+	surface ptahCommandSurface,
 ) (fileTxModePair, error) {
 	root, err := os.MkdirTemp("", "migrate-runtime-file-txmode-*")
 	if err != nil {
@@ -297,13 +323,14 @@ func runFileTxModePairWithFormat(
 		atlasBin,
 		filepath.Join(root, "atlas"),
 		files,
-		[]string{"HOME=" + filepath.Join(root, "atlas-home")},
+		append(ptahCommandEnvironment(), "HOME="+filepath.Join(root, "atlas-home")),
 		dirFormat,
 	)
 	if err != nil {
 		return fileTxModePair{}, fmt.Errorf("prepare Atlas fixture: %w", err)
 	}
-	ptah, err := prepareFileTxModeRuntimeWithFormat(ptahBin, filepath.Join(root, "ptah"), files, nil, dirFormat)
+	ptahEnv := surface.environment()
+	ptah, err := prepareFileTxModeRuntimeWithFormat(ptahBin, filepath.Join(root, "ptah"), files, ptahEnv, dirFormat)
 	if err != nil {
 		return fileTxModePair{}, fmt.Errorf("prepare Ptah fixture: %w", err)
 	}
@@ -347,9 +374,10 @@ func prepareFileTxModeRuntimeWithFormat(
 		migrations: migrations,
 		dbPath:     filepath.Join(root, "runtime.db"),
 		env:        env,
+		exactEnv:   env != nil,
 		dirFormat:  dirFormat,
 	}
-	hash, err := runFileTxModeProcess(bin, []string{"migrate", "hash", "--dir", runtime.directoryURL()}, env)
+	hash, err := runtime.run([]string{"migrate", "hash", "--dir", runtime.directoryURL()})
 	if err != nil {
 		return fileTxModeRuntime{}, err
 	}
@@ -375,7 +403,7 @@ func (runtime fileTxModeRuntime) apply(extraArgs ...string) (fileTxModeObservati
 		"--dir", runtime.directoryURL(),
 		"--revisions-schema", "main",
 	)
-	process, err := runFileTxModeProcess(runtime.bin, args, runtime.env)
+	process, err := runtime.run(args)
 	if err != nil {
 		return fileTxModeObservation{}, err
 	}
@@ -387,13 +415,13 @@ func (runtime fileTxModeRuntime) apply(extraArgs ...string) (fileTxModeObservati
 }
 
 func (runtime fileTxModeRuntime) down(toVersion string) (fileTxModeObservation, error) {
-	process, err := runFileTxModeProcess(runtime.bin, []string{
+	process, err := runtime.run([]string{
 		"migrate", "down",
 		"--url", sqliteURL(runtime.dbPath),
 		"--dir", runtime.directoryURL(),
 		"--revisions-schema", "main",
 		"--to-version", toVersion,
-	}, runtime.env)
+	})
 	if err != nil {
 		return fileTxModeObservation{}, err
 	}
@@ -406,6 +434,18 @@ func (runtime fileTxModeRuntime) down(toVersion string) (fileTxModeObservation, 
 
 func runFileTxModeProcess(bin string, args, env []string) (integrityProcessResult, error) {
 	stdout, stderr, err := commandStreamsWithEnv(bin, args, "", env)
+	return fileTxModeProcessResult(stdout, stderr, err)
+}
+
+func (rt fileTxModeRuntime) run(args []string) (integrityProcessResult, error) {
+	if rt.exactEnv {
+		stdout, stderr, err := commandStreamsWithExactEnv(rt.bin, args, "", rt.env)
+		return fileTxModeProcessResult(stdout, stderr, err)
+	}
+	return runFileTxModeProcess(rt.bin, args, rt.env)
+}
+
+func fileTxModeProcessResult(stdout, stderr string, err error) (integrityProcessResult, error) {
 	result := integrityProcessResult{stdout: stdout, stderr: stderr}
 	if err == nil {
 		return result, nil
@@ -732,26 +772,44 @@ func fileTxModeBaselineSelectionOracle(ptahBin, atlasBin string) Result {
 func prepareFileTxModePair(
 	ptahBin, atlasBin, root string,
 	files map[string]string,
-) (fileTxModeRuntime, fileTxModeRuntime, error) {
-	return prepareFileTxModePairWithFormat(ptahBin, atlasBin, root, files, "")
+) (atlas, ptah fileTxModeRuntime, err error) {
+	return prepareFileTxModePairWithFormatPolicy(ptahBin, atlasBin, root, files, "", ptahStrictCESurface)
 }
 
 func prepareFileTxModePairWithFormat(
 	ptahBin, atlasBin, root string,
 	files map[string]string,
 	dirFormat string,
-) (fileTxModeRuntime, fileTxModeRuntime, error) {
-	atlas, err := prepareFileTxModeRuntimeWithFormat(
+) (atlas, ptah fileTxModeRuntime, err error) {
+	return prepareFileTxModePairWithFormatPolicy(ptahBin, atlasBin, root, files, dirFormat, ptahStrictCESurface)
+}
+
+func prepareFullFileTxModePairWithFormat(
+	ptahBin, atlasBin, root string,
+	files map[string]string,
+	dirFormat string,
+) (atlas, ptah fileTxModeRuntime, err error) {
+	return prepareFileTxModePairWithFormatPolicy(ptahBin, atlasBin, root, files, dirFormat, ptahFullSurface)
+}
+
+func prepareFileTxModePairWithFormatPolicy(
+	ptahBin, atlasBin, root string,
+	files map[string]string,
+	dirFormat string,
+	surface ptahCommandSurface,
+) (atlas, ptah fileTxModeRuntime, err error) {
+	atlas, err = prepareFileTxModeRuntimeWithFormat(
 		atlasBin,
 		filepath.Join(root, "atlas"),
 		files,
-		[]string{"HOME=" + filepath.Join(root, "atlas-home")},
+		append(ptahCommandEnvironment(), "HOME="+filepath.Join(root, "atlas-home")),
 		dirFormat,
 	)
 	if err != nil {
 		return fileTxModeRuntime{}, fileTxModeRuntime{}, fmt.Errorf("prepare Atlas fixture: %w", err)
 	}
-	ptah, err := prepareFileTxModeRuntimeWithFormat(ptahBin, filepath.Join(root, "ptah"), files, nil, dirFormat)
+	ptahEnv := surface.environment()
+	ptah, err = prepareFileTxModeRuntimeWithFormat(ptahBin, filepath.Join(root, "ptah"), files, ptahEnv, dirFormat)
 	if err != nil {
 		return fileTxModeRuntime{}, fileTxModeRuntime{}, fmt.Errorf("prepare Ptah fixture: %w", err)
 	}
@@ -783,10 +841,10 @@ func sqliteMigrateSplitFileTxModeOracle(ptahBin, atlasBin string) []Result {
 
 func fileTxModeSplitFileUpOracle(ptahBin, atlasBin string) Result {
 	const fixture = "sqlite/per-file-txmode/plain-split-up"
-	pair, err := runFileTxModePairWithFormat(ptahBin, atlasBin, map[string]string{
+	pair, err := runFileTxModePairWithFormatPolicy(ptahBin, atlasBin, map[string]string{
 		"1_case.up.sql":   "-- atlas:txmode none\n\n" + fileTxModeFailingBody,
 		"1_case.down.sql": "DROP TABLE " + fileTxModeBodyTable + ";\n",
-	}, []string{"--tx-mode", "file"}, "golang-migrate")
+	}, []string{"--tx-mode", "file"}, "golang-migrate", ptahFullSurface)
 	if err != nil {
 		return fileTxModeFailure(fixture, "execute", err)
 	}
@@ -855,7 +913,7 @@ func fileTxModeSplitFileDownControl(ptahBin, atlasBin string) Result {
 		"1_case.down.sql": "-- atlas:txmode none\n\n" +
 			"DROP TABLE split_down_second;\nTHIS IS A SPLIT DOWN FAILURE;\n",
 	}
-	atlas, ptah, err := prepareFileTxModePairWithFormat(ptahBin, atlasBin, root, files, "golang-migrate")
+	atlas, ptah, err := prepareFullFileTxModePairWithFormat(ptahBin, atlasBin, root, files, "golang-migrate")
 	if err != nil {
 		return fileTxModeFailure(fixture, "setup", err)
 	}
@@ -1005,7 +1063,7 @@ INSERT INTO txtar_up_missing (id) VALUES (1);
 -- down.sql --
 DROP TABLE txtar_up_partial;
 `
-	pair, err := runFileTxModePair(ptahBin, atlasBin, map[string]string{"1_txtar.sql": migration}, []string{"--tx-mode", "file"})
+	pair, err := runFullFileTxModePair(ptahBin, atlasBin, map[string]string{"1_txtar.sql": migration}, []string{"--tx-mode", "file"})
 	if err != nil {
 		return fileTxModeFailure(fixture, "execute", err)
 	}
@@ -1043,7 +1101,12 @@ THIS IS A TXMODE DOWN FAILURE;
 		return fileTxModeFailure(fixture, "setup", err)
 	}
 	defer func() { _ = os.RemoveAll(root) }()
-	ptah, err := prepareFileTxModeRuntime(ptahBin, filepath.Join(root, "ptah"), map[string]string{"1_txtar.sql": migration}, nil)
+	ptah, err := prepareFileTxModeRuntime(
+		ptahBin,
+		filepath.Join(root, "ptah"),
+		map[string]string{"1_txtar.sql": migration},
+		ptahCommandEnvironment(),
+	)
 	if err != nil {
 		return fileTxModeFailure(fixture, "setup", err)
 	}

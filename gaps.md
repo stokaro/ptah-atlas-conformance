@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260811192102-605247b23750`
 - Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -536,7 +536,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | pro-down-workflow | `atlas migrate down` | bare rollback | bare `atlas migrate down` — no stdin, --confirm, or --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op) |  |
 | — | ok | pro-down-workflow | `atlas migrate down --format` | formatted rollback | formatted `atlas migrate down` ran without stdin, reported version 20260101000002 reverted, removed its table, and preserved only the version 20260101000001 revision |  |
 | — | ok | pro-maint-workflow | `atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
-| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under a readable UTC calendar-second version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
 | — | ok | pro-maint-workflow | `atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | plan application | PTAH-SIDE PIN (no CE oracle): `schema apply --plan file://...` replayed the saved native JSON plan against the planned target, creating exactly the desired users table |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | PTAH-SIDE PIN (no CE oracle): a target mutated after planning was refused: apply --plan on the native JSON plan exited 1 naming the fingerprint mismatch and left the database untouched |  |

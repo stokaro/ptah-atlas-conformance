@@ -3288,6 +3288,25 @@ func TestTxtarPostgresEnumColumnHCLShowAndSQLRendering(t *testing.T) {
 	c.Assert(actualSQL, qt.Contains, `"status" "status" NOT NULL DEFAULT 'inactive'`)
 }
 
+func TestTxtarPostgresQualifiedEnumArrayHCLUsesAtlasSpelling(t *testing.T) {
+	c := qt.New(t)
+	schemaName := "script_column_enum_array"
+	statements := []ast.Node{
+		ast.NewEnum(schemaName+".status", "active", "inactive"),
+		&ast.CreateTableNode{
+			Name: schemaName + ".enums",
+			Columns: []*ast.ColumnNode{
+				{Name: "statuses", Type: schemaName + ".status[]", TypeRawSQL: true, Nullable: false},
+			},
+		},
+	}
+
+	actualHCL, err := renderAtlasInspectHCL("postgresql", schemaName, statements)
+	c.Assert(err, qt.IsNil)
+	c.Assert(actualHCL, qt.Contains, `type = sql("status[]")`)
+	c.Assert(actualHCL, qt.Not(qt.Contains), `type = sql("script_column_enum_array.status[]")`)
+}
+
 func TestTxtarPostgresDomainColumnHCLAndShowRendering(t *testing.T) {
 	c := qt.New(t)
 	fx := Fixture{Name: "postgres/column-domain.txtar"}

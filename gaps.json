@@ -5297,7 +5297,7 @@
     "fixture": "atlas migrate rebase",
     "stage": "rebase to end of history",
     "outcome": "ok",
-    "detail": "the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`"
+    "detail": "the migration moved to the end of history under a readable UTC calendar-second version, kept its edited content, and the directory still passes `ptah migrations validate`"
   },
   {
     "probe": "pro-maint-workflow",

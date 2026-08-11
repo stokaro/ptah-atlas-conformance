@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -12,7 +14,6 @@ const (
 
 	proMaintEditTarget   = "20260101000001"
 	proMaintEditFile     = "20260101000001_create_users.sql"
-	proMaintRebasedFile  = "20260101000003_create_users.sql"
 	proMaintRemoveTarget = "20260101000002"
 	proMaintRemoveFile   = "20260101000002_create_posts.sql"
 	proMaintEditMarker   = "-- edited by the conformance probe"
@@ -109,27 +110,42 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 		fixture = "atlas migrate rebase"
 		stage   = "rebase to end of history"
 	)
+	startedAt := time.Now().UTC().Truncate(time.Second)
 	result, harness := m.runCLI(stage,
 		"migrate", "rebase", "--dir", "file://migrations", proMaintEditTarget,
 	)
+	finishedAt := time.Now().UTC().Truncate(time.Second)
 	if harness != nil {
 		return *harness
 	}
 	if gap := m.expectExit(fixture, stage, result, 0); gap != nil {
 		return *gap
 	}
-	// The new version is deterministic: one above the newest committed
-	// migration (20260101000002), so 20260101000001 rebases to 20260101000003.
 	if gap := m.expectFragments(fixture, stage, "stdout", result.stdout, []string{
-		"Rebased migration 20260101000001 to 20260101000003",
+		"Rebased migration " + proMaintEditTarget + " to ",
 		"Wrote migrations/atlas.sum",
 	}); gap != nil {
 		return *gap
 	}
+	rebasedVersion, err := proMaintRebasedVersion(result.stdout)
+	if err != nil {
+		return m.gap(fixture, stage, err.Error())
+	}
+	rebasedAt, err := time.Parse("20060102150405", strconv.FormatInt(rebasedVersion, 10))
+	if err != nil {
+		return m.gap(fixture, stage,
+			fmt.Sprintf("rebased version %d is not a readable UTC calendar second: %s", rebasedVersion, oneLine(err.Error())))
+	}
+	if rebasedAt.Before(startedAt) || rebasedAt.After(finishedAt) {
+		return m.gap(fixture, stage, fmt.Sprintf(
+			"rebased version %d is outside the command window %s..%s",
+			rebasedVersion, startedAt.Format(time.RFC3339), finishedAt.Format(time.RFC3339)))
+	}
 	if _, err := os.Stat(filepath.Join(m.runRoot, "migrations", proMaintEditFile)); !os.IsNotExist(err) {
 		return m.gap(fixture, stage, "the rebased migration's old file still exists: "+proMaintEditFile)
 	}
-	rebased, err := os.ReadFile(filepath.Join(m.runRoot, "migrations", proMaintRebasedFile))
+	rebasedFile := strconv.FormatInt(rebasedVersion, 10) + "_create_users.sql"
+	rebased, err := os.ReadFile(filepath.Join(m.runRoot, "migrations", rebasedFile))
 	if err != nil {
 		return m.gap(fixture, stage, "the rebased migration file is missing: "+oneLine(err.Error()))
 	}
@@ -140,7 +156,23 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 		return *gap
 	}
 	return m.ok(fixture, stage,
-		"the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`")
+		"the migration moved to the end of history under a readable UTC calendar-second version, kept its edited content, and the directory still passes `ptah migrations validate`")
+}
+
+func proMaintRebasedVersion(stdout string) (int64, error) {
+	prefix := "Rebased migration " + proMaintEditTarget + " to "
+	for line := range strings.SplitSeq(stdout, "\n") {
+		value, ok := strings.CutPrefix(strings.TrimSpace(line), prefix)
+		if !ok {
+			continue
+		}
+		version, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("parse rebased version %q: %w", value, err)
+		}
+		return version, nil
+	}
+	return 0, fmt.Errorf("stdout does not contain %q", prefix+"<version>")
 }
 
 func (m *proMaintWorkflow) removeMigration() Result {

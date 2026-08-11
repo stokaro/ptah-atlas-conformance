@@ -30,7 +30,7 @@ func (AtlasCLIHiddenRuntimeProbe) Run(fx Fixture) []Result {
 func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 	const fixture = "atlas migrate diff --dry-run"
 
-	present, _, err := commandFlags(bin, []string{"migrate", "diff"})
+	present, _, err := commandFlags(bin, []string{"migrate", "diff"}, atlasVerbFlagStrictCE)
 	if err != nil {
 		return Result{"atlas-cli-hidden-runtime", fixture, "help", Fail,
 			"reading `atlas migrate diff --help` failed: " + oneLine(err.Error()), ""}
@@ -74,7 +74,7 @@ func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 			"writing baseline atlas.sum failed: " + oneLine(err.Error()), ""}
 	}
 
-	output, err := commandOutputDir(bin, []string{
+	output, err := commandOutputDirStrictCE(bin, []string{
 		"migrate", "diff",
 		"--dev-url", "sqlite://" + filepath.Join(dir, "dev.db"),
 		"--dir", "file://" + migrationsDir,

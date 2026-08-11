@@ -37,7 +37,7 @@ func (AtlasCLIShorthandProbe) Run(fx Fixture) []Result {
 }
 
 func runAtlasVisibleShorthand(bin, fixture string, args []string, want string) Result {
-	output, err := commandOutputDir(bin, args, "")
+	output, err := commandOutputDirStrictCE(bin, args, "")
 	if err == nil {
 		return Result{"atlas-cli-shorthands", fixture, "parse", OK,
 			"`" + strings.Join(append([]string{"atlas"}, args...), " ") + "` parsed successfully", ""}
@@ -73,7 +73,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 	targetURL := "sqlite://" + filepath.Join(dir, "apply.db")
 	devURL := "sqlite://" + filepath.Join(dir, "dev.db")
 
-	shortOut, err := commandOutputDir(bin, []string{
+	shortOut, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "apply",
 		"--url", targetURL,
 		"--to", "file://" + schemaPath,
@@ -90,7 +90,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 			"`atlas schema apply -s main` did not plan the in-scope table: " + oneLine(shortOut), "stokaro/ptah#813"}
 	}
 
-	longOut, err := commandOutputDir(bin, []string{
+	longOut, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "apply",
 		"--url", targetURL,
 		"--to", "file://" + schemaPath,
@@ -103,7 +103,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 			"`atlas schema apply -s` output diverges from `--schema`: " + oneLine(longOut), "stokaro/ptah#813"}
 	}
 
-	scopedOut, err := commandOutputDir(bin, []string{
+	scopedOut, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "apply",
 		"--url", targetURL,
 		"--to", "file://" + schemaPath,
@@ -111,7 +111,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 		"-s", "out_of_scope",
 		"--dry-run",
 	}, dir)
-	if err != nil || !strings.Contains(scopedOut, "Schema is synced, no changes to be made.") {
+	if err != nil || !strings.Contains(scopedOut, "Schema is synced, no changes to be made") {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: " + oneLine(scopedOut), "stokaro/ptah#813"}
 	}
@@ -123,7 +123,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 func runAtlasSchemaApplyHiddenFileShorthand(bin string) Result {
 	const fixture = "atlas schema apply --file/-f"
 
-	present, _, err := commandFlags(bin, []string{"schema", "apply"})
+	present, _, err := commandFlags(bin, []string{"schema", "apply"}, atlasVerbFlagStrictCE)
 	if err != nil {
 		return Result{"atlas-cli-shorthands", fixture, "help", Fail,
 			"reading `atlas schema apply --help` failed: " + oneLine(err.Error()), ""}
@@ -146,7 +146,7 @@ func runAtlasSchemaApplyHiddenFileShorthand(bin string) Result {
 			"writing desired schema failed: " + oneLine(err.Error()), ""}
 	}
 
-	output, err := commandOutputDir(bin, []string{
+	output, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "apply",
 		"--url", "sqlite://" + filepath.Join(dir, "apply.db"),
 		"-f", schemaPath,
@@ -186,7 +186,7 @@ func runAtlasSchemaDiffFromShorthand(bin string) Result {
 			"writing desired schema failed: " + oneLine(err.Error()), ""}
 	}
 
-	output, err := commandOutputDir(bin, []string{
+	output, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "diff",
 		"-f", "file://" + fromPath,
 		"--to", "file://" + toPath,
@@ -239,7 +239,7 @@ func runAtlasSchemaDiffSchemaShorthand(bin string) Result {
 		}
 	}
 
-	shortOut, err := commandOutputDir(bin, diffArgs("-s", "main", "dev-short.db"), dir)
+	shortOut, err := commandOutputDirStrictCE(bin, diffArgs("-s", "main", "dev-short.db"), dir)
 	if err != nil {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema diff -s main` exited non-zero: " + oneLine(shortOut), "stokaro/ptah#813"}
@@ -249,13 +249,13 @@ func runAtlasSchemaDiffSchemaShorthand(bin string) Result {
 			"`atlas schema diff -s main` did not produce the in-scope migration SQL: " + oneLine(shortOut), "stokaro/ptah#813"}
 	}
 
-	longOut, err := commandOutputDir(bin, diffArgs("--schema", "main", "dev-long.db"), dir)
+	longOut, err := commandOutputDirStrictCE(bin, diffArgs("--schema", "main", "dev-long.db"), dir)
 	if err != nil || longOut != shortOut {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema diff -s` output diverges from `--schema`: " + oneLine(longOut), "stokaro/ptah#813"}
 	}
 
-	scopedOut, err := commandOutputDir(bin, diffArgs("-s", "out_of_scope", "dev-scoped.db"), dir)
+	scopedOut, err := commandOutputDirStrictCE(bin, diffArgs("-s", "out_of_scope", "dev-scoped.db"), dir)
 	if err != nil || !strings.Contains(scopedOut, "Schemas are synced, no changes to be made.") {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema diff -s` with an out-of-scope schema name did not scope the diff away: " + oneLine(scopedOut), "stokaro/ptah#813"}

@@ -187,11 +187,24 @@ func resolveAtlas() (string, error) {
 }
 
 func atlasReported(bin string) string {
-	out, err := exec.Command(bin, "version").Output()
+	cmd := exec.Command(bin, "version")
+	cmd.Env = environmentWithoutPtahVariables()
+	out, err := cmd.Output()
 	if err != nil {
 		return "atlas (version unknown)"
 	}
 	return strings.TrimSpace(strings.SplitN(string(out), "\n", 2)[0])
+}
+
+func environmentWithoutPtahVariables() []string {
+	env := make([]string, 0, len(os.Environ()))
+	for _, entry := range os.Environ() {
+		key, _, _ := strings.Cut(entry, "=")
+		if !strings.HasPrefix(strings.ToUpper(key), "PTAH_") {
+			env = append(env, entry)
+		}
+	}
+	return env
 }
 
 func pinnedVersion() string {

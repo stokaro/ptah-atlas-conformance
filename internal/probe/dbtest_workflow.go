@@ -237,6 +237,24 @@ func ptahCommandEnvironment() []string {
 	return filtered
 }
 
+func ptahStrictCECommandEnvironment() []string {
+	return append(ptahCommandEnvironment(), "PTAH_ATLAS_STRICT_COMPAT=1")
+}
+
+type ptahCommandSurface uint8
+
+const (
+	ptahFullSurface ptahCommandSurface = iota
+	ptahStrictCESurface
+)
+
+func (s ptahCommandSurface) environment() []string {
+	if s == ptahStrictCESurface {
+		return ptahStrictCECommandEnvironment()
+	}
+	return ptahCommandEnvironment()
+}
+
 func dbTestHarnessFailure(stage string, err error) Result {
 	return Result{
 		Probe:   "dbtest-workflow",

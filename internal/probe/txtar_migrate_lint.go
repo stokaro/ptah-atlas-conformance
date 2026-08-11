@@ -138,7 +138,7 @@ func txtarExecMigrateLint(runtime *txtarRuntime, bin string, plan txtarMigrateLi
 	}
 
 	args := append([]string{"migrate", "lint"}, txtarSubstituteDevURL(plan.cliArgs, devURL)...)
-	stdout, stderr, runErr := commandStreams(bin, args, workdir)
+	stdout, stderr, runErr := commandStreamsStrictCE(bin, args, workdir)
 	run := txtarMigrateLintRun{stdout: stdout, stderr: stderr}
 	if runErr == nil {
 		return run, nil

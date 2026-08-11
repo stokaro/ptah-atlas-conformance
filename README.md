@@ -16,6 +16,13 @@ quality score: a `gap` is either an Atlas construct Ptah does not model yet or a
 first-party workflow contract Ptah failed to preserve. Each row links the Ptah
 issue that tracks closing it.
 
+The harness selects Ptah's compatibility profile per observation. Atlas CE
+comparisons run `ptah-compat` with `PTAH_ATLAS_STRICT_COMPAT=1`; first-party
+Pro-like and best-effort capability probes run the default full surface with
+all inherited `PTAH_*` variables removed. Do not export the selector around a
+whole workflow: that would make CE comparisons look stricter while disabling
+the separate evidence that Ptah still preserves capabilities beyond CE.
+
 **This is not a full feature-set parity test.** The repository now vendors every
 file under Atlas's open-source `*/testdata/*` tree at the pinned commit (286
 files, grouped into report fixtures), plus first-party Atlas-compatible
