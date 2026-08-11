@@ -20,7 +20,7 @@ The full CLI-surface gate is red until Ptah's drop-in compatibility binary
 matches the pinned Atlas CE help surface and documented Pro-surface flags.
 
 - Atlas CE binary: `atlas community version v1.3.0`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260811221224-fc305da5ae35`
 - Outcomes: **108 ok**, **2 gap**, **0 fail**, **0 panic**
 - Full gate: **2 non-OK** (fails CI)
 - Regression budget input: **2 unwaived non-OK**, 0 waived

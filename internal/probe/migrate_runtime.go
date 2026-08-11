@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	neturl "net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -1159,7 +1160,12 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, atlasBin, dbURL string) Re
 		result.Stage = "atlas-hash"
 		return *result
 	}
-	if result := migrateRuntimeHash(bin, ptahMigrations, fixture); result != nil {
+	if result := migrateRuntimeHashWithEnvironment(
+		bin,
+		ptahMigrations,
+		fixture,
+		ptahCommandEnvironment(),
+	); result != nil {
 		result.Stage = "ptah-hash"
 		return *result
 	}
@@ -1219,14 +1225,14 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, atlasBin, dbURL string) Re
 		return fileTxModeGapForIssue(fixture, "atlas-revisions", detail, fileTxModeNoSeparatorIssue)
 	}
 
-	output, err := commandOutput(bin, []string{
+	output, err := commandOutputWithExactEnv(bin, []string{
 		"migrate", "apply",
 		"--url", dbURL,
 		"--dir", fileURL(ptahMigrations),
 		"--revisions-schema", ptahSchema,
 		"--tx-mode", "file",
 		"--allow-dirty",
-	})
+	}, ptahCommandEnvironment())
 	if err != nil {
 		return migrateRuntimeExit(fixture, "ptah-apply", output, err)
 	}
@@ -1517,14 +1523,15 @@ func mysqlMigrateApplyRecordsState(bin, dbURL, label string) Result {
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	runtimeURL, result := prepareMySQLRuntimeSchema(dbURL, schema, fixture)
+	if result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", runtimeURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	})
@@ -1569,14 +1576,15 @@ func mysqlMigrateTxtarCheckCommentSemantics(bin, dbURL, label string) Result {
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	runtimeURL, result := prepareMySQLRuntimeSchema(dbURL, schema, fixture)
+	if result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", runtimeURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	})
@@ -1649,14 +1657,15 @@ func runMySQLTxtarCheckFailure(
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	runtimeURL, result := prepareMySQLRuntimeSchema(dbURL, schema, fixture)
+	if result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", runtimeURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	})
@@ -1818,6 +1827,19 @@ func migrateRuntimeDir(files map[string]string) (string, string, func(), error) 
 
 func migrateRuntimeHash(bin, migrations, fixture string) *Result {
 	output, err := commandOutput(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
+	if err != nil {
+		result := migrateRuntimeExit(fixture, "hash", output, err)
+		return &result
+	}
+	return nil
+}
+
+func migrateRuntimeHashWithEnvironment(bin, migrations, fixture string, env []string) *Result {
+	output, err := commandOutputWithExactEnv(
+		bin,
+		[]string{"migrate", "hash", "--dir", fileURL(migrations)},
+		env,
+	)
 	if err != nil {
 		result := migrateRuntimeExit(fixture, "hash", output, err)
 		return &result
@@ -2149,6 +2171,46 @@ func cleanupMySQLRuntimeSchema(dbURL, schema, fixture string) *Result {
 		return &result
 	}
 	return nil
+}
+
+func prepareMySQLRuntimeSchema(dbURL, schema, fixture string) (string, *Result) {
+	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+		return "", result
+	}
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		result := migrateRuntimeFail(fixture, "setup", err)
+		return "", &result
+	}
+	defer func() { _ = conn.Close() }()
+	if _, err := conn.ExecContext(context.Background(), "CREATE SCHEMA "+quoteMySQLIdentifier(schema)); err != nil {
+		result := migrateRuntimeFail(fixture, "setup", err)
+		return "", &result
+	}
+	runtimeURL, err := mysqlRuntimeSchemaURL(dbURL, schema)
+	if err != nil {
+		result := migrateRuntimeFail(fixture, "setup", err)
+		return "", &result
+	}
+	return runtimeURL, nil
+}
+
+func mysqlRuntimeSchemaURL(dbURL, schema string) (string, error) {
+	schemeEnd := strings.Index(dbURL, "://")
+	if schemeEnd < 1 {
+		return "", fmt.Errorf("database URL %q has no scheme", dbURL)
+	}
+	authorityEnd := len(dbURL)
+	for _, separator := range []byte{'/', '?', '#'} {
+		if offset := strings.IndexByte(dbURL[schemeEnd+3:], separator); offset >= 0 {
+			authorityEnd = min(authorityEnd, schemeEnd+3+offset)
+		}
+	}
+	suffixStart := len(dbURL)
+	if offset := strings.IndexAny(dbURL[authorityEnd:], "?#"); offset >= 0 {
+		suffixStart = authorityEnd + offset
+	}
+	return dbURL[:authorityEnd] + "/" + neturl.PathEscape(schema) + dbURL[suffixStart:], nil
 }
 
 func migrateRuntimeFail(fixture, stage string, err error) Result {

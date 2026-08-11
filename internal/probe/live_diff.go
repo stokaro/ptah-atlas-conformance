@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -120,7 +119,7 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 // only CE-visible object kinds.
 func atlasInspectHCL(ctx context.Context, atlasBin, dbURL string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, atlasBin, "schema", "inspect", "--url", dbURL)
-	cmd.Env = append(os.Environ(), "ATLAS_NO_UPDATE_NOTIFIER=1")
+	cmd.Env = append(ptahCommandEnvironment(), "ATLAS_NO_UPDATE_NOTIFIER=1")
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()

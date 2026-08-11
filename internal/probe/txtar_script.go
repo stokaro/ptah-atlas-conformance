@@ -8367,8 +8367,14 @@ func atlasPostgresEnumHCLType(
 	column *ast.ColumnNode,
 	enums map[string]*ast.EnumNode,
 ) (string, bool) {
-	if column.TypeRawSQL && txtarPostgresEnumArrayType(column.Type, enums) != "" {
-		return atlasSQLExpressionHCL(column.Type), true
+	if column.TypeRawSQL {
+		enumArrayType := txtarPostgresEnumArrayType(column.Type, enums)
+		if unqualified, ok := strings.CutPrefix(enumArrayType, schemaName+"."); ok {
+			enumArrayType = unqualified
+		}
+		if enumArrayType != "" {
+			return atlasSQLExpressionHCL(enumArrayType), true
+		}
 	}
 	typ := column.Type
 	if enum, ok := enums[atlasSQLIdentifier(typ)]; ok {

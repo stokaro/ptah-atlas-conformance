@@ -40,7 +40,7 @@ func atlasProjectConfigApplyOracle(ptahBin, atlasBin string) Result {
 	controlPath := filepath.Join(workDir, "atlas-control.db")
 	candidatePath := filepath.Join(workDir, "ptah-candidate.db")
 
-	_, bootstrapWindow, err := projectConfigApply(atlasBin, root, startPath, "1")
+	_, bootstrapWindow, err := projectConfigApply(atlasBin, root, startPath, "1", ptahFullSurface)
 	if err != nil {
 		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-bootstrap", err)
 	}
@@ -51,7 +51,7 @@ func atlasProjectConfigApplyOracle(ptahBin, atlasBin string) Result {
 			minimumExecutionTime: time.Nanosecond,
 		},
 	}
-	bootstrapStatus, err := projectConfigStatus(atlasBin, root, startPath)
+	bootstrapStatus, err := projectConfigStatus(atlasBin, root, startPath, ptahFullSurface)
 	if err != nil {
 		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-bootstrap-status", err)
 	}
@@ -80,11 +80,11 @@ func atlasProjectConfigApplyOracle(ptahBin, atlasBin string) Result {
 		return migrateRuntimeFail(projectConfigStatusFixture, "clone-candidate", err)
 	}
 
-	_, controlWindow, err := projectConfigApply(atlasBin, root, controlPath, "")
+	_, controlWindow, err := projectConfigApply(atlasBin, root, controlPath, "", ptahFullSurface)
 	if err != nil {
 		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-control-apply", err)
 	}
-	_, candidateWindow, err := projectConfigApply(ptahBin, root, candidatePath, "")
+	_, candidateWindow, err := projectConfigApply(ptahBin, root, candidatePath, "", ptahStrictCESurface)
 	if err != nil {
 		return projectConfigStatusGap("ptah-apply", err.Error())
 	}
@@ -113,7 +113,7 @@ func atlasProjectConfigApplyOracle(ptahBin, atlasBin string) Result {
 		},
 	}
 
-	controlStatus, err := projectConfigStatus(atlasBin, root, controlPath)
+	controlStatus, err := projectConfigStatus(atlasBin, root, controlPath, ptahFullSurface)
 	if err != nil {
 		return migrateRuntimeFail(projectConfigStatusFixture, "atlas-control-status", err)
 	}
@@ -136,11 +136,11 @@ func atlasProjectConfigApplyOracle(ptahBin, atlasBin string) Result {
 	}
 
 	problems := make([]string, 0, 8)
-	ptahStatus, ptahStatusErr := projectConfigStatus(ptahBin, root, candidatePath)
+	ptahStatus, ptahStatusErr := projectConfigStatus(ptahBin, root, candidatePath, ptahStrictCESurface)
 	if ptahStatusErr != nil {
 		problems = append(problems, "Ptah candidate status: "+ptahStatusErr.Error())
 	}
-	atlasCandidateStatus, atlasCandidateStatusErr := projectConfigStatus(atlasBin, root, candidatePath)
+	atlasCandidateStatus, atlasCandidateStatusErr := projectConfigStatus(atlasBin, root, candidatePath, ptahFullSurface)
 	if atlasCandidateStatusErr != nil {
 		problems = append(problems, "Atlas CE reading Ptah candidate status: "+atlasCandidateStatusErr.Error())
 	}

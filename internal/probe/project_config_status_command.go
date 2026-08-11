@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"time"
 )
@@ -22,6 +23,7 @@ type projectConfigApplyWindow struct {
 
 func projectConfigApply(
 	bin, root, dbPath, amount string,
+	surface ptahCommandSurface,
 ) (projectConfigCommandResult, projectConfigApplyWindow, error) {
 	args := []string{"migrate", "apply"}
 	if amount != "" {
@@ -29,17 +31,18 @@ func projectConfigApply(
 	}
 	args = append(args, "--env", "local")
 	window := projectConfigApplyWindow{startedAt: time.Now()}
-	output, err := projectConfigSuccessfulCommand(bin, args, root, projectConfigEnvironment(dbPath))
+	output, err := projectConfigSuccessfulCommand(bin, args, root, projectConfigEnvironment(dbPath), surface)
 	window.finishedAt = time.Now()
 	return output, window, err
 }
 
-func projectConfigStatus(bin, root, dbPath string) (projectConfigStatusFacts, error) {
+func projectConfigStatus(bin, root, dbPath string, surface ptahCommandSurface) (projectConfigStatusFacts, error) {
 	output, err := projectConfigSuccessfulCommand(
 		bin,
 		[]string{"migrate", "status", "--env", "local", "--format", projectConfigStatusFormat},
 		root,
 		projectConfigEnvironment(dbPath),
+		surface,
 	)
 	if err != nil {
 		return projectConfigStatusFacts{}, err
@@ -59,8 +62,9 @@ func projectConfigSuccessfulCommand(
 	args []string,
 	dir string,
 	extraEnv []string,
+	surface ptahCommandSurface,
 ) (projectConfigCommandResult, error) {
-	output, err := projectConfigCommand(bin, args, dir, extraEnv)
+	output, err := projectConfigCommand(bin, args, dir, extraEnv, surface)
 	if err != nil {
 		return output, fmt.Errorf(
 			"%s failed: %w: stdout=%s stderr=%s",
@@ -81,12 +85,13 @@ func projectConfigCommand(
 	args []string,
 	dir string,
 	extraEnv []string,
+	surface ptahCommandSurface,
 ) (projectConfigCommandResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = dir
-	cmd.Env = append(ptahCommandEnvironment(), extraEnv...)
+	cmd.Env = slices.Concat(surface.environment(), extraEnv)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

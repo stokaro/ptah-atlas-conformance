@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -35,11 +36,11 @@ func gooseMigrateIntegrityOracle(ptahBin, atlasBin string) []Result {
 	}
 
 	atlasBin = resolveCEGatingBinary(atlasBin)
-	atlasHash, err := runIntegrityCommand(atlasBin, "hash", atlasDir, atlasEnv...)
+	atlasHash, err := runIntegrityCommand(atlasBin, "hash", atlasDir, ptahFullSurface, atlasEnv...)
 	if err != nil {
 		return []Result{migrateRuntimeFail(gooseIntegrityFixture, "atlas hash", err)}
 	}
-	ptahHash, err := runIntegrityCommand(ptahBin, "hash", ptahDir)
+	ptahHash, err := runIntegrityCommand(ptahBin, "hash", ptahDir, ptahStrictCESurface)
 	if err != nil {
 		return []Result{migrateRuntimeFail(gooseIntegrityFixture, "ptah hash", err)}
 	}
@@ -61,11 +62,11 @@ func gooseMigrateIntegrityOracle(ptahBin, atlasBin string) []Result {
 	if err := os.WriteFile(filepath.Join(atlasDir, "atlas.sum"), ptahSum, 0o600); err != nil { //nolint:gosec // Fixed child of the private MkdirTemp root.
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "install Ptah checksum", err))
 	}
-	atlasValidate, err := runIntegrityCommand(atlasBin, "validate", atlasDir, atlasEnv...)
+	atlasValidate, err := runIntegrityCommand(atlasBin, "validate", atlasDir, ptahFullSurface, atlasEnv...)
 	if err != nil {
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Atlas cross-validation", err))
 	}
-	ptahValidate, err := runIntegrityCommand(ptahBin, "validate", ptahDir)
+	ptahValidate, err := runIntegrityCommand(ptahBin, "validate", ptahDir, ptahStrictCESurface)
 	if err != nil {
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Ptah cross-validation", err))
 	}
@@ -76,16 +77,16 @@ func gooseMigrateIntegrityOracle(ptahBin, atlasBin string) []Result {
 			return append(results, migrateRuntimeFail(gooseIntegrityFixture, "tamper fixture", err))
 		}
 	}
-	atlasFirstTampered, err := runIntegrityCommand(atlasBin, "validate", atlasDir, atlasEnv...)
+	atlasFirstTampered, err := runIntegrityCommand(atlasBin, "validate", atlasDir, ptahFullSurface, atlasEnv...)
 	if err != nil {
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Atlas first tamper validation", err))
 	}
 	results = append(results, compareAtlasFirstErrorAdvisory(atlasFirstTampered))
-	atlasTampered, err := runIntegrityCommand(atlasBin, "validate", atlasDir, atlasEnv...)
+	atlasTampered, err := runIntegrityCommand(atlasBin, "validate", atlasDir, ptahFullSurface, atlasEnv...)
 	if err != nil {
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Atlas stable tamper validation", err))
 	}
-	ptahTampered, err := runIntegrityCommand(ptahBin, "validate", ptahDir)
+	ptahTampered, err := runIntegrityCommand(ptahBin, "validate", ptahDir, ptahStrictCESurface)
 	if err != nil {
 		return append(results, migrateRuntimeFail(gooseIntegrityFixture, "Ptah tamper validation", err))
 	}
@@ -117,10 +118,15 @@ func writeGooseIntegrityFixture(dir string) error {
 	return os.WriteFile(filepath.Join(dir, "2_second_migration.sql"), []byte(gooseIntegritySecondSQL), 0o600)
 }
 
-func runIntegrityCommand(bin, verb, dir string, env ...string) (integrityProcessResult, error) {
-	stdout, stderr, err := commandStreamsWithEnv(bin, []string{
+func runIntegrityCommand(
+	bin, verb, dir string,
+	surface ptahCommandSurface,
+	env ...string,
+) (integrityProcessResult, error) {
+	commandEnv := slices.Concat(surface.environment(), env)
+	stdout, stderr, err := commandStreamsWithExactEnv(bin, []string{
 		"migrate", verb, "--dir", fileURL(dir), "--dir-format", "goose",
-	}, "", env)
+	}, "", commandEnv)
 	result := integrityProcessResult{stdout: stdout, stderr: stderr}
 	if err == nil {
 		return result, nil

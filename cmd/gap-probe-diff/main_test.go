@@ -1,11 +1,27 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
 	"github.com/google/go-cmp/cmp"
 )
+
+func TestEnvironmentWithoutPtahVariables(t *testing.T) {
+	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "1")
+	t.Setenv("ptah_token", "secret")
+	t.Setenv("CONFORMANCE_KEEP", "present")
+	c := qt.New(t)
+
+	environment := environmentWithoutPtahVariables()
+
+	c.Assert(environment, qt.Not(qt.Contains), "PTAH_ATLAS_STRICT_COMPAT=1")
+	c.Assert(environment, qt.Not(qt.Contains), "ptah_token=secret")
+	c.Assert(environment, qt.Contains, "CONFORMANCE_KEEP=present")
+	_, ok := os.LookupEnv("PTAH_ATLAS_STRICT_COMPAT")
+	c.Assert(ok, qt.IsTrue)
+}
 
 func TestConfiguredDifferentialTargetsAlwaysIncludesSQLite(t *testing.T) {
 	c := qt.New(t)

@@ -214,7 +214,7 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 		if atlasCmd.Classification != CLISurfaceOSS {
 			continue
 		}
-		target, err := readCommandSurface(bin, path)
+		target, err := readCommandSurfaceWithEnv(bin, path, ptahStrictCECommandEnvironment())
 		if err != nil {
 			out = append(out, Result{probeName, display, "help", Fail,
 				"reading `" + display + " --help` failed: " + oneLine(err.Error()), ""})
@@ -229,7 +229,13 @@ func buildComparisonResults(probeName string, inventory CLISurfaceInventory, bin
 		out = append(out, compareUsage(probeName, display, atlasCmd, target, issue))
 		out = append(out, compareFlags(probeName, display, atlasCmd, target, issue))
 		if len(atlasCmd.ProFlags) > 0 {
-			out = append(out, compareRequiredProFlags(display, atlasCmd, target))
+			fullTarget, fullErr := readCommandSurfaceWithEnv(bin, path, ptahCommandEnvironment())
+			if fullErr != nil {
+				out = append(out, Result{cliProSurfaceProbe, display, "help", Fail,
+					"reading the full compatibility surface failed: " + oneLine(fullErr.Error()), ""})
+				continue
+			}
+			out = append(out, compareRequiredProFlags(display, atlasCmd, fullTarget))
 		}
 	}
 	return out
@@ -291,7 +297,7 @@ func compareOutOfScopeCommand(probeName, display, bin string, path []string, atl
 }
 
 func compareOutOfScopeRuntime(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, issue string) Result {
-	stdout, stderr, err := commandStreams(bin, path, "")
+	stdout, stderr, err := commandStreamsWithExactEnv(bin, path, "", ptahCommandEnvironment())
 	if err == nil {
 		return Result{probeName, display, "out-of-scope-runtime", Gap,
 			"`" + display + "` exited successfully; a still-stubbed Cloud/registry command must remain unavailable until it is implemented and added to the open-capability expectations",
@@ -323,7 +329,12 @@ func compareOutOfScopeRuntime(probeName, display, bin string, path []string, atl
 }
 
 func compareOutOfScopeHelp(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, issue string) Result {
-	stdout, stderr, err := commandStreams(bin, append(slices.Clone(path), "--help"), "")
+	stdout, stderr, err := commandStreamsWithExactEnv(
+		bin,
+		append(slices.Clone(path), "--help"),
+		"",
+		ptahCommandEnvironment(),
+	)
 	if err != nil {
 		return Result{probeName, display, "out-of-scope-help", Fail,
 			"executing `" + display + " --help` failed: " + oneLine(err.Error()), ""}
@@ -427,7 +438,7 @@ func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
 // workflow probes, not by help output. A regression to the CE abort stub
 // short-circuits so the gate points at the real problem.
 func compareImplementedProCommand(probeName, display, bin string, path []string, atlasCmd CLISurfaceCommand, surface implementedProVerbSurface, issue string) []Result {
-	stdout, stderr, err := commandStreams(bin, path, "")
+	stdout, stderr, err := commandStreamsWithExactEnv(bin, path, "", ptahCommandEnvironment())
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
 			return []Result{{probeName, display, "availability-boundary", Fail,
@@ -445,7 +456,7 @@ func compareImplementedProCommand(probeName, display, bin string, path []string,
 	out := []Result{{probeName, display, "availability-boundary", OK,
 		"`" + display + "` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe", ""}}
 
-	target, err := readCommandSurface(bin, path)
+	target, err := readCommandSurfaceWithEnv(bin, path, ptahCommandEnvironment())
 	if err != nil {
 		return append(out, Result{probeName, display, "help", Fail,
 			"reading `" + display + " --help` failed: " + oneLine(err.Error()), ""})
@@ -523,7 +534,11 @@ func compareRequiredProFlags(display string, atlasCmd CLISurfaceCommand, target 
 }
 
 func readCommandSurface(bin string, path []string) (helpDetails, error) {
-	out, err := commandHelp(bin, path)
+	return readCommandSurfaceWithEnv(bin, path, nil)
+}
+
+func readCommandSurfaceWithEnv(bin string, path []string, env []string) (helpDetails, error) {
+	out, err := commandHelpWithEnv(bin, path, env)
 	if err != nil {
 		return helpDetails{}, err
 	}
@@ -531,8 +546,18 @@ func readCommandSurface(bin string, path []string) (helpDetails, error) {
 }
 
 func commandHelp(bin string, path []string) (string, error) {
+	return commandHelpWithEnv(bin, path, nil)
+}
+
+func commandHelpWithEnv(bin string, path []string, env []string) (string, error) {
 	args := append(append([]string(nil), path...), "--help")
-	stdout, stderr, err := commandStreams(bin, args, "")
+	var stdout, stderr string
+	var err error
+	if env == nil {
+		stdout, stderr, err = commandStreams(bin, args, "")
+	} else {
+		stdout, stderr, err = commandStreamsWithExactEnv(bin, args, "", env)
+	}
 	if err != nil {
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {

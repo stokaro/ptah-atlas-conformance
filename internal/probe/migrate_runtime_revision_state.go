@@ -605,14 +605,15 @@ func mysqlMigrateApplyDryRunReadsStoredState(bin, dbURL, label string) Result {
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	runtimeURL, result := prepareMySQLRuntimeSchema(dbURL, schema, fixture)
+	if result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	baseArgs := []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", runtimeURL,
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	}

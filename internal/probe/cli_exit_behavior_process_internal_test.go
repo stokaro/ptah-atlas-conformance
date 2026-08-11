@@ -44,3 +44,13 @@ func TestRunCLIExit_BoundsRetainedOutputPipe(t *testing.T) {
 	c.Assert(result.runErr, qt.Equals, exec.ErrWaitDelay.Error())
 	c.Assert(process.Kill(), qt.IsNil)
 }
+
+func TestRunCLIExit_StripsAmbientPtahVariables(t *testing.T) {
+	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "1")
+	c := qt.New(t)
+
+	result := runCLIExit("sh", []string{"-c", `printf %s "${PTAH_ATLAS_STRICT_COMPAT-unset}"`}, t.TempDir())
+
+	c.Assert(result.exit, qt.Equals, 0)
+	c.Assert(result.stdoutText, qt.Equals, "unset")
+}
