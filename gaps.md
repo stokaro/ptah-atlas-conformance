@@ -7,23 +7,21 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at `go.5x5.cz/ptah v0.2.1-0.20260816165158-c70cfbef4d16`
-- Outcomes: **808 ok**, **0 gap**, **1 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **0 unwaived non-OK**, 1 waived
+- Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| waived | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmphcl 5.inspect.hcl did not match: got "table \"enums\" { schema = schema.script_column_enum_array column \"a\" { null = false type = integer } column \"statuses\" { null = false type = sql(\"script_column_enum_array.status[]\") } column \… | #285 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
@@ -778,6 +776,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | script surface: apply=2, cmpshow=2, atlas schema inspect=1, executed 5 supported command(s), checked 1 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, execsql=1, executed 4 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s), PTAH-SIDE PIN (Ptah diverges from the fixture on purpose): an enum array column is written schema-qualified because the bare name resolves through search_path at replay: a plan built from the unqualified spelling fails with type "mood[]" does not exist, and qualifying it moved a replayed schema from exit 3 to exit 0 on PostgreSQL 17.10 (stokaro/ptah#1138) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | script surface: apply=5, cmpshow=5, atlas schema inspect=1, executed 11 supported command(s), checked 1 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | script surface: apply=1, cmphcl=1, executed 2 supported command(s) |  |
@@ -832,7 +831,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | script surface: cmpshow=4, apply=2, executed 6 supported command(s) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#285** — 1 finding(s)

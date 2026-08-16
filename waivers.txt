@@ -14,7 +14,10 @@
 # it yet" — NOT "this is fine forever". Keep this list as short as honesty allows.
 # An empty list means: nothing is intentionally skipped, so every open gap is red.
 #
-# Everything not listed below is a real, un-excused distance from Atlas, and the
-# gate stays red until it closes.
-
-txtar-script internal/integration/testdata/postgres/column-enum-array.txtar script-runtime   The fixture expects an enum array column to inspect back as sql("status[]"); Ptah writes it schema-qualified. Intentional and permanent rather than tracked-to-close: the bare spelling resolves through search_path at replay, so a plan built from it fails with `type "mood[]" does not exist`. Measured on PostgreSQL 17.10, where qualifying the array spelling moved a replayed schema from exit 3 to exit 0 (ptah#1138).
+# There are intentionally NO waivers right now. Every gap the probe finds is a
+# real, un-excused distance from Atlas, and the gate stays red until it closes.
+#
+# A divergence Ptah holds ON PURPOSE does not belong here — this file is for
+# gaps that are meant to close. Those are declared where the assertion is made
+# and reported as a PTAH-SIDE PIN naming what was measured instead; see
+# txtarDeclaredDivergences in internal/probe/txtar_script.go for the shape.

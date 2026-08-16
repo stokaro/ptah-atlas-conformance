@@ -3187,11 +3187,10 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumFixture(t *testing.T) {
 	}
 }
 
-// The enum array column is the one waived divergence in the corpus: the fixture
-// expects it to inspect back as sql("status[]") and Ptah writes the name
-// schema-qualified. The waiver in waivers.txt carries the reason; this test
-// pins the shape of the mismatch, so a different failure here is a new finding
-// rather than the known one, and so the row going OK is noticed too.
+// The enum array column is the one declared divergence in the corpus: the
+// fixture expects it to inspect back as sql("status[]") and Ptah writes the name
+// schema-qualified on purpose. The row is OK and carries the reason, so this
+// asserts both — a silent OK would read as plain agreement with the fixture.
 func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	fixture := "column-enum-array.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -3206,11 +3205,14 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != Fail {
-		t.Fatalf("expected the waived enum-array mismatch, got %#v", results[0])
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
-	if !strings.Contains(results[0].Detail, `sql(\"script_column_enum_array.status[]\")`) {
-		t.Fatalf("expected the schema-qualified enum array type in the detail, got %#v", results[0])
+	if !strings.Contains(results[0].Detail, "PTAH-SIDE PIN") {
+		t.Fatalf("expected the declared divergence to be named in the detail, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "stokaro/ptah#1138") {
+		t.Fatalf("expected the divergence to cite its measurement, got %#v", results[0])
 	}
 }
 
