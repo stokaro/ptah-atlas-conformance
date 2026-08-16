@@ -68,8 +68,13 @@ func runAtlasShorthandAccepted(bin, fixture string, args []string) Result {
 				command + " did not accept the shorthand: " + oneLine(output), "stokaro/ptah#621"}
 		}
 	}
+	// The output is deliberately not quoted here. What the run stops on is
+	// environment-dependent -- an absolute path where the desired-state file is
+	// missing, a container runtime message where Docker is unreachable -- and
+	// this detail is committed to gaps.json, which CI regenerates and diffs. A
+	// detail carrying the local environment makes that report unreproducible.
 	return Result{"atlas-cli-shorthands", fixture, "parse", OK,
-		command + " accepted the shorthand and stopped later: " + oneLine(output), ""}
+		command + " accepted the shorthand and stopped on a later stage", ""}
 }
 
 func runAtlasVisibleShorthand(bin, fixture string, args []string, want string) Result {

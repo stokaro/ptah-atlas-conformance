@@ -4283,7 +4283,7 @@
     "fixture": "atlas migrate diff -s",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` accepted the shorthand and stopped later: time=2026-08-16T19:27:17.575+02:00 level=WARN msg=\"the container runtime is on another machine, so the dev database is published on every interface of that host for the life of the command\" daemon=ssh://buster@remote-dev host=remote-dev Err…"
+    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` accepted the shorthand and stopped on a later stage"
   },
   {
     "probe": "atlas-cli-hidden-runtime",
