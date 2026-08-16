@@ -4,15 +4,28 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+)
+
+// proMaintRebaseLine captures the version a rebase stamped. The version is a
+// UTC yyyyMMddHHmmss second, so the probe pins its shape and the migration it
+// names, and reads the digits themselves back out.
+var proMaintRebaseLine = regexp.MustCompile(
+	`Rebased migration ` + proMaintEditTarget + ` to (\d{14})`,
 )
 
 const (
 	proMaintWorkflowSentinel = "_capability/pro-maint-workflow/SENTINEL"
 
-	proMaintEditTarget   = "20260101000001"
-	proMaintEditFile     = "20260101000001_create_users.sql"
-	proMaintRebasedFile  = "20260101000003_create_users.sql"
+	proMaintEditTarget = "20260101000001"
+	proMaintEditFile   = "20260101000001_create_users.sql"
+	// There is no constant for the rebased file. An Atlas-layout directory is
+	// stamped with the UTC yyyyMMddHHmmss second -- the same shape
+	// `migrate new` and `migrate diff` write there -- so a rebase lands on the
+	// clock, not on one above the newest committed version. The probe reads
+	// the version back out of the command's own output instead of predicting
+	// it.
 	proMaintRemoveTarget = "20260101000002"
 	proMaintRemoveFile   = "20260101000002_create_posts.sql"
 	proMaintEditMarker   = "-- edited by the conformance probe"
@@ -118,18 +131,25 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 	if gap := m.expectExit(fixture, stage, result, 0); gap != nil {
 		return *gap
 	}
-	// The new version is deterministic: one above the newest committed
-	// migration (20260101000002), so 20260101000001 rebases to 20260101000003.
 	if gap := m.expectFragments(fixture, stage, "stdout", result.stdout, []string{
-		"Rebased migration 20260101000001 to 20260101000003",
 		"Wrote migrations/atlas.sum",
 	}); gap != nil {
 		return *gap
 	}
+	// The version is read back rather than predicted: it is the UTC
+	// yyyyMMddHHmmss second the rebase stamped, so the only thing fixed about
+	// it is its shape and that it names the migration that moved.
+	moved := proMaintRebaseLine.FindStringSubmatch(result.stdout)
+	if moved == nil {
+		return m.gap(fixture, stage,
+			"stdout does not report the rebase as `Rebased migration "+proMaintEditTarget+
+				" to <yyyyMMddHHmmss>`: "+oneLine(result.stdout))
+	}
+	rebasedFile := moved[1] + "_create_users.sql"
 	if _, err := os.Stat(filepath.Join(m.runRoot, "migrations", proMaintEditFile)); !os.IsNotExist(err) {
 		return m.gap(fixture, stage, "the rebased migration's old file still exists: "+proMaintEditFile)
 	}
-	rebased, err := os.ReadFile(filepath.Join(m.runRoot, "migrations", proMaintRebasedFile))
+	rebased, err := os.ReadFile(filepath.Join(m.runRoot, "migrations", rebasedFile))
 	if err != nil {
 		return m.gap(fixture, stage, "the rebased migration file is missing: "+oneLine(err.Error()))
 	}
@@ -140,7 +160,7 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 		return *gap
 	}
 	return m.ok(fixture, stage,
-		"the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`")
+		"the migration moved to the end of history under a fresh yyyyMMddHHmmss version, kept its edited content, and the directory still passes `ptah migrations validate`")
 }
 
 func (m *proMaintWorkflow) removeMigration() Result {

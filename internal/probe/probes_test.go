@@ -543,14 +543,14 @@ case "$*" in
     printf 'Flags:\n      ` + applyHelpFlags + `'
     ;;
   "schema inspect -s public")
-    printf 'error: --url is required\n' >&2
+    printf 'Error: required flag(s) "url" not set\n' >&2
     exit 1
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s main --dry-run"|"schema apply --url sqlite://"*" --to file://"*" --schema main --dry-run")
     printf 'Planned schema changes:\nCREATE TABLE "users" (\n  "id" INTEGER PRIMARY KEY\n);\n'
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s "*" --dry-run")
-    printf 'Schema is synced, no changes to be made.\n'
+    printf 'Schema is synced, no changes to be made\n'
     ;;
   "schema apply --url sqlite://"*)
     printf 'Planned schema changes:\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n'
@@ -565,7 +565,7 @@ case "$*" in
     printf 'ALTER TABLE users ADD COLUMN email TEXT;\n'
     ;;
   "migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev")
-    printf 'error: atlas migrate diff accepts docker --dev-url values, but Ptah requires a directly connectable dev database URL\n' >&2
+    printf 'Error: load --to schema: schema file does not exist: schema.sql\n' >&2
     exit 1
     ;;
   *)
@@ -3187,6 +3187,11 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumFixture(t *testing.T) {
 	}
 }
 
+// The enum array column is the one waived divergence in the corpus: the fixture
+// expects it to inspect back as sql("status[]") and Ptah writes the name
+// schema-qualified. The waiver in waivers.txt carries the reason; this test
+// pins the shape of the mismatch, so a different failure here is a new finding
+// rather than the known one, and so the row going OK is noticed too.
 func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	fixture := "column-enum-array.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -3201,8 +3206,11 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome != OK {
-		t.Fatalf("expected OK result, got %#v", results[0])
+	if results[0].Outcome != Fail {
+		t.Fatalf("expected the waived enum-array mismatch, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, `sql(\"script_column_enum_array.status[]\")`) {
+		t.Fatalf("expected the schema-qualified enum array type in the detail, got %#v", results[0])
 	}
 }
 
