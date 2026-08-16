@@ -16,3 +16,8 @@
 #
 # There are intentionally NO waivers right now. Every gap the probe finds is a
 # real, un-excused distance from Atlas, and the gate stays red until it closes.
+#
+# A divergence Ptah holds ON PURPOSE does not belong here — this file is for
+# gaps that are meant to close. Those are declared where the assertion is made
+# and reported as a PTAH-SIDE PIN naming what was measured instead; see
+# txtarDeclaredDivergences in internal/probe/txtar_script.go for the shape.

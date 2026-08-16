@@ -54,17 +54,32 @@ func (w *Waivers) Reason(r Result) (string, bool) {
 
 // Unused reports waiver entries that no longer match any result — a stale
 // waiver means a gap closed and the waiver should be deleted.
+//
+// Staleness is judged only against the probes the report actually contains.
+// One waiver file is shared by every tier, and each tier's budget run sees only
+// its own report, so a waiver written for the offline corpus matches nothing in
+// the ce-gating or docs-surface report and every one of them would call it
+// stale. That is not a gap that closed, it is a report that never asked the
+// question. A waiver naming a probe absent from this report is therefore left
+// alone; one naming a probe that ran, and matching none of its results, is
+// stale exactly as before.
 func (w *Waivers) Unused(results []Result) []string {
 	live := map[string]bool{}
+	ran := map[string]bool{}
 	for _, r := range results {
 		live[waiverKey(r.Probe, r.Fixture, r.Stage)] = true
+		ran[r.Probe] = true
 	}
 	var stale []string
 	for k := range w.byKey {
-		if !live[k] {
-			parts := strings.Split(k, "\x00")
-			stale = append(stale, strings.Join(parts, " "))
+		if live[k] {
+			continue
 		}
+		parts := strings.Split(k, "\x00")
+		if len(parts) == 0 || !ran[parts[0]] {
+			continue
+		}
+		stale = append(stale, strings.Join(parts, " "))
 	}
 	return stale
 }

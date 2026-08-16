@@ -172,6 +172,11 @@ type txtarRunSummary struct {
 	checked     int
 	unsupported []string
 	failures    []string
+	// pins records the declared divergences an assertion took instead of
+	// failing. They do not change the outcome -- a fixture that only diverges
+	// where this repository says it does is OK -- but they are named in the
+	// report so the row is never read as plain agreement.
+	pins []string
 }
 
 func (r txtarRunSummary) outcome() Outcome {
@@ -235,6 +240,9 @@ func (r txtarRunSummary) detail() string {
 	if len(r.failures) > 0 {
 		parts = append(parts, "failed: "+strings.Join(limitStrings(r.failures, 3), "; "))
 	}
+	if len(r.pins) > 0 {
+		parts = append(parts, strings.Join(r.pins, "; "))
+	}
 	return strings.Join(parts, ", ")
 }
 
@@ -244,6 +252,9 @@ type txtarCommandResult struct {
 	unsupported string
 	failed      bool
 	err         error
+	// pin names a declared divergence this assertion took instead of failing.
+	// See txtarDeclaredDivergences.
+	pin string
 }
 
 type txtarRuntime struct {
@@ -455,6 +466,9 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		clearUnsupportedFileCommandOutputs(commandLine, runtime, unsupportedFiles)
 		if txtarCommandClearsDBState(fx, commandLine) {
 			dbStateUnsupported = false
+		}
+		if result.pin != "" {
+			summary.pins = append(summary.pins, result.pin)
 		}
 		failed := result.failed || result.err != nil
 		switch {
@@ -5323,13 +5337,63 @@ func runTxtarCmpHCL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCo
 		}, true
 	}
 	expected = txtarNormalizeAtlasHCL(fx, expected)
-	if !txtarFilesEqual(actual, expected) {
-		return txtarCommandResult{
-			failed: true,
-			err:    fmt.Errorf("cmphcl %s did not match: got %q want %q", fields[1], oneLine(actual), oneLine(expected)),
-		}, true
+	if txtarFilesEqual(actual, expected) {
+		return txtarCommandResult{}, true
 	}
-	return txtarCommandResult{}, true
+	if pin, ok := txtarDeclaredDivergence(fx, fields[1], actual, expected); ok {
+		return txtarCommandResult{pin: pin}, true
+	}
+	return txtarCommandResult{
+		failed: true,
+		err:    fmt.Errorf("cmphcl %s did not match: got %q want %q", fields[1], oneLine(actual), oneLine(expected)),
+	}, true
+}
+
+// txtarDivergence declares one difference between an imported Atlas fixture and
+// what Ptah writes, which Ptah holds on purpose.
+//
+// It is a rewrite of the expected text rather than a pass for the whole file:
+// the comparison still runs, so every other difference in the same document
+// stays red. A fixture that starts diverging a second way is a finding, not a
+// covered case.
+type txtarDivergence struct {
+	fixture string // fixture name suffix, e.g. "postgres/column-enum-array.txtar"
+	file    string // the compared file inside the archive
+	from    string // the fragment the fixture carries
+	to      string // the fragment Ptah writes instead
+	why     string // stated in the report, after the PTAH-SIDE PIN prefix
+}
+
+// txtarDeclaredDivergences is deliberately short. Each entry is a place where
+// matching Atlas would mean shipping something measurably worse.
+var txtarDeclaredDivergences = []txtarDivergence{{
+	fixture: "postgres/column-enum-array.txtar",
+	file:    "5.inspect.hcl",
+	from:    `type = sql("status[]")`,
+	to:      `type = sql("script_column_enum_array.status[]")`,
+	why: "an enum array column is written schema-qualified because the bare name resolves through " +
+		"search_path at replay: a plan built from the unqualified spelling fails with " +
+		`type "mood[]" does not exist, and qualifying it moved a replayed schema from exit 3 to ` +
+		"exit 0 on PostgreSQL 17.10 (stokaro/ptah#1138)",
+}}
+
+// txtarDeclaredDivergence reports whether the only difference between actual and
+// expected is one this repository has declared, and returns the line the report
+// should carry in its place.
+func txtarDeclaredDivergence(fx Fixture, file, actual, expected string) (string, bool) {
+	for _, d := range txtarDeclaredDivergences {
+		if !strings.HasSuffix(fx.Name, d.fixture) || file != d.file {
+			continue
+		}
+		if !strings.Contains(expected, d.from) {
+			continue
+		}
+		if !txtarFilesEqual(actual, strings.ReplaceAll(expected, d.from, d.to)) {
+			continue
+		}
+		return "PTAH-SIDE PIN (Ptah diverges from the fixture on purpose): " + d.why, true
+	}
+	return "", false
 }
 
 func runTxtarSynced(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {

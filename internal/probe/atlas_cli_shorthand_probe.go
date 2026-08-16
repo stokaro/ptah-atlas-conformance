@@ -22,18 +22,59 @@ func (AtlasCLIShorthandProbe) Run(fx Fixture) []Result {
 			"could not build the Ptah compatibility CLI to probe Atlas shorthand aliases: " + oneLine(err.Error()), ""}}
 	}
 	return []Result{
-		runAtlasVisibleShorthand(bin, "atlas schema inspect -s", []string{"schema", "inspect", "-s", "public"}, "--url is required"),
+		// The wording is the pinned community binary's own: `atlas schema inspect
+		// -s public` with no --url answers `required flag(s) "url" not set`,
+		// and Ptah answers the same. It used to answer `--url is required`,
+		// which is what this row was pinned to.
+		runAtlasVisibleShorthand(bin, "atlas schema inspect -s",
+			[]string{"schema", "inspect", "-s", "public"}, `required flag(s) "url" not set`),
 		runAtlasSchemaApplySchemaShorthand(bin),
 		runAtlasSchemaApplyHiddenFileShorthand(bin),
 		runAtlasSchemaDiffFromShorthand(bin),
 		runAtlasSchemaDiffSchemaShorthand(bin),
-		runAtlasVisibleShorthand(bin, "atlas migrate diff -s", []string{
+		runAtlasShorthandAccepted(bin, "atlas migrate diff -s", []string{
 			"migrate", "diff",
 			"-s", "public",
 			"--to", "file://schema.sql",
 			"--dev-url", "docker://postgres/15/dev",
-		}, "accepts docker --dev-url values"),
+		}),
 	}
+}
+
+// runAtlasShorthandAccepted proves a shorthand parses without pinning whatever
+// the command fails on afterwards.
+//
+// It exists for `migrate diff -s`, which used to be measured by the refusal
+// Ptah returned for a `docker://` dev URL. Ptah supports those now
+// (stokaro/ptah#844), so the run travels further and stops on whatever the
+// environment gives it next -- a missing `schema.sql` where the file is absent,
+// a container runtime error where Docker is not reachable. Neither is a stable
+// string to assert, and neither is what this row is about.
+//
+// What it is about is that `-s` is a working `--schema` alias, so that is what
+// is asserted: the run either completes, or fails on something other than the
+// flag itself. Cobra names an unusable shorthand explicitly, which is what
+// makes the negative side of this reliable.
+func runAtlasShorthandAccepted(bin, fixture string, args []string) Result {
+	command := "`" + strings.Join(append([]string{"atlas"}, args...), " ") + "`"
+	output, err := commandOutputDir(bin, args, "")
+	if err == nil {
+		return Result{"atlas-cli-shorthands", fixture, "parse", OK,
+			command + " parsed successfully", ""}
+	}
+	for _, rejection := range []string{"unknown shorthand flag", "unknown flag"} {
+		if strings.Contains(output, rejection) {
+			return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
+				command + " did not accept the shorthand: " + oneLine(output), "stokaro/ptah#621"}
+		}
+	}
+	// The output is deliberately not quoted here. What the run stops on is
+	// environment-dependent -- an absolute path where the desired-state file is
+	// missing, a container runtime message where Docker is unreachable -- and
+	// this detail is committed to gaps.json, which CI regenerates and diffs. A
+	// detail carrying the local environment makes that report unreproducible.
+	return Result{"atlas-cli-shorthands", fixture, "parse", OK,
+		command + " accepted the shorthand and stopped on a later stage", ""}
 }
 
 func runAtlasVisibleShorthand(bin, fixture string, args []string, want string) Result {
@@ -111,7 +152,14 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 		"-s", "out_of_scope",
 		"--dry-run",
 	}, dir)
-	if err != nil || !strings.Contains(scopedOut, "Schema is synced, no changes to be made.") {
+	// No trailing period: the pinned community binary prints
+	// `Schema is synced, no changes to be made` without one, and Ptah now
+	// matches it. Asserting the period made this row red for punctuation while
+	// reporting it as a scoping failure, which is the wrong thing to read.
+	//
+	// The plural `schema diff` message keeps its period in both, so the two are
+	// not the same string and must not be normalized together.
+	if err != nil || !strings.Contains(scopedOut, "Schema is synced, no changes to be made") {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: " + oneLine(scopedOut), "stokaro/ptah#813"}
 	}

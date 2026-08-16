@@ -2783,7 +2783,7 @@
     "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s)"
+    "detail": "script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s), PTAH-SIDE PIN (Ptah diverges from the fixture on purpose): an enum array column is written schema-qualified because the bare name resolves through search_path at replay: a plan built from the unqualified spelling fails with type \"mood[]\" does not exist, and qualifying it moved a replayed schema from exit 3 to exit 0 on PostgreSQL 17.10 (stokaro/ptah#1138)"
   },
   {
     "probe": "txtar-script",
@@ -4282,7 +4282,7 @@
     "fixture": "atlas migrate diff -s",
     "stage": "parse",
     "outcome": "ok",
-    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path"
+    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` accepted the shorthand and stopped on a later stage"
   },
   {
     "probe": "atlas-cli-hidden-runtime",
@@ -5297,7 +5297,7 @@
     "fixture": "atlas migrate rebase",
     "stage": "rebase to end of history",
     "outcome": "ok",
-    "detail": "the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`"
+    "detail": "the migration moved to the end of history under a fresh yyyyMMddHHmmss version, kept its edited content, and the directory still passes `ptah migrations validate`"
   },
   {
     "probe": "pro-maint-workflow",

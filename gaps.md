@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
+- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260816165158-c70cfbef4d16`
 - Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -60,7 +60,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean --format --auto-approve` | execute | `atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table |  |
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean actual invalid --format` | execute | `atlas schema clean` rejects applied-state invalid format templates before mutating SQLite |  |
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean invalid --format` | execute | `atlas schema clean` rejects invalid format templates before opening the database |  |
-| — | ok | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
+| — | ok | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` accepted the shorthand and stopped on a later stage |  |
 | — | ok | atlas-cli-shorthands | `atlas schema apply --file/-f` | execute | `atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
 | — | ok | atlas-cli-shorthands | `atlas schema apply -s` | execute | `atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes |  |
 | — | ok | atlas-cli-shorthands | `atlas schema diff -f` | execute | `atlas schema diff -f` behaves like `--from` for local schema-file diffs |  |
@@ -536,7 +536,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | pro-down-workflow | `atlas migrate down` | bare rollback | bare `atlas migrate down` — no stdin, --confirm, or --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op) |  |
 | — | ok | pro-down-workflow | `atlas migrate down --format` | formatted rollback | formatted `atlas migrate down` ran without stdin, reported version 20260101000002 reverted, removed its table, and preserved only the version 20260101000001 revision |  |
 | — | ok | pro-maint-workflow | `atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
-| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under a fresh yyyyMMddHHmmss version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
 | — | ok | pro-maint-workflow | `atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | plan application | PTAH-SIDE PIN (no CE oracle): `schema apply --plan file://...` replayed the saved native JSON plan against the planned target, creating exactly the desired users table |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | PTAH-SIDE PIN (no CE oracle): a target mutated after planning was refused: apply --plan on the native JSON plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
@@ -776,7 +776,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-comment.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-default.txtar` | script-runtime | script surface: apply=2, cmpshow=2, atlas schema inspect=1, executed 5 supported command(s), checked 1 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-domain.txtar` | script-runtime | script surface: apply=1, cmphcl=1, cmpshow=1, execsql=1, executed 4 supported command(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s), PTAH-SIDE PIN (Ptah diverges from the fixture on purpose): an enum array column is written schema-qualified because the bare name resolves through search_path at replay: a plan built from the unqualified spelling fails with type "mood[]" does not exist, and qualifying it moved a replayed schema from exit 3 to exit 0 on PostgreSQL 17.10 (stokaro/ptah#1138) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-enum.txtar` | script-runtime | script surface: apply=5, cmpshow=5, atlas schema inspect=1, executed 11 supported command(s), checked 1 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-float.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/postgres/column-generated-inspect.txtar` | script-runtime | script surface: apply=1, cmphcl=1, executed 2 supported command(s) |  |
