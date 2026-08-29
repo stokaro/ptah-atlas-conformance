@@ -8,9 +8,9 @@ asynch==0.3.1 \
     --hash=sha256:32b30a4409b70514077f7bf8ef713a248158fe5e63504c2769a4c7f772828412 \
     --hash=sha256:d8bb3c1793a74a2e9d44cc7e8406ead3cf3818c11ecd6d8405b702b23148c584
     # via clickhouse-sqlalchemy
-atlas-provider-sqlalchemy==0.5.0 \
-    --hash=sha256:ced8870690f5d99ea6972cdbc5a9c30ba27a5a5a817ea38e825121b1c788c905 \
-    --hash=sha256:dca4e8d0a9881e03b10c59a7d654aed1704ccc74c7046f6e39eb5703f2cf5172
+atlas-provider-sqlalchemy==0.5.2 \
+    --hash=sha256:e76a1bca1c7aa7123c5a265f56d5cdbb1a38a056d43ba6ca581e12db21e6c1c2 \
+    --hash=sha256:ed138558b0a36d535f6ab716f753dcd5547fb9759e5c8b2456b7bfe727edd543
     # via -r requirements.in
 certifi==2026.7.22 \
     --hash=sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775 \
