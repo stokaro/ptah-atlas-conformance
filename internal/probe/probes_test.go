@@ -485,8 +485,8 @@ func TestAtlasCLIShorthandProbeAcceptsAtlasAliases(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIShorthandProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 6 {
-		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
+	if len(results) != 7 {
+		t.Fatalf("expected 7 results, got %d: %#v", len(results), results)
 	}
 	for _, r := range results {
 		if r.Probe != "atlas-cli-shorthands" {
@@ -543,14 +543,18 @@ case "$*" in
     printf 'Flags:\n      ` + applyHelpFlags + `'
     ;;
   "schema inspect -s public")
-    printf 'error: --url is required\n' >&2
+    printf 'Error: required flag(s) "url" not set\n' >&2
+    exit 1
+    ;;
+  "schema inspect -Z public")
+    printf "Error: unknown shorthand flag: 'Z' in -Z\n" >&2
     exit 1
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s main --dry-run"|"schema apply --url sqlite://"*" --to file://"*" --schema main --dry-run")
     printf 'Planned schema changes:\nCREATE TABLE "users" (\n  "id" INTEGER PRIMARY KEY\n);\n'
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s "*" --dry-run")
-    printf 'Schema is synced, no changes to be made.\n'
+    printf 'Schema is synced, no changes to be made\n'
     ;;
   "schema apply --url sqlite://"*)
     printf 'Planned schema changes:\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n'
@@ -565,7 +569,7 @@ case "$*" in
     printf 'ALTER TABLE users ADD COLUMN email TEXT;\n'
     ;;
   "migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev")
-    printf 'error: atlas migrate diff accepts docker --dev-url values, but Ptah requires a directly connectable dev database URL\n' >&2
+    printf 'Error: a docker:// dev database URL needs a running container runtime, and the docker info probe failed\n' >&2
     exit 1
     ;;
   *)

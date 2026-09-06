@@ -7,16 +7,16 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: NOT DONE — 4 non-OK observation(s)
+## Status: NOT DONE — 1 non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at `ptah.run v0.4.0`
-- Outcomes: **805 ok**, **3 gap**, **1 fail**, **0 panic**
-- Full gate: **4 non-OK** (fails CI)
-- Regression budget input: **0 unwaived non-OK**, 4 waived
+- Outcomes: **809 ok**, **0 gap**, **1 fail**, **0 panic**
+- Full gate: **1 non-OK** (fails CI)
+- Regression budget input: **0 unwaived non-OK**, 1 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
@@ -24,9 +24,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
 | waived | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmphcl 5.inspect.hcl did not match: got "table \"enums\" { schema = schema.script_column_enum_array column \"a\" { null = false type = integer } column \"statuses\" { null = false type = sql(\"script_column_enum_array.status[]\") } column \… | #285 |
-| waived | **gap** | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: Error: load --to schema: schema file does not exist: <repo>/schema.sql | #621 |
-| waived | **gap** | atlas-cli-shorthands | `atlas schema apply -s` | execute | `atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: Schema is synced, no changes to be made | #813 |
-| waived | **gap** | atlas-cli-shorthands | `atlas schema inspect -s` | parse | `atlas schema inspect -s public` did not reach the expected validation path: Error: required flag(s) "url" not set | #621 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
@@ -65,9 +62,13 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean --format --auto-approve` | execute | `atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table |  |
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean actual invalid --format` | execute | `atlas schema clean` rejects applied-state invalid format templates before mutating SQLite |  |
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean invalid --format` | execute | `atlas schema clean` rejects invalid format templates before opening the database |  |
+| — | ok | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` got past flag parsing, so the shorthand is registered |  |
 | — | ok | atlas-cli-shorthands | `atlas schema apply --file/-f` | execute | `atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
+| — | ok | atlas-cli-shorthands | `atlas schema apply -s` | execute | `atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes |  |
 | — | ok | atlas-cli-shorthands | `atlas schema diff -f` | execute | `atlas schema diff -f` behaves like `--from` for local schema-file diffs |  |
 | — | ok | atlas-cli-shorthands | `atlas schema diff -s` | execute | `atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced |  |
+| — | ok | atlas-cli-shorthands | `atlas schema inspect -Z (control)` | parse | `atlas schema inspect -Z` is refused as an unregistered shorthand, so the absence of that refusal is evidence |  |
+| — | ok | atlas-cli-shorthands | `atlas schema inspect -s` | parse | `atlas schema inspect -s public` got past flag parsing, so the shorthand is registered |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas license` | execute | `atlas license` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas schema fmt` | execute | `atlas schema fmt` formats .hcl files recursively through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas version` | execute | `atlas version` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
@@ -836,5 +837,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#285** — 1 finding(s)
-- **stokaro/ptah#621** — 2 finding(s)
-- **stokaro/ptah#813** — 1 finding(s)

@@ -30,9 +30,6 @@
 # fixtures age. These come out one at a time as each is answered.
 
 txtar-script internal/integration/testdata/postgres/column-enum-array.txtar script-runtime   an enum-array column now inspects as sql("<schema>.status[]"); undiagnosed (conformance#288)
-atlas-cli-shorthands "atlas schema inspect -s" parse   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
-atlas-cli-shorthands "atlas migrate diff -s" parse   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
-atlas-cli-shorthands "atlas schema apply -s" execute   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
 
 # The CLI-surface tier's four, from the same pin bump and in the OPPOSITE
 # direction: Ptah gained these commands. `ptah-non-oss-sentinel` asserts that a

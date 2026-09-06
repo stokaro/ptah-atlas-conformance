@@ -4247,17 +4247,15 @@
     "probe": "atlas-cli-shorthands",
     "fixture": "atlas schema inspect -s",
     "stage": "parse",
-    "outcome": "gap",
-    "detail": "`atlas schema inspect -s public` did not reach the expected validation path: Error: required flag(s) \"url\" not set",
-    "issue": "stokaro/ptah#621"
+    "outcome": "ok",
+    "detail": "`atlas schema inspect -s public` got past flag parsing, so the shorthand is registered"
   },
   {
     "probe": "atlas-cli-shorthands",
     "fixture": "atlas schema apply -s",
     "stage": "execute",
-    "outcome": "gap",
-    "detail": "`atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: Schema is synced, no changes to be made",
-    "issue": "stokaro/ptah#813"
+    "outcome": "ok",
+    "detail": "`atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes"
   },
   {
     "probe": "atlas-cli-shorthands",
@@ -4284,9 +4282,15 @@
     "probe": "atlas-cli-shorthands",
     "fixture": "atlas migrate diff -s",
     "stage": "parse",
-    "outcome": "gap",
-    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: Error: load --to schema: schema file does not exist: \u003crepo\u003e/schema.sql",
-    "issue": "stokaro/ptah#621"
+    "outcome": "ok",
+    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` got past flag parsing, so the shorthand is registered"
+  },
+  {
+    "probe": "atlas-cli-shorthands",
+    "fixture": "atlas schema inspect -Z (control)",
+    "stage": "parse",
+    "outcome": "ok",
+    "detail": "`atlas schema inspect -Z` is refused as an unregistered shorthand, so the absence of that refusal is evidence"
   },
   {
     "probe": "atlas-cli-hidden-runtime",
