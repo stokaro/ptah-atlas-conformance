@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.5x5.cz/ptah/atlascompat"
-	"go.5x5.cz/ptah/migration/migrator"
+	"ptah.run/atlascompat"
+	"ptah.run/migration/migrationfile"
 )
 
 // AtlasCLIHiddenRuntimeProbe measures Atlas-compatible hidden CLI behavior that
@@ -62,7 +62,7 @@ func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 			"writing desired schema failed: " + oneLine(err.Error()), ""}
 	}
 
-	sum, err := atlascompat.ComputeSum(os.DirFS(migrationsDir), migrator.MigrationDirFormatAtlas)
+	sum, err := atlascompat.ComputeSum(os.DirFS(migrationsDir), migrationfile.DirFormatAtlas)
 	if err != nil {
 		return Result{"atlas-cli-hidden-runtime", fixture, "setup", Fail,
 			"computing baseline atlas.sum failed: " + oneLine(err.Error()), ""}

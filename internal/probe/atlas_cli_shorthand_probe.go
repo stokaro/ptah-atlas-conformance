@@ -22,7 +22,7 @@ func (AtlasCLIShorthandProbe) Run(fx Fixture) []Result {
 			"could not build the Ptah compatibility CLI to probe Atlas shorthand aliases: " + oneLine(err.Error()), ""}}
 	}
 	return []Result{
-		runAtlasVisibleShorthand(bin, "atlas schema inspect -s", []string{"schema", "inspect", "-s", "public"}, "--url is required"),
+		runAtlasVisibleShorthand(bin, "atlas schema inspect -s", []string{"schema", "inspect", "-s", "public"}),
 		runAtlasSchemaApplySchemaShorthand(bin),
 		runAtlasSchemaApplyHiddenFileShorthand(bin),
 		runAtlasSchemaDiffFromShorthand(bin),
@@ -32,22 +32,77 @@ func (AtlasCLIShorthandProbe) Run(fx Fixture) []Result {
 			"-s", "public",
 			"--to", "file://schema.sql",
 			"--dev-url", "docker://postgres/15/dev",
-		}, "accepts docker --dev-url values"),
+		}),
+		runAtlasUnregisteredShorthandControl(bin),
 	}
 }
 
-func runAtlasVisibleShorthand(bin, fixture string, args []string, want string) Result {
+// refusesFlag reports cobra's rejection of a flag the command does not declare.
+// It is emitted before the command runs anything, so its absence is what proves
+// a flag exists. Both spellings are listed because the shorthand and long forms
+// are worded differently and this probe drives argv, not a flag kind: measured
+// byte-identical on the pinned Atlas CE binary and on ptah-compat for `-Z`.
+func refusesFlag(output string) bool {
+	for _, rejection := range []string{"unknown shorthand flag", "unknown flag"} {
+		if strings.Contains(output, rejection) {
+			return true
+		}
+	}
+	return false
+}
+
+// syncedNoChanges is what a no-op plan prints. Measured on the pinned Atlas CE
+// binary, which ends the sentence without a period; the transcription here
+// carried one and reported a gap against output that already matched.
+const syncedNoChanges = "Schema is synced, no changes to be made"
+
+// runAtlasVisibleShorthand proves the command registers the shorthand under
+// test. Cobra refuses an unregistered shorthand during flag parsing, so any
+// invocation that gets past parsing -- succeeding, reporting a missing required
+// flag, or failing to reach a dev database -- establishes that the shorthand is
+// declared.
+//
+// The assertion is deliberately about parsing rather than about the wording of
+// whatever fails next. An earlier version compared the output against a
+// transcribed diagnostic, which measured the sentence Ptah happened to print at
+// the time: `schema inspect -s` was recorded as wanting "--url is required"
+// while both binaries now print cobra's own `required flag(s) "url" not set`,
+// and `migrate diff -s` was recorded as wanting a phrase neither binary has
+// ever printed. Both reported a gap for a shorthand that works.
+func runAtlasVisibleShorthand(bin, fixture string, args []string) Result {
+	spelling := "`" + strings.Join(append([]string{"atlas"}, args...), " ") + "`"
 	output, err := commandOutputDir(bin, args, "")
 	if err == nil {
 		return Result{"atlas-cli-shorthands", fixture, "parse", OK,
-			"`" + strings.Join(append([]string{"atlas"}, args...), " ") + "` parsed successfully", ""}
+			spelling + " parsed successfully", ""}
 	}
-	if strings.Contains(output, want) {
-		return Result{"atlas-cli-shorthands", fixture, "parse", OK,
-			"`" + strings.Join(append([]string{"atlas"}, args...), " ") + "` reached the expected command validation path", ""}
+	if refusesFlag(output) {
+		return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
+			spelling + " rejected the shorthand during flag parsing: " + oneLine(output), "stokaro/ptah#621"}
 	}
-	return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
-		"`" + strings.Join(append([]string{"atlas"}, args...), " ") + "` did not reach the expected validation path: " + oneLine(output), "stokaro/ptah#621"}
+	return Result{"atlas-cli-shorthands", fixture, "parse", OK,
+		spelling + " got past flag parsing, so the shorthand is registered", ""}
+}
+
+// runAtlasUnregisteredShorthandControl is the control for the assertion above.
+// runAtlasVisibleShorthand passes on the ABSENCE of a rejection, which a
+// command that stopped parsing flags altogether would also satisfy. This drives
+// a shorthand no Atlas command declares and requires the rejection, so the
+// detector is measured rather than assumed.
+func runAtlasUnregisteredShorthandControl(bin string) Result {
+	const fixture = "atlas schema inspect -Z (control)"
+	args := []string{"schema", "inspect", "-Z", "public"}
+	output, err := commandOutputDir(bin, args, "")
+	if err == nil {
+		return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
+			"`atlas schema inspect -Z` was accepted, so an unregistered shorthand is not refused: " + oneLine(output), "stokaro/ptah#621"}
+	}
+	if !refusesFlag(output) {
+		return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
+			"`atlas schema inspect -Z` failed without cobra's unregistered-shorthand rejection, so the control cannot police the probes above: " + oneLine(output), "stokaro/ptah#621"}
+	}
+	return Result{"atlas-cli-shorthands", fixture, "parse", OK,
+		"`atlas schema inspect -Z` is refused as an unregistered shorthand, so the absence of that refusal is evidence", ""}
 }
 
 // runAtlasSchemaApplySchemaShorthand proves `-s` is a working `--schema` alias
@@ -111,7 +166,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 		"-s", "out_of_scope",
 		"--dry-run",
 	}, dir)
-	if err != nil || !strings.Contains(scopedOut, "Schema is synced, no changes to be made.") {
+	if err != nil || !strings.Contains(scopedOut, syncedNoChanges) {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: " + oneLine(scopedOut), "stokaro/ptah#813"}
 	}

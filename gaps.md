@@ -12,8 +12,8 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
-- Outcomes: **809 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `ptah.run v0.4.0`
+- Outcomes: **810 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -60,12 +60,13 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean --format --auto-approve` | execute | `atlas schema clean --format --auto-approve` emits applied JSON and removes the SQLite table |  |
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean actual invalid --format` | execute | `atlas schema clean` rejects applied-state invalid format templates before mutating SQLite |  |
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean invalid --format` | execute | `atlas schema clean` rejects invalid format templates before opening the database |  |
-| — | ok | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path |  |
+| — | ok | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` got past flag parsing, so the shorthand is registered |  |
 | — | ok | atlas-cli-shorthands | `atlas schema apply --file/-f` | execute | `atlas schema apply --file/-f` is hidden from help and maps to the local desired-schema input path |  |
 | — | ok | atlas-cli-shorthands | `atlas schema apply -s` | execute | `atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes |  |
 | — | ok | atlas-cli-shorthands | `atlas schema diff -f` | execute | `atlas schema diff -f` behaves like `--from` for local schema-file diffs |  |
 | — | ok | atlas-cli-shorthands | `atlas schema diff -s` | execute | `atlas schema diff -s` scopes like --schema: in-scope main yields the ALTER, output is identical to the long flag, and an out-of-scope schema name reports synced |  |
-| — | ok | atlas-cli-shorthands | `atlas schema inspect -s` | parse | `atlas schema inspect -s public` reached the expected command validation path |  |
+| — | ok | atlas-cli-shorthands | `atlas schema inspect -Z (control)` | parse | `atlas schema inspect -Z` is refused as an unregistered shorthand, so the absence of that refusal is evidence |  |
+| — | ok | atlas-cli-shorthands | `atlas schema inspect -s` | parse | `atlas schema inspect -s public` got past flag parsing, so the shorthand is registered |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas license` | execute | `atlas license` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas schema fmt` | execute | `atlas schema fmt` formats .hcl files recursively through a ptah-compat binary named `atlas` |  |
 | — | ok | atlas-cli-utility-runtime | `ptah-compat atlas version` | execute | `atlas version` executes through a ptah-compat binary named `atlas` and prints Ptah-owned utility output |  |
@@ -451,8 +452,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | content findings: DD101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | content findings: DD101, AC101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | content findings: DD101, AC101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
@@ -469,17 +470,17 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `internal/integration/testdata/migrations/mysqlock` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `internal/integration/testdata/migrations/postgres` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/golang-migrate` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/migrate/testdata/lex` | lint | content findings: DS101, PG101, PG308 |  |
-| — | ok | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | content findings: TX201 |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lex` | lint | content findings: AC101, DS101, PG101, PG308 |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | content findings: AC101 |  |
 | — | ok | lint-parity | `sql/migrate/testdata/lexescaped` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/migrate/testdata/lexgroup` | lint | content findings: PG308, TX201 |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lexgroup` | lint | content findings: PG308, AC101 |  |
 | — | ok | lint-parity | `sql/migrate/testdata/migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/migrate/sub` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/partial-checkpoint` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/migrate/testdata/sqlserver` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `sql/migrate/testdata/sqlserver` | lint | content findings: AC101 |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
-| — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | content findings: DD101 |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | content findings: DD101, AC101 |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | managed-data-workflow | `managed rows` | row introspection | the introspected countries rows match the declared managed reference data exactly |  |
 | — | ok | managed-data-workflow | `ptah migrations data` | data migration generation | the declared rows generated a reversible data migration (up inserts every row, down deletes exactly those keys) |  |
@@ -536,7 +537,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | pro-down-workflow | `atlas migrate down` | bare rollback | bare `atlas migrate down` — no stdin, --confirm, or --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op) |  |
 | — | ok | pro-down-workflow | `atlas migrate down --format` | formatted rollback | formatted `atlas migrate down` ran without stdin, reported version 20260101000002 reverted, removed its table, and preserved only the version 20260101000001 revision |  |
 | — | ok | pro-maint-workflow | `atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
-| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under a new version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
 | — | ok | pro-maint-workflow | `atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | plan application | PTAH-SIDE PIN (no CE oracle): `schema apply --plan file://...` replayed the saved native JSON plan against the planned target, creating exactly the desired users table |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | PTAH-SIDE PIN (no CE oracle): a target mutated after planning was refused: apply --plan on the native JSON plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
