@@ -77,3 +77,31 @@ func TestSplitWaiver_FailurePath(t *testing.T) {
 		})
 	}
 }
+
+// TestUnused_StalenessIsScopedToProbesTheReportRan covers the property eight
+// tiers depend on: they share one waivers file and each passes its own report.
+func TestUnused_StalenessIsScopedToProbesTheReportRan(t *testing.T) {
+	waivers := &Waivers{byKey: map[string]string{
+		waiverKey("offline-probe", "some/fixture", "parse"): "tracked",
+		waiverKey("live-probe", "other/fixture", "apply"):   "tracked",
+	}}
+
+	t.Run("a waiver for a probe this report never ran is not stale", func(t *testing.T) {
+		stale := waivers.Unused([]Result{
+			{Probe: "live-probe", Fixture: "other/fixture", Stage: "apply"},
+		})
+		if len(stale) != 0 {
+			t.Fatalf("the offline waiver was called stale by a live-only report: %v", stale)
+		}
+	})
+
+	t.Run("a waiver whose finding closed is still stale", func(t *testing.T) {
+		stale := waivers.Unused([]Result{
+			{Probe: "offline-probe", Fixture: "a/different/fixture", Stage: "parse"},
+			{Probe: "live-probe", Fixture: "other/fixture", Stage: "apply"},
+		})
+		if len(stale) != 1 {
+			t.Fatalf("a closed gap was not reported stale: %v", stale)
+		}
+	})
+}

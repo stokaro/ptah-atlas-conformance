@@ -5303,7 +5303,7 @@
     "fixture": "atlas migrate rebase",
     "stage": "rebase to end of history",
     "outcome": "gap",
-    "detail": "stdout does not contain \"Rebased migration 20260101000001 to 20260101000003\": warning: --db-url not provided; applied migration state was not verified Rebased migration 20260101000001 to 20260906134124 migrations/20260906134124_create_users.sql Wrote migrations/atlas.sum",
+    "detail": "stdout does not contain \"Rebased migration 20260101000001 to 20260101000003\": warning: --db-url not provided; applied migration state was not verified Rebased migration 20260101000001 to 20260906141302 migrations/20260906141302_create_users.sql Wrote migrations/atlas.sum",
     "issue": "stokaro/ptah#758"
   },
   {
