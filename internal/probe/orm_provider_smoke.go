@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"go.5x5.cz/ptah/atlascompat"
+	"ptah.run/atlascompat"
 )
 
 const (

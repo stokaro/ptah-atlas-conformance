@@ -485,7 +485,12 @@ func dbTestMigrationReportChecks(migrationArgs []string) []dbTestWorkflowCheck {
 				required: []string{
 					"<!doctype html>",
 					"<title>MIGRATION test report</title>",
-					"1 cases, 1 passed, 0 failed",
+					// The HTML report renders each counter as its own element, so no
+					// joined summary sentence exists to match. Measured on the report
+					// sample Ptah commits at v0.4.0.
+					`<div class="stat-n">1</div><div class="stat-l">cases</div>`,
+					`<div class="stat-n">1</div><div class="stat-l">passed</div>`,
+					`<div class="stat-n">0</div><div class="stat-l">failed</div>`,
 					"migration workflow",
 				},
 				forbidden: []string{
@@ -561,7 +566,12 @@ func dbTestSchemaReportChecks(schemaArgs []string) []dbTestWorkflowCheck {
 				required: []string{
 					"<!doctype html>",
 					"<title>SCHEMA test report</title>",
-					"1 cases, 1 passed, 0 failed",
+					// The HTML report renders each counter as its own element, so no
+					// joined summary sentence exists to match. Measured on the report
+					// sample Ptah commits at v0.4.0.
+					`<div class="stat-n">1</div><div class="stat-l">cases</div>`,
+					`<div class="stat-n">1</div><div class="stat-l">passed</div>`,
+					`<div class="stat-n">0</div><div class="stat-l">failed</div>`,
 					"schema workflow",
 				},
 				forbidden: []string{

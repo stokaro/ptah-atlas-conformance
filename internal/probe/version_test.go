@@ -17,7 +17,7 @@ func TestPtahVersion_LinkedModuleOnly(t *testing.T) {
 
 	got := probe.PtahVersion()
 
-	c.Assert(got, qt.Contains, "go.5x5.cz/ptah ")
+	c.Assert(got, qt.Contains, "ptah.run ")
 	c.Assert(got, qt.Not(qt.Contains), "external binary overrides")
 }
 
@@ -36,7 +36,7 @@ func TestPtahVersion_ExternalBinaryOverrides(t *testing.T) {
 
 	got := probe.PtahVersion()
 
-	c.Assert(got, qt.Contains, "go.5x5.cz/ptah ")
+	c.Assert(got, qt.Contains, "ptah.run ")
 	c.Assert(got, qt.Contains, "external binary overrides: PTAH_BIN sha256:"+
 		hex.EncodeToString(ptahHash[:]))
 	c.Assert(got, qt.Contains, "PTAH_COMPAT_BIN sha256:"+
