@@ -308,9 +308,10 @@
   {
     "probe": "migrate-runtime",
     "fixture": "sqlite/tx-mode-all-diagnostic",
-    "stage": "diagnostic",
-    "outcome": "ok",
-    "detail": "tx-mode all rejected a pre-migration check with exit 1 and the diagnostic on stderr without suggesting unavailable compat flag --skip-checks"
+    "stage": "stderr",
+    "outcome": "gap",
+    "detail": "expected check-specific tx-mode diagnostic on stderr: Error: error applying migrations: migration 2 declares pre-migration checks, which cannot run with tx-mode all: tx-mode all runs every migration in one transaction, so a per-migration timeout would bound the whole batch and a per-migration …",
+    "issue": "stokaro/ptah#648"
   },
   {
     "probe": "migrate-runtime",
@@ -611,71 +612,81 @@
   {
     "probe": "migrate-runtime",
     "fixture": "mysql/apply-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "apply created expected MySQL tables and Atlas revision rows"
+    "stage": "apply",
+    "outcome": "gap",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#648"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mysql/apply-dry-run-stored-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
+    "stage": "seed",
+    "outcome": "gap",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#648"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mysql/txtar-check-comment-semantics",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL executable comments and short numeric comment bodies retained their SQL semantics in named checks"
+    "stage": "apply",
+    "outcome": "gap",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#648"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mysql/txtar-check-hidden-statements",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
+    "stage": "diagnostic",
+    "outcome": "gap",
+    "detail": "apply output did not contain \"one read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#964"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mysql/txtar-check-short-numeric-body",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MySQL treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
+    "stage": "diagnostic",
+    "outcome": "gap",
+    "detail": "apply output did not contain \"check assertion must be a read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#964"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mariadb/apply-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "apply created expected MariaDB tables and Atlas revision rows"
+    "stage": "apply",
+    "outcome": "gap",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#648"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mariadb/apply-dry-run-stored-state",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged"
+    "stage": "seed",
+    "outcome": "gap",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#648"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mariadb/txtar-check-comment-semantics",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB executable comments and short numeric comment bodies retained their SQL semantics in named checks"
+    "stage": "apply",
+    "outcome": "gap",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#648"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mariadb/txtar-check-hidden-statements",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run"
+    "stage": "diagnostic",
+    "outcome": "gap",
+    "detail": "apply output did not contain \"one read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#964"
   },
   {
     "probe": "migrate-runtime",
     "fixture": "mariadb/txtar-check-short-numeric-body",
-    "stage": "inspect",
-    "outcome": "ok",
-    "detail": "MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
+    "stage": "diagnostic",
+    "outcome": "gap",
+    "detail": "apply output did not contain \"check assertion must be a read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
+    "issue": "stokaro/ptah#964"
   }
 ]

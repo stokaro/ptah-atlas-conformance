@@ -14,5 +14,65 @@
 # it yet" — NOT "this is fine forever". Keep this list as short as honesty allows.
 # An empty list means: nothing is intentionally skipped, so every open gap is red.
 #
-# There are intentionally NO waivers right now. Every gap the probe finds is a
-# real, un-excused distance from Atlas, and the gate stays red until it closes.
+# Four waivers from one event: moving the Ptah pin from the 2026-08-09
+# pseudo-version to v0.4.0 (#287). Three more were written and then removed --
+# their fixtures were repaired instead, which is the outcome a waiver exists to
+# make possible rather than to replace. Each was OK before that move, and each still
+# carries a probe-recorded issue reference whose issue is CLOSED -- so none of
+# them is the gap that reference describes. They are what a month of Ptah
+# releases did to fixtures written against the older build, and #288 owns
+# deciding, one at a time, which of the two each is: Ptah moved wrongly, or the
+# fixture went stale.
+#
+# They are waived rather than absorbed into gap-budget.txt, which is 0. Raising
+# that number to 7 would hide seven distinct questions behind one, and the
+# budget's own comment says to lower it as support improves, not to raise it as
+# fixtures age. These come out one at a time as each is answered.
+
+txtar-script internal/integration/testdata/postgres/column-enum-array.txtar script-runtime   an enum-array column now inspects as sql("<schema>.status[]"); undiagnosed (conformance#288)
+atlas-cli-shorthands "atlas schema inspect -s" parse   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
+atlas-cli-shorthands "atlas migrate diff -s" parse   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
+atlas-cli-shorthands "atlas schema apply -s" execute   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
+
+# The CLI-surface tier's four, from the same pin bump and in the OPPOSITE
+# direction: Ptah gained these commands. `ptah-non-oss-sentinel` asserts that a
+# command outside the OSS surface reports a byte-exact unavailable-command
+# diagnostic, and v0.4.0 implements both -- measured on the released binary,
+# `atlas schema plan lint` answers `Error: --from is required` and
+# `atlas schema plan test` answers `Error: no test "plan" cases found in .`
+# rather than refusing as unavailable.
+#
+# So the sentinel is asserting the absence of something that now exists. What it
+# should assert instead is a product question -- what the CE surface owes for a
+# command Ptah has implemented -- which is why these are tracked rather than
+# rewritten here (#288).
+ptah-non-oss-sentinel "atlas schema plan lint" out-of-scope-runtime   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
+ptah-non-oss-sentinel "atlas schema plan lint" out-of-scope-help   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
+ptah-non-oss-sentinel "atlas schema plan test" out-of-scope-runtime   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
+ptah-non-oss-sentinel "atlas schema plan test" out-of-scope-help   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
+
+# The migrate-runtime tier's eleven, all from the same pin bump (#289).
+#
+# Ten are one cause: v0.4.0 refuses a tx-mode file migration whose statements
+# name a database other than the connected one -- deliberate, from
+# stokaro/ptah#1356, because MySQL's implicit commits make such a migration
+# unsafe to treat as one unit. Every cell here creates a run-scoped database,
+# qualifies its statements with it, and connects elsewhere, so all five cells of
+# each MySQL-family engine hit it.
+#
+# Whether the harness should connect scoped or the refusal is stricter than
+# Atlas is undecided, and #289 says what measurement would settle it. Waived
+# rather than absorbed into the budget of 1, which the pre-existing sqlite
+# finding already fills.
+migrate-runtime sqlite/tx-mode-all-diagnostic stderr   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/apply-state apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/apply-dry-run-stored-state seed   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/txtar-check-comment-semantics apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/txtar-check-hidden-statements diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/txtar-check-short-numeric-body diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/apply-state apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/apply-dry-run-stored-state seed   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/txtar-check-comment-semantics apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/txtar-check-hidden-statements diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/txtar-check-short-numeric-body diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+

@@ -14,16 +14,16 @@ the dedicated CE-gating report. Rows under `atlas-cli-pro-surface-ptah-compat`
 separately require the long flags documented by the public Atlas CLI Reference
 but absent from CE help, so CE parity cannot hide missing full-distribution surface.
 
-## Status: NOT DONE — 2 non-OK observation(s)
+## Status: NOT DONE — 5 non-OK observation(s)
 
 The full CLI-surface gate is red until Ptah's drop-in compatibility binary
 matches the pinned Atlas CE help surface and documented Pro-surface flags.
 
 - Atlas CE binary: `atlas community version v1.3.0`
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
-- Outcomes: **108 ok**, **2 gap**, **0 fail**, **0 panic**
-- Full gate: **2 non-OK** (fails CI)
-- Regression budget input: **2 unwaived non-OK**, 0 waived
+- Ptah at `ptah.run v0.4.0`
+- Outcomes: **105 ok**, **5 gap**, **0 fail**, **0 panic**
+- Full gate: **5 non-OK** (fails CI)
+- Regression budget input: **1 unwaived non-OK**, 4 waived
 
 ## Atlas CE Inventory
 
@@ -54,10 +54,14 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 | Gate | Outcome | Probe | Command | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
 | **RED** | **gap** | atlas-cli-pro-surface-ptah-compat | `atlas schema diff` | required-flags | missing documented Pro-surface flags: --web | #951 |
-| **RED** | **gap** | atlas-cli-pro-surface-ptah-compat | `atlas schema inspect` | required-flags | missing documented Pro-surface flags: --export | #951 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-help | `atlas schema plan lint --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan lint is not implemented by Ptah.`, got `Atlas `atlas schema plan lint` command path. Analyzes the SQL of the plan file named by --file and prints what Ptah's migration lint rules find, without changing the target database. The plan is verified before it is analyzed, with the same…` | #514 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-runtime | `atlas schema plan lint` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan lint is not implemented by Ptah`, got `Error: --from is required` | #514 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-help | `atlas schema plan test --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan test is not implemented by Ptah.`, got `Atlas `atlas schema plan test` command path. Runs `test "plan"` cases from Atlas `.test.hcl` files against a throwaway database. Each case establishes a starting state, applies a saved plan file, and asserts what the plan did: test "plan" "…` | #514 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-runtime | `atlas schema plan test` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan test is not implemented by Ptah`, got `Error: no test "plan" cases found in .` | #514 |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas migrate apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lock --to-version |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lint --skip-lock |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema clean` | required-flags | documented Pro-surface flags are present: --exclude --include |  |
+| — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema inspect` | required-flags | documented Pro-surface flags are present: --export --include --output --web |  |
 | — | ok | atlas-cli-surface-inventory | `atlas` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas license` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas migrate` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
@@ -140,8 +144,6 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan` | usage | usage matches the first-party open-capability contract: `atlas schema plan [flags]` (Atlas CE has no help for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan approve` | out-of-scope-help | `atlas schema plan approve --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan approve` | out-of-scope-runtime | `atlas schema plan approve` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-help | `atlas schema plan lint --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-runtime | `atlas schema plan lint` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan list` | out-of-scope-help | `atlas schema plan list --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan list` | out-of-scope-runtime | `atlas schema plan list` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan new` | availability-boundary | `atlas schema plan new` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
@@ -153,8 +155,6 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan push` | out-of-scope-runtime | `atlas schema plan push` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan rm` | out-of-scope-help | `atlas schema plan rm --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan rm` | out-of-scope-runtime | `atlas schema plan rm` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-help | `atlas schema plan test --help` preserves the byte-exact Ptah-owned unavailable-command help boundary |  |
-| — | ok | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-runtime | `atlas schema plan test` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan validate` | availability-boundary | `atlas schema plan validate` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan validate` | flags | exposes the first-party required long flags: --auto-approve --dev-url --exclude --file --format --from --include --lock-timeout --repo --schema --to (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema plan validate` | usage | usage matches the first-party open-capability contract: `atlas schema plan validate [flags]` (Atlas CE has no help for this verb) |  |
@@ -166,4 +166,5 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#951** — 2 finding(s)
+- **stokaro/ptah#514** — 4 finding(s)
+- **stokaro/ptah#951** — 1 finding(s)

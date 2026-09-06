@@ -8,16 +8,16 @@ offline txtar-script simulator, this tier executes the real drop-in CLI and
 inspects revision rows and end database state directly. Project configuration
 apply and Goose checksum integrity use pinned Atlas CE as independent runtime oracles.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: NOT DONE — 12 non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles pinned by atlas.version
-- Ptah at `go.5x5.cz/ptah v0.2.1-0.20260809025032-71a7d7f2b550`
-- Outcomes: **95 ok**, **1 gap**, **0 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **1 unwaived non-OK**, 0 waived
+- Ptah at `ptah.run v0.4.0`
+- Outcomes: **84 ok**, **12 gap**, **0 fail**, **0 panic**
+- Full gate: **12 non-OK** (fails CI)
+- Regression budget input: **12 unwaived non-OK**, 0 waived
 
 ## Compared Schema Fact Categories
 
@@ -39,7 +39,18 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **gap** | migrate-runtime | `mariadb/apply-dry-run-stored-state` | seed | Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #648 |
+| **RED** | **gap** | migrate-runtime | `mariadb/apply-state` | apply | Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #648 |
+| **RED** | **gap** | migrate-runtime | `mariadb/txtar-check-comment-semantics` | apply | Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #648 |
+| **RED** | **gap** | migrate-runtime | `mariadb/txtar-check-hidden-statements` | diagnostic | apply output did not contain "one read-only SELECT statement": Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #964 |
+| **RED** | **gap** | migrate-runtime | `mariadb/txtar-check-short-numeric-body` | diagnostic | apply output did not contain "check assertion must be a read-only SELECT statement": Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #964 |
+| **RED** | **gap** | migrate-runtime | `mysql/apply-dry-run-stored-state` | seed | Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #648 |
+| **RED** | **gap** | migrate-runtime | `mysql/apply-state` | apply | Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #648 |
+| **RED** | **gap** | migrate-runtime | `mysql/txtar-check-comment-semantics` | apply | Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #648 |
+| **RED** | **gap** | migrate-runtime | `mysql/txtar-check-hidden-statements` | diagnostic | apply output did not contain "one read-only SELECT statement": Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #964 |
+| **RED** | **gap** | migrate-runtime | `mysql/txtar-check-short-numeric-body` | diagnostic | apply output did not contain "check assertion must be a read-only SELECT statement": Error: sql/migrate: connected database is not clean: found table "invoices" in schema "conf". baseline version or allow-dirty is required | #964 |
 | **RED** | **gap** | migrate-runtime | `sqlite/per-file-txmode/revision-bookkeeping` | compare | full stable revision metadata differs in 3/7 body-execution cells: global-file-directive-none revision 1 differs: error="SQL logic error: no such table: txmode_missing (1)", Atlas="no such table: txmode_missing"; global-none-directive-absent revision 1 differs: error="SQL logic error: no such table: txmode_missing (1)", Atlas="no such table: txmode_missing"; global-none-directive-none revision 1 differs: error="SQL logic error: no such table: txmode_missing (1)", Atlas="no such table: txmode_missing" | #887 |
+| **RED** | **gap** | migrate-runtime | `sqlite/tx-mode-all-diagnostic` | stderr | expected check-specific tx-mode diagnostic on stderr: Error: error applying migrations: migration 2 declares pre-migration checks, which cannot run with tx-mode all: tx-mode all runs every migration in one transaction, so a per-migration timeout would bound the whole batch and a per-migration … | #648 |
 | — | ok | migrate-runtime | `fidelity: sarif output shape` | shape | lint --format sarif emits SARIF 2.1.0 with a named driver and a result carrying ruleId, level, and a file:line location |  |
 | — | ok | migrate-runtime | `flyway/import-roundtrip` | import | flyway import mapped dotted versions, paired the undo as a down, and imported the repeatable as a one-time migration that validate accepts |  |
 | — | ok | migrate-runtime | `golang-migrate/import-roundtrip` | import | golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts |  |
@@ -50,16 +61,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | migrate-runtime | `goose/hash-validate-differential` | tamper detection | Atlas CE and ptah-compat rejected the same tampered Goose directory with the pinned v1.3.0 stable exit/stdout/stderr contract after the Atlas-only first-error advisory was measured separately |  |
 | — | ok | migrate-runtime | `goose/import-roundtrip` | import | goose import produced Ptah up/down pairs (StatementBegin/End stripped) and a ptah.sum that validate accepts |  |
 | — | ok | migrate-runtime | `liquibase/import-roundtrip` | import | liquibase import split formatted-SQL changesets into Ptah up/down pairs (rollback as down) that validate accepts |  |
-| — | ok | migrate-runtime | `mariadb/apply-dry-run-stored-state` | inspect | MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged |  |
-| — | ok | migrate-runtime | `mariadb/apply-state` | inspect | apply created expected MariaDB tables and Atlas revision rows |  |
-| — | ok | migrate-runtime | `mariadb/txtar-check-comment-semantics` | inspect | MariaDB executable comments and short numeric comment bodies retained their SQL semantics in named checks |  |
-| — | ok | migrate-runtime | `mariadb/txtar-check-hidden-statements` | inspect | MariaDB rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run |  |
-| — | ok | migrate-runtime | `mariadb/txtar-check-short-numeric-body` | inspect | MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed |  |
-| — | ok | migrate-runtime | `mysql/apply-dry-run-stored-state` | inspect | MySQL apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged |  |
-| — | ok | migrate-runtime | `mysql/apply-state` | inspect | apply created expected MySQL tables and Atlas revision rows |  |
-| — | ok | migrate-runtime | `mysql/txtar-check-comment-semantics` | inspect | MySQL executable comments and short numeric comment bodies retained their SQL semantics in named checks |  |
-| — | ok | migrate-runtime | `mysql/txtar-check-hidden-statements` | inspect | MySQL rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run |  |
-| — | ok | migrate-runtime | `mysql/txtar-check-short-numeric-body` | inspect | MySQL treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed |  |
 | — | ok | migrate-runtime | `postgres/apply-dry-run-stored-state` | inspect | PostgreSQL apply dry-run read the custom-schema stored revision, planned only version 2, and left relations and revision identity state unchanged |  |
 | — | ok | migrate-runtime | `postgres/custom-revisions-schema` | inspect | apply created expected PostgreSQL schema objects and Atlas revision rows in a custom revisions schema |  |
 | — | ok | migrate-runtime | `postgres/generate-diff-skip-drop-table` | generate | `diff.skip: [drop_table]` omitted the DROP TABLE, recorded the omission comment, and kept the ADD COLUMN change |  |
@@ -110,7 +111,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | migrate-runtime | `sqlite/set-repair-state` | inspect | set recorded repair state and apply executed only the remaining migration |  |
 | — | ok | migrate-runtime | `sqlite/tampered-sum-apply-refusal` | apply | apply refused the tampered hashed directory with the Atlas checksum-mismatch shape before creating or touching the target database |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-all` | inspect | `--tx-mode all` leaves the expected SQLite state after a failed migration |  |
-| — | ok | migrate-runtime | `sqlite/tx-mode-all-diagnostic` | diagnostic | tx-mode all rejected a pre-migration check with exit 1 and the diagnostic on stderr without suggesting unavailable compat flag --skip-checks |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-file` | inspect | `--tx-mode file` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/tx-mode-none` | inspect | `--tx-mode none` leaves the expected SQLite state after a failed migration |  |
 | — | ok | migrate-runtime | `sqlite/txtar-check-multiple-columns` | inspect | a multi-column assertion failed closed before migration.sql and wrote no revision row |  |
@@ -138,4 +138,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
+- **stokaro/ptah#648** — 7 finding(s)
 - **stokaro/ptah#887** — 1 finding(s)
+- **stokaro/ptah#964** — 4 finding(s)

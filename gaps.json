@@ -2782,8 +2782,9 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
     "stage": "script-runtime",
-    "outcome": "ok",
-    "detail": "script surface: apply=5, cmpshow=4, cmphcl=1, executed 10 supported command(s)"
+    "outcome": "fail",
+    "detail": "cmphcl 5.inspect.hcl did not match: got \"table \\\"enums\\\" { schema = schema.script_column_enum_array column \\\"a\\\" { null = false type = integer } column \\\"statuses\\\" { null = false type = sql(\\\"script_column_enum_array.status[]\\\") } column \\…",
+    "issue": "stokaro/ptah#285"
   },
   {
     "probe": "txtar-script",
@@ -3603,14 +3604,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "content findings: DD101, AC101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "content findings: DD101, AC101"
   },
   {
     "probe": "lint-parity",
@@ -3729,14 +3730,14 @@
     "fixture": "sql/migrate/testdata/lex",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101, PG101, PG308"
+    "detail": "content findings: AC101, DS101, PG101, PG308"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lexbegintry",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: TX201"
+    "detail": "content findings: AC101"
   },
   {
     "probe": "lint-parity",
@@ -3750,7 +3751,7 @@
     "fixture": "sql/migrate/testdata/lexgroup",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: PG308, TX201"
+    "detail": "content findings: PG308, AC101"
   },
   {
     "probe": "lint-parity",
@@ -3778,7 +3779,7 @@
     "fixture": "sql/migrate/testdata/sqlserver",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: AC101"
   },
   {
     "probe": "lint-parity",
@@ -3799,7 +3800,7 @@
     "fixture": "sql/sqltool/testdata/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "content findings: DD101, AC101"
   },
   {
     "probe": "lint-parity",
@@ -4246,15 +4247,17 @@
     "probe": "atlas-cli-shorthands",
     "fixture": "atlas schema inspect -s",
     "stage": "parse",
-    "outcome": "ok",
-    "detail": "`atlas schema inspect -s public` reached the expected command validation path"
+    "outcome": "gap",
+    "detail": "`atlas schema inspect -s public` did not reach the expected validation path: Error: required flag(s) \"url\" not set",
+    "issue": "stokaro/ptah#621"
   },
   {
     "probe": "atlas-cli-shorthands",
     "fixture": "atlas schema apply -s",
     "stage": "execute",
-    "outcome": "ok",
-    "detail": "`atlas schema apply -s` scopes like --schema: in-scope main plans the table, output is identical to the long flag, and an out-of-scope schema name plans no changes"
+    "outcome": "gap",
+    "detail": "`atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: Schema is synced, no changes to be made",
+    "issue": "stokaro/ptah#813"
   },
   {
     "probe": "atlas-cli-shorthands",
@@ -4281,8 +4284,9 @@
     "probe": "atlas-cli-shorthands",
     "fixture": "atlas migrate diff -s",
     "stage": "parse",
-    "outcome": "ok",
-    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` reached the expected command validation path"
+    "outcome": "gap",
+    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: ",
+    "issue": "stokaro/ptah#621"
   },
   {
     "probe": "atlas-cli-hidden-runtime",
@@ -5297,7 +5301,7 @@
     "fixture": "atlas migrate rebase",
     "stage": "rebase to end of history",
     "outcome": "ok",
-    "detail": "the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`"
+    "detail": "the migration moved to the end of history under a new version, kept its edited content, and the directory still passes `ptah migrations validate`"
   },
   {
     "probe": "pro-maint-workflow",

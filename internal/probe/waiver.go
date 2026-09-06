@@ -35,15 +35,46 @@ func LoadWaivers(path string) (*Waivers, error) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		fields := strings.Fields(line)
-		if len(fields) < 3 {
+		probe, fixture, stage, reason, ok := splitWaiver(line)
+		if !ok {
 			continue
 		}
-		reason := strings.TrimSpace(strings.TrimPrefix(line,
-			fields[0]+" "+fields[1]+" "+fields[2]))
-		w.byKey[waiverKey(fields[0], fields[1], fields[2])] = reason
+		w.byKey[waiverKey(probe, fixture, stage)] = reason
 	}
 	return w, sc.Err()
+}
+
+// splitWaiver reads the three key fields and the reason from one line.
+//
+// A bare `strings.Fields` cannot address most of the corpus: a fixture is
+// `atlas schema inspect -s` and a stage is `HTML report`, so the key's own
+// separator occurs inside the key. Taking the first three whitespace-separated
+// tokens silently matched something else, and the entry was then reported as a
+// stale waiver -- a wrong key and a missing key are indistinguishable that way.
+//
+// So a field may be double-quoted, and an unquoted field is still a single
+// token, which is what every existing entry relies on.
+func splitWaiver(line string) (probe, fixture, stage, reason string, ok bool) {
+	rest := strings.TrimSpace(line)
+	fields := make([]string, 0, 3)
+	for len(fields) < 3 {
+		if rest == "" {
+			return "", "", "", "", false
+		}
+		var field string
+		if rest[0] == '"' {
+			end := strings.IndexByte(rest[1:], '"')
+			if end < 0 {
+				return "", "", "", "", false
+			}
+			field, rest = rest[1:1+end], rest[end+2:]
+		} else {
+			field, rest, _ = strings.Cut(rest, " ")
+		}
+		fields = append(fields, field)
+		rest = strings.TrimLeft(rest, " \t")
+	}
+	return fields[0], fields[1], fields[2], strings.TrimSpace(rest), true
 }
 
 // Reason returns the waiver reason for a result and whether it is waived.
@@ -56,15 +87,34 @@ func (w *Waivers) Reason(r Result) (string, bool) {
 // waiver means a gap closed and the waiver should be deleted.
 func (w *Waivers) Unused(results []Result) []string {
 	live := map[string]bool{}
+	// Which probes this report covers at all. Eight tiers share one waivers
+	// file and each passes its own report to gap-budget, so a waiver the
+	// offline tier needs is a key the live tier's results can never contain --
+	// not because the gap closed, but because that probe did not run here.
+	//
+	// Reporting it as stale told the reader to delete a waiver that was doing
+	// its job, and the first tier to act on that advice would have turned the
+	// other seven red. Invisible until now only because the file was empty.
+	//
+	// So staleness is decided per probe: a report that ran probe P can say
+	// whether P's waived finding is gone, and a report that never ran P cannot
+	// say anything about it.
+	ran := map[string]bool{}
 	for _, r := range results {
 		live[waiverKey(r.Probe, r.Fixture, r.Stage)] = true
+		ran[r.Probe] = true
 	}
 	var stale []string
 	for k := range w.byKey {
-		if !live[k] {
-			parts := strings.Split(k, "\x00")
-			stale = append(stale, strings.Join(parts, " "))
+		if live[k] {
+			continue
 		}
+		probe, _, _ := strings.Cut(k, "\x00")
+		if !ran[probe] {
+			continue
+		}
+		parts := strings.Split(k, "\x00")
+		stale = append(stale, strings.Join(parts, " "))
 	}
 	return stale
 }

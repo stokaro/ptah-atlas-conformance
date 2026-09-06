@@ -9,10 +9,11 @@ import (
 	"strconv"
 	"strings"
 
-	"go.5x5.cz/ptah/atlascompat"
-	"go.5x5.cz/ptah/core/goschema"
-	"go.5x5.cz/ptah/core/renderer"
-	"go.5x5.cz/ptah/dbschema"
+	"ptah.run/atlascompat"
+	"ptah.run/core/goschema"
+	"ptah.run/core/renderer"
+	"ptah.run/core/schemamodel"
+	"ptah.run/dbschema"
 )
 
 // RunSchemaDiff is the differential-vs-Atlas tier: it measures whether Ptah and
@@ -22,7 +23,7 @@ import (
 // primary key, foreign key) rather than DDL text:
 //
 //   - Atlas's view comes from `atlas schema inspect` in its native HCL, parsed by
-//     Ptah's own core/atlashcl into a goschema.Database. This exercises a real
+//     Ptah's own core/atlashcl into a schemamodel.Database. This exercises a real
 //     drop-in path — can Ptah ingest Atlas's HCL — and, because both sides end up
 //     as the same typed structure, the comparison needs no fragile SQL parsing.
 //   - Ptah's view comes from its introspect -> convert chain (the read-db path).
@@ -73,7 +74,7 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 	if err != nil {
 		return []Result{{"atlas-differential", name, "atlas-inspect", Fail, oneLine(err.Error()), ""}}
 	}
-	var atlasDB *goschema.Database
+	var atlasDB *schemamodel.Database
 	if panicked, pmsg := guard(func() { atlasDB, err = atlascompat.ParseAtlasHCL(atlasHCL, "atlas.hcl") }); panicked {
 		return []Result{{"atlas-differential", name, "atlas-hcl", Panic, oneLine(pmsg), "stokaro/ptah#276"}}
 	}
@@ -148,7 +149,7 @@ type defaultSchemaAttrs struct {
 	collate string
 }
 
-func schemaDefaults(db *goschema.Database, defaultSchema string) defaultSchemaAttrs {
+func schemaDefaults(db *schemamodel.Database, defaultSchema string) defaultSchemaAttrs {
 	defaultSchema = normSchema(defaultSchema)
 	if db == nil || defaultSchema == "" {
 		return defaultSchemaAttrs{}
@@ -161,7 +162,7 @@ func schemaDefaults(db *goschema.Database, defaultSchema string) defaultSchemaAt
 	return defaultSchemaAttrs{}
 }
 
-func foldDefaultSchema(db *goschema.Database, defaultSchema string, attrs defaultSchemaAttrs) *goschema.Database {
+func foldDefaultSchema(db *schemamodel.Database, defaultSchema string, attrs defaultSchemaAttrs) *schemamodel.Database {
 	defaultSchema = normSchema(defaultSchema)
 	if db == nil || defaultSchema == "" {
 		return db

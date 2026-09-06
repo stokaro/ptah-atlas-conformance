@@ -9,31 +9,31 @@ import (
 
 	qt "github.com/frankban/quicktest"
 
-	"go.5x5.cz/ptah/core/goschema"
+	"ptah.run/core/schemamodel"
 )
 
 func TestRoundTripObjectSummary(t *testing.T) {
 	c := qt.New(t)
 
-	db := &goschema.Database{
-		Tables:            []goschema.Table{{Name: "accounts"}},
-		Fields:            []goschema.Field{{Name: "id"}},
-		Indexes:           []goschema.Index{{Name: "accounts_email_idx"}},
-		Constraints:       []goschema.Constraint{{Name: "accounts_email_check"}},
-		Enums:             []goschema.Enum{{Name: "account_status"}},
-		Extensions:        []goschema.Extension{{Name: "citext"}},
-		Functions:         []goschema.Function{{Name: "normalize_email"}},
-		Sequences:         []goschema.Sequence{{Name: "account_id_seq"}},
-		Domains:           []goschema.Domain{{Name: "email"}, {Name: "pincode"}},
-		CompositeTypes:    []goschema.CompositeType{{Name: "money_amount"}},
-		Ranges:            []goschema.Range{{Name: "floatrange"}},
-		Views:             []goschema.View{{Name: "active_accounts"}},
-		MaterializedViews: []goschema.MaterializedView{{Name: "account_totals"}},
-		Triggers:          []goschema.Trigger{{Name: "accounts_updated_at"}},
-		RLSPolicies:       []goschema.RLSPolicy{{Name: "account_access"}},
-		RLSEnabledTables:  []goschema.RLSEnabledTable{{Table: "accounts"}},
-		Roles:             []goschema.Role{{Name: "app"}},
-		Grants:            []goschema.Grant{{Role: "app"}},
+	db := &schemamodel.Database{
+		Tables:            []schemamodel.Table{{Name: "accounts"}},
+		Fields:            []schemamodel.Field{{Name: "id"}},
+		Indexes:           []schemamodel.Index{{Name: "accounts_email_idx"}},
+		Constraints:       []schemamodel.Constraint{{Name: "accounts_email_check"}},
+		Enums:             []schemamodel.Enum{{Name: "account_status"}},
+		Extensions:        []schemamodel.Extension{{Name: "citext"}},
+		Functions:         []schemamodel.Function{{Name: "normalize_email"}},
+		Sequences:         []schemamodel.Sequence{{Name: "account_id_seq"}},
+		Domains:           []schemamodel.Domain{{Name: "email"}, {Name: "pincode"}},
+		CompositeTypes:    []schemamodel.CompositeType{{Name: "money_amount"}},
+		Ranges:            []schemamodel.Range{{Name: "floatrange"}},
+		Views:             []schemamodel.View{{Name: "active_accounts"}},
+		MaterializedViews: []schemamodel.MaterializedView{{Name: "account_totals"}},
+		Triggers:          []schemamodel.Trigger{{Name: "accounts_updated_at"}},
+		RLSPolicies:       []schemamodel.RLSPolicy{{Name: "account_access"}},
+		RLSEnabledTables:  []schemamodel.RLSEnabledTable{{Table: "accounts"}},
+		Roles:             []schemamodel.Role{{Name: "app"}},
+		Grants:            []schemamodel.Grant{{Role: "app"}},
 	}
 
 	got := roundTripObjectSummary(db)
@@ -47,7 +47,7 @@ func TestRoundTripObjectSummary(t *testing.T) {
 func TestRoundTripObjectSummary_EmptySchema(t *testing.T) {
 	c := qt.New(t)
 
-	got := roundTripObjectSummary(&goschema.Database{})
+	got := roundTripObjectSummary(&schemamodel.Database{})
 
 	c.Assert(got, qt.Equals, "no objects")
 }

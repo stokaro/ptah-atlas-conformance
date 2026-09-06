@@ -410,7 +410,7 @@ func ptahBinary() (string, error) {
 			ptahBinPath = env
 			return
 		}
-		ptahBinPath, ptahBinErr = buildPtahCommand("ptah", "go.5x5.cz/ptah/cmd/ptah")
+		ptahBinPath, ptahBinErr = buildPtahCommand("ptah", "ptah.run/cmd/ptah")
 	})
 	return ptahBinPath, ptahBinErr
 }
@@ -424,7 +424,7 @@ func ptahCompatAtlasBinary() (string, error) {
 			ptahCompatBinPath = env
 			return
 		}
-		ptahCompatBinPath, ptahCompatBinErr = buildPtahCommand("atlas", "go.5x5.cz/ptah/cmd/ptah-compat")
+		ptahCompatBinPath, ptahCompatBinErr = buildPtahCommand("atlas", "ptah.run/cmd/ptah-compat")
 	})
 	return ptahCompatBinPath, ptahCompatBinErr
 }

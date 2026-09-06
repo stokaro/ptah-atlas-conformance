@@ -12,10 +12,11 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 
-	"go.5x5.cz/ptah/atlascompat"
-	"go.5x5.cz/ptah/dbschema"
-	"go.5x5.cz/ptah/migration/lint"
-	"go.5x5.cz/ptah/migration/migrator"
+	"ptah.run/atlascompat"
+	"ptah.run/dbschema"
+	"ptah.run/migration/lint"
+	"ptah.run/migration/migrationfile"
+	"ptah.run/migration/migrator"
 )
 
 // AllProbes is the ordered set the CLI runs.
@@ -243,16 +244,16 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		}
 		sql := string(data)
 		renderedTemplate := false
-		if migrator.LooksAtlasTemplateSQL(sql) {
+		if migrationfile.LooksAtlasTemplateSQL(sql) {
 			name, err := filepath.Rel(fx.Dir, f)
 			if err != nil {
 				out = append(out, Result{"sql-parse", rel, "template-render", Fail, err.Error(), "stokaro/ptah#299"})
 				continue
 			}
-			rendered, ok, err := migrator.RenderAtlasTemplateSQL(
+			rendered, ok, err := migrationfile.RenderAtlasTemplateSQL(
 				os.DirFS(fx.Dir),
 				filepath.ToSlash(name),
-				migrator.AtlasTemplateData{},
+				migrationfile.AtlasTemplateData{},
 			)
 			if err != nil {
 				out = append(out, Result{"sql-parse", rel, "template-render", Fail,
@@ -354,7 +355,7 @@ func (MigDirProbe) Run(fx Fixture) []Result {
 	if fx.SumFile == "" && !looksVersioned(fx) {
 		return nil // not a migration directory
 	}
-	files, err := migrator.DiscoverMigrationFiles(os.DirFS(fx.Dir), migrator.MigrationDirFormatAuto)
+	files, err := migrationfile.Discover(os.DirFS(fx.Dir), migrationfile.DirFormatAuto)
 	if err != nil {
 		return []Result{{"migdir-ingest", fx.Name, "recognize", Gap,
 			"Ptah cannot discover this Atlas migration directory: " + oneLine(err.Error()), "stokaro/ptah#273"}}
@@ -399,7 +400,7 @@ func (AtlasTxtarDownProbe) Run(fx Fixture) []Result {
 	panicked, pmsg := guard(func() {
 		provider, err = migrator.NewFSMigrationProvider(
 			os.DirFS(fx.Dir),
-			migrator.WithMigrationDirFormat(migrator.MigrationDirFormatAtlas),
+			migrator.WithMigrationDirFormat(migrationfile.DirFormatAtlas),
 			migrator.WithStatementInterceptor(recorder),
 		)
 	})
@@ -528,7 +529,7 @@ func (SumProbe) Run(fx Fixture) []Result {
 	// (b) Does Ptah's own hash of the directory reproduce Atlas's hashes?
 	var ptahSum *atlascompat.SumFile
 	panicked, pmsg = guard(func() {
-		ptahSum, err = atlascompat.ComputeSum(os.DirFS(fx.Dir), migrator.MigrationDirFormatAuto)
+		ptahSum, err = atlascompat.ComputeSum(os.DirFS(fx.Dir), migrationfile.DirFormatAuto)
 	})
 	switch {
 	case panicked:
