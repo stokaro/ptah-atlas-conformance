@@ -7,11 +7,12 @@ import (
 	"sort"
 	"strings"
 
-	"go.5x5.cz/ptah/core/goschema"
-	"go.5x5.cz/ptah/core/renderer"
-	"go.5x5.cz/ptah/dbschema"
-	"go.5x5.cz/ptah/migration/schemadiff"
-	difftypes "go.5x5.cz/ptah/migration/schemadiff/types"
+	"ptah.run/core/goschema"
+	"ptah.run/core/renderer"
+	"ptah.run/core/schemamodel"
+	"ptah.run/dbschema"
+	"ptah.run/migration/schemadiff"
+	difftypes "ptah.run/migration/schemadiff/difftypes"
 )
 
 // RunRoundTrip is the behavioral self-consistency check that a drop-in needs: it
@@ -71,7 +72,7 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 		"clean round-trip: " + roundTripObjectSummary(desired), ""}}
 }
 
-func roundTripObjectSummary(db *goschema.Database) string {
+func roundTripObjectSummary(db *schemamodel.Database) string {
 	// Keep this list aligned with the object families compared by
 	// schemadiff.CompareWithDialect. A count in a successful report row is
 	// evidence only when the clean diff proves that object family survived.
@@ -128,7 +129,7 @@ func liveRoundTripIssue(name string) string {
 // The reset is dialect-aware: PostgreSQL recreates the public schema; MySQL and
 // MariaDB drop every table and view in the current database; SQLite drops user
 // tables and views from the main database.
-func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, dialect string, desired *goschema.Database) ([]string, error) {
+func resetDatabase(ctx context.Context, conn *dbschema.DatabaseConnection, dialect string, desired *schemamodel.Database) ([]string, error) {
 	switch dialect {
 	case "postgres":
 		existingSchemas, err := postgresNonSystemSchemas(ctx, conn)
@@ -248,13 +249,13 @@ ORDER BY schema_name`)
 	return schemas, nil
 }
 
-func postgresSchemasToRead(desired *goschema.Database) []string {
+func postgresSchemasToRead(desired *schemamodel.Database) []string {
 	schemas := []string{"public"}
 	schemas = append(schemas, nonDefaultPostgresSchemas(desired)...)
 	return schemas
 }
 
-func nonDefaultPostgresSchemas(desired *goschema.Database) []string {
+func nonDefaultPostgresSchemas(desired *schemamodel.Database) []string {
 	set := map[string]struct{}{}
 	if desired != nil {
 		for _, schema := range desired.Schemas {
