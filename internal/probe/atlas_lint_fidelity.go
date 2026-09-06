@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing/fstest"
 
-	"go.5x5.cz/ptah/migration/lint"
+	"ptah.run/migration/lint"
 )
 
 // lintFidelityFile is the single change file used by the cross-cutting checks.
