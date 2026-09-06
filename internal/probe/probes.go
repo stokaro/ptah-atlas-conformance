@@ -706,7 +706,46 @@ func dedup(in []string) []string {
 	return out
 }
 
+// workspacePrefixes are the absolute directories a detail must not carry into a
+// committed report.
+//
+// The reports are committed and CI regenerates them and fails on a diff, so a
+// detail holding the generating machine's path can only ever match that machine.
+// Measured: `atlas migrate diff -s` records the tool's own error, and on a
+// GitHub runner that error names
+// /home/runner/work/ptah-atlas-conformance/ptah-atlas-conformance/schema.sql --
+// a path no other checkout has, which makes the freshness gate unsatisfiable
+// anywhere else (#288).
+//
+// Resolved once at startup rather than per call: os.Getwd is a syscall, and a
+// probe that changed directory mid-run would otherwise scrub against whichever
+// directory it happened to be in.
+var workspacePrefixes = func() []string {
+	var prefixes []string
+	if wd, err := os.Getwd(); err == nil && wd != "" && wd != "/" {
+		prefixes = append(prefixes, wd)
+		// The runner and macOS both hand out symlinked temporary roots, so the
+		// tool's error can name the resolved path where the probe knows only
+		// the symlinked one, or the other way round.
+		if resolved, err := filepath.EvalSymlinks(wd); err == nil && resolved != wd {
+			prefixes = append(prefixes, resolved)
+		}
+	}
+	return prefixes
+}()
+
+// scrubWorkspacePaths replaces this checkout's absolute path with a stable
+// token, so a detail says which file it means without saying whose machine.
+func scrubWorkspacePaths(s string) string {
+	for _, prefix := range workspacePrefixes {
+		s = strings.ReplaceAll(s, prefix+string(filepath.Separator), "<repo>/")
+		s = strings.ReplaceAll(s, prefix, "<repo>")
+	}
+	return s
+}
+
 func oneLine(s string) string {
+	s = scrubWorkspacePaths(s)
 	s = strings.ReplaceAll(s, "\n", " ")
 	s = strings.ReplaceAll(s, "\r", " ")
 	s = strings.Join(strings.Fields(s), " ")

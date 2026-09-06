@@ -24,7 +24,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
 | waived | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmphcl 5.inspect.hcl did not match: got "table \"enums\" { schema = schema.script_column_enum_array column \"a\" { null = false type = integer } column \"statuses\" { null = false type = sql(\"script_column_enum_array.status[]\") } column \… | #285 |
-| waived | **gap** | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path:  | #621 |
+| waived | **gap** | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: Error: load --to schema: schema file does not exist: <repo>/schema.sql | #621 |
 | waived | **gap** | atlas-cli-shorthands | `atlas schema apply -s` | execute | `atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: Schema is synced, no changes to be made | #813 |
 | waived | **gap** | atlas-cli-shorthands | `atlas schema inspect -s` | parse | `atlas schema inspect -s public` did not reach the expected validation path: Error: required flag(s) "url" not set | #621 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |

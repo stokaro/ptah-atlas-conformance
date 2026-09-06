@@ -2783,7 +2783,7 @@
     "fixture": "internal/integration/testdata/postgres/column-enum-array.txtar",
     "stage": "script-runtime",
     "outcome": "fail",
-    "detail": "cmphcl 5.inspect.hcl did not match: got \"table \\\"enums\\\" { schema = schema.script_column_enum_array column \\\"a\\\" { null = false type = integer } column \\\"statuses\\\" { null = false type = sql(\\\"script_column_enum_array.status[]\\\") } column \\…",
+    "detail": "cmphcl 5.inspect.hcl did not match: got \"table \\\"enums\\\" { schema = schema.script_column_enum_array column \\\"a\\\" { null = false type = integer } column \\\"statuses\\\" { null = false type = sql(\\\"script_column_enum_array.status[]\\\") } column \\\u2026",
     "issue": "stokaro/ptah#285"
   },
   {
@@ -4285,7 +4285,7 @@
     "fixture": "atlas migrate diff -s",
     "stage": "parse",
     "outcome": "gap",
-    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: ",
+    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: Error: load --to schema: schema file does not exist: <repo>/schema.sql",
     "issue": "stokaro/ptah#621"
   },
   {
@@ -4300,42 +4300,42 @@
     "fixture": "Atlas DS101 (drop schema)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS107 (error) at L1 — Ptah groups schema and other database-object drops under DS107."
+    "detail": "covered (mapped): Ptah DS107 (error) at L1 \u2014 Ptah groups schema and other database-object drops under DS107."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS102 (drop table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS101 (error) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas)."
+    "detail": "covered (mapped): Ptah DS101 (error) at L1 \u2014 Ptah's table-drop rule is DS101 (code numbering differs from Atlas)."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS103 (drop column)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS102 (error) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas)."
+    "detail": "covered (mapped): Ptah DS102 (error) at L1 \u2014 Ptah's column-drop rule is DS102 (code numbering differs from Atlas)."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF101 (add unique constraint on existing column)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG105 (warning) at L1 — Ptah has no data-dependent uniqueness analyzer; the PG105 access-exclusive-lock rule covers the same statement."
+    "detail": "covered (mapped): Ptah PG105 (warning) at L1 \u2014 Ptah has no data-dependent uniqueness analyzer; the PG105 access-exclusive-lock rule covers the same statement."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF103 (add non-nullable column without default)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DD101 (warning) at L1 — Ptah's data-dependent DD101 rule covers this."
+    "detail": "covered (mapped): Ptah DD101 (warning) at L1 \u2014 Ptah's data-dependent DD101 rule covers this."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF104 (modify nullable column to non-nullable)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG303 (warning) at L1 — Ptah's PG303 full-scan rule covers this."
+    "detail": "covered (mapped): Ptah PG303 (warning) at L1 \u2014 Ptah's PG303 full-scan rule covers this."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4349,28 +4349,28 @@
     "fixture": "Atlas BC102 (rename column)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah BC101 (warning) at L1 — Ptah reports table and column renames under a single BC101 rename rule."
+    "detail": "covered (mapped): Ptah BC101 (warning) at L1 \u2014 Ptah reports table and column renames under a single BC101 rename rule."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas CD101 (drop foreign key)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD101 fires on the MySQL DROP FOREIGN KEY form."
+    "detail": "covered (mapped): Ptah DS105 (error) at L1 \u2014 PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD101 fires on the MySQL DROP FOREIGN KEY form."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas CD102 (drop check constraint)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD102 fires on the MySQL DROP CHECK form."
+    "detail": "covered (mapped): Ptah DS105 (error) at L1 \u2014 PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD102 fires on the MySQL DROP CHECK form."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas CD103 (drop primary key)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD103 fires on the MySQL DROP PRIMARY KEY form."
+    "detail": "covered (mapped): Ptah DS105 (error) at L1 \u2014 PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD103 fires on the MySQL DROP PRIMARY KEY form."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4384,7 +4384,7 @@
     "fixture": "Atlas PG102 (drop index without CONCURRENTLY)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG106 (warning) at L1 — Ptah's drop-index rule is PG106; Ptah's own PG102 is an unrelated enum-in-transaction rule."
+    "detail": "covered (mapped): Ptah PG106 (warning) at L1 \u2014 Ptah's drop-index rule is PG106; Ptah's own PG102 is an unrelated enum-in-transaction rule."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4412,7 +4412,7 @@
     "fixture": "Atlas PG301 (column type change rewrites the table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1 — Ptah's DS103 column-type-change rule covers this."
+    "detail": "covered (mapped): Ptah DS103 (warning) at L1 \u2014 Ptah's DS103 column-type-change rule covers this."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4433,7 +4433,7 @@
     "fixture": "Atlas PG304 (add primary key on nullable columns requires full scan)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG104 (warning) at L1 — Ptah folds add-primary-key hazards into PG104."
+    "detail": "covered (mapped): Ptah PG104 (warning) at L1 \u2014 Ptah folds add-primary-key hazards into PG104."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4510,28 +4510,28 @@
     "fixture": "Atlas MY110 (remove enum value requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
+    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 \u2014 Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY112 (insert enum value not at the end requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
+    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 \u2014 Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY120 (remove set value requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific set-copy concern."
+    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 \u2014 Ptah flags the underlying column rewrite (DS103 / MY101), not the specific set-copy concern."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY130 (change column type requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the MySQL copy-algorithm concern specifically."
+    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 \u2014 Ptah flags the underlying column rewrite (DS103 / MY101), not the MySQL copy-algorithm concern specifically."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4552,7 +4552,7 @@
     "fixture": "Atlas MY133 (drop primary key copies the table and blocks DML)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah CD103 (error) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form."
+    "detail": "covered (mapped): Ptah CD103 (error) at L1 \u2014 Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4573,7 +4573,7 @@
     "fixture": "Atlas MY136 (change table character set rebuilds the table)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah MY101 (warning) at L1 — Ptah's MY101 table-rewrite warning covers the character-set conversion."
+    "detail": "covered (mapped): Ptah MY101 (warning) at L1 \u2014 Ptah's MY101 table-rewrite warning covers the character-set conversion."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4629,140 +4629,140 @@
     "fixture": "ptah-compat/help-succeeds",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 0, output → stdout"
+    "detail": "exit 0, output \u2192 stdout"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/clean-atlas.sum-succeeds-silently",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 0, output → silent"
+    "detail": "exit 0, output \u2192 silent"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/invalid-database-URL",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/missing-required-flag",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/missing-migration-directory",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/malformed-atlas.sum",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
+    "detail": "exit 1, error \u2192 stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/missing-atlas.sum",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
+    "detail": "exit 1, error \u2192 stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/edited-migration",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
+    "detail": "exit 1, error \u2192 stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/added-migration",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
+    "detail": "exit 1, error \u2192 stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/removed-migration",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
+    "detail": "exit 1, error \u2192 stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/duplicate-atlas.sum-entry",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
+    "detail": "exit 1, error \u2192 stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/directory-hash-mismatch",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stdout and stderr"
+    "detail": "exit 1, error \u2192 stdout and stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/unknown-flag",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/unknown-subcommand",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/unknown-subcommand-suggests-close-verb",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/migrate-group-extra-token-shows-help",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 0, output → stdout"
+    "detail": "exit 0, output \u2192 stdout"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/completion-group-extra-token-shows-help",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 0, output → stdout"
+    "detail": "exit 0, output \u2192 stdout"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/completion-bash-generates-script",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 0, output → stdout"
+    "detail": "exit 0, output \u2192 stdout"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/completion-shell-extra-token-fails",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/missing-project-config",
     "stage": "exit",
     "outcome": "ok",
-    "detail": "exit 1, error → stderr"
+    "detail": "exit 1, error \u2192 stderr"
   },
   {
     "probe": "cli-exit-behavior",
@@ -5315,7 +5315,7 @@
     "fixture": "atlas schema plan",
     "stage": "plan creation",
     "outcome": "ok",
-    "detail": "PTAH-SIDE PIN (no CE oracle — the pinned Atlas CE answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
+    "detail": "PTAH-SIDE PIN (no CE oracle \u2014 the pinned Atlas CE answers \"'atlas schema plan' is not supported by the community version\"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity"
   },
   {
     "probe": "pro-plan-workflow",
@@ -5371,7 +5371,7 @@
     "fixture": "atlas migrate down",
     "stage": "bare rollback",
     "outcome": "ok",
-    "detail": "bare `atlas migrate down` — no stdin, --confirm, or --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)"
+    "detail": "bare `atlas migrate down` \u2014 no stdin, --confirm, or --revision-format flag \u2014 defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op)"
   },
   {
     "probe": "external-schema-workflow",
@@ -5672,7 +5672,7 @@
     "fixture": "atlas migrate diff",
     "stage": "concurrent-index policy on sqlite plans one transactional file",
     "outcome": "ok",
-    "detail": "with diff.concurrent_index.create enabled in atlas.hcl, the SQLite plan stays one plain transactional file — no txmode directive, no CONCURRENTLY — exactly the documented dialect scope"
+    "detail": "with diff.concurrent_index.create enabled in atlas.hcl, the SQLite plan stays one plain transactional file \u2014 no txmode directive, no CONCURRENTLY \u2014 exactly the documented dialect scope"
   },
   {
     "probe": "qualifier-txmode-workflow",
