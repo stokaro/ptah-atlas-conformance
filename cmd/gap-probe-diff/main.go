@@ -22,7 +22,7 @@ import (
 
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 
-	"go.5x5.cz/ptah/dbschema"
+	"ptah.run/dbschema"
 )
 
 func main() {

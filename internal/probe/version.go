@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const ptahModulePath = "go.5x5.cz/ptah"
+const ptahModulePath = "ptah.run"
 
 // PtahVersion reports the Ptah module version linked into the running probe
 // binary. Reports include this value so generated conformance artifacts identify

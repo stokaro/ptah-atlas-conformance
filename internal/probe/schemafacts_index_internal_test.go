@@ -8,7 +8,7 @@ import (
 
 	qt "github.com/frankban/quicktest"
 
-	"go.5x5.cz/ptah/core/goschema"
+	"ptah.run/core/schemamodel"
 )
 
 func TestFacts_ImplicitAndExplicitBTreeIndexesAreEquivalent(t *testing.T) {
@@ -27,11 +27,11 @@ func TestFacts_ImplicitBTreeAndHashIndexesDiffer(t *testing.T) {
 	assertOneDiffContains(c, diff(atlas, ptah), "type=hash")
 }
 
-func databaseWithIndexType(indexType string) *goschema.Database {
-	return &goschema.Database{
-		Tables: []goschema.Table{{StructName: "Contact", Name: "contacts"}},
-		Fields: []goschema.Field{{StructName: "Contact", Name: "email", Type: "text"}},
-		Indexes: []goschema.Index{{
+func databaseWithIndexType(indexType string) *schemamodel.Database {
+	return &schemamodel.Database{
+		Tables: []schemamodel.Table{{StructName: "Contact", Name: "contacts"}},
+		Fields: []schemamodel.Field{{StructName: "Contact", Name: "email", Type: "text"}},
+		Indexes: []schemamodel.Index{{
 			StructName: "Contact",
 			Name:       "idx_contacts_email",
 			Fields:     []string{"email"},

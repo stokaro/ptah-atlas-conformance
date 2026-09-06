@@ -13,9 +13,9 @@ import (
 
 	qt "github.com/frankban/quicktest"
 
-	"go.5x5.cz/ptah/atlascompat"
-	"go.5x5.cz/ptah/core/ast"
-	"go.5x5.cz/ptah/migration/migrator"
+	"ptah.run/atlascompat"
+	"ptah.run/core/ast"
+	"ptah.run/migration/migrationfile"
 )
 
 func TestLoadCorpusIncludesAllAtlasTestArtifactKinds(t *testing.T) {
@@ -7822,7 +7822,7 @@ func atlasSumBytes(t *testing.T, files map[string]string) []byte {
 	for name, data := range files {
 		fsys[name] = &fstest.MapFile{Data: []byte(data)}
 	}
-	sum, err := atlascompat.ComputeSum(fsys, migrator.MigrationDirFormatAtlas)
+	sum, err := atlascompat.ComputeSum(fsys, migrationfile.DirFormatAtlas)
 	if err != nil {
 		t.Fatal(err)
 	}
