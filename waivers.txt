@@ -51,3 +51,29 @@ ptah-non-oss-sentinel "atlas schema plan lint" out-of-scope-runtime   Ptah imple
 ptah-non-oss-sentinel "atlas schema plan lint" out-of-scope-help   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
 ptah-non-oss-sentinel "atlas schema plan test" out-of-scope-runtime   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
 ptah-non-oss-sentinel "atlas schema plan test" out-of-scope-help   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
+
+# The migrate-runtime tier's eleven, all from the same pin bump (#289).
+#
+# Ten are one cause: v0.4.0 refuses a tx-mode file migration whose statements
+# name a database other than the connected one -- deliberate, from
+# stokaro/ptah#1356, because MySQL's implicit commits make such a migration
+# unsafe to treat as one unit. Every cell here creates a run-scoped database,
+# qualifies its statements with it, and connects elsewhere, so all five cells of
+# each MySQL-family engine hit it.
+#
+# Whether the harness should connect scoped or the refusal is stricter than
+# Atlas is undecided, and #289 says what measurement would settle it. Waived
+# rather than absorbed into the budget of 1, which the pre-existing sqlite
+# finding already fills.
+migrate-runtime sqlite/tx-mode-all-diagnostic stderr   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/apply-state apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/apply-dry-run-stored-state seed   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/txtar-check-comment-semantics apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/txtar-check-hidden-statements diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mysql/txtar-check-short-numeric-body diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/apply-state apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/apply-dry-run-stored-state seed   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/txtar-check-comment-semantics apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/txtar-check-hidden-statements diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+migrate-runtime mariadb/txtar-check-short-numeric-body diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
+
