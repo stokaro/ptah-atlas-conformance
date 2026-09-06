@@ -212,7 +212,7 @@ func TestRenderORMProviderMarkdown(t *testing.T) {
 
 	c.Check(report, qt.Contains, "# Ptah ORM provider conformance report")
 	c.Check(report, qt.Contains, "ariga.io/atlas-provider-gorm@v0.6.1")
-	c.Check(report, qt.Contains, "atlas-provider-sqlalchemy==0.5.0")
+	c.Check(report, qt.Contains, "atlas-provider-sqlalchemy==0.5.2")
 	c.Check(report, qt.Contains, "SQLAlchemy==2.0.51")
 	c.Check(report, qt.Contains, "Ptah at `v0.0.0-test`")
 	c.Check(report, qt.Contains, "| **RED** | **gap** | gorm | ptah schema render |")
