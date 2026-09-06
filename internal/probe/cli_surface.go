@@ -408,6 +408,17 @@ func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
 				"--lock-timeout", "--name", "--name-format", "--output", "--repo", "--schema", "--to",
 			},
 		},
+		"schema plan lint": {
+			usage: "atlas schema plan lint [flags]",
+			flags: []string{
+				"--auto-approve", "--dev-url", "--exclude", "--file", "--format", "--from", "--include",
+				"--lock-timeout", "--repo", "--schema", "--to",
+			},
+		},
+		"schema plan test": {
+			usage: "atlas schema plan test [paths] [flags]",
+			flags: []string{"--dev-url", "--run"},
+		},
 		"schema plan validate": {
 			usage: "atlas schema plan validate [flags]",
 			flags: []string{
