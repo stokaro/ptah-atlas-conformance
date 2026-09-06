@@ -466,11 +466,11 @@ func runCompatPlanFlagImplementedCheck() Result {
 				int(exitFail), res.exit, streamChoice(res.stdout, res.stderr)), "stokaro/ptah#965"}
 	case strings.Contains(res.stderr, "does not implement"):
 		return Result{cliExitProbeName, compatPlanFlagFixture, "content", Gap,
-			"`schema apply --plan` regressed to accepted-but-unimplemented; stokaro/ptah#965 shipped it as an open capability: "+
+			"`schema apply --plan` regressed to accepted-but-unimplemented; stokaro/ptah#965 shipped it as an open capability: " +
 				oneLine(res.stderr), "stokaro/ptah#965"}
 	case !strings.Contains(res.stderr, "read plan file"):
 		return Result{cliExitProbeName, compatPlanFlagFixture, "content", Gap,
-			"`schema apply --plan` did not reach reading the plan file, so the flag is not being executed: "+
+			"`schema apply --plan` did not reach reading the plan file, so the flag is not being executed: " +
 				oneLine(res.stderr), "stokaro/ptah#965"}
 	}
 	// The detail names no Atlas release on purpose: what is asserted is the

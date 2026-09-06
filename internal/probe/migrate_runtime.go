@@ -15,7 +15,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"go.5x5.cz/ptah/dbschema"
+	"ptah.run/dbschema"
 )
 
 const migrateRuntimeProbeName = "migrate-runtime"
