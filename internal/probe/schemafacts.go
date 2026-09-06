@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"strings"
 
-	"go.5x5.cz/ptah/core/goschema"
+	"ptah.run/core/schemamodel"
 )
 
 // This file reduces a schema to a canonical, comparable set of column facts so
 // the differential probe compares what two tools *understand* about a schema
 // rather than how they spell DDL. Both sides arrive as a typed
-// goschema.Database — Ptah's from live introspection, Atlas's from parsing its
+// schemamodel.Database — Ptah's from live introspection, Atlas's from parsing its
 // native HCL `schema inspect` output through Ptah's own core/atlashcl parser —
 // so there is no SQL text parsing here; the facts are read off typed fields. It
 // folds the systematic, semantically-equivalent representation differences
@@ -28,7 +28,7 @@ const globalFactsKey = "\x00global-schema-facts"
 type tableFacts map[string][]string
 
 // factsFromDatabase reads canonical schema facts off a typed schema.
-func factsFromDatabase(db *goschema.Database) tableFacts {
+func factsFromDatabase(db *schemamodel.Database) tableFacts {
 	if db == nil {
 		return tableFacts{}
 	}
@@ -38,11 +38,11 @@ func factsFromDatabase(db *goschema.Database) tableFacts {
 		out[globalFactsKey] = global
 	}
 
-	tableByStruct := map[string]goschema.Table{}
+	tableByStruct := map[string]schemamodel.Table{}
 	for _, t := range db.Tables {
 		tableByStruct[t.StructName] = t
 	}
-	fieldsByStruct := map[string][]goschema.Field{}
+	fieldsByStruct := map[string][]schemamodel.Field{}
 	for _, f := range db.Fields {
 		fieldsByStruct[f.StructName] = append(fieldsByStruct[f.StructName], f)
 	}
@@ -91,7 +91,7 @@ func factsFromDatabase(db *goschema.Database) tableFacts {
 	return out
 }
 
-func globalFacts(db *goschema.Database) []string {
+func globalFacts(db *schemamodel.Database) []string {
 	var facts []string
 	for _, schema := range db.Schemas {
 		name := normSchema(schema.Name)
@@ -112,7 +112,7 @@ func globalFacts(db *goschema.Database) []string {
 	return facts
 }
 
-func tableMetaFact(t goschema.Table) string {
+func tableMetaFact(t schemamodel.Table) string {
 	parts := []string{}
 	if schema := normSchema(t.Schema); schema != "" {
 		parts = append(parts, "schema="+schema)
@@ -144,7 +144,7 @@ func tableMetaFact(t goschema.Table) string {
 	return "~table: " + strings.Join(parts, " ")
 }
 
-func primaryKeyFact(t goschema.Table, fields []goschema.Field) string {
+func primaryKeyFact(t schemamodel.Table, fields []schemamodel.Field) string {
 	parts := primaryKeyParts(t, fields)
 	if len(parts) == 0 {
 		return ""
@@ -156,7 +156,7 @@ func primaryKeyFact(t goschema.Table, fields []goschema.Field) string {
 	return "~primary_key: " + sig
 }
 
-func primaryKeyParts(t goschema.Table, fields []goschema.Field) []string {
+func primaryKeyParts(t schemamodel.Table, fields []schemamodel.Field) []string {
 	if len(t.PrimaryKeyParts) > 0 {
 		parts := make([]string, 0, len(t.PrimaryKeyParts))
 		for _, part := range t.PrimaryKeyParts {
@@ -176,7 +176,7 @@ func primaryKeyParts(t goschema.Table, fields []goschema.Field) []string {
 	return parts
 }
 
-func primaryKeyPartSignature(part goschema.PrimaryKeyPart) string {
+func primaryKeyPartSignature(part schemamodel.PrimaryKeyPart) string {
 	sig := normIdent(part.Name)
 	if prefix := strings.TrimSpace(part.Prefix); prefix != "" {
 		sig += " prefix=" + prefix
@@ -191,7 +191,7 @@ func primaryKeyPartSignature(part goschema.PrimaryKeyPart) string {
 // primary-key membership, generated-column expression, and generated-column
 // kind. Default constants are compared by normalized value rather than mere
 // presence, while non-constant expressions remain visible as expressions.
-func fieldSignature(f goschema.Field, isPK bool) string {
+func fieldSignature(f schemamodel.Field, isPK bool) string {
 	typ := canonType(f.Type)
 	serial := isSerial(f)
 	if serial {
@@ -237,7 +237,7 @@ func fieldSignature(f goschema.Field, isPK bool) string {
 	return sig
 }
 
-func identitySignature(f goschema.Field) string {
+func identitySignature(f schemamodel.Field) string {
 	generation := normGeneratedKind(f.IdentityGeneration)
 	if generation == "" && strings.TrimSpace(f.IdentityStart) == "" &&
 		strings.TrimSpace(f.IdentityIncrement) == "" && strings.TrimSpace(f.IdentityOptions) == "" {
@@ -262,7 +262,7 @@ func identitySignature(f goschema.Field) string {
 // foreignSignature canonicalizes a field's foreign key: referenced target plus
 // referential actions, so action ordering and an omitted default do not read as
 // a difference.
-func foreignSignature(f goschema.Field) string {
+func foreignSignature(f schemamodel.Field) string {
 	return "-> " + normRef(f.Foreign) + " del=" + normAction(f.OnDelete) + " upd=" + normAction(f.OnUpdate)
 }
 
@@ -273,7 +273,7 @@ func checkFact(expr string) string {
 	return "~check(" + normalized + "): expr=" + normalized
 }
 
-func constraintFacts(constraints []goschema.Constraint, tableByStruct map[string]goschema.Table, tableName string) []string {
+func constraintFacts(constraints []schemamodel.Constraint, tableByStruct map[string]schemamodel.Table, tableName string) []string {
 	var facts []string
 	for _, c := range constraints {
 		if constraintTableKey(c, tableByStruct) != tableName {
@@ -293,7 +293,7 @@ func constraintFacts(constraints []goschema.Constraint, tableByStruct map[string
 	return facts
 }
 
-func indexFacts(indexes []goschema.Index, tableByStruct map[string]goschema.Table, tableName string) []string {
+func indexFacts(indexes []schemamodel.Index, tableByStruct map[string]schemamodel.Table, tableName string) []string {
 	var facts []string
 	for _, idx := range indexes {
 		if indexTableKey(idx, tableByStruct) != tableName {
@@ -322,7 +322,7 @@ func uniqueFact(cols, sig string, include []string, nullsDistinct *bool, comment
 	return "~unique(" + cols + "): " + sig
 }
 
-func indexFactSignature(idx goschema.Index, cols string) string {
+func indexFactSignature(idx schemamodel.Index, cols string) string {
 	sig := indexFactCoreSignature(idx, cols)
 	if include := normColumns(idx.IncludeColumns); include != "" {
 		sig += " include=" + include
@@ -339,7 +339,7 @@ func indexFactSignature(idx goschema.Index, cols string) string {
 	return sig
 }
 
-func indexFactCoreSignature(idx goschema.Index, cols string) string {
+func indexFactCoreSignature(idx schemamodel.Index, cols string) string {
 	sig := "columns=" + cols
 	if typ := normIndexType(idx.Type); typ != "" {
 		sig += " type=" + typ
@@ -400,13 +400,13 @@ func storageParamsSignature(params map[string]string) string {
 
 // isSerial folds the two spellings of an auto-incrementing integer: Atlas's
 // `serial` type and Ptah's introspected `integer` + `nextval(...)` default.
-func isSerial(f goschema.Field) bool {
+func isSerial(f schemamodel.Field) bool {
 	return f.AutoInc ||
 		strings.Contains(strings.ToLower(f.Type), "serial") ||
 		strings.Contains(strings.ToLower(f.DefaultExpr), "nextval")
 }
 
-func defaultSignature(f goschema.Field) string {
+func defaultSignature(f schemamodel.Field) string {
 	if expr := strings.TrimSpace(f.DefaultExpr); expr != "" {
 		if value, ok := normDefaultConstant(expr, false); ok {
 			return "value(" + normDefaultValueForType(value, f.Type) + ")"
@@ -530,7 +530,7 @@ func normAction(a string) string {
 	return a
 }
 
-func constraintTableKey(c goschema.Constraint, tableByStruct map[string]goschema.Table) string {
+func constraintTableKey(c schemamodel.Constraint, tableByStruct map[string]schemamodel.Table) string {
 	if strings.TrimSpace(c.Table) != "" {
 		return normTableRef(c.Table)
 	}
@@ -540,7 +540,7 @@ func constraintTableKey(c goschema.Constraint, tableByStruct map[string]goschema
 	return normTableRef(c.StructName)
 }
 
-func indexTableKey(idx goschema.Index, tableByStruct map[string]goschema.Table) string {
+func indexTableKey(idx schemamodel.Index, tableByStruct map[string]schemamodel.Table) string {
 	if strings.TrimSpace(idx.TableName) != "" {
 		return normTableRef(idx.TableName)
 	}
@@ -550,11 +550,11 @@ func indexTableKey(idx goschema.Index, tableByStruct map[string]goschema.Table) 
 	return normTableRef(idx.StructName)
 }
 
-func normIndexParts(idx goschema.Index) string {
+func normIndexParts(idx schemamodel.Index) string {
 	return strings.Join(indexParts(idx), ",")
 }
 
-func indexParts(idx goschema.Index) []string {
+func indexParts(idx schemamodel.Index) []string {
 	if len(idx.Parts) > 0 {
 		cols := make([]string, 0, len(idx.Parts))
 		for _, part := range idx.Parts {
@@ -573,7 +573,7 @@ func indexParts(idx goschema.Index) []string {
 	return nil
 }
 
-func indexPartSignature(part goschema.IndexPart) string {
+func indexPartSignature(part schemamodel.IndexPart) string {
 	sig := ""
 	if name := strings.TrimSpace(part.Name); name != "" {
 		sig = normIdent(name)
@@ -634,7 +634,7 @@ func normSchema(s string) string {
 	}
 }
 
-func tableFactKey(t goschema.Table) string {
+func tableFactKey(t schemamodel.Table) string {
 	schema := normSchema(t.Schema)
 	name := normIdent(t.Name)
 	if schema == "" {
