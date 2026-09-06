@@ -6203,14 +6203,25 @@ func txtarPostgresRawArrayType(column *ast.ColumnNode) string {
 	return ""
 }
 
-func txtarPostgresEnumArrayType(raw string, enums map[string]*ast.EnumNode) string {
-	raw = strings.TrimSpace(raw)
-	base, ok := strings.CutSuffix(raw, "[]")
+// txtarPostgresEnumArrayEnum recognizes a column type that is an array of a
+// declared enum and answers the enum it names. It is the one recognizer for
+// that shape: the SQL and HCL renderings spell the element type differently --
+// psql shows it schema-qualified and Atlas inspect prints it bare -- so keeping
+// a second recognizer beside either spelling would let the two drift.
+func txtarPostgresEnumArrayEnum(raw string, enums map[string]*ast.EnumNode) (*ast.EnumNode, bool) {
+	base, ok := strings.CutSuffix(strings.TrimSpace(raw), "[]")
 	if !ok {
-		return ""
+		return nil, false
 	}
-	base = atlasSQLIdentifier(strings.TrimSpace(base))
-	enum, ok := enums[base]
+	enum, ok := enums[atlasSQLIdentifier(strings.TrimSpace(base))]
+	if !ok {
+		return nil, false
+	}
+	return enum, true
+}
+
+func txtarPostgresEnumArrayType(raw string, enums map[string]*ast.EnumNode) string {
+	enum, ok := txtarPostgresEnumArrayEnum(raw, enums)
 	if !ok {
 		return ""
 	}
@@ -8367,8 +8378,16 @@ func atlasPostgresEnumHCLType(
 	column *ast.ColumnNode,
 	enums map[string]*ast.EnumNode,
 ) (string, bool) {
-	if column.TypeRawSQL && txtarPostgresEnumArrayType(column.Type, enums) != "" {
-		return atlasSQLExpressionHCL(column.Type), true
+	if column.TypeRawSQL {
+		// Render the element type as Atlas inspect prints it, which is bare
+		// whenever the enum lives in the schema being inspected. Emitting
+		// column.Type verbatim was equivalent only while the DDL under it
+		// spelled the type unqualified; Ptah now qualifies a user type in the
+		// SQL it generates, and the same fixture started reporting
+		// sql("<schema>.status[]") against Atlas's sql("status[]").
+		if enum, ok := txtarPostgresEnumArrayEnum(column.Type, enums); ok {
+			return atlasSQLExpressionHCL(atlasHCLTableIdentifier(enum.Name, schemaName) + "[]"), true
+		}
 	}
 	typ := column.Type
 	if enum, ok := enums[atlasSQLIdentifier(typ)]; ok {

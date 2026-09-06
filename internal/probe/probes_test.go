@@ -3191,18 +3191,12 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumFixture(t *testing.T) {
 	}
 }
 
-// TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture records a measured
-// divergence from Atlas rather than asserting there is none.
-//
-// Atlas inspects an enum-array column as `sql("status[]")`. Ptah v0.4.0 inspects
-// it as `sql("<schema>.status[]")`, qualifying the user-defined type with the
-// schema that holds it. The expectation lives in Atlas's own vendored fixture,
-// which is Apache-licensed and must not be edited here, so the distance is the
-// finding -- which is what this repository exists to measure.
-//
-// Asserted as a gap, and not merely tolerated: the detail is checked, so the
-// test still fails if the divergence changes shape, and it fails if the gap
-// CLOSES, which is the day the waiver and this test both come out (#288).
+// TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture drives Atlas's own
+// enum-array fixture, whose two spellings of the element type are the point:
+// cmpshow expects the schema-qualified `script_column_enum_array.status[]` that
+// psql prints, and cmphcl expects the bare `sql("status[]")` that Atlas inspect
+// prints. A renderer that emits one spelling in both places passes half of this
+// fixture, which is how the qualification reached the HCL output unnoticed.
 func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	fixture := "column-enum-array.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -3217,11 +3211,11 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d: %#v", len(results), results)
 	}
-	if results[0].Outcome == OK {
-		t.Fatalf("the enum-array divergence closed; drop this expectation and its waiver: %#v", results[0])
+	if results[0].Outcome != OK {
+		t.Fatalf("expected OK result, got %#v", results[0])
 	}
-	if !strings.Contains(results[0].Detail, `type = sql(\"script_column_enum_array.status[]\")`) {
-		t.Fatalf("the divergence changed shape: %#v", results[0])
+	if !strings.Contains(results[0].Detail, "cmpshow=4, cmphcl=1") {
+		t.Fatalf("expected both spellings to have been compared, got %#v", results[0])
 	}
 }
 
