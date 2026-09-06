@@ -71,14 +71,14 @@ func TestORMProviderSmokeProbe_HappyPath(t *testing.T) {
 			Fixture: "sqlalchemy",
 			Stage:   "provider output",
 			Outcome: probe.OK,
-			Detail:  "SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 provider output preserved two tables, primary keys, a unique index, and a foreign key",
+			Detail:  "SQLAlchemy provider 0.5.2 with SQLAlchemy 2.0.51 provider output preserved two tables, primary keys, a unique index, and a foreign key",
 		},
 		{
 			Probe:   "orm-provider-smoke",
 			Fixture: "sqlalchemy",
 			Stage:   "ptah schema render",
 			Outcome: probe.OK,
-			Detail:  "SQLAlchemy provider 0.5.0 with SQLAlchemy 2.0.51 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key",
+			Detail:  "SQLAlchemy provider 0.5.2 with SQLAlchemy 2.0.51 ptah schema render preserved two tables, primary keys, a unique index, and a foreign key",
 		},
 	})
 	after, err := os.ReadFile(gormModule)
