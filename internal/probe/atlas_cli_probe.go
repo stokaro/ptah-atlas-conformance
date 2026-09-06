@@ -349,6 +349,7 @@ func commandOutputDir(bin string, path []string, dir string) (string, error) {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, path...)
 	cmd.Dir = dir
+	cmd.Env = ptahCommandEnvironment()
 	outBytes, err := cmd.CombinedOutput()
 	return string(outBytes), err
 }
@@ -372,9 +373,7 @@ func commandStreamsWithEnv(
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = dir
-	if len(env) > 0 {
-		cmd.Env = append(os.Environ(), env...)
-	}
+	cmd.Env = append(ptahCommandEnvironment(), env...)
 	var out, errOut bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut
