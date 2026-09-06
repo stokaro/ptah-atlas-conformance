@@ -274,8 +274,9 @@ The regression budget is [`cli-surface-budget.txt`](./cli-surface-budget.txt).
 `make budget-cli-surface` must stay green when Ptah preserves the current known
 CLI surface. `make gate-cli-surface` is the full-parity signal for the pinned
 Atlas CE OSS help/flag surface plus the public documented Pro flags. It remains
-red while `atlas schema diff --web` and `atlas schema inspect --export` are
-missing; the regression budget records those two explicit gaps separately.
+red while `atlas schema diff --web` is missing; the regression budget records
+that gap separately. `atlas schema inspect --export` was the other half of this
+sentence and Ptah has it, so the yardstick now stands on one row.
 
 Refresh this tier whenever [`atlas.version`](./atlas.version) changes, or after
 bumping Ptah in `go.mod`:
