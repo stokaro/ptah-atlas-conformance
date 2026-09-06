@@ -30,23 +30,6 @@
 # fixtures age. These come out one at a time as each is answered.
 
 
-# The CLI-surface tier's four, from the same pin bump and in the OPPOSITE
-# direction: Ptah gained these commands. `ptah-non-oss-sentinel` asserts that a
-# command outside the OSS surface reports a byte-exact unavailable-command
-# diagnostic, and v0.4.0 implements both -- measured on the released binary,
-# `atlas schema plan lint` answers `Error: --from is required` and
-# `atlas schema plan test` answers `Error: no test "plan" cases found in .`
-# rather than refusing as unavailable.
-#
-# So the sentinel is asserting the absence of something that now exists. What it
-# should assert instead is a product question -- what the CE surface owes for a
-# command Ptah has implemented -- which is why these are tracked rather than
-# rewritten here (#288).
-ptah-non-oss-sentinel "atlas schema plan lint" out-of-scope-runtime   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
-ptah-non-oss-sentinel "atlas schema plan lint" out-of-scope-help   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
-ptah-non-oss-sentinel "atlas schema plan test" out-of-scope-runtime   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
-ptah-non-oss-sentinel "atlas schema plan test" out-of-scope-help   Ptah implemented the command; the sentinel asserts it is unavailable (#288)
-
 # The migrate-runtime tier's eleven, all from the same pin bump (#289).
 #
 # Ten are one cause: v0.4.0 refuses a tx-mode file migration whose statements

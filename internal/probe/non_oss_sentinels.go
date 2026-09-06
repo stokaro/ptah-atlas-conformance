@@ -44,9 +44,9 @@ func nonOSSSentinels() []nonOSSSentinel {
 		{
 			invocationPath: []string{"schema", "plan", "lint"},
 			ceAbortPath:    []string{"schema", "plan"},
-			summary:        "Lint a plan against the Atlas Registry",
-			reason:         "Atlas Cloud / registry workflow",
-			policy:         nonOSSSentinelUnavailable,
+			summary:        "Lint a schema plan file",
+			reason:         "Atlas Pro plan workflow; Ptah implements the documented local plan-file analysis as an open capability",
+			policy:         nonOSSSentinelOpen,
 		},
 		{
 			invocationPath: []string{"schema", "plan", "list"},
@@ -86,9 +86,9 @@ func nonOSSSentinels() []nonOSSSentinel {
 		{
 			invocationPath: []string{"schema", "plan", "test"},
 			ceAbortPath:    []string{"schema", "plan"},
-			summary:        "Test a plan through the Atlas Registry",
-			reason:         "Atlas Cloud / registry workflow",
-			policy:         nonOSSSentinelUnavailable,
+			summary:        "Run test \"plan\" cases against a schema plan file",
+			reason:         "Atlas Pro plan workflow; Ptah implements the documented local test \"plan\" cases as an open capability",
+			policy:         nonOSSSentinelOpen,
 		},
 		{
 			invocationPath: []string{"schema", "plan", "validate"},

@@ -20,9 +20,9 @@ const (
 	// GORMProviderVersion is the provider version exercised by this tier.
 	GORMProviderVersion = "v0.6.1"
 	// SQLAlchemyProviderVersion is the provider version exercised by this tier.
-	SQLAlchemyProviderVersion = "0.5.0"
+	SQLAlchemyProviderVersion = "0.5.2"
 	// SQLAlchemyVersion is the ORM version exercised by this tier.
-	SQLAlchemyVersion = "2.0.51"
+	SQLAlchemyVersion = "2.0.52"
 
 	ormProviderProbeName = "orm-provider-smoke"
 	ormProviderIssue     = "stokaro/ptah#669"
