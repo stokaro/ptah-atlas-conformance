@@ -35,15 +35,46 @@ func LoadWaivers(path string) (*Waivers, error) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		fields := strings.Fields(line)
-		if len(fields) < 3 {
+		probe, fixture, stage, reason, ok := splitWaiver(line)
+		if !ok {
 			continue
 		}
-		reason := strings.TrimSpace(strings.TrimPrefix(line,
-			fields[0]+" "+fields[1]+" "+fields[2]))
-		w.byKey[waiverKey(fields[0], fields[1], fields[2])] = reason
+		w.byKey[waiverKey(probe, fixture, stage)] = reason
 	}
 	return w, sc.Err()
+}
+
+// splitWaiver reads the three key fields and the reason from one line.
+//
+// A bare `strings.Fields` cannot address most of the corpus: a fixture is
+// `atlas schema inspect -s` and a stage is `HTML report`, so the key's own
+// separator occurs inside the key. Taking the first three whitespace-separated
+// tokens silently matched something else, and the entry was then reported as a
+// stale waiver -- a wrong key and a missing key are indistinguishable that way.
+//
+// So a field may be double-quoted, and an unquoted field is still a single
+// token, which is what every existing entry relies on.
+func splitWaiver(line string) (probe, fixture, stage, reason string, ok bool) {
+	rest := strings.TrimSpace(line)
+	fields := make([]string, 0, 3)
+	for len(fields) < 3 {
+		if rest == "" {
+			return "", "", "", "", false
+		}
+		var field string
+		if rest[0] == '"' {
+			end := strings.IndexByte(rest[1:], '"')
+			if end < 0 {
+				return "", "", "", "", false
+			}
+			field, rest = rest[1:1+end], rest[end+2:]
+		} else {
+			field, rest, _ = strings.Cut(rest, " ")
+		}
+		fields = append(fields, field)
+		rest = strings.TrimLeft(rest, " \t")
+	}
+	return fields[0], fields[1], fields[2], strings.TrimSpace(rest), true
 }
 
 // Reason returns the waiver reason for a result and whether it is waived.
