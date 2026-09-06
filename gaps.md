@@ -7,16 +7,16 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: NOT DONE — 7 non-OK observation(s)
+## Status: NOT DONE — 4 non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at `ptah.run v0.4.0`
-- Outcomes: **801 ok**, **6 gap**, **1 fail**, **0 panic**
-- Full gate: **7 non-OK** (fails CI)
-- Regression budget input: **0 unwaived non-OK**, 7 waived
+- Outcomes: **805 ok**, **3 gap**, **1 fail**, **0 panic**
+- Full gate: **4 non-OK** (fails CI)
+- Regression budget input: **0 unwaived non-OK**, 4 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
@@ -24,12 +24,9 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
 | waived | **fail** | txtar-script | `internal/integration/testdata/postgres/column-enum-array.txtar` | script-runtime | cmphcl 5.inspect.hcl did not match: got "table \"enums\" { schema = schema.script_column_enum_array column \"a\" { null = false type = integer } column \"statuses\" { null = false type = sql(\"script_column_enum_array.status[]\") } column \… | #285 |
-| waived | **gap** | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: Error: a docker:// dev database URL needs a running container runtime, and `docker info` failed: failed to connect to the docker API at unix:///Users/buster/.orbstack/run/docker.sock; check if the path is correct and if the daemon is runnin… | #621 |
+| waived | **gap** | atlas-cli-shorthands | `atlas migrate diff -s` | parse | `atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path:  | #621 |
 | waived | **gap** | atlas-cli-shorthands | `atlas schema apply -s` | execute | `atlas schema apply -s` with an out-of-scope schema name did not scope the plan away: Schema is synced, no changes to be made | #813 |
 | waived | **gap** | atlas-cli-shorthands | `atlas schema inspect -s` | parse | `atlas schema inspect -s public` did not reach the expected validation path: Error: required flag(s) "url" not set | #621 |
-| waived | **gap** | dbtest-workflow | `ptah migrations test/html` | HTML report | stdout output does not contain "1 cases, 1 passed, 0 failed": stdout: <!doctype html> <html lang="en"> <head> <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MIGRATION test report</title><style> :root { color-scheme: light dark; --bg: #fbfbfa; --surface: #fffff… | #659 |
-| waived | **gap** | dbtest-workflow | `ptah schema test/html` | HTML report | stdout output does not contain "1 cases, 1 passed, 0 failed": stdout: <!doctype html> <html lang="en"> <head> <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SCHEMA test report</title><style> :root { color-scheme: light dark; --bg: #fbfbfa; --surface: #ffffff; … | #659 |
-| waived | **gap** | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | stdout does not contain "Rebased migration 20260101000001 to 20260101000003": warning: --db-url not provided; applied migration state was not verified Rebased migration 20260101000001 to 20260906141302 migrations/20260906141302_create_users.sql Wrote migrations/atlas.sum | #758 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
@@ -326,11 +323,13 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | corpus-inventory | `txtar-down` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | corpus-inventory | `txtar-down-boundary` | import | imported SQL directory: 1 sql file(s), atlas.sum=false, 0 support file(s) |  |
 | — | ok | dbtest-workflow | `ptah migrations test/assertion failure` | assertion exit contract | failed assertion produced a structured report and process exit code 1 |  |
+| — | ok | dbtest-workflow | `ptah migrations test/html` | HTML report | self-contained migration HTML report preserved the passing case and summary |  |
 | — | ok | dbtest-workflow | `ptah migrations test/isolation` | ephemeral isolation | two cases created the same table independently in separate ephemeral SQLite databases |  |
 | — | ok | dbtest-workflow | `ptah migrations test/json` | JSON report | structured migration JSON report preserved exact summary, case, and step results |  |
 | — | ok | dbtest-workflow | `ptah migrations test/setup failure` | setup exit contract | invalid declarative input produced process exit code 2 and an actionable diagnostic |  |
 | — | ok | dbtest-workflow | `ptah migrations test/text` | migration execution | latest/numeric/zero migration targets, desired schema, seed, assertions, and case filtering passed |  |
 | — | ok | dbtest-workflow | `ptah schema test/assertion failure` | assertion exit contract | failed schema assertion produced a structured report and process exit code 1 |  |
+| — | ok | dbtest-workflow | `ptah schema test/html` | HTML report | self-contained schema HTML report preserved the passing case and summary |  |
 | — | ok | dbtest-workflow | `ptah schema test/invalid migration step` | step validation | schema tests rejected migrate_to with process exit code 1 and an actionable result |  |
 | — | ok | dbtest-workflow | `ptah schema test/isolation` | ephemeral isolation | two schema cases inserted the same primary key independently in separate ephemeral SQLite databases |  |
 | — | ok | dbtest-workflow | `ptah schema test/json` | JSON report | structured schema JSON report preserved exact summary, case, and step results |  |
@@ -539,6 +538,8 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | pro-down-workflow | `atlas migrate down` | bare rollback | bare `atlas migrate down` — no stdin, --confirm, or --revision-format flag — defaulted to the Atlas revision format, read the rows `atlas migrate apply` wrote, executed both embedded down bodies, and cleared the revision history (before stokaro/ptah#810 this was a silent no-op) |  |
 | — | ok | pro-down-workflow | `atlas migrate down --format` | formatted rollback | formatted `atlas migrate down` ran without stdin, reported version 20260101000002 reverted, removed its table, and preserved only the version 20260101000001 revision |  |
 | — | ok | pro-maint-workflow | `atlas migrate edit` | editor round-trip | the hermetic scripted $EDITOR change landed in the migration file, atlas.sum was rewritten, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `atlas migrate rebase` | rebase to end of history | the migration moved to the end of history under a new version, kept its edited content, and the directory still passes `ptah migrations validate` |  |
+| — | ok | pro-maint-workflow | `atlas migrate rm` | remove migration | the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate` |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | plan application | PTAH-SIDE PIN (no CE oracle): `schema apply --plan file://...` replayed the saved native JSON plan against the planned target, creating exactly the desired users table |  |
 | — | ok | pro-plan-workflow | `atlas schema apply` | stale plan refusal | PTAH-SIDE PIN (no CE oracle): a target mutated after planning was refused: apply --plan on the native JSON plan exited 1 naming the fingerprint mismatch and left the database untouched |  |
 | — | ok | pro-plan-workflow | `atlas schema plan` | plan creation | PTAH-SIDE PIN (no CE oracle — the pinned Atlas CE answers "'atlas schema plan' is not supported by the community version"): `schema plan --save` wrote the Atlas-shaped `.plan.hcl` by default (single labeled `plan` block with from/to and a migration heredoc, per the Atlas-authored artifact captured in stokaro/ptah#965), and an explicit .json --output still wrote the native format_version-1 plan binding sha256 fingerprints to the reviewed CREATE TABLE statement with a per-statement severity |  |
@@ -836,6 +837,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - **stokaro/ptah#285** — 1 finding(s)
 - **stokaro/ptah#621** — 2 finding(s)
-- **stokaro/ptah#659** — 2 finding(s)
-- **stokaro/ptah#758** — 1 finding(s)
 - **stokaro/ptah#813** — 1 finding(s)

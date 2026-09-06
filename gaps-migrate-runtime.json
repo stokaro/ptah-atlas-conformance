@@ -614,7 +614,7 @@
     "fixture": "mysql/apply-state",
     "stage": "apply",
     "outcome": "gap",
-    "detail": "Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mysql_1788710657079590000 outside the selected database; use a connec…",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#648"
   },
   {
@@ -622,7 +622,7 @@
     "fixture": "mysql/apply-dry-run-stored-state",
     "stage": "seed",
     "outcome": "gap",
-    "detail": "Migrating to version 1 from 1 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mysql_dry_run_1788710658984319000 outside the selected database; use …",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#648"
   },
   {
@@ -630,7 +630,7 @@
     "fixture": "mysql/txtar-check-comment-semantics",
     "stage": "apply",
     "outcome": "gap",
-    "detail": "Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mysql_check_comments_1788710660776210000 outside the selected databas…",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#648"
   },
   {
@@ -638,7 +638,7 @@
     "fixture": "mysql/txtar-check-hidden-statements",
     "stage": "diagnostic",
     "outcome": "gap",
-    "detail": "apply output did not contain \"one read-only SELECT statement\": Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mysql_check_hidden_1788710662565153000 outside the selected database;…",
+    "detail": "apply output did not contain \"one read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#964"
   },
   {
@@ -646,7 +646,7 @@
     "fixture": "mysql/txtar-check-short-numeric-body",
     "stage": "diagnostic",
     "outcome": "gap",
-    "detail": "apply output did not contain \"check assertion must be a read-only SELECT statement\": Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mysql_check_numeric_1788710664390727000 outside the selected database…",
+    "detail": "apply output did not contain \"check assertion must be a read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#964"
   },
   {
@@ -654,7 +654,7 @@
     "fixture": "mariadb/apply-state",
     "stage": "apply",
     "outcome": "gap",
-    "detail": "Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mariadb_1788710666232602000 outside the selected database; use a conn…",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#648"
   },
   {
@@ -662,7 +662,7 @@
     "fixture": "mariadb/apply-dry-run-stored-state",
     "stage": "seed",
     "outcome": "gap",
-    "detail": "Migrating to version 1 from 1 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mariadb_dry_run_1788710667900901000 outside the selected database; us…",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#648"
   },
   {
@@ -670,7 +670,7 @@
     "fixture": "mariadb/txtar-check-comment-semantics",
     "stage": "apply",
     "outcome": "gap",
-    "detail": "Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mariadb_check_comments_1788710669561791000 outside the selected datab…",
+    "detail": "Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#648"
   },
   {
@@ -678,7 +678,7 @@
     "fixture": "mariadb/txtar-check-hidden-statements",
     "stage": "diagnostic",
     "outcome": "gap",
-    "detail": "apply output did not contain \"one read-only SELECT statement\": Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mariadb_check_hidden_1788710671170760000 outside the selected databas…",
+    "detail": "apply output did not contain \"one read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#964"
   },
   {
@@ -686,7 +686,7 @@
     "fixture": "mariadb/txtar-check-short-numeric-body",
     "stage": "diagnostic",
     "outcome": "gap",
-    "detail": "apply output did not contain \"check assertion must be a read-only SELECT statement\": Migrating to version 2 from 2 pending migrations. Error: error applying migrations: migration 1 cannot run tx-mode file statement 1 because it references database ptah_rt_mariadb_check_numeric_1788710672786261000 outside the selected databa…",
+    "detail": "apply output did not contain \"check assertion must be a read-only SELECT statement\": Error: sql/migrate: connected database is not clean: found table \"invoices\" in schema \"conf\". baseline version or allow-dirty is required",
     "issue": "stokaro/ptah#964"
   }
 ]

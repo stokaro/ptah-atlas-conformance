@@ -23,7 +23,7 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 - Ptah at `ptah.run v0.4.0`
 - Outcomes: **105 ok**, **5 gap**, **0 fail**, **0 panic**
 - Full gate: **5 non-OK** (fails CI)
-- Regression budget input: **5 unwaived non-OK**, 0 waived
+- Regression budget input: **1 unwaived non-OK**, 4 waived
 
 ## Atlas CE Inventory
 
@@ -54,10 +54,10 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 | Gate | Outcome | Probe | Command | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
 | **RED** | **gap** | atlas-cli-pro-surface-ptah-compat | `atlas schema diff` | required-flags | missing documented Pro-surface flags: --web | #951 |
-| **RED** | **gap** | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-help | `atlas schema plan lint --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan lint is not implemented by Ptah.`, got `Atlas `atlas schema plan lint` command path. Analyzes the SQL of the plan file named by --file and prints what Ptah's migration lint rules find, without changing the target database. The plan is verified before it is analyzed, with the same…` | #514 |
-| **RED** | **gap** | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-runtime | `atlas schema plan lint` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan lint is not implemented by Ptah`, got `Error: --from is required` | #514 |
-| **RED** | **gap** | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-help | `atlas schema plan test --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan test is not implemented by Ptah.`, got `Atlas `atlas schema plan test` command path. Runs `test "plan"` cases from Atlas `.test.hcl` files against a throwaway database. Each case establishes a starting state, applies a saved plan file, and asserts what the plan did: test "plan" "…` | #514 |
-| **RED** | **gap** | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-runtime | `atlas schema plan test` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan test is not implemented by Ptah`, got `Error: no test "plan" cases found in .` | #514 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-help | `atlas schema plan lint --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan lint is not implemented by Ptah.`, got `Atlas `atlas schema plan lint` command path. Analyzes the SQL of the plan file named by --file and prints what Ptah's migration lint rules find, without changing the target database. The plan is verified before it is analyzed, with the same…` | #514 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan lint` | out-of-scope-runtime | `atlas schema plan lint` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan lint is not implemented by Ptah`, got `Error: --from is required` | #514 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-help | `atlas schema plan test --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan test is not implemented by Ptah.`, got `Atlas `atlas schema plan test` command path. Runs `test "plan"` cases from Atlas `.test.hcl` files against a throwaway database. Each case establishes a starting state, applies a saved plan file, and asserts what the plan did: test "plan" "…` | #514 |
+| waived | **gap** | ptah-non-oss-sentinel | `atlas schema plan test` | out-of-scope-runtime | `atlas schema plan test` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan test is not implemented by Ptah`, got `Error: no test "plan" cases found in .` | #514 |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas migrate apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lock --to-version |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lint --skip-lock |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema clean` | required-flags | documented Pro-surface flags are present: --exclude --include |  |

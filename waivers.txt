@@ -14,8 +14,10 @@
 # it yet" — NOT "this is fine forever". Keep this list as short as honesty allows.
 # An empty list means: nothing is intentionally skipped, so every open gap is red.
 #
-# Seven waivers, all from one event: moving the Ptah pin from the 2026-08-09
-# pseudo-version to v0.4.0 (#287). Each was OK before that move, and each still
+# Four waivers from one event: moving the Ptah pin from the 2026-08-09
+# pseudo-version to v0.4.0 (#287). Three more were written and then removed --
+# their fixtures were repaired instead, which is the outcome a waiver exists to
+# make possible rather than to replace. Each was OK before that move, and each still
 # carries a probe-recorded issue reference whose issue is CLOSED -- so none of
 # them is the gap that reference describes. They are what a month of Ptah
 # releases did to fixtures written against the older build, and #288 owns
@@ -31,9 +33,6 @@ txtar-script internal/integration/testdata/postgres/column-enum-array.txtar scri
 atlas-cli-shorthands "atlas schema inspect -s" parse   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
 atlas-cli-shorthands "atlas migrate diff -s" parse   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
 atlas-cli-shorthands "atlas schema apply -s" execute   the -s shorthand observation moved with the pin; undiagnosed (conformance#288)
-dbtest-workflow "ptah migrations test/html" "HTML report"   fixture staleness: the HTML report renders each counter as its own element, so the joined phrase it requires cannot appear (conformance#288)
-dbtest-workflow "ptah schema test/html" "HTML report"   fixture staleness: same as the migrations report above (conformance#288)
-pro-maint-workflow "atlas migrate rebase" "rebase to end of history"   the rebased version is now a timestamp, not the fixed one the fixture expects (conformance#288)
 
 # The CLI-surface tier's four, from the same pin bump and in the OPPOSITE
 # direction: Ptah gained these commands. `ptah-non-oss-sentinel` asserts that a

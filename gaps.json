@@ -4285,7 +4285,7 @@
     "fixture": "atlas migrate diff -s",
     "stage": "parse",
     "outcome": "gap",
-    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: Error: a docker:// dev database URL needs a running container runtime, and `docker info` failed: failed to connect to the docker API at unix:///Users/buster/.orbstack/run/docker.sock; check if the path is correct and if the daemon is runnin…",
+    "detail": "`atlas migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev` did not reach the expected validation path: ",
     "issue": "stokaro/ptah#621"
   },
   {
@@ -4992,9 +4992,8 @@
     "probe": "dbtest-workflow",
     "fixture": "ptah migrations test/html",
     "stage": "HTML report",
-    "outcome": "gap",
-    "detail": "stdout output does not contain \"1 cases, 1 passed, 0 failed\": stdout: \u003c!doctype html\u003e \u003chtml lang=\"en\"\u003e \u003chead\u003e \u003cmeta charset=\"utf-8\"\u003e\u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1\"\u003e\u003ctitle\u003eMIGRATION test report\u003c/title\u003e\u003cstyle\u003e :root { color-scheme: light dark; --bg: #fbfbfa; --surface: #fffff…",
-    "issue": "stokaro/ptah#659"
+    "outcome": "ok",
+    "detail": "self-contained migration HTML report preserved the passing case and summary"
   },
   {
     "probe": "dbtest-workflow",
@@ -5014,9 +5013,8 @@
     "probe": "dbtest-workflow",
     "fixture": "ptah schema test/html",
     "stage": "HTML report",
-    "outcome": "gap",
-    "detail": "stdout output does not contain \"1 cases, 1 passed, 0 failed\": stdout: \u003c!doctype html\u003e \u003chtml lang=\"en\"\u003e \u003chead\u003e \u003cmeta charset=\"utf-8\"\u003e\u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1\"\u003e\u003ctitle\u003eSCHEMA test report\u003c/title\u003e\u003cstyle\u003e :root { color-scheme: light dark; --bg: #fbfbfa; --surface: #ffffff; …",
-    "issue": "stokaro/ptah#659"
+    "outcome": "ok",
+    "detail": "self-contained schema HTML report preserved the passing case and summary"
   },
   {
     "probe": "dbtest-workflow",
@@ -5302,9 +5300,15 @@
     "probe": "pro-maint-workflow",
     "fixture": "atlas migrate rebase",
     "stage": "rebase to end of history",
-    "outcome": "gap",
-    "detail": "stdout does not contain \"Rebased migration 20260101000001 to 20260101000003\": warning: --db-url not provided; applied migration state was not verified Rebased migration 20260101000001 to 20260906141302 migrations/20260906141302_create_users.sql Wrote migrations/atlas.sum",
-    "issue": "stokaro/ptah#758"
+    "outcome": "ok",
+    "detail": "the migration moved to the end of history under a new version, kept its edited content, and the directory still passes `ptah migrations validate`"
+  },
+  {
+    "probe": "pro-maint-workflow",
+    "fixture": "atlas migrate rm",
+    "stage": "remove migration",
+    "outcome": "ok",
+    "detail": "the migration file was removed, atlas.sum no longer covers it, and the remaining directory still passes `ptah migrations validate`"
   },
   {
     "probe": "pro-plan-workflow",
