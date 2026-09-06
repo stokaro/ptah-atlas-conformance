@@ -6,16 +6,18 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 
-	"go.5x5.cz/ptah/atlascompat"
-	"go.5x5.cz/ptah/dbschema"
-	"go.5x5.cz/ptah/migration/lint"
-	"go.5x5.cz/ptah/migration/migrator"
+	"ptah.run/atlascompat"
+	"ptah.run/dbschema"
+	"ptah.run/migration/lint"
+	"ptah.run/migration/migrationfile"
+	"ptah.run/migration/migrator"
 )
 
 // AllProbes is the ordered set the CLI runs.
@@ -243,16 +245,16 @@ func (ParseProbe) Run(fx Fixture) []Result {
 		}
 		sql := string(data)
 		renderedTemplate := false
-		if migrator.LooksAtlasTemplateSQL(sql) {
+		if migrationfile.LooksAtlasTemplateSQL(sql) {
 			name, err := filepath.Rel(fx.Dir, f)
 			if err != nil {
 				out = append(out, Result{"sql-parse", rel, "template-render", Fail, err.Error(), "stokaro/ptah#299"})
 				continue
 			}
-			rendered, ok, err := migrator.RenderAtlasTemplateSQL(
+			rendered, ok, err := migrationfile.RenderAtlasTemplateSQL(
 				os.DirFS(fx.Dir),
 				filepath.ToSlash(name),
-				migrator.AtlasTemplateData{},
+				migrationfile.AtlasTemplateData{},
 			)
 			if err != nil {
 				out = append(out, Result{"sql-parse", rel, "template-render", Fail,
@@ -354,7 +356,7 @@ func (MigDirProbe) Run(fx Fixture) []Result {
 	if fx.SumFile == "" && !looksVersioned(fx) {
 		return nil // not a migration directory
 	}
-	files, err := migrator.DiscoverMigrationFiles(os.DirFS(fx.Dir), migrator.MigrationDirFormatAuto)
+	files, err := migrationfile.Discover(os.DirFS(fx.Dir), migrationfile.DirFormatAuto)
 	if err != nil {
 		return []Result{{"migdir-ingest", fx.Name, "recognize", Gap,
 			"Ptah cannot discover this Atlas migration directory: " + oneLine(err.Error()), "stokaro/ptah#273"}}
@@ -399,7 +401,7 @@ func (AtlasTxtarDownProbe) Run(fx Fixture) []Result {
 	panicked, pmsg := guard(func() {
 		provider, err = migrator.NewFSMigrationProvider(
 			os.DirFS(fx.Dir),
-			migrator.WithMigrationDirFormat(migrator.MigrationDirFormatAtlas),
+			migrator.WithMigrationDirFormat(migrationfile.DirFormatAtlas),
 			migrator.WithStatementInterceptor(recorder),
 		)
 	})
@@ -528,7 +530,7 @@ func (SumProbe) Run(fx Fixture) []Result {
 	// (b) Does Ptah's own hash of the directory reproduce Atlas's hashes?
 	var ptahSum *atlascompat.SumFile
 	panicked, pmsg = guard(func() {
-		ptahSum, err = atlascompat.ComputeSum(os.DirFS(fx.Dir), migrator.MigrationDirFormatAuto)
+		ptahSum, err = atlascompat.ComputeSum(os.DirFS(fx.Dir), migrationfile.DirFormatAuto)
 	})
 	switch {
 	case panicked:
@@ -705,7 +707,62 @@ func dedup(in []string) []string {
 	return out
 }
 
+// workspacePrefixes are the absolute directories a detail must not carry into a
+// committed report.
+//
+// The reports are committed and CI regenerates them and fails on a diff, so a
+// detail holding the generating machine's path can only ever match that machine.
+// Measured: `atlas migrate diff -s` records the tool's own error, and on a
+// GitHub runner that error names
+// /home/runner/work/ptah-atlas-conformance/ptah-atlas-conformance/schema.sql --
+// a path no other checkout has, which makes the freshness gate unsatisfiable
+// anywhere else (#288).
+//
+// Resolved once at startup rather than per call: os.Getwd is a syscall, and a
+// probe that changed directory mid-run would otherwise scrub against whichever
+// directory it happened to be in.
+var workspacePrefixes = func() []string {
+	var prefixes []string
+	if wd, err := os.Getwd(); err == nil && wd != "" && wd != "/" {
+		prefixes = append(prefixes, wd)
+		// The runner and macOS both hand out symlinked temporary roots, so the
+		// tool's error can name the resolved path where the probe knows only
+		// the symlinked one, or the other way round.
+		if resolved, err := filepath.EvalSymlinks(wd); err == nil && resolved != wd {
+			prefixes = append(prefixes, resolved)
+		}
+	}
+	return prefixes
+}()
+
+// runIdentifier matches the per-run database and schema names the migrate
+// runtime tier creates: `ptah_rt_<label>_<unix nanoseconds>`.
+//
+// The suffix is `time.Now().UnixNano()`, so it differs on every run -- and a
+// detail carrying one can never match a regeneration, not even on the machine
+// that wrote it. Same defect as an absolute path, and less visible: the report
+// looked merely stale (#288).
+var runIdentifier = regexp.MustCompile(`(ptah_rt_[A-Za-z0-9]+(?:_[A-Za-z][A-Za-z0-9]*)*)_[0-9]{10,}`)
+
+// scrubRunIdentifiers replaces the per-run suffix with a stable token, keeping
+// the label -- which is the half that says WHICH cell the detail is about.
+func scrubRunIdentifiers(s string) string {
+	return runIdentifier.ReplaceAllString(s, "${1}_<run>")
+}
+
+// scrubWorkspacePaths replaces this checkout's absolute path with a stable
+// token, so a detail says which file it means without saying whose machine.
+func scrubWorkspacePaths(s string) string {
+	for _, prefix := range workspacePrefixes {
+		s = strings.ReplaceAll(s, prefix+string(filepath.Separator), "<repo>/")
+		s = strings.ReplaceAll(s, prefix, "<repo>")
+	}
+	return s
+}
+
 func oneLine(s string) string {
+	s = scrubWorkspacePaths(s)
+	s = scrubRunIdentifiers(s)
 	s = strings.ReplaceAll(s, "\n", " ")
 	s = strings.ReplaceAll(s, "\r", " ")
 	s = strings.Join(strings.Fields(s), " ")

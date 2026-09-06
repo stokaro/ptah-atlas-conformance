@@ -13,9 +13,9 @@ import (
 
 	qt "github.com/frankban/quicktest"
 
-	"go.5x5.cz/ptah/atlascompat"
-	"go.5x5.cz/ptah/core/ast"
-	"go.5x5.cz/ptah/migration/migrator"
+	"ptah.run/atlascompat"
+	"ptah.run/core/ast"
+	"ptah.run/migration/migrationfile"
 )
 
 func TestLoadCorpusIncludesAllAtlasTestArtifactKinds(t *testing.T) {
@@ -485,8 +485,8 @@ func TestAtlasCLIShorthandProbeAcceptsAtlasAliases(t *testing.T) {
 	setFakePtahCLIBinaries(t, bin)
 
 	results := AtlasCLIShorthandProbe{}.Run(Fixture{Name: atlasCLISentinel})
-	if len(results) != 6 {
-		t.Fatalf("expected 6 results, got %d: %#v", len(results), results)
+	if len(results) != 7 {
+		t.Fatalf("expected 7 results, got %d: %#v", len(results), results)
 	}
 	for _, r := range results {
 		if r.Probe != "atlas-cli-shorthands" {
@@ -543,14 +543,18 @@ case "$*" in
     printf 'Flags:\n      ` + applyHelpFlags + `'
     ;;
   "schema inspect -s public")
-    printf 'error: --url is required\n' >&2
+    printf 'Error: required flag(s) "url" not set\n' >&2
+    exit 1
+    ;;
+  "schema inspect -Z public")
+    printf "Error: unknown shorthand flag: 'Z' in -Z\n" >&2
     exit 1
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s main --dry-run"|"schema apply --url sqlite://"*" --to file://"*" --schema main --dry-run")
     printf 'Planned schema changes:\nCREATE TABLE "users" (\n  "id" INTEGER PRIMARY KEY\n);\n'
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s "*" --dry-run")
-    printf 'Schema is synced, no changes to be made.\n'
+    printf 'Schema is synced, no changes to be made\n'
     ;;
   "schema apply --url sqlite://"*)
     printf 'Planned schema changes:\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n'
@@ -565,7 +569,7 @@ case "$*" in
     printf 'ALTER TABLE users ADD COLUMN email TEXT;\n'
     ;;
   "migrate diff -s public --to file://schema.sql --dev-url docker://postgres/15/dev")
-    printf 'error: atlas migrate diff accepts docker --dev-url values, but Ptah requires a directly connectable dev database URL\n' >&2
+    printf 'Error: a docker:// dev database URL needs a running container runtime, and the docker info probe failed\n' >&2
     exit 1
     ;;
   *)
@@ -3187,6 +3191,12 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumFixture(t *testing.T) {
 	}
 }
 
+// TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture drives Atlas's own
+// enum-array fixture, whose two spellings of the element type are the point:
+// cmpshow expects the schema-qualified `script_column_enum_array.status[]` that
+// psql prints, and cmphcl expects the bare `sql("status[]")` that Atlas inspect
+// prints. A renderer that emits one spelling in both places passes half of this
+// fixture, which is how the qualification reached the HCL output unnoticed.
 func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	fixture := "column-enum-array.txtar"
 	results := TxtarScriptProbe{}.Run(Fixture{
@@ -3203,6 +3213,9 @@ func TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture(t *testing.T) {
 	}
 	if results[0].Outcome != OK {
 		t.Fatalf("expected OK result, got %#v", results[0])
+	}
+	if !strings.Contains(results[0].Detail, "cmpshow=4, cmphcl=1") {
+		t.Fatalf("expected both spellings to have been compared, got %#v", results[0])
 	}
 }
 
@@ -7822,7 +7835,7 @@ func atlasSumBytes(t *testing.T, files map[string]string) []byte {
 	for name, data := range files {
 		fsys[name] = &fstest.MapFile{Data: []byte(data)}
 	}
-	sum, err := atlascompat.ComputeSum(fsys, migrator.MigrationDirFormatAtlas)
+	sum, err := atlascompat.ComputeSum(fsys, migrationfile.DirFormatAtlas)
 	if err != nil {
 		t.Fatal(err)
 	}
