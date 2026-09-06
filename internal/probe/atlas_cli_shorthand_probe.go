@@ -37,11 +37,19 @@ func (AtlasCLIShorthandProbe) Run(fx Fixture) []Result {
 	}
 }
 
-// unregisteredShorthand is cobra's rejection of a shorthand the command does
-// not declare. It is emitted before the command runs anything, so its absence
-// is what proves a shorthand exists. Measured byte-identical on the pinned
-// Atlas CE binary and on ptah-compat for `-Z`.
-const unregisteredShorthand = "unknown shorthand flag:"
+// refusesFlag reports cobra's rejection of a flag the command does not declare.
+// It is emitted before the command runs anything, so its absence is what proves
+// a flag exists. Both spellings are listed because the shorthand and long forms
+// are worded differently and this probe drives argv, not a flag kind: measured
+// byte-identical on the pinned Atlas CE binary and on ptah-compat for `-Z`.
+func refusesFlag(output string) bool {
+	for _, rejection := range []string{"unknown shorthand flag", "unknown flag"} {
+		if strings.Contains(output, rejection) {
+			return true
+		}
+	}
+	return false
+}
 
 // syncedNoChanges is what a no-op plan prints. Measured on the pinned Atlas CE
 // binary, which ends the sentence without a period; the transcription here
@@ -68,7 +76,7 @@ func runAtlasVisibleShorthand(bin, fixture string, args []string) Result {
 		return Result{"atlas-cli-shorthands", fixture, "parse", OK,
 			spelling + " parsed successfully", ""}
 	}
-	if strings.Contains(output, unregisteredShorthand) {
+	if refusesFlag(output) {
 		return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
 			spelling + " rejected the shorthand during flag parsing: " + oneLine(output), "stokaro/ptah#621"}
 	}
@@ -89,7 +97,7 @@ func runAtlasUnregisteredShorthandControl(bin string) Result {
 		return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
 			"`atlas schema inspect -Z` was accepted, so an unregistered shorthand is not refused: " + oneLine(output), "stokaro/ptah#621"}
 	}
-	if !strings.Contains(output, unregisteredShorthand) {
+	if !refusesFlag(output) {
 		return Result{"atlas-cli-shorthands", fixture, "parse", Gap,
 			"`atlas schema inspect -Z` failed without cobra's unregistered-shorthand rejection, so the control cannot police the probes above: " + oneLine(output), "stokaro/ptah#621"}
 	}
