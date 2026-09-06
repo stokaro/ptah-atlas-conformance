@@ -5,30 +5,30 @@ import (
 
 	qt "github.com/frankban/quicktest"
 
-	"go.5x5.cz/ptah/core/goschema"
+	"ptah.run/core/schemamodel"
 )
 
 func TestFoldDefaultSchema_RemovesConnectionDefaultQualification(t *testing.T) {
 	c := qt.New(t)
-	db := &goschema.Database{
-		Schemas: []goschema.Schema{{Name: "conf", Charset: "utf8mb4", Collate: "utf8mb4_0900_ai_ci"}, {Name: "audit"}},
-		Tables: []goschema.Table{
+	db := &schemamodel.Database{
+		Schemas: []schemamodel.Schema{{Name: "conf", Charset: "utf8mb4", Collate: "utf8mb4_0900_ai_ci"}, {Name: "audit"}},
+		Tables: []schemamodel.Table{
 			{StructName: "User", Schema: "conf", Name: "users", Charset: "utf8mb4", Collate: "utf8mb4_0900_ai_ci"},
 			{StructName: "Log", Schema: "audit", Name: "logs", Charset: "latin1", Collate: "latin1_swedish_ci"},
 		},
-		Fields: []goschema.Field{
+		Fields: []schemamodel.Field{
 			{StructName: "User", Name: "id", Type: "integer", Foreign: "conf.accounts(id)", Charset: "utf8mb4", Collate: "utf8mb4_0900_ai_ci"},
 			{StructName: "Log", Name: "user_id", Type: "integer", Foreign: "conf.users(id)"},
 		},
-		Indexes: []goschema.Index{{Name: "idx_users_id", TableName: "conf.users", Fields: []string{"id"}}},
-		Constraints: []goschema.Constraint{{
+		Indexes: []schemamodel.Index{{Name: "idx_users_id", TableName: "conf.users", Fields: []string{"id"}}},
+		Constraints: []schemamodel.Constraint{{
 			Type: "FOREIGN KEY", Table: "audit.logs", Columns: []string{"user_id"}, ForeignTable: "conf.users", ForeignColumn: "id",
 		}},
 	}
 
 	got := foldDefaultSchema(db, "conf", schemaDefaults(db, "conf"))
 
-	c.Assert(got.Schemas, qt.DeepEquals, []goschema.Schema{{Name: "audit"}})
+	c.Assert(got.Schemas, qt.DeepEquals, []schemamodel.Schema{{Name: "audit"}})
 	c.Assert(got.Tables[0].Schema, qt.Equals, "")
 	c.Assert(got.Tables[0].Charset, qt.Equals, "")
 	c.Assert(got.Tables[0].Collate, qt.Equals, "")
