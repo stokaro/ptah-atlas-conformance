@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -734,6 +735,21 @@ var workspacePrefixes = func() []string {
 	return prefixes
 }()
 
+// runIdentifier matches the per-run database and schema names the migrate
+// runtime tier creates: `ptah_rt_<label>_<unix nanoseconds>`.
+//
+// The suffix is `time.Now().UnixNano()`, so it differs on every run -- and a
+// detail carrying one can never match a regeneration, not even on the machine
+// that wrote it. Same defect as an absolute path, and less visible: the report
+// looked merely stale (#288).
+var runIdentifier = regexp.MustCompile(`(ptah_rt_[A-Za-z0-9]+(?:_[A-Za-z][A-Za-z0-9]*)*)_[0-9]{10,}`)
+
+// scrubRunIdentifiers replaces the per-run suffix with a stable token, keeping
+// the label -- which is the half that says WHICH cell the detail is about.
+func scrubRunIdentifiers(s string) string {
+	return runIdentifier.ReplaceAllString(s, "${1}_<run>")
+}
+
 // scrubWorkspacePaths replaces this checkout's absolute path with a stable
 // token, so a detail says which file it means without saying whose machine.
 func scrubWorkspacePaths(s string) string {
@@ -746,6 +762,7 @@ func scrubWorkspacePaths(s string) string {
 
 func oneLine(s string) string {
 	s = scrubWorkspacePaths(s)
+	s = scrubRunIdentifiers(s)
 	s = strings.ReplaceAll(s, "\n", " ")
 	s = strings.ReplaceAll(s, "\r", " ")
 	s = strings.Join(strings.Fields(s), " ")
