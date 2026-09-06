@@ -10,12 +10,12 @@ import (
 const (
 	proMaintWorkflowSentinel = "_capability/pro-maint-workflow/SENTINEL"
 
-	proMaintEditTarget   = "20260101000001"
-	proMaintEditFile     = "20260101000001_create_users.sql"
-	proMaintRebasedFile  = "20260101000003_create_users.sql"
-	proMaintRemoveTarget = "20260101000002"
-	proMaintRemoveFile   = "20260101000002_create_posts.sql"
-	proMaintEditMarker   = "-- edited by the conformance probe"
+	proMaintEditTarget    = "20260101000001"
+	proMaintEditFile      = "20260101000001_create_users.sql"
+	proMaintRebasedSuffix = "_create_users.sql"
+	proMaintRemoveTarget  = "20260101000002"
+	proMaintRemoveFile    = "20260101000002_create_posts.sql"
+	proMaintEditMarker    = "-- edited by the conformance probe"
 )
 
 // ProMaintWorkflowProbe executes the Atlas Pro directory-maintenance verbs
@@ -118,10 +118,17 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 	if gap := m.expectExit(fixture, stage, result, 0); gap != nil {
 		return *gap
 	}
-	// The new version is deterministic: one above the newest committed
-	// migration (20260101000002), so 20260101000001 rebases to 20260101000003.
+	// The destination version is NOT asserted, because it is no longer
+	// deterministic. This expected 20260101000003 -- one above the newest
+	// committed migration -- and Ptah v0.4.0 stamps the current time instead,
+	// so a run produced 20260906133115 and the next run will produce something
+	// else. Pinning a value that moves every second is a fixture that fails on
+	// the clock rather than on behavior (#288).
+	//
+	// What is still asserted is what the rebase is for: the named source
+	// migration moved, and the checksum file was rewritten to match.
 	if gap := m.expectFragments(fixture, stage, "stdout", result.stdout, []string{
-		"Rebased migration 20260101000001 to 20260101000003",
+		"Rebased migration 20260101000001 to ",
 		"Wrote migrations/atlas.sum",
 	}); gap != nil {
 		return *gap
@@ -129,7 +136,19 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 	if _, err := os.Stat(filepath.Join(m.runRoot, "migrations", proMaintEditFile)); !os.IsNotExist(err) {
 		return m.gap(fixture, stage, "the rebased migration's old file still exists: "+proMaintEditFile)
 	}
-	rebased, err := os.ReadFile(filepath.Join(m.runRoot, "migrations", proMaintRebasedFile))
+	// Found by its description rather than by its version, for the reason above:
+	// the version is the clock now. Exactly one file must carry the suffix, so
+	// this is still an identity rather than a search that takes the first hit.
+	entries, err := filepath.Glob(filepath.Join(m.runRoot, "migrations", "*"+proMaintRebasedSuffix))
+	if err != nil {
+		return m.gap(fixture, stage, "listing the migrations directory failed: "+oneLine(err.Error()))
+	}
+	if len(entries) != 1 {
+		return m.gap(fixture, stage, fmt.Sprintf(
+			"expected exactly one *%s migration after the rebase, found %d",
+			proMaintRebasedSuffix, len(entries)))
+	}
+	rebased, err := os.ReadFile(entries[0])
 	if err != nil {
 		return m.gap(fixture, stage, "the rebased migration file is missing: "+oneLine(err.Error()))
 	}
@@ -140,7 +159,7 @@ func (m *proMaintWorkflow) rebaseToEndOfHistory() Result {
 		return *gap
 	}
 	return m.ok(fixture, stage,
-		"the migration moved to the end of history under the deterministic next version, kept its edited content, and the directory still passes `ptah migrations validate`")
+		"the migration moved to the end of history under a new version, kept its edited content, and the directory still passes `ptah migrations validate`")
 }
 
 func (m *proMaintWorkflow) removeMigration() Result {

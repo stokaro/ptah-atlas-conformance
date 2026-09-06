@@ -417,9 +417,8 @@
     "probe": "atlas-cli-pro-surface-ptah-compat",
     "fixture": "atlas schema inspect",
     "stage": "required-flags",
-    "outcome": "gap",
-    "detail": "missing documented Pro-surface flags: --export",
-    "issue": "stokaro/ptah#951"
+    "outcome": "ok",
+    "detail": "documented Pro-surface flags are present: --export --include --output --web"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
@@ -495,15 +494,17 @@
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema plan lint",
     "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan lint` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+    "outcome": "gap",
+    "detail": "`atlas schema plan lint` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan lint is not implemented by Ptah`, got `Error: --from is required`",
+    "issue": "stokaro/ptah#514"
   },
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema plan lint",
     "stage": "out-of-scope-help",
-    "outcome": "ok",
-    "detail": "`atlas schema plan lint --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+    "outcome": "gap",
+    "detail": "`atlas schema plan lint --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan lint is not implemented by Ptah.`, got `Atlas `atlas schema plan lint` command path. Analyzes the SQL of the plan file named by --file and prints what Ptah's migration lint rules find, without changing the target database. The plan is verified before it is analyzed, with the same…`",
+    "issue": "stokaro/ptah#514"
   },
   {
     "probe": "ptah-non-oss-sentinel",
@@ -586,15 +587,17 @@
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema plan test",
     "stage": "out-of-scope-runtime",
-    "outcome": "ok",
-    "detail": "`atlas schema plan test` preserves the strict Ptah-owned unavailable-command boundary (exit 1, empty stdout, and byte-exact stderr)"
+    "outcome": "gap",
+    "detail": "`atlas schema plan test` did not report the byte-exact Ptah-owned unavailable-command diagnostic on stderr; expected `Error: atlas schema plan test is not implemented by Ptah`, got `Error: no test \"plan\" cases found in .`",
+    "issue": "stokaro/ptah#514"
   },
   {
     "probe": "ptah-non-oss-sentinel",
     "fixture": "atlas schema plan test",
     "stage": "out-of-scope-help",
-    "outcome": "ok",
-    "detail": "`atlas schema plan test --help` preserves the byte-exact Ptah-owned unavailable-command help boundary"
+    "outcome": "gap",
+    "detail": "`atlas schema plan test --help` did not report the byte-exact Ptah-owned unavailable-command help text on stdout; expected `atlas schema plan test is not implemented by Ptah.`, got `Atlas `atlas schema plan test` command path. Runs `test \"plan\"` cases from Atlas `.test.hcl` files against a throwaway database. Each case establishes a starting state, applies a saved plan file, and asserts what the plan did: test \"plan\" \"…`",
+    "issue": "stokaro/ptah#514"
   },
   {
     "probe": "ptah-non-oss-sentinel",
