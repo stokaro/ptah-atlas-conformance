@@ -11,7 +11,7 @@
   },
   {
     "path": "/atlas-schema/hcl",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
@@ -26,7 +26,7 @@
   },
   {
     "path": "/atlas-schema/projects",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "path": "/cli-reference",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
@@ -141,7 +141,7 @@
   },
   {
     "path": "/concepts/dev-database",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
@@ -171,12 +171,12 @@
   },
   {
     "path": "/declarative/apply",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
     "path": "/declarative/diff",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
@@ -191,13 +191,13 @@
   },
   {
     "path": "/docs",
-    "status": "untriaged",
+    "status": "open",
     "note": ""
   },
   {
     "path": "/features",
-    "status": "untriaged",
-    "note": ""
+    "status": "partial",
+    "note": "No single coverage-matrix area owns this page; it is cited as evidence across several. Ptah covers part of what it lists."
   },
   {
     "path": "/getting-started",
@@ -1491,7 +1491,7 @@
   },
   {
     "path": "/inspect",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
@@ -1746,32 +1746,32 @@
   },
   {
     "path": "/testing/migrate",
-    "status": "untriaged",
+    "status": "open",
     "note": ""
   },
   {
     "path": "/testing/plan",
-    "status": "untriaged",
+    "status": "open",
     "note": ""
   },
   {
     "path": "/testing/schema",
-    "status": "untriaged",
+    "status": "open",
     "note": ""
   },
   {
     "path": "/versioned/apply",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
     "path": "/versioned/checkpoint",
-    "status": "untriaged",
+    "status": "open",
     "note": ""
   },
   {
     "path": "/versioned/checks",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
@@ -1781,27 +1781,27 @@
   },
   {
     "path": "/versioned/down",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
     "path": "/versioned/drift-detection",
-    "status": "untriaged",
-    "note": ""
+    "status": "open",
+    "note": "Atlas lists drift detection as Pro; Ptah has native `ptah schema drift`. Cloud drift monitoring is out of scope."
   },
   {
     "path": "/versioned/import",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {
     "path": "/versioned/intro",
-    "status": "untriaged",
+    "status": "open",
     "note": ""
   },
   {
     "path": "/versioned/lint",
-    "status": "untriaged",
+    "status": "partial",
     "note": ""
   },
   {

@@ -16,9 +16,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/atlas-schema/hcl",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
@@ -37,9 +37,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/atlas-schema/projects",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
@@ -51,9 +51,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/cli-reference",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
@@ -198,9 +198,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/concepts/dev-database",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
@@ -240,16 +240,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/declarative/apply",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
     "fixture": "/declarative/diff",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
@@ -268,16 +268,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/docs",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open"
   },
   {
     "probe": "docs-surface",
     "fixture": "/features",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — No single coverage-matrix area owns this page; it is cited as evidence across several. Ptah covers part of what it lists."
   },
   {
     "probe": "docs-surface",
@@ -2088,9 +2088,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/inspect",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
@@ -2445,44 +2445,44 @@
   {
     "probe": "docs-surface",
     "fixture": "/testing/migrate",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open"
   },
   {
     "probe": "docs-surface",
     "fixture": "/testing/plan",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open"
   },
   {
     "probe": "docs-surface",
     "fixture": "/testing/schema",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open"
   },
   {
     "probe": "docs-surface",
     "fixture": "/versioned/apply",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
     "fixture": "/versioned/checkpoint",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open"
   },
   {
     "probe": "docs-surface",
     "fixture": "/versioned/checks",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
@@ -2494,37 +2494,37 @@
   {
     "probe": "docs-surface",
     "fixture": "/versioned/down",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
     "fixture": "/versioned/drift-detection",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open — Atlas lists drift detection as Pro; Ptah has native `ptah schema drift`. Cloud drift monitoring is out of scope."
   },
   {
     "probe": "docs-surface",
     "fixture": "/versioned/import",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
     "fixture": "/versioned/intro",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open"
   },
   {
     "probe": "docs-surface",
     "fixture": "/versioned/lint",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial"
   },
   {
     "probe": "docs-surface",
