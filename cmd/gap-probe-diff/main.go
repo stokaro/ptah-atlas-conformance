@@ -172,18 +172,29 @@ func atlasMySQLURL(raw string) string {
 	return prefix + userInfo + "@" + host + suffix
 }
 
-// resolveAtlas finds the Atlas binary: ATLAS_BIN if set, else `atlas` on PATH.
+// resolveAtlas finds the Atlas binary through the one resolver every tier
+// shares, and validates that it can be executed.
+//
+// It used to read ATLAS_BIN itself and fall straight to `atlas` on PATH, which
+// skipped the repository-local ./bin/atlas that `make atlas` builds from the
+// pinned tag and that every other tier prefers. On a machine with an unpinned
+// Atlas installed, this command measured that one: the report header names
+// whatever version answered, so the divergence appeared as a differential
+// finding about Ptah rather than as a wrong oracle.
+//
+// The second resolution order is deleted rather than corrected. Two orders
+// agree until one of them is changed, and the one that changes is the one
+// nobody is looking at; a caller of [probe.DefaultAtlasBinary] cannot drift
+// from it.
 func resolveAtlas() (string, error) {
-	if b := os.Getenv("ATLAS_BIN"); b != "" {
-		if _, err := os.Stat(b); err != nil {
-			return "", fmt.Errorf("ATLAS_BIN=%q is not usable: %w", b, err)
-		}
-		return b, nil
+	bin := probe.DefaultAtlasBinary()
+	resolved, err := exec.LookPath(bin)
+	if err != nil {
+		return "", fmt.Errorf(
+			"no usable Atlas binary %q: set ATLAS_BIN, run `make atlas`, or put `atlas` on PATH: %w",
+			bin, err)
 	}
-	if p, err := exec.LookPath("atlas"); err == nil {
-		return p, nil
-	}
-	return "", fmt.Errorf("no Atlas binary: set ATLAS_BIN or put `atlas` on PATH")
+	return resolved, nil
 }
 
 func atlasReported(bin string) string {
