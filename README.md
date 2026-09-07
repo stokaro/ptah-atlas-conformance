@@ -310,6 +310,7 @@ make atlas             # rebuild ./bin/atlas from the pinned Atlas CE tag
 make probe-ce-gating   # regenerate ce-gating.md / ce-gating.json (needs ATLAS_BIN or ./bin/atlas)
 make budget-ce-gating  # verify the committed zero regression budget
 make gate-ce-gating    # full baseline gate: fails on any diverging scenario
+```
 
 ## Docs surface tier
 

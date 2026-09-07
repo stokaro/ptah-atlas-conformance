@@ -207,6 +207,16 @@ verify: test build vet
 	@! grep -rIl "Apache License" --include='*.go' . | grep -v '/third_party/' || \
 		{ echo "Apache-licensed material found outside third_party/"; exit 1; }
 	@echo "ok"
+	@echo "checking Markdown code fences are balanced ..."
+	@files=$$(git ls-files '*.md' ':!:third_party/*'); \
+		[ -n "$$files" ] || { echo "no Markdown files found -- this check would pass on anything"; exit 1; }; \
+		bad=$$(for f in $$files; do \
+			n=$$(grep -c '^```' "$$f" || true); \
+			[ $$((n % 2)) -eq 0 ] || echo "  $$f: $$n fence markers"; \
+		done); \
+		[ -z "$$bad" ] || { echo "unbalanced Markdown code fences (an odd count leaves a block open):"; \
+			echo "$$bad"; exit 1; }
+	@echo "ok"
 
 clean:
 	rm -f gaps.md gaps.json gaps-orm-providers.md gaps-orm-providers.json
