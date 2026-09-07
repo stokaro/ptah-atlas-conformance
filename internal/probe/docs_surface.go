@@ -170,6 +170,11 @@ func docsUniverseExcluded(path string) bool {
 	return false
 }
 
+// docsSitemapUserAgent identifies this conformance suite to the docs CDN. It
+// names the project rather than a browser, so a rate limit lands on the suite
+// and not on whatever the default client happened to look like.
+const docsSitemapUserAgent = "ptah-atlas-conformance docs-surface probe (+https://github.com/stokaro/ptah-atlas-conformance)"
+
 // FetchDocsSitemap downloads the sitemap document from url. The caller owns
 // the timeout via ctx; any transport or status failure is an infrastructure
 // error, not a docs gap.
@@ -208,6 +213,10 @@ func FetchDocsSitemap(ctx context.Context, url string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("build sitemap request: %w", err)
 	}
+	// Go's default client sends no User-Agent, which some CDNs throttle or
+	// refuse outright. The weekly drift job is the only caller, so a request
+	// it cannot explain reads as "the docs changed".
+	req.Header.Set("User-Agent", docsSitemapUserAgent)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetch sitemap: %w", err)
