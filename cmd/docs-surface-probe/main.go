@@ -36,7 +36,24 @@ func main() {
 		os.Exit(2)
 	}
 
-	universe, err := loadUniverse(*sitemapFile, *fetch, *sitemapURL, *snapshotFile)
+	// The flags stay here and the enum goes below: refusing both -fetch and
+	// -sitemap-file is flag validation, while the mode the loader acts on is a
+	// single value it cannot receive in an impossible combination.
+	source := probe.DocsUniverseSnapshot
+	switch {
+	case *fetch:
+		source = probe.DocsUniverseFetch
+	case *sitemapFile != "":
+		source = probe.DocsUniverseFile
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), fetchTimeout)
+	defer cancel()
+	universe, err := probe.LoadDocsUniverse(ctx, probe.DocsUniverseOptions{
+		Source:       source,
+		SnapshotFile: *snapshotFile,
+		SitemapFile:  *sitemapFile,
+		SitemapURL:   *sitemapURL,
+	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "load docs universe:", err)
 		os.Exit(2)
@@ -91,46 +108,4 @@ func main() {
 		}
 		fmt.Println("DOCS SURFACE GATE: GREEN — every atlasgo.io docs page carries an explicit Ptah stance.")
 	}
-}
-
-// loadUniverse resolves the docs universe from one of the three sources. When
-// the source is a sitemap (file or fetch), the committed snapshot is rewritten
-// so drift from the previous universe shows up as a git diff.
-func loadUniverse(sitemapFile string, fetch bool, sitemapURL, snapshotFile string) ([]string, error) {
-	var sitemap []byte
-	switch {
-	case fetch:
-		ctx, cancel := context.WithTimeout(context.Background(), fetchTimeout)
-		defer cancel()
-		body, err := probe.FetchDocsSitemap(ctx, sitemapURL)
-		if err != nil {
-			return nil, err
-		}
-		sitemap = body
-	case sitemapFile != "":
-		body, err := os.ReadFile(sitemapFile)
-		if err != nil {
-			return nil, fmt.Errorf("read sitemap file: %w", err)
-		}
-		sitemap = body
-	default:
-		data, err := os.ReadFile(snapshotFile)
-		if err != nil {
-			return nil, fmt.Errorf("read snapshot (use -fetch or -sitemap-file to build one): %w", err)
-		}
-		return probe.ParseDocsSurfaceSnapshot(data)
-	}
-
-	urls, err := probe.ParseDocsSitemap(sitemap)
-	if err != nil {
-		return nil, err
-	}
-	universe := probe.DocsSurfaceUniverse(urls)
-	if len(universe) == 0 {
-		return nil, fmt.Errorf("sitemap produced an empty docs universe")
-	}
-	if err := os.WriteFile(snapshotFile, probe.FormatDocsSurfaceSnapshot(universe), 0o644); err != nil {
-		return nil, fmt.Errorf("write snapshot: %w", err)
-	}
-	return universe, nil
 }
