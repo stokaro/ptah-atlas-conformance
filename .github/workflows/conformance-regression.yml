@@ -30,6 +30,21 @@ jobs:
             exit 1
           fi
 
+  # The declarative-test standard. Its own job rather than a step in `harness`:
+  # `make verify` runs the whole unit suite, so a single failing test would end
+  # that job before the style result existed, and a red harness would then be
+  # indistinguishable from a tree that also broke the standard.
+  test-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Check declarative-test style
+        run: make test-style
+
   # The regression gate. This stays green while the report is current and the
   # unwaived gap count does not regress above gap-budget.txt. Full parity is a
   # separate workflow in full-conformance.yml.
