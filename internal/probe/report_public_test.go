@@ -44,8 +44,23 @@ func TestRenderMigrateRuntimeMarkdown_EscapesMultilineDetails(t *testing.T) {
 			Outcome: probe.OK,
 			Detail:  "misplaced directive\nwas ignored | safely",
 		},
-	}, "ptah-version", "make probe-migrate-runtime")
+	}, "atlas community version v9.9.9", "ptah-version", "make probe-migrate-runtime")
 
 	c.Assert(report, qt.Contains, "misplaced directive<br>was ignored \\| safely")
 	c.Assert(report, qt.Not(qt.Contains), "misplaced directive\nwas ignored")
+}
+
+// TestRenderMigrateRuntimeMarkdown_StampsTheOracleItMeasured pins the audit
+// property: the committed artifact names the binary that produced the numbers.
+// The measured version and the pin are given different values on purpose --
+// a header rendered from the pin would satisfy an assertion that only asked
+// for a version-shaped string, which is the header this replaced.
+func TestRenderMigrateRuntimeMarkdown_StampsTheOracleItMeasured(t *testing.T) {
+	c := qt.New(t)
+
+	report := probe.RenderMigrateRuntimeMarkdownWithCommand(nil,
+		"atlas community version v9.9.9", "ptah-version", "make probe-migrate-runtime")
+
+	c.Assert(report, qt.Contains, "measured against `atlas community version v9.9.9`")
+	c.Assert(report, qt.Not(qt.Contains), "pinned by atlas.version")
 }
