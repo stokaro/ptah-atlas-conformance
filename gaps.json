@@ -5547,6 +5547,34 @@
   {
     "probe": "desired-state-workflow",
     "fixture": "atlas schema apply",
+    "stage": "declarative file source without dev database",
+    "outcome": "ok",
+    "detail": "a declarative desired state applied without --dev-url and the target carries the table it describes"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas schema apply",
+    "stage": "SQL file source without dev database",
+    "outcome": "ok",
+    "detail": "a SQL desired state without --dev-url was refused before the target database was created"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas schema apply",
+    "stage": "mixed declarative and SQL sources without dev database",
+    "outcome": "ok",
+    "detail": "a desired state mixing declarative and SQL sources needs a dev database: the set must be declarative in full, not in part"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas schema apply",
+    "stage": "SQL file source without dev database, capability restored",
+    "outcome": "ok",
+    "detail": "the SQL refusal is a policy an operator can lift, not a lost capability: the same invocation applies both tables when it is"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas schema apply",
     "stage": "env:// source resolution",
     "outcome": "ok",
     "detail": "`schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target"
