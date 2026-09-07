@@ -1,8 +1,9 @@
+package probe
+
 // White-box testing required: canonicalizeJSONOrder is unexported, and the
 // property under test is what it does to two documents that a database
 // returned in different orders. No exported result reports it -- the probe
 // consumes the canonical form and emits only whether two snapshots matched.
-package probe
 
 import (
 	"encoding/json"

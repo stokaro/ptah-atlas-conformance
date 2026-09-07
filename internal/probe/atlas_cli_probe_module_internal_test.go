@@ -1,8 +1,9 @@
+package probe
+
 // White-box testing required: the module resolution and the go.mod it renders
 // are unexported, and what they produce is a file inside a temporary directory
 // that no exported result reports. The property under test -- a replacement in
 // this repository's go.mod reaches the build -- is invisible from outside.
-package probe
 
 import (
 	"os"
