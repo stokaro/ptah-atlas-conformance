@@ -13,7 +13,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at `ptah.run v0.4.1-0.20260907150813-efe7559b7282`
-- Outcomes: **810 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **814 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -340,6 +340,10 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | desired-state-workflow | `atlas schema apply` | database-url --to source | `schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source replay | `schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | declarative file source without dev database | a declarative desired state applied without --dev-url and the target carries the table it describes |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | SQL file source without dev database | a SQL desired state without --dev-url was refused before the target database was created |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | mixed declarative and SQL sources without dev database | a desired state mixing declarative and SQL sources needs a dev database: the set must be declarative in full, not in part |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | SQL file source without dev database, capability restored | the SQL refusal is a policy an operator can lift, not a lost capability: the same invocation applies both tables when it is |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | env:// source resolution | `schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target |  |
 | — | ok | desired-state-workflow | `atlas schema diff` | database-url --from source | `schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file |  |
 | — | ok | external-schema-workflow | `SQLite external schema facts` | live schema facts | SQLite preserved tables, columns, primary keys, unique/index facts, and the cascading foreign key |  |
