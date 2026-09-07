@@ -71,13 +71,6 @@
   },
   {
     "probe": "docs-surface",
-    "fixture": "/cloud/auditlog",
-    "stage": "triage",
-    "outcome": "ok",
-    "detail": "cloud"
-  },
-  {
-    "probe": "docs-surface",
     "fixture": "/cloud/aws-marketplace",
     "stage": "triage",
     "outcome": "ok",
@@ -99,10 +92,10 @@
   },
   {
     "probe": "docs-surface",
-    "fixture": "/cloud/directories",
+    "fixture": "/cloud/features/auditlog",
     "stage": "triage",
     "outcome": "ok",
-    "detail": "cloud"
+    "detail": "cloud — moved under /cloud/features/ upstream; same Atlas Cloud audit log page"
   },
   {
     "probe": "docs-surface",
@@ -121,13 +114,6 @@
   {
     "probe": "docs-surface",
     "fixture": "/cloud/features/registry",
-    "stage": "triage",
-    "outcome": "ok",
-    "detail": "cloud"
-  },
-  {
-    "probe": "docs-surface",
-    "fixture": "/cloud/features/roles-and-permissions",
     "stage": "triage",
     "outcome": "ok",
     "detail": "cloud"
@@ -176,14 +162,28 @@
   },
   {
     "probe": "docs-surface",
-    "fixture": "/cloud/setup-ci",
+    "fixture": "/cloud/roles-and-permissions",
     "stage": "triage",
     "outcome": "ok",
-    "detail": "cloud"
+    "detail": "cloud — moved out of /cloud/features/ upstream; same Atlas Cloud roles page"
   },
   {
     "probe": "docs-surface",
     "fixture": "/community-edition",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/compare/flyway-vs-atlas",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/compare/liquibase-vs-atlas",
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
@@ -603,6 +603,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/wasm",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/cockroachdb/automatic-migrations",
     "stage": "untriaged",
     "outcome": "gap",
@@ -611,6 +618,13 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/database-per-tenant/control-plane",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/database-per-tenant/declarative",
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
@@ -653,6 +667,41 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/databricks/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/dbt/atlas-vs-dbt",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/dbt/clickhouse",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/dbt/drift-detection",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/dbt/large-table-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/dbt/schema-management",
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
@@ -1688,6 +1737,20 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/redshift/security-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/redshift/security-versioned",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/reviewed-approved-migrations",
     "stage": "untriaged",
     "outcome": "gap",
@@ -1717,6 +1780,13 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/security-as-code",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/security-scan",
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
@@ -1864,6 +1934,20 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/yugabyte/automatic-migrations",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/yugabyte/distributed-schema-declarative",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/yugabyte/distributed-schema-versioned",
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
@@ -2150,6 +2234,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/versioned-quickstart",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/integrations/terraform-provider",
     "stage": "untriaged",
     "outcome": "gap",
@@ -2312,6 +2403,13 @@
   {
     "probe": "docs-surface",
     "fixture": "/scripts/exec",
+    "stage": "untriaged",
+    "outcome": "gap",
+    "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/scripts/kubernetes",
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"

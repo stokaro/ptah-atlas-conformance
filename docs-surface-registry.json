@@ -50,11 +50,6 @@
     "note": ""
   },
   {
-    "path": "/cloud/auditlog",
-    "status": "cloud",
-    "note": ""
-  },
-  {
     "path": "/cloud/aws-marketplace",
     "status": "cloud",
     "note": ""
@@ -70,9 +65,9 @@
     "note": ""
   },
   {
-    "path": "/cloud/directories",
+    "path": "/cloud/features/auditlog",
     "status": "cloud",
-    "note": ""
+    "note": "moved under /cloud/features/ upstream; same Atlas Cloud audit log page"
   },
   {
     "path": "/cloud/features/lineage-graph",
@@ -86,11 +81,6 @@
   },
   {
     "path": "/cloud/features/registry",
-    "status": "cloud",
-    "note": ""
-  },
-  {
-    "path": "/cloud/features/roles-and-permissions",
     "status": "cloud",
     "note": ""
   },
@@ -125,12 +115,22 @@
     "note": ""
   },
   {
-    "path": "/cloud/setup-ci",
+    "path": "/cloud/roles-and-permissions",
     "status": "cloud",
-    "note": ""
+    "note": "moved out of /cloud/features/ upstream; same Atlas Cloud roles page"
   },
   {
     "path": "/community-edition",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/compare/flyway-vs-atlas",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/compare/liquibase-vs-atlas",
     "status": "untriaged",
     "note": ""
   },
@@ -430,12 +430,22 @@
     "note": ""
   },
   {
+    "path": "/guides/clickhouse/wasm",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
     "path": "/guides/cockroachdb/automatic-migrations",
     "status": "untriaged",
     "note": ""
   },
   {
     "path": "/guides/database-per-tenant/control-plane",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/database-per-tenant/declarative",
     "status": "untriaged",
     "note": ""
   },
@@ -466,6 +476,31 @@
   },
   {
     "path": "/guides/databricks/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/dbt/atlas-vs-dbt",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/dbt/clickhouse",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/dbt/drift-detection",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/dbt/large-table-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/dbt/schema-management",
     "status": "untriaged",
     "note": ""
   },
@@ -1205,6 +1240,16 @@
     "note": ""
   },
   {
+    "path": "/guides/redshift/security-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/redshift/security-versioned",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
     "path": "/guides/reviewed-approved-migrations",
     "status": "untriaged",
     "note": ""
@@ -1226,6 +1271,11 @@
   },
   {
     "path": "/guides/security-as-code",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/security-scan",
     "status": "untriaged",
     "note": ""
   },
@@ -1331,6 +1381,16 @@
   },
   {
     "path": "/guides/yugabyte/automatic-migrations",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/yugabyte/distributed-schema-declarative",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/guides/yugabyte/distributed-schema-versioned",
     "status": "untriaged",
     "note": ""
   },
@@ -1535,6 +1595,11 @@
     "note": ""
   },
   {
+    "path": "/integrations/kubernetes/versioned-quickstart",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
     "path": "/integrations/terraform-provider",
     "status": "untriaged",
     "note": ""
@@ -1651,6 +1716,11 @@
   },
   {
     "path": "/scripts/exec",
+    "status": "untriaged",
+    "note": ""
+  },
+  {
+    "path": "/scripts/kubernetes",
     "status": "untriaged",
     "note": ""
   },
