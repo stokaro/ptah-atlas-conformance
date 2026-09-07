@@ -576,3 +576,55 @@ func TestProjectConfigRevisionMetadataProblems_AllowsAtlasWriteOrderTiming(t *te
 
 	c.Assert(problems, qt.HasLen, 0)
 }
+
+// TestSQLiteDriverErrorMessage_StripsOnlyTheDriverDecoration pins both halves of
+// the normalization: what it removes, and what it must never remove.
+//
+// The rows that must survive are the point. A normalizer that trimmed anything
+// parenthesized, or anything before a colon, would make two different failures
+// compare equal -- and this comparison exists to catch exactly that.
+func TestSQLiteDriverErrorMessage_StripsOnlyTheDriverDecoration(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+		want string
+	}{
+		{
+			name: "modernc decoration is removed",
+			text: "SQL logic error: no such table: txmode_missing (1)",
+			want: "no such table: txmode_missing",
+		},
+		{
+			name: "the mattn rendering is already bare",
+			text: "no such table: txmode_missing",
+			want: "no such table: txmode_missing",
+		},
+		{
+			name: "empty stays empty",
+			text: "",
+			want: "",
+		},
+		{
+			name: "a trailing parenthetical that is not a result code stays",
+			text: "no such table: t (renamed)",
+			want: "no such table: t (renamed)",
+		},
+		{
+			name: "an unrelated prefix before a colon stays",
+			text: "constraint failed: UNIQUE constraint failed: users.id",
+			want: "constraint failed: UNIQUE constraint failed: users.id",
+		},
+		{
+			name: "a different table still differs after normalizing",
+			text: "SQL logic error: no such table: other (1)",
+			want: "no such table: other",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+			c.Assert(sqliteDriverErrorMessage(test.text), qt.Equals, test.want)
+		})
+	}
+}

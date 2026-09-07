@@ -8,16 +8,15 @@ offline txtar-script simulator, this tier executes the real drop-in CLI and
 inspects revision rows and end database state directly. Project configuration
 apply and Goose checksum integrity use pinned Atlas CE as independent runtime oracles.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: PARITY on the current corpus
 
-The conformance gate is **red** and stays red until these close. This is by
-design: the report is a spec Ptah has not met yet, not a passing test log.
+Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles pinned by atlas.version
 - Ptah at `ptah.run v0.4.0`
-- Outcomes: **95 ok**, **1 gap**, **0 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **1 unwaived non-OK**, 0 waived
+- Outcomes: **96 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 
 ## Compared Schema Fact Categories
 
@@ -39,7 +38,6 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | migrate-runtime | `sqlite/per-file-txmode/revision-bookkeeping` | compare | full stable revision metadata differs in 3/7 body-execution cells: global-file-directive-none revision 1 differs: error="SQL logic error: no such table: txmode_missing (1)", Atlas="no such table: txmode_missing"; global-none-directive-absent revision 1 differs: error="SQL logic error: no such table: txmode_missing (1)", Atlas="no such table: txmode_missing"; global-none-directive-none revision 1 differs: error="SQL logic error: no such table: txmode_missing (1)", Atlas="no such table: txmode_missing" | #887 |
 | — | ok | migrate-runtime | `fidelity: sarif output shape` | shape | lint --format sarif emits SARIF 2.1.0 with a named driver and a result carrying ruleId, level, and a file:line location |  |
 | — | ok | migrate-runtime | `flyway/import-roundtrip` | import | flyway import mapped dotted versions, paired the undo as a down, and imported the repeatable as a one-time migration that validate accepts |  |
 | — | ok | migrate-runtime | `golang-migrate/import-roundtrip` | import | golang-migrate import produced Ptah up/down pairs and a ptah.sum that validate accepts |  |
@@ -100,6 +98,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/native-no-transaction` | ptah-control | native -- +ptah no_transaction preserved the successful statement before failure while the identical transactional control rolled it back |  |
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/plain-split-down` | ptah-control | Atlas CE v1.3 applied the split up migration, but its community migrate down command rejects execution before runtime flags can be supplied; the Ptah-side live control discarded the source .down.sql directive during golang-migrate conversion and rolled back the failing down without changing tables or stable revision metadata |  |
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/plain-split-up` | ptah-better | Atlas CE v1.3 discarded the explicit source .up.sql txmode directive during golang-migrate format conversion and rolled back the body (0 revision rows); Ptah preserved the directive, kept the successful statement, and recorded the failed nontransactional migration (1 revision row) | #1082 |
+| — | ok | migrate-runtime | `sqlite/per-file-txmode/revision-bookkeeping` | compare | all seven body-execution cells match Atlas CE full stable revision metadata |  |
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/selection/amount-one-global-all` | compare | amount 1 validated only the selected first migration under global all; the later invalid directive remained untouched |  |
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/selection/amount-one-global-file` | compare | amount 1 validated only the selected first migration under global file; the later invalid directive remained untouched |  |
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/selection/baseline-two` | compare | baseline 2 skipped validation and execution of the invalid baseline migration while both binaries applied version 3 |  |
@@ -135,7 +134,3 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | schema-planning | `postgres/modify-column-type-width` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/modify-column-varchar-length` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
 | — | ok | schema-planning | `postgres/modify-column-varchar-unbounded` | end-state | the A->B plan reaches the same canonical schema as building B directly |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#887** — 1 finding(s)

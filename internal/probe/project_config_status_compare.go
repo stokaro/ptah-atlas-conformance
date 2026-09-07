@@ -146,6 +146,46 @@ func projectConfigRevisionDifferences(
 	return differences
 }
 
+// sqliteDriverErrorMessage returns the message SQLite produced, without the
+// decoration the Go driver wrapped around it.
+//
+// Ptah and the pinned Atlas binary embed different SQLite drivers, and the two
+// render one failure two ways: modernc.org/sqlite writes
+//
+//	SQL logic error: no such table: txmode_missing (1)
+//
+// where mattn/go-sqlite3 writes
+//
+//	no such table: txmode_missing
+//
+// Comparing those strings compares the drivers, not the two tools, and this
+// comparison is about what each tool records. It is the same reason executed_at
+// is compared by storage class rather than by value: the field is real, the
+// exact bytes are not the tool's to choose. Neither is Ptah's to choose here --
+// matching would mean reproducing another driver's phrasing for every error
+// SQLite can raise, which is not a contract Ptah could keep.
+//
+// Only that decoration is removed, and the pattern is one modernc produces and
+// mattn never does, so a genuinely different failure still differs: the message
+// SQLite itself produced is what remains on both sides.
+func sqliteDriverErrorMessage(text string) string {
+	message := strings.TrimPrefix(text, "SQL logic error: ")
+	open := strings.LastIndex(message, " (")
+	if open < 0 || !strings.HasSuffix(message, ")") {
+		return message
+	}
+	code := message[open+2 : len(message)-1]
+	if code == "" {
+		return message
+	}
+	for _, r := range code {
+		if r < '0' || r > '9' {
+			return message
+		}
+	}
+	return message[:open]
+}
+
 func projectConfigRevisionFieldDifferences(
 	want, got projectConfigStableRevisionMetadata,
 ) []string {
@@ -178,7 +218,9 @@ func projectConfigRevisionFieldDifferences(
 	if got.ErrorIsNull != want.ErrorIsNull {
 		differences = append(differences, fmt.Sprintf("error SQL-null=%t, Atlas=%t", got.ErrorIsNull, want.ErrorIsNull))
 	}
-	if got.Error != want.Error {
+	if sqliteDriverErrorMessage(got.Error) != sqliteDriverErrorMessage(want.Error) {
+		// The raw values, not the normalized ones: when the two tools really do
+		// record different failures, the report has to show what each stored.
 		differences = append(differences, fmt.Sprintf("error=%q, Atlas=%q", got.Error, want.Error))
 	}
 	if got.ErrorStorageClass != want.ErrorStorageClass {
