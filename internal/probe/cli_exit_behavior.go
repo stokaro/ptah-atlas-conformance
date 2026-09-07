@@ -262,12 +262,30 @@ var cliExitCatalog = []cliExitCase{
 		Issue:       "stokaro/ptah#714",
 	},
 	{
+		// The bytes, not only the class. A substring match passes on any
+		// message that happens to contain "unknown flag", including one that
+		// named a different flag or wrapped the sentence in something Atlas
+		// does not print -- and this is the row a caller reads to learn that a
+		// spelling is not registered, so the wording is the contract.
+		//
+		// Measured on Atlas CE v1.3.0 and on ptah-compat at the pinned module:
+		// both write exactly "Error: unknown flag: --totally-unknown-flag\n"
+		// and nothing else. CE additionally writes the community-build
+		// advisory on the FIRST error in a fresh HOME, so anyone re-measuring
+		// the oracle has to discard run 1 -- run 2 onward is the byte string
+		// below.
+		//
+		// The class stays beside it. When this row goes red, the two answers
+		// separate a reworded sentence from a missing refusal: the exact match
+		// fails alone for the first, both fail for the second.
 		Name: "unknown flag",
 		Build: func(string) ([]string, error) {
 			return []string{"migrate", "validate", "--totally-unknown-flag"}, nil
 		},
-		Want: exitFail, WantStream: exitStreamStderr, StderrClass: "unknown flag",
-		Issue: "stokaro/ptah#688",
+		Want: exitFail, WantStream: exitStreamStderr,
+		ExactStderr: "Error: unknown flag: --totally-unknown-flag\n",
+		StderrClass: "unknown flag",
+		Issue:       "stokaro/ptah#1019",
 	},
 	{
 		Name:       "unknown subcommand",
