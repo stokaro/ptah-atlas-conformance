@@ -74,7 +74,7 @@ func runAtlasMigrateDiffHiddenDryRun(bin string) Result {
 			"writing baseline atlas.sum failed: " + oneLine(err.Error()), ""}
 	}
 
-	output, err := commandOutputDir(bin, []string{
+	output, err := commandOutputDirStrictCE(bin, []string{
 		"migrate", "diff",
 		"--dev-url", "sqlite://" + filepath.Join(dir, "dev.db"),
 		"--dir", "file://" + migrationsDir,

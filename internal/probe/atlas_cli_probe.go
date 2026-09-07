@@ -178,7 +178,7 @@ type atlasUtilityRuntimeCheck struct {
 }
 
 func (c atlasUtilityRuntimeCheck) run() Result {
-	output, err := commandOutput(c.bin, c.path)
+	output, err := commandOutputStrictCE(c.bin, c.path)
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
 			return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
@@ -242,7 +242,7 @@ func (c atlasSchemaFmtRuntimeCheck) run() Result {
 			"writing ignored non-HCL fixture failed: " + oneLine(err.Error()), ""}
 	}
 
-	output, err := commandOutputDir(c.bin, c.path, dir)
+	output, err := commandOutputDirStrictCE(c.bin, c.path, dir)
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
 			return Result{"atlas-cli-utility-runtime", c.fixture, "execute", Gap,
@@ -345,13 +345,57 @@ func commandOutput(bin string, path []string) (string, error) {
 }
 
 func commandOutputDir(bin string, path []string, dir string) (string, error) {
+	return commandOutputDirWithEnv(bin, path, dir, nil)
+}
+
+func commandOutputDirWithEnv(bin string, path []string, dir string, env []string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, path...)
 	cmd.Dir = dir
-	cmd.Env = ptahCommandEnvironment()
+	cmd.Env = append(ptahCommandEnvironment(), env...)
 	outBytes, err := cmd.CombinedOutput()
 	return string(outBytes), err
+}
+
+// strictCompatEnvVar selects Ptah's Atlas CE-only compatibility policy. Ptah
+// owns the name; it is spelled here rather than imported because the package
+// declaring it is internal to Ptah and carries no import path this module can
+// reach.
+const strictCompatEnvVar = "PTAH_ATLAS_STRICT_COMPAT"
+
+// strictCEEnvironment is what a ptah-compat subprocess needs in order to answer
+// as Atlas CE would.
+//
+// It is returned as values to append to the scrubbed base rather than as a whole
+// environment, so [ptahCommandEnvironment]'s removal of every inherited PTAH_*
+// still runs first. Selecting the surface must not become a second way for an
+// operator's environment to reach a probe.
+//
+// The selection is per process, never per workflow. A run-wide variable would
+// also reach the rows that exist to prove Ptah keeps capabilities Atlas CE does
+// not have, and there a refusal is indistinguishable from the capability being
+// gone -- so a workflow-level selector would let capability loss read as parity.
+func strictCEEnvironment() []string {
+	return []string{strictCompatEnvVar + "=1"}
+}
+
+// commandOutputStrictCE, commandOutputDirStrictCE and commandStreamsStrictCE are
+// the CE-oracle spellings of the three runners above. Every subprocess in the
+// atlas_cli_* probes is ptah-compat measured against a CE contract, so those
+// probes call these; nothing that drives the Atlas binary itself does, because a
+// PTAH_* variable means nothing to it and reaching it would contradict the
+// scrub.
+func commandOutputStrictCE(bin string, path []string) (string, error) {
+	return commandOutputDirStrictCE(bin, path, "")
+}
+
+func commandOutputDirStrictCE(bin string, path []string, dir string) (string, error) {
+	return commandOutputDirWithEnv(bin, path, dir, strictCEEnvironment())
+}
+
+func commandStreamsStrictCE(bin string, args []string, dir string) (stdout, stderr string, err error) {
+	return commandStreamsWithEnv(bin, args, dir, strictCEEnvironment())
 }
 
 // commandStreams runs bin with args in dir and returns stdout and stderr

@@ -56,7 +56,7 @@ func atlasMigrateNewDefaultsToAtlasDir(bin string) Result {
 	}
 	defer cleanup()
 
-	output, err := commandOutput(bin, []string{"migrate", "new", "init", "--dir", fileURL(migrations)})
+	output, err := commandOutputStrictCE(bin, []string{"migrate", "new", "init", "--dir", fileURL(migrations)})
 	if err != nil {
 		return atlasMetadataRuntimeExit("atlas migrate new", "execute", output, err)
 	}
@@ -77,7 +77,7 @@ func atlasMigrateHashDefaultsToAtlasSum(bin string) Result {
 		return atlasMetadataRuntimeFail("atlas migrate hash", "setup", err)
 	}
 
-	output, err := commandOutput(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
+	output, err := commandOutputStrictCE(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
 	if err != nil {
 		return atlasMetadataRuntimeExit("atlas migrate hash", "execute", output, err)
 	}
@@ -104,7 +104,7 @@ func atlasMigrateStatusDefaultsToAtlasDir(bin string) Result {
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "status.db")
-	output, err := commandOutput(bin, []string{"migrate", "status", "--url", dbURL, "--dir", fileURL(migrations)})
+	output, err := commandOutputStrictCE(bin, []string{"migrate", "status", "--url", dbURL, "--dir", fileURL(migrations)})
 	if err != nil {
 		return atlasMetadataRuntimeExit("atlas migrate status", "execute", output, err)
 	}
@@ -128,7 +128,7 @@ func atlasMigrateApplyAcceptsRevisionsSchema(bin string) Result {
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "apply-schema.db")
-	output, err := commandOutput(bin, []string{
+	output, err := commandOutputStrictCE(bin, []string{
 		"migrate", "apply",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
@@ -152,7 +152,7 @@ func atlasMigrateStatusAcceptsRevisionsSchema(bin string) Result {
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "status-schema.db")
-	output, err := commandOutput(bin, []string{
+	output, err := commandOutputStrictCE(bin, []string{
 		"migrate", "status",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
@@ -176,7 +176,7 @@ func atlasMigrateSetAcceptsRevisionsSchema(bin string) Result {
 	}
 
 	dbURL := "sqlite://" + filepath.Join(root, "set-schema.db")
-	output, err := commandOutput(bin, []string{
+	output, err := commandOutputStrictCE(bin, []string{
 		"migrate", "set",
 		"--url", dbURL,
 		"--dir", fileURL(migrations),
@@ -211,7 +211,7 @@ func atlasMigrateLintSupportsGooseDirFormat(bin string) Result {
 		return *result
 	}
 
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "lint",
 		"--latest", "1",
 		"--dir", fileURL(migrations),
@@ -262,7 +262,7 @@ func atlasMigrateNewSupportsGooseDirFormat(bin string) Result {
 	}
 	defer cleanup()
 
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "new", "init",
 		"--dir", fileURL(migrations),
 		"--dir-format", "goose",
@@ -321,7 +321,7 @@ func atlasMigrateSetSupportsGooseDirFormat(bin string) Result {
 	}
 
 	dbPath := filepath.Join(root, "set-goose.db")
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "set",
 		"--url", "sqlite://" + dbPath,
 		atlasMetadataMigrationVersion,
@@ -362,7 +362,7 @@ func atlasMigrateStatusSupportsGooseDirFormat(bin string) Result {
 		return *result
 	}
 
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "status",
 		"--url", "sqlite://" + filepath.Join(root, "status-goose.db"),
 		"--dir", fileURL(migrations),
@@ -387,7 +387,7 @@ func atlasMigrateStatusSupportsGooseDirFormat(bin string) Result {
 }
 
 func atlasMigrateApplyRejectsDirFormat(bin string) Result {
-	output, err := commandOutput(bin, []string{"migrate", "apply", "--dir-format", "atlas", "--help"})
+	output, err := commandOutputStrictCE(bin, []string{"migrate", "apply", "--dir-format", "atlas", "--help"})
 	if err == nil {
 		return Result{"atlas-cli-metadata-runtime", "atlas migrate apply --dir-format", "flags", Gap,
 			"`atlas migrate apply` accepts --dir-format, but Atlas OSS does not register that flag on apply",
@@ -419,7 +419,7 @@ func prepareAtlasMetadataMigration(bin, migrations, fixture string) *Result {
 		result := atlasMetadataRuntimeFail(fixture, "setup", err)
 		return &result
 	}
-	output, err := commandOutput(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
+	output, err := commandOutputStrictCE(bin, []string{"migrate", "hash", "--dir", fileURL(migrations)})
 	if err != nil {
 		result := atlasMetadataRuntimeExit(fixture, "setup", output, err)
 		return &result
@@ -444,7 +444,7 @@ func prepareGooseLintMigrations(bin, migrations, fixture string) *Result {
 }
 
 func hashGooseMetadataMigrations(bin, migrations, fixture string) *Result {
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "hash",
 		"--dir", fileURL(migrations),
 		"--dir-format", "goose",

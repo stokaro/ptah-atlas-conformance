@@ -64,7 +64,7 @@ func createAtlasReportFormatFixture(bin string) (atlasReportFormatFixture, func(
 			"writing Atlas migration fixture failed: " + oneLine(err.Error()), ""}
 	}
 	dirURL := fileURL(migrations)
-	output, err := commandOutputDir(bin, []string{"migrate", "hash", "--dir", dirURL}, dir)
+	output, err := commandOutputDirStrictCE(bin, []string{"migrate", "hash", "--dir", dirURL}, dir)
 	if err != nil {
 		cleanup()
 		return atlasReportFormatFixture{}, func() {}, &Result{"atlas-cli-report-format", "atlas migrate hash", "setup", Gap,
@@ -80,7 +80,7 @@ func createAtlasReportFormatFixture(bin string) (atlasReportFormatFixture, func(
 func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormatFixture) Result {
 	const name = "atlas migrate apply --dry-run --format json"
 
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "apply",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
@@ -120,7 +120,7 @@ func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormat
 func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {
 	const name = "atlas migrate apply --format json"
 
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "apply",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
@@ -176,7 +176,7 @@ func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportForma
 func runAtlasMigrateStatusAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {
 	const name = "atlas migrate status --format json"
 
-	stdout, stderr, err := commandStreams(bin, []string{
+	stdout, stderr, err := commandStreamsStrictCE(bin, []string{
 		"migrate", "status",
 		"--url", fixture.dbURL,
 		"--dir", fixture.dirURL,
@@ -241,6 +241,11 @@ func runAtlasSchemaCleanDryRunReportShape(bin string) Result {
 	}
 	defer func() { _ = os.RemoveAll(dir) }()
 
+	// Full surface, deliberately: `schema clean` takes neither --dry-run nor
+	// --format on Atlas CE, so these rows measure a Ptah capability rather
+	// than a CE contract. Under the CE-only policy the command is refused by
+	// design, and the refusal would be recorded as a gap -- capability loss
+	// reading as parity, which is what keeps the selection per row.
 	stdout, stderr, err := commandStreams(bin, []string{
 		"schema", "clean",
 		"--url", "sqlite://" + dbPath + "?password=hidden",
@@ -294,7 +299,7 @@ func createAtlasReportFormatSchemaCleanFixture(bin string) (string, string, *Res
 			"writing schema clean fixture failed: " + oneLine(err.Error()), ""}
 	}
 
-	output, err := commandOutputDir(bin, []string{
+	output, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "apply",
 		"--url", "sqlite://" + dbPath,
 		"--to", "file://" + schemaPath,
