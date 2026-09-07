@@ -12,7 +12,7 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `ptah.run v0.4.0`
+- Ptah at `ptah.run v0.4.1-0.20260907135122-7362584251f0`
 - Outcomes: **810 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
@@ -400,8 +400,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-analyzer-catalog | `Atlas CD102 (drop check constraint)` | postgres | covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD102 fires on the MySQL DROP CHECK form. |  |
 | — | ok | lint-analyzer-catalog | `Atlas CD103 (drop primary key)` | postgres | covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD103 fires on the MySQL DROP PRIMARY KEY form. |  |
 | — | ok | lint-analyzer-catalog | `Atlas DS101 (drop schema)` | postgres | covered (mapped): Ptah DS107 (error) at L1 — Ptah groups schema and other database-object drops under DS107. |  |
-| — | ok | lint-analyzer-catalog | `Atlas DS102 (drop table)` | postgres | covered (mapped): Ptah DS101 (error) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas). |  |
-| — | ok | lint-analyzer-catalog | `Atlas DS103 (drop column)` | postgres | covered (mapped): Ptah DS102 (error) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas). |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS102 (drop table)` | postgres | covered (mapped): Ptah BC103 (warning) at L1, DS101 (error) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas). |  |
+| — | ok | lint-analyzer-catalog | `Atlas DS103 (drop column)` | postgres | covered (mapped): Ptah BC104 (warning) at L1, DS102 (error) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas). |  |
 | — | ok | lint-analyzer-catalog | `Atlas LT101 (modify nullable to non-nullable without default)` | sqlite | covered (exact): Ptah LT101 (warning) at L1 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MF101 (add unique constraint on existing column)` | postgres | covered (mapped): Ptah PG105 (warning) at L1 — Ptah has no data-dependent uniqueness analyzer; the PG105 access-exclusive-lock rule covers the same statement. |  |
 | — | ok | lint-analyzer-catalog | `Atlas MF103 (add non-nullable column without default)` | postgres | covered (mapped): Ptah DD101 (warning) at L1 — Ptah's data-dependent DD101 rule covers this. |  |
@@ -414,7 +414,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-analyzer-catalog | `Atlas MY130 (change column type requires table copy)` | mysql | covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the MySQL copy-algorithm concern specifically. |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY131 (add foreign key blocks DML)` | mysql | covered (exact): Ptah MY131 (warning) at L1 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY132 (add primary key rebuilds the table)` | mysql | covered (exact): Ptah MY132 (warning) at L1 |  |
-| — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | covered (mapped): Ptah CD103 (error) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form. |  |
+| — | ok | lint-analyzer-catalog | `Atlas MY133 (drop primary key copies the table and blocks DML)` | mysql | covered (exact): Ptah CD103 (error) at L1, MY133 (warning) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form. |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY134 (add fulltext index blocks DML)` | mysql | covered (exact): Ptah MY134 (warning) at L1 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY135 (add spatial index blocks DML)` | mysql | covered (exact): Ptah MY135 (warning) at L1 |  |
 | — | ok | lint-analyzer-catalog | `Atlas MY136 (change table character set rebuilds the table)` | mysql | covered (mapped): Ptah MY101 (warning) at L1 — Ptah's MY101 table-rewrite warning covers the character-set conversion. |  |
@@ -444,7 +444,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/multi-tenants/migrations` | lint | content findings: PG101 |  |
 | — | ok | lint-parity | `atlasexec/internal/e2e/testdata/versioned-basic/migrations` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `atlasexec/testdata/broken` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `atlasexec/testdata/migrations` | lint | content findings: DS101 |  |
+| — | ok | lint-parity | `atlasexec/testdata/migrations` | lint | content findings: BC103, DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline1` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/baseline2` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
@@ -452,15 +452,15 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/flyway_gold` | lint | content findings: DD101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/golang-migrate_gold` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | content findings: DD101, AC101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | content findings: DD101, AC101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose` | lint | content findings: DD101, AC101, SA101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | content findings: DD101, AC101, SA101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: DS101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: DS101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: BC103, DS101 |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: BC103, DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | no substantive lint findings expected |  |
@@ -470,7 +470,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `internal/integration/testdata/migrations/mysqlock` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `internal/integration/testdata/migrations/postgres` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/golang-migrate` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `sql/migrate/testdata/lex` | lint | content findings: AC101, DS101, PG101, PG308 |  |
+| — | ok | lint-parity | `sql/migrate/testdata/lex` | lint | content findings: AC101, BC103, DS101, PG101, PG308, SA101, PG109 |  |
 | — | ok | lint-parity | `sql/migrate/testdata/lexbegintry` | lint | content findings: AC101 |  |
 | — | ok | lint-parity | `sql/migrate/testdata/lexescaped` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `sql/migrate/testdata/lexgroup` | lint | content findings: PG308, AC101 |  |
@@ -480,7 +480,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `sql/migrate/testdata/sqlserver` | lint | content findings: AC101 |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/dbmate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/golang-migrate` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
-| — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | content findings: DD101, AC101 |  |
+| — | ok | lint-parity | `sql/sqltool/testdata/goose` | lint | content findings: DD101, AC101, SA101 |  |
 | — | ok | lint-parity | `sql/sqltool/testdata/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | managed-data-workflow | `managed rows` | row introspection | the introspected countries rows match the declared managed reference data exactly |  |
 | — | ok | managed-data-workflow | `ptah migrations data` | data migration generation | the declared rows generated a reversible data migration (up inserts every row, down deletes exactly those keys) |  |

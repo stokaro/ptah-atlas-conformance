@@ -3547,7 +3547,7 @@
     "fixture": "atlasexec/testdata/migrations",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101"
+    "detail": "content findings: BC103, DS101"
   },
   {
     "probe": "lint-parity",
@@ -3603,14 +3603,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101, AC101"
+    "detail": "content findings: DD101, AC101, SA101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101, AC101"
+    "detail": "content findings: DD101, AC101, SA101"
   },
   {
     "probe": "lint-parity",
@@ -3652,14 +3652,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101"
+    "detail": "content findings: BC103, DS101"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DS101"
+    "detail": "content findings: BC103, DS101"
   },
   {
     "probe": "lint-parity",
@@ -3729,7 +3729,7 @@
     "fixture": "sql/migrate/testdata/lex",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: AC101, DS101, PG101, PG308"
+    "detail": "content findings: AC101, BC103, DS101, PG101, PG308, SA101, PG109"
   },
   {
     "probe": "lint-parity",
@@ -3799,7 +3799,7 @@
     "fixture": "sql/sqltool/testdata/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101, AC101"
+    "detail": "content findings: DD101, AC101, SA101"
   },
   {
     "probe": "lint-parity",
@@ -4310,14 +4310,14 @@
     "fixture": "Atlas DS102 (drop table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS101 (error) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas)."
+    "detail": "covered (mapped): Ptah BC103 (warning) at L1, DS101 (error) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas)."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS103 (drop column)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS102 (error) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas)."
+    "detail": "covered (mapped): Ptah BC104 (warning) at L1, DS102 (error) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas)."
   },
   {
     "probe": "lint-analyzer-catalog",
@@ -4555,7 +4555,7 @@
     "fixture": "Atlas MY133 (drop primary key copies the table and blocks DML)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah CD103 (error) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form."
+    "detail": "covered (exact): Ptah CD103 (error) at L1, MY133 (warning) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form."
   },
   {
     "probe": "lint-analyzer-catalog",
