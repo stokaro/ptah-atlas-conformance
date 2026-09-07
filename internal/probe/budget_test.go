@@ -1,26 +1,47 @@
 package probe
 
-import "testing"
+import (
+	"testing"
 
-func TestParseGapBudget(t *testing.T) {
+	qt "github.com/frankban/quicktest"
+)
+
+func TestParseGapBudget_HappyPath(t *testing.T) {
+	c := qt.New(t)
+
 	budget, err := ParseGapBudget([]byte("# current allowed gaps\n177\n"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if budget != 177 {
-		t.Fatalf("budget = %d, want 177", budget)
-	}
+
+	c.Assert(err, qt.IsNil)
+	c.Assert(budget, qt.Equals, GapBudget(177))
 }
 
-func TestParseGapBudgetRejectsInvalidBudget(t *testing.T) {
-	for _, input := range []string{"", "nope\n", "-1\n"} {
-		if _, err := ParseGapBudget([]byte(input)); err == nil {
-			t.Fatalf("ParseGapBudget(%q) succeeded, want error", input)
-		}
+// TestParseGapBudget_FailurePath keeps a budget file that says nothing usable
+// from resolving to a number. The rows are the three shapes a hand-edited file
+// takes: emptied, replaced with prose, and negative.
+func TestParseGapBudget_FailurePath(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{name: "empty", input: ""},
+		{name: "not a number", input: "nope\n"},
+		{name: "negative", input: "-1\n"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+
+			budget, err := ParseGapBudget([]byte(test.input))
+
+			c.Assert(err, qt.IsNotNil)
+			c.Assert(budget, qt.Equals, GapBudget(0))
+		})
 	}
 }
 
 func TestCheckGapBudget(t *testing.T) {
+	c := qt.New(t)
 	results := []Result{
 		{Probe: "sql-parse", Fixture: "ok.sql", Stage: "round-trip", Outcome: OK},
 		{Probe: "sql-parse", Fixture: "gap.sql", Stage: "round-trip", Outcome: Gap},
@@ -31,10 +52,7 @@ func TestCheckGapBudget(t *testing.T) {
 	}}
 
 	status := CheckGapBudget(results, waivers, 1)
-	if status.Unwaived != 1 {
-		t.Fatalf("unwaived = %d, want 1", status.Unwaived)
-	}
-	if status.OverBudget() {
-		t.Fatal("status should be within budget")
-	}
+
+	c.Assert(status.Unwaived, qt.Equals, 1)
+	c.Assert(status.OverBudget(), qt.IsFalse)
 }

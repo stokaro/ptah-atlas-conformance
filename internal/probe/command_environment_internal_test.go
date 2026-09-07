@@ -1,12 +1,20 @@
+//go:build darwin || linux
+
 // White-box testing required: the command runners are unexported, and the
 // property under test is what they hand the child process, which no exported
 // result reports.
+//
+// The build tag replaces a `runtime.GOOS == "windows"` skip that stood in every
+// test here. The tests need a POSIX shell script to report the environment it
+// was given, so on Windows there is nothing to run -- and a conditional inside a
+// test function is what the declarative-test standard refuses. The tag says the
+// same thing to the compiler instead, and it says it once rather than five
+// times.
 package probe
 
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
@@ -31,9 +39,6 @@ func writeEnvPrinter(c *qt.C) string {
 }
 
 func TestCommandOutputDir_DoesNotForwardPtahVariables(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("the environment reporter is a POSIX shell script")
-	}
 	c := qt.New(t)
 	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "1")
 	t.Setenv("ptah_lowercase_leak", "1")
@@ -51,9 +56,6 @@ func TestCommandOutputDir_DoesNotForwardPtahVariables(t *testing.T) {
 }
 
 func TestCommandStreams_DoesNotForwardPtahVariables(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("the environment reporter is a POSIX shell script")
-	}
 	c := qt.New(t)
 	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "1")
 	t.Setenv("CONFORMANCE_KEEP", "present")
@@ -70,9 +72,6 @@ func TestCommandStreams_DoesNotForwardPtahVariables(t *testing.T) {
 // environment, so a caller passing an override still leaked. The override must
 // still arrive.
 func TestCommandStreamsWithEnv_KeepsTheOverrideAndStillScrubs(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("the environment reporter is a POSIX shell script")
-	}
 	c := qt.New(t)
 	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "1")
 
@@ -99,9 +98,6 @@ func TestCommandStreamsWithEnv_KeepsTheOverrideAndStillScrubs(t *testing.T) {
 // this design exists to avoid: on a row that measures a capability Atlas CE
 // lacks, a refusal is indistinguishable from the capability being gone.
 func TestStrictCERunners_SelectTheCEOnlySurface(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("the environment reporter is a POSIX shell script")
-	}
 	c := qt.New(t)
 	// Not set in the parent: the variable has to come from the runner, and an
 	// inherited one would be scrubbed anyway.
@@ -145,9 +141,6 @@ func TestStrictCERunners_SelectTheCEOnlySurface(t *testing.T) {
 // override it would let a developer's shell turn a CE-oracle row into a
 // full-surface one without changing a line of this repository.
 func TestStrictCERunners_ScrubAnInheritedSelection(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("the environment reporter is a POSIX shell script")
-	}
 	c := qt.New(t)
 	t.Setenv("PTAH_ATLAS_STRICT_COMPAT", "0")
 	bin := writeEnvPrinter(c)
