@@ -1,4 +1,4 @@
-.PHONY: probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime check-budget-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
+.PHONY: fmt-check probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime check-budget-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -202,7 +202,25 @@ vet:
 # Guard the one-way boundary: this repo may depend on ptah, but the Apache-2.0
 # fixtures must stay confined to third_party/. Fails if an Apache header leaks
 # into the harness source.
-verify: test build vet
+# Refuse an unformatted tree. The corpus is the git index, never a filesystem
+# walk: `gofmt -l .` from a developer's checkout descends into every worktree
+# parked under the repository and into build/atlas-src, and reported 54 files
+# that belong to neither this branch nor this project. It is harmless in CI only
+# because CI checks out one branch and never runs `make atlas` first, so the
+# naive form passes where it runs and misleads where it is read.
+#
+# The floor is the other half. A glob that stopped matching reports no
+# unformatted files, which is indistinguishable from a formatted tree, so an
+# empty corpus fails instead of passing.
+fmt-check:
+	@echo "checking Go files are gofmt-clean ..."
+	@files=$$(git ls-files -- '*.go'); \
+		[ -n "$$files" ] || { echo "no Go files found -- this check would pass on anything"; exit 1; }; \
+		unformatted=$$(printf '%s\n' "$$files" | tr '\n' '\0' | xargs -0 gofmt -l); \
+		[ -z "$$unformatted" ] || { echo "not gofmt-clean:"; echo "$$unformatted" | sed 's/^/  /'; exit 1; }
+	@echo "ok"
+
+verify: fmt-check test build vet
 	@echo "checking no Apache-licensed material outside third_party/ ..."
 	@! grep -rIl "Apache License" --include='*.go' . | grep -v '/third_party/' || \
 		{ echo "Apache-licensed material found outside third_party/"; exit 1; }
