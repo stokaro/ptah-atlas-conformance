@@ -8,16 +8,16 @@ page from `docs-surface-registry.json`, so parity is measured against the full
 Atlas documentation surface: an untriaged, unregistered, or vanished page is a
 gap until the registry catches up.
 
-## Status: NOT DONE — 338 non-OK observation(s)
+## Status: NOT DONE — 318 non-OK observation(s)
 
 The full docs-surface gate is red until every atlasgo.io docs page is triaged
 and the registry matches the sitemap universe.
 
 - Docs universe: **365 page(s)** from the atlasgo.io sitemap (committed snapshot `docs-surface-snapshot.txt`)
 - Ptah at `ptah.run v0.4.1-0.20260907150813-efe7559b7282`
-- Outcomes: **27 ok**, **338 gap**, **0 fail**, **0 panic**
-- Full gate: **338 non-OK** (fails CI)
-- Regression budget input: **338 unwaived non-OK**, 0 waived
+- Outcomes: **47 ok**, **318 gap**, **0 fail**, **0 panic**
+- Full gate: **318 non-OK** (fails CI)
+- Regression budget input: **318 unwaived non-OK**, 0 waived
 
 ## Docs Universe Summary
 
@@ -27,13 +27,13 @@ Universe: **365 page(s)** after the docs-universe filter.
 
 | Status | Pages |
 | --- | --- |
-| open | 0 |
-| partial | 0 |
+| open | 7 |
+| partial | 13 |
 | gap | 0 |
 | pro | 0 |
 | cloud | 27 |
 | out-of-scope | 0 |
-| untriaged | 338 |
+| untriaged | 318 |
 
 ### Pages per docs section
 
@@ -76,29 +76,21 @@ content is stored in this repository.
 | --- | --- | --- | --- | --- | --- | --- |
 | **RED** | **gap** | docs-surface | `/atlas-schema` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/atlas-schema/external` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/atlas-schema/hcl` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/atlas-schema/hcl-types` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/atlas-schema/input-variables` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/atlas-schema/projects` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/atlas-schema/sql` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/cli-reference` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/cli/data-privacy` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/community-edition` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/compare/flyway-vs-atlas` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/compare/liquibase-vs-atlas` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/concepts/declarative-vs-versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/concepts/dev-database` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/concepts/migration-directory-integrity` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/concepts/url` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/contributing` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/custom-drivers` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/databases` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/declarative/apply` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/declarative/diff` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/declarative/plan` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/declarative/setup-cicd` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/docs` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/features` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/getting-started` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/getting-started/mariadb-declarative-hcl` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/getting-started/mariadb-declarative-sql` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -357,7 +349,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/hcl/spanner` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/hcl/sqlite` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/hcl/testing` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/inspect` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/inspect/database-to-code` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/integrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/integrations/azure-devops` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -396,22 +387,14 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/scripts/masking` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/scripts/query` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/scripts/testing` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/testing/migrate` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/testing/plan` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/testing/schema` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/apply` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/checkpoint` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/checks` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/versioned/diff` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/down` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/drift-detection` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/import` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/intro` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/versioned/lint` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/versioned/new` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/versioned/pre-post-hooks` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/versioned/setup-cicd` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/versioned/troubleshoot` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| — | ok | docs-surface | `/atlas-schema/hcl` | triage | partial |  |
+| — | ok | docs-surface | `/atlas-schema/projects` | triage | partial |  |
+| — | ok | docs-surface | `/cli-reference` | triage | partial |  |
 | — | ok | docs-surface | `/cloud/agents` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/aws-marketplace` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/bots` | triage | cloud |  |
@@ -427,6 +410,12 @@ content is stored in this repository.
 | — | ok | docs-surface | `/cloud/getting-started` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/pricing` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/roles-and-permissions` | triage | cloud — moved out of /cloud/features/ upstream; same Atlas Cloud roles page |  |
+| — | ok | docs-surface | `/concepts/dev-database` | triage | partial |  |
+| — | ok | docs-surface | `/declarative/apply` | triage | partial |  |
+| — | ok | docs-surface | `/declarative/diff` | triage | partial |  |
+| — | ok | docs-surface | `/docs` | triage | open |  |
+| — | ok | docs-surface | `/features` | triage | partial — No single coverage-matrix area owns this page; it is cited as evidence across several. Ptah covers part of what it lists. |  |
+| — | ok | docs-surface | `/inspect` | triage | partial |  |
 | — | ok | docs-surface | `/monitoring` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/bitbucket-quickstart` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/discovery` | triage | cloud |  |
@@ -439,3 +428,14 @@ content is stored in this repository.
 | — | ok | docs-surface | `/monitoring/security` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/terraform` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/webhooks` | triage | cloud |  |
+| — | ok | docs-surface | `/testing/migrate` | triage | open |  |
+| — | ok | docs-surface | `/testing/plan` | triage | open |  |
+| — | ok | docs-surface | `/testing/schema` | triage | open |  |
+| — | ok | docs-surface | `/versioned/apply` | triage | partial |  |
+| — | ok | docs-surface | `/versioned/checkpoint` | triage | open |  |
+| — | ok | docs-surface | `/versioned/checks` | triage | partial |  |
+| — | ok | docs-surface | `/versioned/down` | triage | partial |  |
+| — | ok | docs-surface | `/versioned/drift-detection` | triage | open — Atlas lists drift detection as Pro; Ptah has native `ptah schema drift`. Cloud drift monitoring is out of scope. |  |
+| — | ok | docs-surface | `/versioned/import` | triage | partial |  |
+| — | ok | docs-surface | `/versioned/intro` | triage | open |  |
+| — | ok | docs-surface | `/versioned/lint` | triage | partial |  |

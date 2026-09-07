@@ -16,4 +16,9 @@
 # The ceiling therefore tracks what upstream publishes, and the ratchet applies
 # to the backlog: this number goes down when pages get triaged, never when Atlas
 # writes fewer docs.
-338
+# 2026-09-07: 338 -> 318. First triage batch. Every verdict is transcribed
+# from ptah's own docs/site/src/content/docs/atlas/docs-coverage.md coverage
+# matrix rather than decided here: Documented and Native become `open`, Partial
+# becomes `partial`. Twenty pages had an area in that matrix; nothing else did,
+# and inventing the rest is what this backlog exists to prevent.
+318
