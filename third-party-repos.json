@@ -1,0 +1,11 @@
+[
+  {
+    "name": "go-faster/bot",
+    "clone_url": "https://github.com/go-faster/bot",
+    "commit": "e7b8821a04d82318804a83416cc9d07db382ca0b",
+    "license": "Apache-2.0",
+    "config": "atlas.hcl",
+    "migrations": "migrations",
+    "note": "Root atlas.hcl with an ent:// source and a hashed migration directory. The ent source and the docker:// dev database are out of the offline command set, so this tier measures only what needs neither."
+  }
+]

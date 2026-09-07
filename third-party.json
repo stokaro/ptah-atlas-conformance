@@ -1,0 +1,23 @@
+[
+  {
+    "probe": "third-party",
+    "fixture": "go-faster/bot",
+    "stage": "migrate hash",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; migrations/atlas.sum byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "go-faster/bot",
+    "stage": "migrate validate",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; migrations/atlas.sum byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "go-faster/bot",
+    "stage": "schema fmt",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; atlas.hcl byte-identical to the upstream commit"
+  }
+]

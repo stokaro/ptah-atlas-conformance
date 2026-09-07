@@ -1,4 +1,4 @@
-.PHONY: test-style fmt-check probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime check-budget-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
+.PHONY: test-style fmt-check probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime check-budget-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface probe-third-party budget-third-party gate-third-party verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -169,6 +169,24 @@ gate-ce-gating:
 # docs-surface.json and always exits 0.
 probe-docs-surface:
 	$(call run,./cmd/docs-surface-probe) $(if $(filter 1,$(FETCH)),-fetch)
+
+# Measure ptah-compat inside real repositories that use Atlas, pinned by commit
+# in third-party-repos.json. Needs network (it fetches those commits) and the
+# pinned Atlas CE binary as the oracle: ATLAS_BIN or ./bin/atlas. Regenerates
+# third-party.md / third-party.json; exits 2 rather than writing a report when
+# anything prevents the comparison.
+probe-third-party:
+	$(call run,./cmd/gap-probe-third-party)
+
+# CI progress gate for the third-party tier: fail only when the current report
+# exceeds the committed budget.
+budget-third-party: probe-third-party
+	$(call run,./cmd/gap-budget) -report third-party.json -budget third-party-budget.txt
+
+# The full third-party gate: every pinned repository must keep working with
+# ptah-compat in place of Atlas, on every measured command.
+gate-third-party:
+	$(call run,./cmd/gap-probe-third-party) -gate
 
 # CI progress gate for the docs surface tier: fail only when the current
 # docs-surface report exceeds the committed budget or has stale waivers. Full

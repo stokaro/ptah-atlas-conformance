@@ -146,6 +146,32 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, atlasVersion, pta
 	})
 }
 
+// RenderThirdPartyMarkdownWithCommand produces the third-party compatibility
+// report. atlasVersion is the oracle binary's own version line: every row is a
+// comparison against it, so the artifact records which Atlas produced the
+// numbers rather than which one was meant to.
+func RenderThirdPartyMarkdownWithCommand(results []Result, atlasVersion, ptahVersion, command string) string {
+	return renderMarkdownWithOptions(results, &Waivers{}, markdownReportOptions{
+		Title:   "# Ptah third-party Atlas repository conformance report",
+		Command: command,
+		Intro: "It records whether real repositories that use Atlas keep working when the\n" +
+			"Atlas binary is replaced by `ptah-compat`, with nothing else changed. Each\n" +
+			"row is a command run on both binaries in independent copies of the same\n" +
+			"pinned tree, compared on exit code and on the bytes the command left behind.\n" +
+			"It is a drop-in replacement probe, not a coverage score for those projects.\n\n",
+		SourceLine: fmt.Sprintf(
+			"Upstream repositories pinned by commit in `third-party-repos.json`, fetched with git so the object hashes are verified; measured against `%s`",
+			atlasVersion,
+		),
+		PtahVersion: ptahVersion,
+		FactCategories: []string{
+			"Checksum parity: re-hashing a migration directory its own author hashed must leave `atlas.sum` byte-identical, on both binaries.",
+			"Checksum-only validation: `migrate validate` without `--dev-url` replays nothing and needs no database, and must agree on exit code.",
+			"Configuration formatting: formatting the project's committed `atlas.hcl` must rewrite nothing.",
+		},
+	})
+}
+
 // RenderCEGatingMarkdownWithCommand produces the Atlas CE gating report and
 // records the command that regenerates that specific report file. atlasVersion
 // is the first line of `atlas version` for the binary under test.
