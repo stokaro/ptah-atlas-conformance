@@ -3,6 +3,7 @@ package probe
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -490,7 +491,7 @@ func ptahCompatAtlasBinary() (string, error) {
 // throwaway module requiring ptah.run has no list to keep. Ptah's own go.mod
 // resolves Ptah's own closure, which is the only place that answer is correct.
 func buildPtahCommand(binaryName, packagePath string) (string, error) {
-	version, err := pinnedPtahVersion()
+	resolved, err := resolvePtahModule()
 	if err != nil {
 		return "", err
 	}
@@ -506,8 +507,7 @@ func buildPtahCommand(binaryName, packagePath string) (string, error) {
 	// `go get`, so the version is this module's pin and nothing can resolve a
 	// newer one: the binary under measurement has to be the binary this
 	// repository claims to measure.
-	goMod := "module ptahbuild\n\ngo 1.21\n\nrequire " + ptahModulePath + " " + version + "\n"
-	if err := os.WriteFile(filepath.Join(moduleDir, "go.mod"), []byte(goMod), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(moduleDir, "go.mod"), []byte(throwawayGoMod(resolved)), 0o600); err != nil {
 		return "", err
 	}
 	bin := filepath.Join(dir, binaryName)
@@ -527,18 +527,100 @@ func buildPtahCommand(binaryName, packagePath string) (string, error) {
 // It is read from the build list rather than parsed out of go.mod, so a
 // replace directive or a newer indirect requirement gives the version that
 // would actually be built here.
-func pinnedPtahVersion() (string, error) {
-	cmd := exec.Command("go", "list", "-m", "-f", "{{.Version}}", ptahModulePath)
+// resolvedPtahModule is what this module's build list says ptah.run is: the
+// required version, and the replacement if one is in effect.
+type resolvedPtahModule struct {
+	// Version is the required version. It stays populated under a replacement,
+	// so a report can name the pin a replacement stands in for.
+	Version string
+	// ReplaceDir is the directory a `replace ptah.run => ../somewhere` names.
+	ReplaceDir string
+	// ReplacePath and ReplaceVersion are the module form,
+	// `replace ptah.run => other/module v1.2.3`.
+	ReplacePath    string
+	ReplaceVersion string
+}
+
+// Replaced reports whether a replacement is in effect.
+func (m resolvedPtahModule) Replaced() bool {
+	return m.ReplaceDir != "" || m.ReplacePath != ""
+}
+
+// Describe names what a build from this resolution measures, for a report
+// header that must not claim the pin while a checkout is what ran.
+func (m resolvedPtahModule) Describe() string {
+	switch {
+	case m.ReplaceDir != "":
+		return ptahModulePath + " " + m.Version + " (replaced by " + m.ReplaceDir + ")"
+	case m.ReplacePath != "":
+		return ptahModulePath + " " + m.Version +
+			" (replaced by " + m.ReplacePath + " " + m.ReplaceVersion + ")"
+	default:
+		return ptahModulePath + " " + m.Version
+	}
+}
+
+// throwawayGoMod renders the go.mod of the module the probes build in.
+//
+// The replacement is propagated, not dropped. A `replace ptah.run => ../ptah`
+// in this repository's go.mod is how a developer asks the tiers to measure a
+// checkout instead of the pin, and a build that quietly ignored it would report
+// the pin's behavior under the checkout's name -- a false green of exactly the
+// shape this harness exists to prevent, and one nothing downstream could
+// detect. It is a pure function so the rendering is testable without a build.
+func throwawayGoMod(m resolvedPtahModule) string {
+	out := "module ptahbuild\n\ngo 1.21\n\nrequire " + ptahModulePath + " " + m.Version + "\n"
+	switch {
+	case m.ReplaceDir != "":
+		out += "\nreplace " + ptahModulePath + " => " + m.ReplaceDir + "\n"
+	case m.ReplacePath != "":
+		out += "\nreplace " + ptahModulePath + " => " + m.ReplacePath + " " + m.ReplaceVersion + "\n"
+	}
+	return out
+}
+
+// resolvePtahModule asks the go command what this module resolves ptah.run to.
+//
+// It reads the JSON form rather than a version template: the template answers
+// only the version, so a replacement was invisible to the caller that had to
+// honor it.
+func resolvePtahModule() (resolvedPtahModule, error) {
+	cmd := exec.Command("go", "list", "-m", "-json", ptahModulePath)
 	cmd.Env = append(os.Environ(), "GOWORK=off")
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("reading the pinned %s version: %w", ptahModulePath, err)
+		return resolvedPtahModule{}, fmt.Errorf("reading the pinned %s module: %w", ptahModulePath, err)
 	}
-	version := strings.TrimSpace(string(out))
-	if version == "" {
-		return "", fmt.Errorf("no %s version in the build list", ptahModulePath)
+	return parsePtahModuleList(out)
+}
+
+// parsePtahModuleList decodes `go list -m -json ptah.run`.
+func parsePtahModuleList(payload []byte) (resolvedPtahModule, error) {
+	var listed struct {
+		Version string
+		Replace *struct {
+			Path    string
+			Version string
+			Dir     string
+		}
 	}
-	return version, nil
+	if err := json.Unmarshal(payload, &listed); err != nil {
+		return resolvedPtahModule{}, fmt.Errorf("decoding the %s module list: %w", ptahModulePath, err)
+	}
+	if listed.Version == "" && listed.Replace == nil {
+		return resolvedPtahModule{}, fmt.Errorf("no %s version in the build list", ptahModulePath)
+	}
+	resolved := resolvedPtahModule{Version: listed.Version}
+	if listed.Replace != nil {
+		resolved.ReplaceDir = listed.Replace.Dir
+		// A directory replacement reports both Dir and Path; only the
+		// module form has a version, and Dir is what a build must use.
+		if resolved.ReplaceDir == "" {
+			resolved.ReplacePath = listed.Replace.Path
+			resolved.ReplaceVersion = listed.Replace.Version
+		}
+	}
+	return resolved, nil
 }
 
 func wrapBuildErr(err error, out []byte) error {
