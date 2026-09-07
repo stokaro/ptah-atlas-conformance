@@ -5,7 +5,11 @@ package probe
 // carries a per-run value simply looks stale on the next regeneration, which is
 // the same thing an out-of-date report looks like.
 
-import "testing"
+import (
+	"testing"
+
+	qt "github.com/frankban/quicktest"
+)
 
 func TestScrubRunIdentifiers_HappyPath(t *testing.T) {
 	tests := []struct {
@@ -32,9 +36,9 @@ func TestScrubRunIdentifiers_HappyPath(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := scrubRunIdentifiers(test.in); got != test.want {
-				t.Fatalf("got %q, want %q", got, test.want)
-			}
+			c := qt.New(t)
+
+			c.Assert(scrubRunIdentifiers(test.in), qt.Equals, test.want)
 		})
 	}
 }
@@ -54,9 +58,9 @@ func TestScrubRunIdentifiers_LeavesOtherDigitsAlone(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := scrubRunIdentifiers(test.in); got != test.in {
-				t.Fatalf("changed %q to %q", test.in, got)
-			}
+			c := qt.New(t)
+
+			c.Assert(scrubRunIdentifiers(test.in), qt.Equals, test.in)
 		})
 	}
 }

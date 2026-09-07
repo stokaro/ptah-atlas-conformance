@@ -6,7 +6,11 @@ package probe
 // stale -- so a black-box test could not tell a wrong key from a missing one,
 // which is exactly the failure this parser was changed to end.
 
-import "testing"
+import (
+	"testing"
+
+	qt "github.com/frankban/quicktest"
+)
 
 func TestSplitWaiver_HappyPath(t *testing.T) {
 	tests := []struct {
@@ -45,16 +49,15 @@ func TestSplitWaiver_HappyPath(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+
 			probe, fixture, stage, reason, ok := splitWaiver(test.line)
-			if !ok {
-				t.Fatalf("line was refused: %q", test.line)
-			}
-			if probe != test.wantProbe || fixture != test.wantFixture ||
-				stage != test.wantStage || reason != test.wantReason {
-				t.Fatalf("got (%q, %q, %q, %q), want (%q, %q, %q, %q)",
-					probe, fixture, stage, reason,
-					test.wantProbe, test.wantFixture, test.wantStage, test.wantReason)
-			}
+
+			c.Assert(ok, qt.IsTrue)
+			c.Assert(probe, qt.Equals, test.wantProbe)
+			c.Assert(fixture, qt.Equals, test.wantFixture)
+			c.Assert(stage, qt.Equals, test.wantStage)
+			c.Assert(reason, qt.Equals, test.wantReason)
 		})
 	}
 }
@@ -71,9 +74,11 @@ func TestSplitWaiver_FailurePath(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if _, _, _, _, ok := splitWaiver(test.line); ok {
-				t.Fatalf("line was accepted: %q", test.line)
-			}
+			c := qt.New(t)
+
+			_, _, _, _, ok := splitWaiver(test.line)
+
+			c.Assert(ok, qt.IsFalse)
 		})
 	}
 }

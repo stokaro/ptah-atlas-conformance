@@ -6,6 +6,7 @@ package probe
 
 import (
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -639,16 +640,17 @@ func TestProSurfaceFlags_TableIsWellFormed(t *testing.T) {
 
 		c.Check(flags, qt.Not(qt.HasLen), 0, qt.Commentf("empty allowance for %q", command))
 		seen := map[string]bool{}
-		for i, flag := range flags {
+		for _, flag := range flags {
 			c.Check(strings.HasPrefix(flag, "--"), qt.IsTrue,
 				qt.Commentf("%q allowance entry %q is not a long flag", command, flag))
 			c.Check(seen[flag], qt.IsFalse, qt.Commentf("%q allowance repeats %q", command, flag))
 			seen[flag] = true
-			if i > 0 {
-				c.Check(flags[i-1] < flag, qt.IsTrue,
-					qt.Commentf("%q allowance is not sorted at %q", command, flag))
-			}
 		}
+		// Sortedness as a property of the slice rather than as a comparison
+		// against the previous element: the index guard that shape needs is a
+		// conditional inside a test, and slices.IsSorted says the same thing.
+		c.Check(slices.IsSorted(flags), qt.IsTrue,
+			qt.Commentf("%q allowance is not sorted: %v", command, flags))
 	}
 }
 

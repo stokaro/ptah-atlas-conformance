@@ -19,24 +19,6 @@
       "count": 3
     },
     {
-      "path": "internal/probe/budget_test.go",
-      "function": "TestCheckGapBudget",
-      "kind": "if",
-      "count": 2
-    },
-    {
-      "path": "internal/probe/budget_test.go",
-      "function": "TestParseGapBudget",
-      "kind": "if",
-      "count": 2
-    },
-    {
-      "path": "internal/probe/budget_test.go",
-      "function": "TestParseGapBudgetRejectsInvalidBudget",
-      "kind": "if",
-      "count": 1
-    },
-    {
       "path": "internal/probe/ce_gating_test.go",
       "function": "TestCEGatingAtlasVersion_HermeticFirstLine",
       "kind": "if",
@@ -45,42 +27,6 @@
     {
       "path": "internal/probe/ce_gating_test.go",
       "function": "TestClassifyCEGating",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/cli_surface_internal_test.go",
-      "function": "TestProSurfaceFlags_TableIsWellFormed",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/command_environment_internal_test.go",
-      "function": "TestCommandOutputDir_DoesNotForwardPtahVariables",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/command_environment_internal_test.go",
-      "function": "TestCommandStreamsWithEnv_KeepsTheOverrideAndStillScrubs",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/command_environment_internal_test.go",
-      "function": "TestCommandStreams_DoesNotForwardPtahVariables",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/command_environment_internal_test.go",
-      "function": "TestStrictCERunners_ScrubAnInheritedSelection",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/command_environment_internal_test.go",
-      "function": "TestStrictCERunners_SelectTheCEOnlySurface",
       "kind": "if",
       "count": 1
     },
@@ -1421,30 +1367,6 @@
       "function": "TestPlanningCatalogCoversOperations",
       "kind": "if",
       "count": 3
-    },
-    {
-      "path": "internal/probe/scrub_internal_test.go",
-      "function": "TestScrubRunIdentifiers_HappyPath",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/scrub_internal_test.go",
-      "function": "TestScrubRunIdentifiers_LeavesOtherDigitsAlone",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/waiver_internal_test.go",
-      "function": "TestSplitWaiver_FailurePath",
-      "kind": "if",
-      "count": 1
-    },
-    {
-      "path": "internal/probe/waiver_internal_test.go",
-      "function": "TestSplitWaiver_HappyPath",
-      "kind": "if",
-      "count": 2
     },
     {
       "path": "internal/probe/waiver_internal_test.go",
