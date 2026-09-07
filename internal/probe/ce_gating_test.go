@@ -404,6 +404,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		// The three-way verb control. These rows are the reference shapes the
 		// capability rows are read against, not capability claims themselves.
 		"control: nonsense root verb":                     probe.CEGatingUnregisteredCommand,
+		"control: nonsense schema HCL top-level block":    probe.CEGatingWorks,
 		"control: nonsense verb under a registered group": probe.CEGatingAbsent,
 		"control: nonsense flag on a gated verb":          probe.CEGatingUnknownFlag,
 		// v1.3.0 announced command groups: unregistered in CE, not Pro stubs.
@@ -440,7 +441,7 @@ func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 		counts[class]++
 	}
 	c.Check(counts, qt.DeepEquals, map[probe.CEGatingClass]int{
-		probe.CEGatingWorks:               15,
+		probe.CEGatingWorks:               16,
 		probe.CEGatingCommunityAbort:      39,
 		probe.CEGatingAbsent:              5,
 		probe.CEGatingUnregisteredCommand: 3,
