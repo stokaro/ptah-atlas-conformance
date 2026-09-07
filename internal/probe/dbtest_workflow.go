@@ -495,10 +495,20 @@ func dbTestMigrationReportChecks(migrationArgs []string) []dbTestWorkflowCheck {
 				},
 				forbidden: []string{
 					"excluded migration failure",
+					// The property is that opening the report fetches nothing,
+					// so what is forbidden is a fetch, not a scheme. A plain
+					// href is followed only if a reader clicks it; a src, an
+					// @import or a CSS url() is loaded on open whether anyone
+					// asked or not. Ptah's report footer carries an href to
+					// ptah.run, which is why "https://" cannot be the rule.
 					"<script src",
 					"<link rel",
-					"http://",
-					"https://",
+					"<iframe",
+					`src="http`,
+					"src='http",
+					"src=http",
+					"url(http",
+					"@import",
 				},
 			},
 			stderr: exactOutputExpectation(""),
@@ -576,10 +586,20 @@ func dbTestSchemaReportChecks(schemaArgs []string) []dbTestWorkflowCheck {
 				},
 				forbidden: []string{
 					"excluded schema failure",
+					// The property is that opening the report fetches nothing,
+					// so what is forbidden is a fetch, not a scheme. A plain
+					// href is followed only if a reader clicks it; a src, an
+					// @import or a CSS url() is loaded on open whether anyone
+					// asked or not. Ptah's report footer carries an href to
+					// ptah.run, which is why "https://" cannot be the rule.
 					"<script src",
 					"<link rel",
-					"http://",
-					"https://",
+					"<iframe",
+					`src="http`,
+					"src='http",
+					"src=http",
+					"url(http",
+					"@import",
 				},
 			},
 			stderr: exactOutputExpectation(""),
