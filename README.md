@@ -189,6 +189,13 @@ make budget-orm-providers    # ORM provider progress gate
 make gate-orm-providers      # ORM provider full-conformance gate
 ```
 
+Regenerate with the checked-out Ptah, not a substituted one. `PTAH_BIN` and
+`PTAH_COMPAT_BIN` are recorded in every report's Ptah stamp as
+`external binary overrides: ...`, so a report regenerated with either set
+differs from the same report regenerated without them, and the pull-request
+staleness check reads that difference as a stale report. Use them to probe a
+candidate build; unset them before regenerating anything you intend to commit.
+
 Local live runs are explicit per networked dialect. Set whichever service URLs
 you want to exercise; unset networked dialects are skipped. SQLite always runs,
 using `CONFORMANCE_SQLITE_URL` when set or a fresh temporary database otherwise:

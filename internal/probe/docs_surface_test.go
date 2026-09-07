@@ -295,6 +295,27 @@ func TestFetchDocsSitemap(t *testing.T) {
 	c.Assert(string(got), qt.Equals, body)
 }
 
+// TestFetchDocsSitemap_IdentifiesItself pins the request header, not just its
+// presence: Go's default client sends no User-Agent at all, so an empty string
+// is the exact regression this guards, and a CDN that throttles on it turns a
+// docs-drift alert into a transport error nobody can read.
+func TestFetchDocsSitemap_IdentifiesItself(t *testing.T) {
+	c := qt.New(t)
+
+	agent := make(chan string, 1)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		agent <- r.Header.Get("User-Agent")
+		fmt.Fprint(w, `<urlset></urlset>`)
+	}))
+	t.Cleanup(srv.Close)
+
+	_, err := probe.FetchDocsSitemap(context.Background(), srv.URL)
+
+	c.Assert(err, qt.IsNil)
+	c.Assert(<-agent, qt.Equals,
+		"ptah-atlas-conformance docs-surface probe (+https://github.com/stokaro/ptah-atlas-conformance)")
+}
+
 func TestFetchDocsSitemap_NonOKStatus(t *testing.T) {
 	c := qt.New(t)
 
