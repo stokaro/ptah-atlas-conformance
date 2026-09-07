@@ -193,21 +193,28 @@
     "fixture": "atlas schema diff (column attr: invisible, v1.3.0)",
     "stage": "works",
     "outcome": "ok",
-    "detail": "class: works — exit 0; output contains \"CREATE TABLE\"; output does not contain \"INVISIBLE\", \"invisible\""
+    "detail": "class: works — exit 0; output contains \"CREATE TABLE `t` (`id` int NOT NULL, `secret` int NOT NULL);\"; output does not contain \"INVISIBLE\", \"invisible\""
   },
   {
     "probe": "ce-gating",
     "fixture": "control: nonsense column attribute",
     "stage": "works",
     "outcome": "ok",
-    "detail": "class: works — exit 0; output contains \"CREATE TABLE\"; output does not contain \"zzz_nonsense_attr\""
+    "detail": "class: works — exit 0; output contains \"CREATE TABLE `t` (`id` int NOT NULL, `secret` int NOT NULL);\"; output does not contain \"zzz_nonsense_attr\""
   },
   {
     "probe": "ce-gating",
     "fixture": "atlas schema diff (annotation block, v1.3.0)",
     "stage": "works",
     "outcome": "ok",
-    "detail": "class: works — exit 0; output contains \"CREATE TABLE\"; output does not contain \"annotation\", \"gql\""
+    "detail": "class: works — exit 0; output contains \"CREATE TABLE `t` (`id` int NOT NULL);\"; output does not contain \"annotation\", \"gql\""
+  },
+  {
+    "probe": "ce-gating",
+    "fixture": "control: nonsense schema HCL top-level block",
+    "stage": "works",
+    "outcome": "ok",
+    "detail": "class: works — exit 0; output contains \"CREATE TABLE `t` (`id` int NOT NULL);\"; output does not contain \"zzz_nonsense_block\""
   },
   {
     "probe": "ce-gating",

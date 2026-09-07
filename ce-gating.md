@@ -16,7 +16,7 @@ Every fixture is covered. The conformance gate is green.
 - Atlas CE binary under test: `atlas community version v1.3.0`, built from the release tag pinned in `atlas.version`
 - Isolation: every scenario runs logged out — scratch `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` in a fresh temp dir, plus `ATLAS_NO_UPDATE_NOTIFIER=1` and `ATLAS_NO_ANON_TELEMETRY=1` — so a developer's real Atlas login can never leak into the measurement.
 - Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02.
-- Outcomes: **74 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **75 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -52,8 +52,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | ce-gating | `atlas schema apply (role block)` | silent-unenforced | class: silent-unenforced — exit 0; output contains "Schema is synced" |  |
 | — | ok | ce-gating | `atlas schema apply --include` | community-abort | class: community-abort — Abort: 'atlas schema apply --include' is not supported by the community version. |  |
 | — | ok | ce-gating | `atlas schema diff` | works | class: works — exit 0; output contains "ALTER TABLE" |  |
-| — | ok | ce-gating | `atlas schema diff (annotation block, v1.3.0)` | works | class: works — exit 0; output contains "CREATE TABLE"; output does not contain "annotation", "gql" |  |
-| — | ok | ce-gating | `atlas schema diff (column attr: invisible, v1.3.0)` | works | class: works — exit 0; output contains "CREATE TABLE"; output does not contain "INVISIBLE", "invisible" |  |
+| — | ok | ce-gating | `atlas schema diff (annotation block, v1.3.0)` | works | class: works — exit 0; output contains "CREATE TABLE `t` (`id` int NOT NULL);"; output does not contain "annotation", "gql" |  |
+| — | ok | ce-gating | `atlas schema diff (column attr: invisible, v1.3.0)` | works | class: works — exit 0; output contains "CREATE TABLE `t` (`id` int NOT NULL, `secret` int NOT NULL);"; output does not contain "INVISIBLE", "invisible" |  |
 | — | ok | ce-gating | `atlas schema inspect --env (composite_schema)` | named-error | class: named-error — Error: missing data source handler for "composite_schema" |  |
 | — | ok | ce-gating | `atlas schema inspect --env (external_schema)` | named-error | class: named-error — Error: data.external_schema is not supported by the community version of Atlas. |  |
 | — | ok | ce-gating | `atlas schema inspect --include` | unknown-flag | class: unknown-flag — Error: unknown flag: --include |  |
@@ -94,7 +94,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | ce-gating | `control: atlas.hcl file() reads outside content that is not a URL` | named-error | class: named-error — Error: missing scheme. See: https://atlasgo.io/url |  |
 | — | ok | ce-gating | `control: ignored block with a literal value` | works | class: works — exit 0; output does not contain "frobnicate", "undefined_ref" |  |
 | — | ok | ce-gating | `control: nonsense atlas.hcl top-level block` | silent-unenforced | class: silent-unenforced — exit 0; output contains "20260101000003"; output does not contain "drift", "does not match expected state" |  |
-| — | ok | ce-gating | `control: nonsense column attribute` | works | class: works — exit 0; output contains "CREATE TABLE"; output does not contain "zzz_nonsense_attr" |  |
+| — | ok | ce-gating | `control: nonsense column attribute` | works | class: works — exit 0; output contains "CREATE TABLE `t` (`id` int NOT NULL, `secret` int NOT NULL);"; output does not contain "zzz_nonsense_attr" |  |
 | — | ok | ce-gating | `control: nonsense flag on a gated verb` | unknown-flag | class: unknown-flag — Error: unknown flag: --frobnicate-nonsense |  |
 | — | ok | ce-gating | `control: nonsense root verb` | unregistered-command | class: unregistered-command — Error: unknown command "frobnicate-nonsense" for "atlas" |  |
+| — | ok | ce-gating | `control: nonsense schema HCL top-level block` | works | class: works — exit 0; output contains "CREATE TABLE `t` (`id` int NOT NULL);"; output does not contain "zzz_nonsense_block" |  |
 | — | ok | ce-gating | `control: nonsense verb under a registered group` | absent | class: absent — exit 0; the parent group help was printed instead of running the named subcommand |  |

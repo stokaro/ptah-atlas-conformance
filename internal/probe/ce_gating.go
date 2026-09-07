@@ -701,6 +701,27 @@ table "t" {
   }
 }
 `
+	// ceGatingNonsenseSchemaBlockHCL is the control for the row above: the same
+	// document with a name no Atlas release can know, at both places the
+	// annotation fixture uses one -- a top-level declaration and a usage nested
+	// in the table. Both have to be mirrored, or a matching outcome would
+	// explain only the half that was varied.
+	ceGatingNonsenseSchemaBlockHCL = `schema "main" {}
+zzz_nonsense_block "gql" {
+  attr "name" {
+    type = string
+  }
+}
+table "t" {
+  schema = schema.main
+  column "id" {
+    type = int
+  }
+  zzz_nonsense_block {
+    gql = "Thing"
+  }
+}
+`
 	// ceGatingDriftCheckConfig carries the v1.3.0-announced pre-apply drift
 	// check. CE parses the file, ignores the block, and proceeds.
 	ceGatingDriftCheckConfig = `check "migrate_apply" {
@@ -1271,7 +1292,10 @@ func ceGatingScenarios() []ceGatingScenario {
 				"--from", "file://from.hcl", "--to", "file://to.hcl", "--dev-url", ceGatingSQLiteDevURL},
 			expected: CEGatingWorks,
 			rules: CEGatingRules{
-				SuccessFragments:       []string{"CREATE TABLE"},
+				// The whole statement, not the keyword: a construct that added
+				// a column or a second statement would still contain "CREATE
+				// TABLE", and the pair exists to show it contributed nothing.
+				SuccessFragments:       []string{"CREATE TABLE `t` (`id` int NOT NULL, `secret` int NOT NULL);"},
 				SuccessAbsentFragments: []string{"INVISIBLE", "invisible"},
 			},
 		},
@@ -1287,7 +1311,10 @@ func ceGatingScenarios() []ceGatingScenario {
 				"--from", "file://from.hcl", "--to", "file://to.hcl", "--dev-url", ceGatingSQLiteDevURL},
 			expected: CEGatingWorks,
 			rules: CEGatingRules{
-				SuccessFragments:       []string{"CREATE TABLE"},
+				// The whole statement, not the keyword: a construct that added
+				// a column or a second statement would still contain "CREATE
+				// TABLE", and the pair exists to show it contributed nothing.
+				SuccessFragments:       []string{"CREATE TABLE `t` (`id` int NOT NULL, `secret` int NOT NULL);"},
 				SuccessAbsentFragments: []string{"zzz_nonsense_attr"},
 			},
 		},
@@ -1304,8 +1331,34 @@ func ceGatingScenarios() []ceGatingScenario {
 				"--from", "file://from.hcl", "--to", "file://to.hcl", "--dev-url", ceGatingSQLiteDevURL},
 			expected: CEGatingWorks,
 			rules: CEGatingRules{
-				SuccessFragments:       []string{"CREATE TABLE"},
+				// The whole statement, not the keyword: a construct that added
+				// a column or a second statement would still contain "CREATE
+				// TABLE", and the pair exists to show it contributed nothing.
+				SuccessFragments:       []string{"CREATE TABLE `t` (`id` int NOT NULL);"},
 				SuccessAbsentFragments: []string{"annotation", "gql"},
+			},
+		},
+		{
+			// Identical setup and identical measured argv as the row above,
+			// differing only in the block name. Without it, CE emitting no
+			// annotation reads as "CE understands the block and renders
+			// nothing for it"; with it, the same outcome under a name nothing
+			// could know shows the block is dropped because CE does not know
+			// it. Measured on the pinned binary: both invocations print the
+			// same two lines, byte for byte.
+			fixture: "control: nonsense schema HCL top-level block",
+			setup: func(rt *ceGatingRuntime) error {
+				if err := rt.writeFile("from.hcl", ceGatingEmptySchemaHCL); err != nil {
+					return err
+				}
+				return rt.writeFile("to.hcl", ceGatingNonsenseSchemaBlockHCL)
+			},
+			argv: []string{"schema", "diff",
+				"--from", "file://from.hcl", "--to", "file://to.hcl", "--dev-url", ceGatingSQLiteDevURL},
+			expected: CEGatingWorks,
+			rules: CEGatingRules{
+				SuccessFragments:       []string{"CREATE TABLE `t` (`id` int NOT NULL);"},
+				SuccessAbsentFragments: []string{"zzz_nonsense_block"},
 			},
 		},
 
