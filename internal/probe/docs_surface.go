@@ -173,12 +173,42 @@ func docsUniverseExcluded(path string) bool {
 // FetchDocsSitemap downloads the sitemap document from url. The caller owns
 // the timeout via ctx; any transport or status failure is an infrastructure
 // error, not a docs gap.
+// fetchDocsSitemapWith is [FetchDocsSitemap] with the client supplied. A nil
+// client selects the default, so the exported behavior is unchanged; a test
+// supplies one whose transport fails the test if it is ever used, which is how
+// "the snapshot source issues no request" is asserted rather than assumed.
+func fetchDocsSitemapWith(ctx context.Context, client *http.Client, url string) ([]byte, error) {
+	if client == nil {
+		return FetchDocsSitemap(ctx, url)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build sitemap request: %w", err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("fetch sitemap: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fetch sitemap %s: unexpected status %s", url, resp.Status)
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxDocsSitemapBytes+1))
+	if err != nil {
+		return nil, fmt.Errorf("read sitemap body: %w", err)
+	}
+	if len(body) > maxDocsSitemapBytes {
+		return nil, fmt.Errorf("sitemap larger than %d bytes", maxDocsSitemapBytes)
+	}
+	return body, nil
+}
+
 func FetchDocsSitemap(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("build sitemap request: %w", err)
 	}
-	resp, err := (&http.Client{}).Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetch sitemap: %w", err)
 	}
