@@ -474,12 +474,24 @@ func sqliteMigrateTxModeAllDiagnosticUsesAvailableFlags(bin string) Result {
 	if strings.Contains(stderr, "--skip-checks") {
 		return migrateRuntimeGap(fixture, "diagnostic", "tx-mode all diagnostic suggests unavailable compat flag --skip-checks: "+oneLine(stderr))
 	}
-	const expected = "migration 2 declares pre-migration checks, which cannot run with tx-mode all; use the default per-file transaction mode"
-	if !strings.Contains(stderr, expected) {
-		return migrateRuntimeGap(fixture, "stderr", "expected check-specific tx-mode diagnostic on stderr: "+oneLine(stderr))
+	// Two fragments rather than one sentence. What this fixture is about is
+	// that the diagnostic is check-specific -- it names the migration, the
+	// reason tx-mode all cannot run the check, and the mode to use instead --
+	// not the prose Ptah happens to join them with. Pinning the whole sentence
+	// made the fixture fail when Ptah kept all three and added its reasoning
+	// between them, which is a better message reported as a conformance gap.
+	expected := []string{
+		"migration 2 declares pre-migration checks, which cannot run with tx-mode all",
+		"use the default per-file transaction mode",
 	}
-	if strings.Contains(stdout, expected) {
-		return migrateRuntimeGap(fixture, "stdout", "tx-mode diagnostic leaked to stdout: "+oneLine(stdout))
+	for _, fragment := range expected {
+		if !strings.Contains(stderr, fragment) {
+			return migrateRuntimeGap(fixture, "stderr",
+				"expected check-specific tx-mode diagnostic on stderr: "+oneLine(stderr))
+		}
+		if strings.Contains(stdout, fragment) {
+			return migrateRuntimeGap(fixture, "stdout", "tx-mode diagnostic leaked to stdout: "+oneLine(stdout))
+		}
 	}
 	return Result{migrateRuntimeProbeName, fixture, "diagnostic", OK,
 		"tx-mode all rejected a pre-migration check with exit 1 and the diagnostic on stderr without suggesting unavailable compat flag --skip-checks", ""}
@@ -605,14 +617,14 @@ func mysqlMigrateApplyDryRunReadsStoredState(bin, dbURL, label string) Result {
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	if result := resetMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	baseArgs := []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", mysqlRuntimeURLForSchema(dbURL, schema),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	}

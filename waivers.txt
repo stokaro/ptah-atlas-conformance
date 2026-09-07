@@ -14,44 +14,24 @@
 # it yet" — NOT "this is fine forever". Keep this list as short as honesty allows.
 # An empty list means: nothing is intentionally skipped, so every open gap is red.
 #
-# Four waivers from one event: moving the Ptah pin from the 2026-08-09
-# pseudo-version to v0.4.0 (#287). Three more were written and then removed --
-# their fixtures were repaired instead, which is the outcome a waiver exists to
-# make possible rather than to replace. Each was OK before that move, and each still
-# carries a probe-recorded issue reference whose issue is CLOSED -- so none of
-# them is the gap that reference describes. They are what a month of Ptah
-# releases did to fixtures written against the older build, and #288 owns
-# deciding, one at a time, which of the two each is: Ptah moved wrongly, or the
-# fixture went stale.
+# The list is empty, and the eleven migrate-runtime waivers that stood here were
+# not absorbed anywhere -- their fixtures were repaired, which is the outcome a
+# waiver exists to make possible rather than to replace.
 #
-# They are waived rather than absorbed into gap-budget.txt, which is 0. Raising
-# that number to 7 would hide seven distinct questions behind one, and the
-# budget's own comment says to lower it as support improves, not to raise it as
-# fixtures age. These come out one at a time as each is answered.
-
-
-# The migrate-runtime tier's eleven, all from the same pin bump (#289).
+# Ten were one cause, and this file already named the question: "whether the
+# harness should connect scoped or the refusal is stricter than Atlas is
+# undecided, and #289 says what measurement would settle it." The measurement
+# settles it for the harness. `migrate apply` was run twice against the same
+# MySQL 8.4 server on the same one-statement migration naming a scratch
+# database: connected elsewhere it is refused, connected to that database it
+# applies. Ptah's refusal is its documented tx-mode file contract -- it verifies
+# every target table is InnoDB by reading information_schema for the connection's
+# schema, and cannot make that guarantee for a database it is not connected to --
+# and the diagnostic prescribes the fix it now gets: "use a connection scoped to
+# that database or tx-mode none". The cross-database form was incidental
+# scaffolding for an isolated scratch schema, not the behavior those cells
+# measure.
 #
-# Ten are one cause: v0.4.0 refuses a tx-mode file migration whose statements
-# name a database other than the connected one -- deliberate, from
-# stokaro/ptah#1356, because MySQL's implicit commits make such a migration
-# unsafe to treat as one unit. Every cell here creates a run-scoped database,
-# qualifies its statements with it, and connects elsewhere, so all five cells of
-# each MySQL-family engine hit it.
-#
-# Whether the harness should connect scoped or the refusal is stricter than
-# Atlas is undecided, and #289 says what measurement would settle it. Waived
-# rather than absorbed into the budget of 1, which the pre-existing sqlite
-# finding already fills.
-migrate-runtime sqlite/tx-mode-all-diagnostic stderr   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mysql/apply-state apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mysql/apply-dry-run-stored-state seed   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mysql/txtar-check-comment-semantics apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mysql/txtar-check-hidden-statements diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mysql/txtar-check-short-numeric-body diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mariadb/apply-state apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mariadb/apply-dry-run-stored-state seed   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mariadb/txtar-check-comment-semantics apply   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mariadb/txtar-check-hidden-statements diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-migrate-runtime mariadb/txtar-check-short-numeric-body diagnostic   the v0.4.0 tx-mode file cross-database refusal, or a harness that must connect scoped (#289)
-
+# The eleventh was a transcription: the fixture pinned Ptah's exact sentence for
+# the tx-mode all check refusal, and v0.4.0 kept every part of it while adding
+# its reasoning between them. It now asserts the parts that carry the meaning.
