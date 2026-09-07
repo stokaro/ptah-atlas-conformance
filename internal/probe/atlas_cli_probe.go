@@ -3,6 +3,7 @@ package probe
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -472,18 +473,72 @@ func ptahCompatAtlasBinary() (string, error) {
 	return ptahCompatBinPath, ptahCompatBinErr
 }
 
+// buildPtahCommand builds one of Ptah's command binaries at the version this
+// module pins.
+//
+// It builds inside a module of its own rather than this one, and that is the
+// whole point. Ptah's command tree lives under `internal/` since v0.4.0, so no
+// import from here can reach it, and `cmd/ptah` is a main package, which cannot
+// be imported at all. Building in this module therefore required this module's
+// go.mod to carry Ptah's entire CLI dependency closure -- cobra, the runtimevar
+// drivers and the AWS and Google Cloud SDKs behind them, an MCP SDK, x/term --
+// anchored by a `tools.go` full of blank imports that nothing here uses.
+//
+// That list was a copy of Ptah's dependencies kept in another repository, and
+// it drifts the moment Ptah adds one: `go mod tidy` prunes what no import
+// mentions, and the next probe run cannot build the binary it measures. A
+// throwaway module requiring ptah.run has no list to keep. Ptah's own go.mod
+// resolves Ptah's own closure, which is the only place that answer is correct.
 func buildPtahCommand(binaryName, packagePath string) (string, error) {
+	version, err := pinnedPtahVersion()
+	if err != nil {
+		return "", err
+	}
 	dir, err := os.MkdirTemp("", "ptah-cli-*")
 	if err != nil {
 		return "", err
 	}
+	moduleDir := filepath.Join(dir, "build")
+	if err := os.Mkdir(moduleDir, 0o750); err != nil {
+		return "", err
+	}
+	// The require is written directly rather than through `go mod init` plus
+	// `go get`, so the version is this module's pin and nothing can resolve a
+	// newer one: the binary under measurement has to be the binary this
+	// repository claims to measure.
+	goMod := "module ptahbuild\n\ngo 1.21\n\nrequire " + ptahModulePath + " " + version + "\n"
+	if err := os.WriteFile(filepath.Join(moduleDir, "go.mod"), []byte(goMod), 0o600); err != nil {
+		return "", err
+	}
 	bin := filepath.Join(dir, binaryName)
 	cmd := exec.Command("go", "build", "-o", bin, packagePath)
-	cmd.Env = append(os.Environ(), "GOWORK=off")
+	cmd.Dir = moduleDir
+	// -mod=mod lets the throwaway module record the checksums it resolves;
+	// readonly would refuse on a go.mod with no go.sum beside it.
+	cmd.Env = append(os.Environ(), "GOWORK=off", "GOFLAGS=-mod=mod")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return "", wrapBuildErr(err, out)
 	}
 	return bin, nil
+}
+
+// pinnedPtahVersion reports the ptah.run version this module requires.
+//
+// It is read from the build list rather than parsed out of go.mod, so a
+// replace directive or a newer indirect requirement gives the version that
+// would actually be built here.
+func pinnedPtahVersion() (string, error) {
+	cmd := exec.Command("go", "list", "-m", "-f", "{{.Version}}", ptahModulePath)
+	cmd.Env = append(os.Environ(), "GOWORK=off")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("reading the pinned %s version: %w", ptahModulePath, err)
+	}
+	version := strings.TrimSpace(string(out))
+	if version == "" {
+		return "", fmt.Errorf("no %s version in the build list", ptahModulePath)
+	}
+	return version, nil
 }
 
 func wrapBuildErr(err error, out []byte) error {

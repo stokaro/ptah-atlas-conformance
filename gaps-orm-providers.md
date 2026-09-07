@@ -12,7 +12,7 @@ mismatches are tracked against `stokaro/ptah#669`.
 - GORM provider: `ariga.io/atlas-provider-gorm@v0.6.1`
 - SQLAlchemy provider: `atlas-provider-sqlalchemy==0.5.2`
 - SQLAlchemy: `SQLAlchemy==2.0.52`
-- Ptah at `ptah.run v0.4.0`
+- Ptah at `ptah.run v0.4.1-0.20260907135122-7362584251f0`
 - Outcomes: **4 ok**, **0 gap**, **0 fail**, **0 panic**
 
 ## Findings

@@ -14,16 +14,15 @@ the dedicated CE-gating report. Rows under `atlas-cli-pro-surface-ptah-compat`
 separately require the long flags documented by the public Atlas CLI Reference
 but absent from CE help, so CE parity cannot hide missing full-distribution surface.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: CLI SURFACE PARITY
 
-The full CLI-surface gate is red until Ptah's drop-in compatibility binary
-matches the pinned Atlas CE help surface and documented Pro-surface flags.
+Every discovered OSS Atlas CE command and documented Pro-surface flag is present.
 
 - Atlas CE binary: `atlas community version v1.3.0`
-- Ptah at `ptah.run v0.4.0`
-- Outcomes: **111 ok**, **1 gap**, **0 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **1 unwaived non-OK**, 0 waived
+- Ptah at `ptah.run v0.4.1-0.20260907135122-7362584251f0`
+- Outcomes: **112 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 
 ## Atlas CE Inventory
 
@@ -53,10 +52,10 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 
 | Gate | Outcome | Probe | Command | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-cli-pro-surface-ptah-compat | `atlas schema diff` | required-flags | missing documented Pro-surface flags: --web | #951 |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas migrate apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lock --to-version |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lint --skip-lock |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema clean` | required-flags | documented Pro-surface flags are present: --exclude --include |  |
+| — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema diff` | required-flags | documented Pro-surface flags are present: --export --web |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema inspect` | required-flags | documented Pro-surface flags are present: --export --include --output --web |  |
 | — | ok | atlas-cli-surface-inventory | `atlas` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
 | — | ok | atlas-cli-surface-inventory | `atlas license` | classify | Atlas CE command is an OSS parity target: present in Atlas CE and not cloud-gated |  |
@@ -165,7 +164,3 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | availability-boundary | `atlas schema test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | flags | exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | usage | usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#951** — 1 finding(s)

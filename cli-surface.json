@@ -381,9 +381,8 @@
     "probe": "atlas-cli-pro-surface-ptah-compat",
     "fixture": "atlas schema diff",
     "stage": "required-flags",
-    "outcome": "gap",
-    "detail": "missing documented Pro-surface flags: --web",
-    "issue": "stokaro/ptah#951"
+    "outcome": "ok",
+    "detail": "documented Pro-surface flags are present: --export --web"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",
