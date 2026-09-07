@@ -1,4 +1,11 @@
 # Maximum allowed unwaived non-OK observations in gaps-migrate-runtime.json.
 # Lower this whenever Ptah runtime behavior matches Atlas on another measured
 # contour; CI fails on regressions above it.
-1
+#
+# 1 -> 0. The last finding was a comparison of two SQLite drivers rather than of
+# two tools: Ptah embeds modernc.org/sqlite and the pinned Atlas binary embeds
+# mattn/go-sqlite3, and one records "SQL logic error: no such table: t (1)"
+# where the other records "no such table: t". The comparison now reads the
+# message SQLite produced on both sides, the way executed_at is compared by
+# storage class rather than by value.
+0

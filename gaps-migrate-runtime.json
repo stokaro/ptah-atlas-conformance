@@ -195,9 +195,8 @@
     "probe": "migrate-runtime",
     "fixture": "sqlite/per-file-txmode/revision-bookkeeping",
     "stage": "compare",
-    "outcome": "gap",
-    "detail": "full stable revision metadata differs in 3/7 body-execution cells: global-file-directive-none revision 1 differs: error=\"SQL logic error: no such table: txmode_missing (1)\", Atlas=\"no such table: txmode_missing\"; global-none-directive-absent revision 1 differs: error=\"SQL logic error: no such table: txmode_missing (1)\", Atlas=\"no such table: txmode_missing\"; global-none-directive-none revision 1 differs: error=\"SQL logic error: no such table: txmode_missing (1)\", Atlas=\"no such table: txmode_missing\"",
-    "issue": "stokaro/ptah#887"
+    "outcome": "ok",
+    "detail": "all seven body-execution cells match Atlas CE full stable revision metadata"
   },
   {
     "probe": "migrate-runtime",
