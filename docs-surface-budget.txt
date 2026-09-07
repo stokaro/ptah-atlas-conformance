@@ -2,4 +2,18 @@
 # Ratchet this down as atlasgo.io docs pages get triaged in
 # docs-surface-registry.json; CI fails on regressions above it.
 # Seed state: 322 of 351 pages are untriaged (29 are triaged as cloud).
-322
+#
+# 2026-09-07: 322 -> 338. Upstream published sixteen pages -- five dbt guides,
+# two Redshift security guides, two YugabyteDB guides, two competitor
+# comparisons, a ClickHouse WASM guide, a database-per-tenant guide, a security
+# scanning guide, a Kubernetes versioned quickstart and a data-scripts page --
+# and each joined the backlog its own family already sits in: every existing
+# /guides/redshift, /guides/yugabyte, /guides/clickhouse and
+# /integrations/kubernetes page is untriaged too. Triaging the new ones while
+# their siblings are undecided would record a scope verdict nobody took, and an
+# out-of-scope on a page Ptah should cover hides the gap instead of naming it.
+#
+# The ceiling therefore tracks what upstream publishes, and the ratchet applies
+# to the backlog: this number goes down when pages get triaged, never when Atlas
+# writes fewer docs.
+338

@@ -8,20 +8,20 @@ page from `docs-surface-registry.json`, so parity is measured against the full
 Atlas documentation surface: an untriaged, unregistered, or vanished page is a
 gap until the registry catches up.
 
-## Status: NOT DONE — 322 non-OK observation(s)
+## Status: NOT DONE — 338 non-OK observation(s)
 
 The full docs-surface gate is red until every atlasgo.io docs page is triaged
 and the registry matches the sitemap universe.
 
-- Docs universe: **351 page(s)** from the atlasgo.io sitemap (committed snapshot `docs-surface-snapshot.txt`)
+- Docs universe: **365 page(s)** from the atlasgo.io sitemap (committed snapshot `docs-surface-snapshot.txt`)
 - Ptah at `ptah.run v0.4.0`
-- Outcomes: **29 ok**, **322 gap**, **0 fail**, **0 panic**
-- Full gate: **322 non-OK** (fails CI)
-- Regression budget input: **322 unwaived non-OK**, 0 waived
+- Outcomes: **27 ok**, **338 gap**, **0 fail**, **0 panic**
+- Full gate: **338 non-OK** (fails CI)
+- Regression budget input: **338 unwaived non-OK**, 0 waived
 
 ## Docs Universe Summary
 
-Universe: **351 page(s)** after the docs-universe filter.
+Universe: **365 page(s)** after the docs-universe filter.
 
 ### Pages per triage status
 
@@ -31,9 +31,9 @@ Universe: **351 page(s)** after the docs-universe filter.
 | partial | 0 |
 | gap | 0 |
 | pro | 0 |
-| cloud | 29 |
+| cloud | 27 |
 | out-of-scope | 0 |
-| untriaged | 322 |
+| untriaged | 338 |
 
 ### Pages per docs section
 
@@ -42,8 +42,9 @@ Universe: **351 page(s)** after the docs-universe filter.
 | `atlas-schema` | 7 |
 | `cli` | 1 |
 | `cli-reference` | 1 |
-| `cloud` | 17 |
+| `cloud` | 15 |
 | `community-edition` | 1 |
+| `compare` | 2 |
 | `concepts` | 4 |
 | `contributing` | 1 |
 | `custom-drivers` | 1 |
@@ -52,14 +53,14 @@ Universe: **351 page(s)** after the docs-universe filter.
 | `docs` | 1 |
 | `features` | 1 |
 | `getting-started` | 9 |
-| `guides` | 218 |
+| `guides` | 230 |
 | `hcl` | 19 |
 | `inspect` | 2 |
-| `integrations` | 25 |
+| `integrations` | 26 |
 | `lint` | 2 |
 | `monitoring` | 12 |
 | `orms` | 2 |
-| `scripts` | 6 |
+| `scripts` | 7 |
 | `testing` | 3 |
 | `versioned` | 13 |
 
@@ -83,6 +84,8 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/cli-reference` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/cli/data-privacy` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/community-edition` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/compare/flyway-vs-atlas` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/compare/liquibase-vs-atlas` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/concepts/declarative-vs-versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/concepts/dev-database` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/concepts/migration-directory-integrity` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -142,14 +145,21 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/clickhouse/seed-data` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/clickhouse/session-settings` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/clickhouse/supported-objects` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/clickhouse/wasm` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/cockroachdb/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-per-tenant/control-plane` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/database-per-tenant/declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-per-tenant/deploying` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-per-tenant/intro` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-per-tenant/rollout` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-per-tenant/target-groups` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-schema-as-context` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/databricks/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/dbt/atlas-vs-dbt` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/dbt/clickhouse` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/dbt/drift-detection` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/dbt/large-table-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/dbt/schema-management` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/deploying/aws-ecs-fargate` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/deploying/cloud-sql-via-github-actions` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/deploying/connect-to-db-from-github-actions` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -297,11 +307,14 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/postgres/unlogged-tables` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/redshift/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/redshift/lineage-graph` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/redshift/security-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/redshift/security-versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/reviewed-approved-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/rls-policy` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/schema-health-check` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/schema-ownership` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/security-as-code` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/security-scan` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/seed-data-as-code` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/snowflake/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/snowflake/lineage-graph` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -323,6 +336,8 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/testing/triggers` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/testing/views` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/yugabyte/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/yugabyte/distributed-schema-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/guides/yugabyte/distributed-schema-versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/hcl/agent` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/hcl/clickhouse` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/hcl/config` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -363,6 +378,7 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/integrations/kubernetes/project-configuration` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/integrations/kubernetes/quickstart` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/integrations/kubernetes/versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/integrations/kubernetes/versioned-quickstart` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/integrations/terraform-provider` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/integrations/terraform/ad-hoc-approval` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/integrations/terraform/declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -375,6 +391,7 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/orms/why-atlas-for-your-orm` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/scripts` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/scripts/exec` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
+| **RED** | **gap** | docs-surface | `/scripts/kubernetes` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/scripts/loop` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/scripts/masking` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/scripts/query` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -396,22 +413,20 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/versioned/setup-cicd` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/versioned/troubleshoot` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | — | ok | docs-surface | `/cloud/agents` | triage | cloud |  |
-| — | ok | docs-surface | `/cloud/auditlog` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/aws-marketplace` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/bots` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/deployment` | triage | cloud |  |
-| — | ok | docs-surface | `/cloud/directories` | triage | cloud |  |
+| — | ok | docs-surface | `/cloud/features/auditlog` | triage | cloud — moved under /cloud/features/ upstream; same Atlas Cloud audit log page |  |
 | — | ok | docs-surface | `/cloud/features/lineage-graph` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/features/pre-migration-checks` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/features/registry` | triage | cloud |  |
-| — | ok | docs-surface | `/cloud/features/roles-and-permissions` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/features/schema-docs` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/features/security-graph` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/features/slack` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/features/troubleshooting` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/getting-started` | triage | cloud |  |
 | — | ok | docs-surface | `/cloud/pricing` | triage | cloud |  |
-| — | ok | docs-surface | `/cloud/setup-ci` | triage | cloud |  |
+| — | ok | docs-surface | `/cloud/roles-and-permissions` | triage | cloud — moved out of /cloud/features/ upstream; same Atlas Cloud roles page |  |
 | — | ok | docs-surface | `/monitoring` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/bitbucket-quickstart` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/discovery` | triage | cloud |  |
