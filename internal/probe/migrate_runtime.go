@@ -1517,14 +1517,14 @@ func mysqlMigrateApplyRecordsState(bin, dbURL, label string) Result {
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	if result := resetMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", mysqlRuntimeURLForSchema(dbURL, schema),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	})
@@ -1569,14 +1569,14 @@ func mysqlMigrateTxtarCheckCommentSemantics(bin, dbURL, label string) Result {
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	if result := resetMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", mysqlRuntimeURLForSchema(dbURL, schema),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	})
@@ -1649,14 +1649,14 @@ func runMySQLTxtarCheckFailure(
 	if result := migrateRuntimeHash(bin, migrations, fixture); result != nil {
 		return *result
 	}
-	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+	if result := resetMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
 		return *result
 	}
 	defer cleanupMySQLRuntimeSchema(dbURL, schema, fixture) //nolint:errcheck
 
 	output, err := commandOutput(bin, []string{
 		"migrate", "apply",
-		"--url", dbURL,
+		"--url", mysqlRuntimeURLForSchema(dbURL, schema),
 		"--dir", fileURL(migrations),
 		"--revisions-schema", schema,
 	})
@@ -2131,6 +2131,65 @@ func cleanupPostgresRuntimeSchema(dbURL, schema, fixture string) *Result {
 	_, err = conn.ExecContext(context.Background(), "DROP SCHEMA IF EXISTS "+quotePostgresIdentifier(schema)+" CASCADE")
 	if err != nil {
 		result := migrateRuntimeFail(fixture, "cleanup", err)
+		return &result
+	}
+	return nil
+}
+
+// mysqlRuntimeURLForSchema returns dbURL with its database replaced by schema.
+//
+// The MySQL-family fixtures migrate a scratch database of their own, and the
+// statements they apply name it. Ptah refuses that under tx-mode file when the
+// connection is scoped somewhere else -- it verifies every target table is
+// InnoDB by reading information_schema for the connection's schema, and it
+// cannot make that guarantee for a database it is not connected to. The message
+// says as much: "use a connection scoped to that database or tx-mode none".
+//
+// So the fixture connects where a user would. Scoping the URL is not a way
+// around the refusal; it is the supported spelling of what these fixtures are
+// for, and the cross-database form they used instead was incidental scaffolding.
+//
+// Both URL shapes CI and local runs use are handled: the driver DSN form
+// mysql://user:pw@tcp(host:port)/db and the plain mysql://user:pw@host:port/db.
+// The authority never contains a slash in either, so the first one after the
+// scheme starts the database, and anything from "?" on is carried through.
+func mysqlRuntimeURLForSchema(dbURL, schema string) string {
+	scheme, rest, ok := strings.Cut(dbURL, "://")
+	if !ok {
+		return dbURL
+	}
+	authority, tail, ok := strings.Cut(rest, "/")
+	if !ok {
+		return dbURL + "/" + schema
+	}
+	suffix := ""
+	if _, query, found := strings.Cut(tail, "?"); found {
+		suffix = "?" + query
+	}
+	return scheme + "://" + authority + "/" + schema + suffix
+}
+
+// resetMySQLRuntimeSchema drops the scratch database and creates it empty.
+//
+// Creating it is the fixture's job now that the connection is scoped to it: a
+// connection cannot select a database that does not exist. It used to appear as
+// a side effect of Ptah provisioning the revisions schema, which made the
+// fixture depend on the order two unrelated things happened in.
+func resetMySQLRuntimeSchema(dbURL, schema, fixture string) *Result {
+	if result := cleanupMySQLRuntimeSchema(dbURL, schema, fixture); result != nil {
+		return result
+	}
+	conn, err := openMigrateRuntimeConnection(dbURL)
+	if err != nil {
+		result := migrateRuntimeFail(fixture, "setup", err)
+		return &result
+	}
+	defer func() { _ = conn.Close() }()
+	if _, err := conn.ExecContext(
+		context.Background(),
+		"CREATE SCHEMA "+quoteMySQLIdentifier(schema),
+	); err != nil {
+		result := migrateRuntimeFail(fixture, "setup", err)
 		return &result
 	}
 	return nil
