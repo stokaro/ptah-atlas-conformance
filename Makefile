@@ -1,4 +1,4 @@
-.PHONY: fmt-check probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime check-budget-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
+.PHONY: test-style fmt-check probe budget gate probe-live budget-live gate-live probe-diff budget-diff gate-diff probe-migrate-runtime check-budget-migrate-runtime budget-migrate-runtime gate-migrate-runtime probe-orm-providers budget-orm-providers gate-orm-providers probe-cli-surface budget-cli-surface gate-cli-surface probe-ce-gating budget-ce-gating gate-ce-gating probe-docs-surface budget-docs-surface gate-docs-surface verify-cli-exit-oracle atlas verify test build vet clean
 
 GO ?= go
 GO_OFF := GOWORK=off $(GO)
@@ -220,7 +220,24 @@ fmt-check:
 		[ -z "$$unformatted" ] || { echo "not gofmt-clean:"; echo "$$unformatted" | sed 's/^/  /'; exit 1; }
 	@echo "ok"
 
-verify: fmt-check test build vet
+
+# The declarative-test standard: no if/switch inside a test function, and a
+# same-package test file named *_internal_test.go carrying its justification.
+#
+# The scan corpus comes from git rather than from a filesystem walk, and the
+# script says why at length: `teststyle -root .` prunes by directory NAME, and a
+# linked worktree's root is an ordinary directory whose `.git` is a file, so a
+# walk descends into every checkout parked here and judges another branch's
+# tests against this baseline -- and `-write-baseline` would bake those foreign
+# paths in. Always go through the script, never the bare tool.
+#
+# .teststyle-baseline.json is the debt this repository started with, reviewed in
+# one named file. It may shrink and must not grow: a new violation fails here,
+# and refreshing it is a deliberate `--write-baseline` run.
+test-style:
+	@scripts/check-test-style.sh
+
+verify: fmt-check test-style test build vet
 	@echo "checking no Apache-licensed material outside third_party/ ..."
 	@! grep -rIl "Apache License" --include='*.go' . | grep -v '/third_party/' || \
 		{ echo "Apache-licensed material found outside third_party/"; exit 1; }

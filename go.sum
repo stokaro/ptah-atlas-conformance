@@ -172,6 +172,8 @@ github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp
 github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
 github.com/sijms/go-ora/v3 v3.0.1 h1:BU9j2MEji/hqprUFvY8DBbnfmVrt5TpVf4ngy9tqpWY=
 github.com/sijms/go-ora/v3 v3.0.1/go.mod h1:9NMI4/C/J9ExE/YNgQQlZXic2U1aCLHchJmmnDOK0jM=
+github.com/stokaro/teststyle v0.2.0 h1:jCyBstcPX+doEkmw5jRoiwPj/9I3srYyI27avIB+7kY=
+github.com/stokaro/teststyle v0.2.0/go.mod h1:/eSKEwaWErHF/URpcA0yaXLbNOD5951tH4y89wX2zio=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
@@ -273,7 +275,5 @@ modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
 modernc.org/token v1.1.0/go.mod h1:UGzOrNV1mAFSEB63lOFHIpNRUVMvYTc6yu1SMY/XTDM=
 oras.land/oras-go/v2 v2.6.2 h1:N04RXngAp1LJKTG6ifz3xHPipasEkWr+hFmInja5YKo=
 oras.land/oras-go/v2 v2.6.2/go.mod h1:PlTtg4JTDJkDe8yVHpM2wz7/YDc00GVas+i4jAW2TZ4=
-ptah.run v0.4.1-0.20260907135122-7362584251f0 h1:TW6jmTVntao0Zvaciqil+O3U+GvOq/SpFN/lj/K0StU=
-ptah.run v0.4.1-0.20260907135122-7362584251f0/go.mod h1:yPRbxbR8eQcBWgKMxFr7jcCJH+SFl0/fWN7mDd1gc3c=
 ptah.run v0.4.1-0.20260907150813-efe7559b7282 h1:tFnSlZLj1MM2Py96qI/sR4m/XkMF4buoewaVTBtQ72k=
 ptah.run v0.4.1-0.20260907150813-efe7559b7282/go.mod h1:yPRbxbR8eQcBWgKMxFr7jcCJH+SFl0/fWN7mDd1gc3c=
