@@ -38,6 +38,11 @@ func runAtlasSchemaCleanFormatDryRun(bin string) Result {
 	}
 	defer os.RemoveAll(dir)
 
+	// Full surface, deliberately: `schema clean` takes neither --dry-run nor
+	// --format on Atlas CE, so these rows measure a Ptah capability rather
+	// than a CE contract. Under the CE-only policy the command is refused by
+	// design, and the refusal would be recorded as a gap -- capability loss
+	// reading as parity, which is what keeps the selection per row.
 	output, err := commandOutputDir(bin, []string{
 		"schema", "clean",
 		"--url", "sqlite://" + dbPath + "?password=hidden",
@@ -68,7 +73,7 @@ func runAtlasSchemaCleanFormatDryRun(bin string) Result {
 		}
 	}
 
-	inspectOutput, err := commandOutputDir(bin, []string{
+	inspectOutput, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "inspect",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ json . }}",
@@ -97,6 +102,11 @@ func runAtlasSchemaCleanInvalidFormatBeforeConnect(bin string) Result {
 	defer os.RemoveAll(dir)
 
 	dbPath := filepath.Join(dir, "should-not-exist.db")
+	// Full surface, deliberately: `schema clean` takes neither --dry-run nor
+	// --format on Atlas CE, so these rows measure a Ptah capability rather
+	// than a CE contract. Under the CE-only policy the command is refused by
+	// design, and the refusal would be recorded as a gap -- capability loss
+	// reading as parity, which is what keeps the selection per row.
 	output, err := commandOutputDir(bin, []string{
 		"schema", "clean",
 		"--url", "sqlite://" + dbPath,
@@ -129,6 +139,11 @@ func runAtlasSchemaCleanFormatApply(bin string) Result {
 	}
 	defer os.RemoveAll(dir)
 
+	// Full surface, deliberately: `schema clean` takes neither --dry-run nor
+	// --format on Atlas CE, so these rows measure a Ptah capability rather
+	// than a CE contract. Under the CE-only policy the command is refused by
+	// design, and the refusal would be recorded as a gap -- capability loss
+	// reading as parity, which is what keeps the selection per row.
 	output, err := commandOutputDir(bin, []string{
 		"schema", "clean",
 		"--url", "sqlite://" + dbPath + "?password=hidden",
@@ -157,7 +172,7 @@ func runAtlasSchemaCleanFormatApply(bin string) Result {
 		}
 	}
 
-	inspectOutput, err := commandOutputDir(bin, []string{
+	inspectOutput, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "inspect",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ json . }}",
@@ -184,6 +199,11 @@ func runAtlasSchemaCleanActualInvalidFormatBeforeApply(bin string) Result {
 	}
 	defer os.RemoveAll(dir)
 
+	// Full surface, deliberately: `schema clean` takes neither --dry-run nor
+	// --format on Atlas CE, so these rows measure a Ptah capability rather
+	// than a CE contract. Under the CE-only policy the command is refused by
+	// design, and the refusal would be recorded as a gap -- capability loss
+	// reading as parity, which is what keeps the selection per row.
 	output, err := commandOutputDir(bin, []string{
 		"schema", "clean",
 		"--url", "sqlite://" + dbPath,
@@ -200,7 +220,7 @@ func runAtlasSchemaCleanActualInvalidFormatBeforeApply(bin string) Result {
 			"stokaro/ptah#629"}
 	}
 
-	inspectOutput, err := commandOutputDir(bin, []string{
+	inspectOutput, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "inspect",
 		"--url", "sqlite://" + dbPath,
 		"--format", "{{ json . }}",
@@ -240,7 +260,7 @@ func createAtlasSchemaCleanSQLiteFixture(bin, name string) (string, string, *sch
 		return "", "", &schemaCleanSetupError{stage: "setup", detail: "writing schema file failed: " + oneLine(err.Error())}
 	}
 
-	applyOutput, err := commandOutputDir(bin, []string{
+	applyOutput, err := commandOutputDirStrictCE(bin, []string{
 		"schema", "apply",
 		"--url", "sqlite://" + dbPath,
 		"--to", "file://" + schemaPath,
