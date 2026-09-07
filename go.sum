@@ -275,3 +275,5 @@ oras.land/oras-go/v2 v2.6.2 h1:N04RXngAp1LJKTG6ifz3xHPipasEkWr+hFmInja5YKo=
 oras.land/oras-go/v2 v2.6.2/go.mod h1:PlTtg4JTDJkDe8yVHpM2wz7/YDc00GVas+i4jAW2TZ4=
 ptah.run v0.4.1-0.20260907135122-7362584251f0 h1:TW6jmTVntao0Zvaciqil+O3U+GvOq/SpFN/lj/K0StU=
 ptah.run v0.4.1-0.20260907135122-7362584251f0/go.mod h1:yPRbxbR8eQcBWgKMxFr7jcCJH+SFl0/fWN7mDd1gc3c=
+ptah.run v0.4.1-0.20260907150813-efe7559b7282 h1:tFnSlZLj1MM2Py96qI/sR4m/XkMF4buoewaVTBtQ72k=
+ptah.run v0.4.1-0.20260907150813-efe7559b7282/go.mod h1:yPRbxbR8eQcBWgKMxFr7jcCJH+SFl0/fWN7mDd1gc3c=

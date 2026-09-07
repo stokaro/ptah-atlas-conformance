@@ -12,7 +12,7 @@ fixture coverage score.
 Every fixture is covered. The conformance gate is green.
 
 - Live fixtures: `testdata/live` first-party Ptah schema fixtures; Atlas CE binary built from release tag `v1.3.0` pinned in `atlas.version`
-- Ptah at `ptah.run v0.4.1-0.20260907135122-7362584251f0`
+- Ptah at `ptah.run v0.4.1-0.20260907150813-efe7559b7282`
 - Outcomes: **30 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
