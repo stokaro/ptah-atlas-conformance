@@ -344,6 +344,40 @@ make budget-docs-surface          # docs progress gate: red only on regression/s
 make gate-docs-surface            # docs triage yardstick: fails while any page is untriaged
 ```
 
+## Third-party repository tier
+
+The strongest compatibility claim is not a synthetic fixture: it is a real
+project's own Atlas workflow running with `ptah-compat` installed in place of
+Atlas, and nothing else changed. The dedicated report is
+[`third-party.md`](./third-party.md), and the corpus is
+[`third-party-repos.json`](./third-party-repos.json).
+
+Every repository is pinned by full commit SHA and fetched with git, so the tree
+is verified by its own object hashes. That pin is the tier's determinism: an
+unpinned clone would make a red row mean "either Ptah regressed, or somebody
+else pushed a commit", which is the one ambiguity the rest of this repository
+is built to avoid. Moving a pin is a decision, so a separate scheduled job in
+[`conformance-third-party`](./.github/workflows/conformance-third-party.yml)
+reports drift and gates nothing.
+
+Only commands needing neither a database nor the upstream project's own
+toolchain are measured — `migrate hash`, `migrate validate` without a
+`--dev-url`, and `schema fmt`. Each runs on both binaries in independent copies
+of the same tree and is compared on exit code and on the bytes it left behind:
+re-hashing a directory its author already hashed, or formatting a file its
+author committed, must change nothing on either binary. Anything that prevents
+the comparison — no oracle, no compatibility binary, a tree that would not
+fetch — exits 2 and writes no report, because a red row has to mean Ptah.
+
+Nothing from these repositories is vendored here; their licences are recorded
+in the ledger and the trees exist only for the length of a run.
+
+```
+make probe-third-party    # regenerate third-party.md / third-party.json (needs network and ATLAS_BIN)
+make budget-third-party   # third-party progress gate: red only on regression
+make gate-third-party     # every pinned repository must work with ptah-compat in place of Atlas
+```
+
 ## CI regression budget and full-parity gate
 
 This is a measured corpus, not a claim of complete Atlas feature parity. CI

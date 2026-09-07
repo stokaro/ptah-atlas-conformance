@@ -1,0 +1,90 @@
+name: conformance-third-party
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly, to notice that a pinned upstream has moved. Deliberately a
+    # different job from the measurement below: a moved upstream is news about
+    # somebody else's repository, and must never turn a pull request red.
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  # The third-party tier: real repositories that use Atlas, run with
+  # ptah-compat in place of the Atlas binary and nothing else changed. Each
+  # repository is pinned by commit in third-party-repos.json and fetched with
+  # git, so the tree is verified by its own object hashes and a red row means
+  # Ptah rather than an upstream push. Only commands needing no database and
+  # none of the upstream project's toolchain are measured.
+  third-party:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    env:
+      ATLAS_BIN: ${{ github.workspace }}/bin/atlas
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Cache Atlas CE binary
+        id: atlas-cache
+        uses: actions/cache@v6
+        with:
+          path: bin/atlas
+          key: atlas-ce-${{ runner.os }}-${{ hashFiles('atlas.version') }}
+
+      - name: Build Atlas CE from the pinned tag
+        if: steps.atlas-cache.outputs.cache-hit != 'true'
+        run: make atlas
+
+      - name: Report the Atlas version under test
+        run: ./bin/atlas version | head -1
+
+      - name: Regenerate the third-party report
+        run: make probe-third-party
+
+      - name: Fail if the committed third-party report is stale
+        run: |
+          if ! git diff --exit-code third-party.md third-party.json; then
+            echo "third-party.md / third-party.json are out of date — run 'make probe-third-party' with the pinned Atlas binary, then commit the result."
+            exit 1
+          fi
+
+      - name: Enforce third-party budget
+        run: make budget-third-party
+
+      - name: Full third-party gate
+        run: make gate-third-party
+
+  # Pin drift. Reports that a pinned repository's default branch has moved past
+  # the commit the tier measures. It changes nothing and gates nothing: moving
+  # a pin is a decision, because the new tree may exercise different commands.
+  pin-drift:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compare every pin with its upstream default branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          moved=0
+          # The ledger is the one source of what is pinned; nothing here
+          # repeats a repository name, so a ledger entry cannot be skipped by
+          # a list that was not updated with it.
+          while read -r name commit; do
+            head=$(gh api "repos/${name}" --jq '.default_branch' \
+              | xargs -I{} gh api "repos/${name}/commits/{}" --jq '.sha')
+            if [ "$head" != "$commit" ]; then
+              echo "::warning::${name} moved: pinned ${commit}, upstream head ${head}"
+              moved=$((moved + 1))
+            else
+              echo "${name} is current at ${commit}"
+            fi
+          done < <(jq -r '.[] | "\(.name) \(.commit)"' third-party-repos.json)
+          echo "${moved} pinned repository/repositories have moved."
