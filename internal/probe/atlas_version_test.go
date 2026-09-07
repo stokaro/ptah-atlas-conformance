@@ -46,7 +46,10 @@ func TestRunMigrateRuntime_RejectsMismatchedAtlasVersion(t *testing.T) {
 
 	got := probe.RunMigrateRuntime()
 
-	c.Assert(got, qt.DeepEquals, []probe.Result{{
+	// An empty AtlasVersion is what the tier main refuses to write a report
+	// on; asserting it here keeps the refusal and its trigger in one place.
+	c.Assert(got.AtlasVersion, qt.Equals, "")
+	c.Assert(got.Results, qt.DeepEquals, []probe.Result{{
 		Probe:   "migrate-runtime",
 		Fixture: "atlas-runtime-oracle",
 		Stage:   "atlas-version",

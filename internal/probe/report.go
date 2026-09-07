@@ -111,7 +111,10 @@ func RenderDifferentialMarkdownWithCommand(results []Result, atlasVersion, ptahV
 
 // RenderMigrateRuntimeMarkdownWithCommand produces a live migration-runtime
 // report and records the command that regenerates that specific report file.
-func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, command string) string {
+// atlasVersion is the oracle binary's own version line, so the committed
+// artifact records which Atlas produced the numbers rather than which one was
+// meant to.
+func RenderMigrateRuntimeMarkdownWithCommand(results []Result, atlasVersion, ptahVersion, command string) string {
 	return renderMarkdownWithOptions(results, &Waivers{}, markdownReportOptions{
 		Title:   "# Ptah Atlas migrate runtime conformance report",
 		Command: command,
@@ -120,7 +123,10 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, ptahVersion, comm
 			"offline txtar-script simulator, this tier executes the real drop-in CLI and\n" +
 			"inspects revision rows and end database state directly. Project configuration\n" +
 			"apply and Goose checksum integrity use pinned Atlas CE as independent runtime oracles.\n\n",
-		SourceLine:  "Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles pinned by atlas.version",
+		SourceLine: fmt.Sprintf(
+			"Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles measured against `%s`",
+			atlasVersion,
+		),
 		PtahVersion: ptahVersion,
 		FactCategories: []string{
 			"Migration apply: applied schema objects, Atlas revision rows, and post-apply status.",

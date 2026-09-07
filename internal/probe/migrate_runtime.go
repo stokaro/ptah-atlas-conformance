@@ -35,27 +35,50 @@ type migrateRuntimeTarget struct {
 	URL   string
 }
 
+// MigrateRuntimeRun carries one migrate-runtime tier run: the observations, and
+// the Atlas oracle they were measured against.
+type MigrateRuntimeRun struct {
+	// Results are the tier's observations, in check order.
+	Results []Result
+	// AtlasVersion is the resolved binary's own `atlas version` line. It is
+	// empty exactly when the oracle could not be established, which is the
+	// condition a caller refuses to write a report on: the atlas.version pin
+	// records which release should have run, and only this records which one
+	// did. A report stamped from the pin alone cannot be audited after the
+	// fact, because it reads identically whichever binary produced it.
+	AtlasVersion string
+	// AtlasBinary is the path the oracle resolved to. It is reported to the
+	// operator and deliberately kept out of the committed report: it differs
+	// between a developer checkout and the runner, and the staleness gate
+	// byte-compares that file.
+	AtlasBinary string
+}
+
 // RunMigrateRuntime runs live migration-runtime conformance checks against
 // deterministic local databases. These checks inspect database state directly,
 // rather than treating successful CLI exit as sufficient evidence. Atlas-form
 // commands run on the ptah-compat binary (the only Atlas-shaped surface since
 // stokaro/ptah#850); Ptah-native `migrations ...` checks run on the main
 // `ptah` binary.
-func RunMigrateRuntime() []Result {
+func RunMigrateRuntime() MigrateRuntimeRun {
 	atlasBin := resolveCEGatingBinary(DefaultAtlasBinary())
-	_, err := validatePinnedAtlasBinary(atlasBin)
+	atlasVersion, err := validatePinnedAtlasBinary(atlasBin)
 	if err != nil {
-		return []Result{migrateRuntimeFail("atlas-runtime-oracle", "atlas-version", err)}
+		return MigrateRuntimeRun{
+			Results: []Result{migrateRuntimeFail("atlas-runtime-oracle", "atlas-version", err)},
+		}
 	}
 	compatBin, err := ptahCompatAtlasBinary()
 	if err != nil {
-		return []Result{{migrateRuntimeProbeName, "atlas migrate", "build", Fail,
-			"could not build the Ptah compatibility CLI to probe migrate runtime behavior: " + oneLine(err.Error()), ""}}
+		return MigrateRuntimeRun{AtlasVersion: atlasVersion, AtlasBinary: atlasBin,
+			Results: []Result{{migrateRuntimeProbeName, "atlas migrate", "build", Fail,
+				"could not build the Ptah compatibility CLI to probe migrate runtime behavior: " + oneLine(err.Error()), ""}}}
 	}
 	nativeBin, err := ptahBinary()
 	if err != nil {
-		return []Result{{migrateRuntimeProbeName, "ptah migrations", "build", Fail,
-			"could not build the Ptah CLI to probe migrate runtime behavior: " + oneLine(err.Error()), ""}}
+		return MigrateRuntimeRun{AtlasVersion: atlasVersion, AtlasBinary: atlasBin,
+			Results: []Result{{migrateRuntimeProbeName, "ptah migrations", "build", Fail,
+				"could not build the Ptah CLI to probe migrate runtime behavior: " + oneLine(err.Error()), ""}}}
 	}
 
 	checks := []migrateRuntimeCheck{
@@ -130,7 +153,7 @@ func RunMigrateRuntime() []Result {
 	for _, check := range checks {
 		out = append(out, check(compatBin))
 	}
-	return out
+	return MigrateRuntimeRun{Results: out, AtlasVersion: atlasVersion, AtlasBinary: atlasBin}
 }
 
 func configuredMigrateRuntimeTargets(getenv func(string) string) []migrateRuntimeTarget {
