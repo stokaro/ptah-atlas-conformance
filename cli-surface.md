@@ -19,7 +19,7 @@ but absent from CE help, so CE parity cannot hide missing full-distribution surf
 Every discovered OSS Atlas CE command and documented Pro-surface flag is present.
 
 - Atlas CE binary: `atlas community version v1.3.0`
-- Ptah at `ptah.run v0.4.1-0.20260907160214-8873cca616bc`
+- Ptah at `ptah.run v0.4.1-0.20260907191925-080817fe38db`
 - Outcomes: **112 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived

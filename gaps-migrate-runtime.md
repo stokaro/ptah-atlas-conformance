@@ -13,7 +13,7 @@ apply and Goose checksum integrity use pinned Atlas CE as independent runtime or
 Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles measured against `atlas community version v1.3.0`
-- Ptah at `ptah.run v0.4.1-0.20260907160214-8873cca616bc`
+- Ptah at `ptah.run v0.4.1-0.20260907191925-080817fe38db`
 - Outcomes: **96 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived

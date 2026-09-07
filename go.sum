@@ -275,5 +275,5 @@ modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
 modernc.org/token v1.1.0/go.mod h1:UGzOrNV1mAFSEB63lOFHIpNRUVMvYTc6yu1SMY/XTDM=
 oras.land/oras-go/v2 v2.6.2 h1:N04RXngAp1LJKTG6ifz3xHPipasEkWr+hFmInja5YKo=
 oras.land/oras-go/v2 v2.6.2/go.mod h1:PlTtg4JTDJkDe8yVHpM2wz7/YDc00GVas+i4jAW2TZ4=
-ptah.run v0.4.1-0.20260907160214-8873cca616bc h1:X9iATqV37xnMJO7XeQkjW6upevVMrs+q/4A2ZjIHTY0=
-ptah.run v0.4.1-0.20260907160214-8873cca616bc/go.mod h1:yPRbxbR8eQcBWgKMxFr7jcCJH+SFl0/fWN7mDd1gc3c=
+ptah.run v0.4.1-0.20260907191925-080817fe38db h1:yP6L6L64OQfrdsJzmKUQDcQAu/OQAR7jphMuiS804+A=
+ptah.run v0.4.1-0.20260907191925-080817fe38db/go.mod h1:yPRbxbR8eQcBWgKMxFr7jcCJH+SFl0/fWN7mDd1gc3c=
