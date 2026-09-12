@@ -1,5 +1,7 @@
 //go:build darwin || linux
 
+package probe
+
 // White-box testing required: the command runners are unexported, and the
 // property under test is what they hand the child process, which no exported
 // result reports.
@@ -10,7 +12,6 @@
 // test function is what the declarative-test standard refuses. The tag says the
 // same thing to the compiler instead, and it says it once rather than five
 // times.
-package probe
 
 import (
 	"os"

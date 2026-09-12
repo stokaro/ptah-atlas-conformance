@@ -1,5 +1,13 @@
 package probe
 
+// White-box testing required: the planning fidelity claim rests on
+// `canonicalizeSchemaSQL` and `planningCatalog`, both unexported. The
+// canonical form is what two plans are compared as, and no exported result
+// carries it.
+//
+// The name is not `schema_planning_internal_test.go` because that file
+// already exists beside it and holds the live topology invariant.
+
 import "testing"
 
 // TestCanonicalizeSchemaSQL checks that the canonical form is insensitive to

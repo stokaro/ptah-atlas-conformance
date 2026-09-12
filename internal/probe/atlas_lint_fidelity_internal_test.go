@@ -1,5 +1,11 @@
 package probe
 
+// White-box testing required: the fidelity claim is about the unexported
+// catalogs themselves -- `atlasAnalyzerCatalog`, `lintAnalyzerSentinel` and
+// `lintFidelityBehaviorChecks`. What the exported API reports is derived from
+// them, so asserting on the derived value cannot say which catalog entry is
+// wrong.
+
 import (
 	"strings"
 	"testing"

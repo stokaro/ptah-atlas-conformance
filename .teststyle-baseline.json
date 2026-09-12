@@ -1,19 +1,19 @@
 {
   "test_conditionals": [
     {
-      "path": "internal/probe/atlas_lint_fidelity_test.go",
+      "path": "internal/probe/atlas_lint_fidelity_internal_test.go",
       "function": "TestLintAnalyzerMatrixHasNoHardFailures",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/atlas_lint_fidelity_test.go",
+      "path": "internal/probe/atlas_lint_fidelity_internal_test.go",
       "function": "TestLintAnalyzerProbeIgnoresNonSentinel",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/atlas_lint_fidelity_test.go",
+      "path": "internal/probe/atlas_lint_fidelity_internal_test.go",
       "function": "TestLintFidelityChecksEnforceBehaviors",
       "kind": "if",
       "count": 3
@@ -37,1333 +37,1333 @@
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIHiddenRuntimeProbeAcceptsHiddenDryRun",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIHiddenRuntimeProbeRejectsDryRunFileWrite",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIHiddenRuntimeProbeRejectsDryRunSumRewrite",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIHiddenRuntimeProbeRejectsVisibleDryRunHelp",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLISchemaCleanRuntimeProbeAcceptsFormatDryRun",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLISchemaCleanRuntimeProbeRejectsInvalidFormatAfterConnect",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLISchemaCleanRuntimeProbeRejectsMissingStructuredDryRunOutput",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIShorthandProbeAcceptsAtlasAliases",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIShorthandProbeRejectsVisibleSchemaApplyFileHelp",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIUtilityRuntimeProbeAcceptsExecutableUtilities",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIUtilityRuntimeProbeRejectsNonZeroExecution",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCLIUtilityRuntimeProbeRejectsPlaceholders",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCompatBinarySurfaceProbeRejectsPtahCompatUsage",
       "kind": "if",
       "count": 6
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasCompatBinarySurfaceProbeUsesAtlasShapedPaths",
       "kind": "if",
       "count": 6
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasHCLProbeClassifiesSchemaHCLGenericFixturesAsOutOfScope",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasHCLProbeDoesNotClassifySchemaHCLSchemaFixturesAsOutOfScope",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasHCLProbeReportsSchemaParseSupport",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasHCLProbeReportsUnsupportedSchemaGap",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasNormalizeMySQLCheckExprIsIdempotent",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestAtlasTxtarDownProbeCapturesSectionBoundaries",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestCorpusProbeClassifiesAtlasSDKTemplateRunnerFixturesAsOutOfScope",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestCorpusProbeMarksImportedButUnmeasuredArtifacts",
       "kind": "if",
       "count": 9
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestLintProbeAcceptsFlywayRepeatableAtlasName",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestLintProbeIgnoresRollbackSectionsWhenLookingForExpectedDrops",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestLintProbeTreatsDownOnlyDropsAsNonDestructive",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestLoadCorpusIncludesAllAtlasTestArtifactKinds",
       "kind": "if",
       "count": 9
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestParseProbeClassifiesAtlasLexerFixtures",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestParseProbeClassifiesAtlasNegativeSQLFixtures",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestParseProbeDoesNotClassifyAllBrokenDirFixturesAsNegative",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestParseProbeRendersAtlasSQLTemplates",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestRenderAtlasInspectHCLRejectsEmptyIndexParts",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestRenderAtlasInspectHCLRejectsIndexWithoutRenderedTable",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestRenderTxtarDBStateInspectHCLDropsIndexesForExcludedTables",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestRenderTxtarMigrateDiffCreateDownSQLDoesNotDoubleQualifyTables",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarAtlasProjectBlockParsingIgnoresQuotedAndCommentedBraces",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarExecSQLMySQLAuthNoopIsNarrow",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarExpectedApplyFailureDetectsMySQLDuplicateUniqueIndex",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarExpectedApplyFailureDetectsMySQLForeignKeySetNullOnNotNullColumn",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarHCLStatementsPreservePostgresIndexIncludeAndWhere",
       "kind": "if",
       "count": 10
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarHCLStatementsPreservePostgresIndexTypeAndStorageParams",
       "kind": "if",
       "count": 7
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarHCLStatementsPreservePostgresNullsDistinctIndexAndUnique",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarMySQLApplyTableOptionsSupportedKeepsUnknownTableOptionsRed",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarMySQLForeignKeyAddBaseStateIsSupported",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarNormalizeMySQLShowSQL",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarNormalizeMySQLShowSQLPreservesTinyintOne",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarParseGeneratedCheckAlterStatement",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarParseGeneratedDropIndexAlterStatement",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarParseGeneratedPrimaryKeyAlterStatement",
       "kind": "if",
       "count": 6
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarParseInsertRows",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarParsePostgresMigrateApplyFixtureStatements",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarPostgresGeneratedColumnHCLRendering",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarResolveAtlasSQLTenantsRequiresExactPattern",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarResolveAtlasSQLTenantsSupportsPostgresSearchPathEnv",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarResolveSchemaInspectEnvEscapesProjectURLPassword",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarSchemaApplyTenantJSONLogIncludesMultipleAppliedStatements",
       "kind": "if",
       "count": 6
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptCommandsStopAtFirstFileMarker",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeAcceptsMariaOnlyDirectiveForMariaNamedFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeAcceptsMatchingFamilyOnlyDirective",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeAcceptsVersionedMysqlOnlyDirective",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksCmpmig",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksExpectedMigrateDiffValidationFailures",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksExpectedSchemaApplyValidationFailures",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksExpectedSchemaInspectFailure",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksExpectedSchemaInspectMissingURLFailure",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksMigrateSetValidationFailures",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksMySQLColumnGeneratedExpectedFailureMessage",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeChecksValidJSON",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeClassifiesUnsupportedExecWrappedCommands",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeClearSchemaResetsUnsupportedDBState",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeClearsPostgresPartitionChildrenOnSchemaApply",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeCmpShowDoesNotIgnoreIndexes",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeCmpShowKeepsWhereExpressionQuotes",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeCmpToleratesOnlyFinalNewline",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeDoesNotSkipDBAssertionsAfterDryRun",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeDoesNotSkipDBAssertionsAfterExpectedFailure",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeDoesNotTreatSkippedPostgresFunctionsAsSyncedState",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesApplyDBURLInspectWithExcludes",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesCleanMigrateStatus",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesClearSchema",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesGenericApplyOutsideCLIInspect",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMariaDBColumnJSONFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMariaDBColumnTimePrecisionFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMariaDBSchemaInspectChecks",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMigrateHash",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMigrateSetRevisionUpdate",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMigrateValidate",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLApplyCmpShowAndExist",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLBoolColumnApplyCmpShowAndSynced",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLColumnCharsetFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLColumnDefaultExprFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLColumnGeneratedFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLColumnGeneratedInspectFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLColumnTimePrecisionFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLCompositeForeignKeyFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLForeignKeyAddFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLForeignKeyModifyActionFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLFormattedInitialMigrateDiff",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLIncrementalMigrateDiffPrimaryKeyParts",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLIndexDescFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLIndexExprFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLIndexPrefixFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLIndexTypeFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLIndexUniqueFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLMigrateApplyAndAlterIndex",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLMigrateApplyDatasourceFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLMigrateDiffAddColumnAndQualifier",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLMigrateDiffChecks",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLMigrateDiffFormats",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLMigrateDiffModeNormalizedFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLNamedInitialMigrateDiff",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLPrimaryKeyFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLPrimaryKeyPartsFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLProjectSchemasFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLProjectURLEscapeFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLSchemaApplyDatasourceFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLSchemaInspectChecks",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLSchemaInspectHCLAndCmp",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLSchemaInspectHCLSourceWithPrimaryKeyParts",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLSchemaInspectHCLWithPrimaryKeyParts",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLSchemaInspectSQLAndCmp",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLSchemaInspectSQLWithPrimaryKeyParts",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesMySQLTableEngineApplyAndCmpHCL",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresApplyFixtures",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnArrayFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnDefaultFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnDomainFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnEnumArrayFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnEnumFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnGeneratedInspectFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnIntervalFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnSerialFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnTextSearchFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresColumnTimePrecisionFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresExecSQLUniqueConstraintInspect",
       "kind": "if",
       "count": 5
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresForeignKeyFixtures",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIdentityColumnCmpShow",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIndexDescFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIndexExprFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIndexIncludeFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIndexNullsDistinctFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIndexOperatorClassFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIndexTypeBRINFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresIndexUniqueConstraintFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresInitialMigrateDiff",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresMigrateApplyDatasourceFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresMigrateApplyFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresMigrateDiffFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresMigrateDiffUnsupportedFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresMigrateStatusFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresPartialIndexFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresPrimaryKeyFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresSchemaCleanBeforeFileURLInspect",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresSchemaInspectHCLWithCheckConstraints",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresSchemaInspectHCLWithUniqueAndForeignKeys",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresSchemaInspectSQLWithCheckConstraints",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresTableChecksFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesPostgresTablePartitionFixture",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteApplyDBURLInspectWithExcludes",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteApplyWithGeneratedColumnCmpShow",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteApplyWithPartialIndexCmpShow",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteEnvMigrateDiffFixtures",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteExecSQLAndCmpHCL",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteIndexPartFixtures",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteInitialMigrateDiff",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteMigrateApplyAndCmpShow",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteMigrateApplyTxModes",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteMigrateSet",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteMultifileMigrateDiff",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteSQLMigrateDiffAndSchemaDiff",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteSchemaApplyEnvSourceAndInspect",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteSchemaApplyEnvVars",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteSchemaApplyMultifileCmpShow",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteSchemaApplyToFileAndDBInspect",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSQLiteTableOptionsFixture",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSchemaInspectHCLAndCmp",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSchemaInspectHCLWithInlinePrimaryKey",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesSchemaInspectSQLAndCmp",
       "kind": "if",
       "count": 6
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeExecutesVirtualFileCommands",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsCmpHCLWithoutVirtualDBStateAsGap",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsEnvDirDependentCommandsBlocked",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsIncrementalMigrateDiffAsGap",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsIndependentSchemaDiffGap",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsMariaDBGeneratedColumnsUnsupported",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsMariaDBIndexExprUnsupported",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsMigrateStatusWithoutChecksumAsGap",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsUnsupportedGenericApplyBlockingDBAssertions",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsUnsupportedHCLInspectAsGap",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeKeepsUnsupportedSchemaInspectHCLAsGap",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeMigrateHashUpdatesAfterFileChange",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeMigrateLintBrokenTurnsRed",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeOverwritesPseudoStreamsWithEmptyOutput",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeRejectsPartialCreateTableIncrementalDiff",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeRejectsUnsupportedMigrateDiffFormat",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsCommandSurface",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsDBAssertionsWithoutUnsupportedDBMutation",
       "kind": "if",
       "count": 1
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsExpectedDBURLInspectFailureAfterUnsupportedDBMutation",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsInvalidJSON",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsMigrateValidateChecksumMismatch",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsSQLiteSchemaApplyMissingSourceVar",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsSchemaInspectSQLMismatch",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsSyncedSQLiteInitialMigrateDiff",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsUnattachedMySQLInspectIndex",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsUnexpectedSchemaInspectFailure",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsUnexpectedSuccessForExpectedFailure",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeReportsVirtualFileCommandFailures",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeResolvesSQLiteEnvMigrationDirForHashValidate",
       "kind": "if",
       "count": 7
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsAssertionsAfterUnsupportedStdoutProducer",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsCmpmigAfterUnsupportedMigrationProducer",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsDBAssertionsAfterUnsupportedDBMutation",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsDBURLInspectAfterUnsupportedDBMutation",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsMigrateHashAfterUnsupportedMigrationFileProducer",
       "kind": "if",
       "count": 4
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsMigrateValidateAndNewAfterUnsupportedMigrationFileProducer",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsMigrationCommandsAfterUnsupportedDBMutation",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsRawDBCommandsAfterUnsupportedDBMutation",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsSchemaDiffAfterUnsupportedMigrationFileProducer",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsSchemaMutationCommandsAfterUnsupportedDBMutation",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsValidJSONAfterUnsupportedProducer",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeSkipsVirtualFileCommandBlockedByUnsupportedRedirect",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/probes_test.go",
+      "path": "internal/probe/probes_internal_test.go",
       "function": "TestTxtarScriptProbeUsesRegexpAssertions",
       "kind": "if",
       "count": 2
     },
     {
-      "path": "internal/probe/schema_planning_test.go",
+      "path": "internal/probe/schema_planning_fidelity_internal_test.go",
       "function": "TestCanonicalizeSchemaSQL",
       "kind": "if",
       "count": 3
     },
     {
-      "path": "internal/probe/schema_planning_test.go",
+      "path": "internal/probe/schema_planning_fidelity_internal_test.go",
       "function": "TestPlanningCatalogCoversOperations",
       "kind": "if",
       "count": 3
@@ -1375,61 +1375,5 @@
       "count": 2
     }
   ],
-  "white_box_files": [
-    {
-      "path": "cmd/gap-probe-diff/main_test.go",
-      "package": "main",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "cmd/gap-probe-live/main_test.go",
-      "package": "main",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/atlas_lint_fidelity_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/budget_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/command_environment_internal_test.go",
-      "package": "probe",
-      "reason": "missing white-box justification comment after package clause"
-    },
-    {
-      "path": "internal/probe/live_diff_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/live_fixtures_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/probes_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/report_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/schema_planning_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    },
-    {
-      "path": "internal/probe/schemafacts_test.go",
-      "package": "probe",
-      "reason": "same-package test file is not named *_internal_test.go"
-    }
-  ]
+  "white_box_files": null
 }

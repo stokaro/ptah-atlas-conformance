@@ -1,5 +1,10 @@
 package probe
 
+// White-box testing required: the comparison folds a live schema through
+// unexported helpers -- `foldDefaultSchema`, `schemaDefaults`, `tableFacts`,
+// `countTables` and the `globalFactsKey` they are recorded under. The folded
+// form is what a comparison matches on and no exported result carries it.
+
 import (
 	"testing"
 

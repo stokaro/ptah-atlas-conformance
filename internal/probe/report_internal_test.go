@@ -1,5 +1,9 @@
 package probe
 
+// White-box testing required: a report's waiver matching is keyed by the
+// unexported `waiverKey`, and the rendered report shows the finding rather
+// than the key it was matched under.
+
 import (
 	"testing"
 

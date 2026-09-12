@@ -1,5 +1,9 @@
 package main
 
+// White-box testing required: `main`, `configuredLiveTargets` and the
+// `liveTarget` it builds are unexported, and a command package publishes no
+// import path to reach them through.
+
 import (
 	"testing"
 
