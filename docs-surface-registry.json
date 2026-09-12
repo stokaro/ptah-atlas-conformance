@@ -311,8 +311,8 @@
   },
   {
     "path": "/guides/azure-fabric",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/backup-continuity-migration-versioned",
@@ -476,8 +476,8 @@
   },
   {
     "path": "/guides/databricks/automatic-migrations",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/dbt/atlas-vs-dbt",
@@ -601,13 +601,13 @@
   },
   {
     "path": "/guides/dsql/automatic-migrations",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/dsql/token-generator",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/environment-promotion",
@@ -706,8 +706,8 @@
   },
   {
     "path": "/guides/horizondb/automatic-migrations",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/liquibase-diff-alternative",
@@ -866,23 +866,23 @@
   },
   {
     "path": "/guides/orms/beego",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/bun",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/django",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/django/getting-started",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/django/linting",
@@ -891,23 +891,23 @@
   },
   {
     "path": "/guides/orms/doctrine",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/drizzle",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/drizzle/existing-project",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/drizzle/getting-started",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/drizzle/triggers",
@@ -916,18 +916,18 @@
   },
   {
     "path": "/guides/orms/drizzle/visualize",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/efcore",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/gorm",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/gorm/composite-types",
@@ -951,18 +951,18 @@
   },
   {
     "path": "/guides/orms/gorm/generate-models",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/gorm/getting-started",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/gorm/program",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/gorm/row-level-security",
@@ -971,8 +971,8 @@
   },
   {
     "path": "/guides/orms/gorm/standalone",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/gorm/triggers",
@@ -986,28 +986,28 @@
   },
   {
     "path": "/guides/orms/gorm/visualize",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/hibernate",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/prisma",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/prisma/existing-project",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/prisma/getting-started",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/prisma/lint-naming",
@@ -1016,8 +1016,8 @@
   },
   {
     "path": "/guides/orms/prisma/postgresql-partial-indexes",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/prisma/row-level-security",
@@ -1031,18 +1031,18 @@
   },
   {
     "path": "/guides/orms/prisma/vector-index",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/prisma/visualize",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sequelize",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sequelize/composite-types",
@@ -1061,13 +1061,13 @@
   },
   {
     "path": "/guides/orms/sequelize/generate-models",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sequelize/getting-started",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sequelize/row-level-security",
@@ -1076,13 +1076,13 @@
   },
   {
     "path": "/guides/orms/sequelize/script",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sequelize/standalone",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sequelize/triggers",
@@ -1096,13 +1096,13 @@
   },
   {
     "path": "/guides/orms/sequelize/visualize",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sqlalchemy",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sqlalchemy/extensions",
@@ -1111,8 +1111,8 @@
   },
   {
     "path": "/guides/orms/sqlalchemy/getting-started",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sqlalchemy/row-level-security",
@@ -1121,13 +1121,13 @@
   },
   {
     "path": "/guides/orms/sqlalchemy/script",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sqlalchemy/standalone",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/sqlalchemy/triggers",
@@ -1136,13 +1136,13 @@
   },
   {
     "path": "/guides/orms/typeorm",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/orms/typeorm/generate-entities",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "path": "/guides/postgres/automatic-migrations",
@@ -1231,23 +1231,23 @@
   },
   {
     "path": "/guides/redshift/automatic-migrations",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/redshift/lineage-graph",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/redshift/security-declarative",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/redshift/security-versioned",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/reviewed-approved-migrations",
@@ -1286,18 +1286,18 @@
   },
   {
     "path": "/guides/snowflake/automatic-migrations",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/snowflake/lineage-graph",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/snowflake/security-declarative",
-    "status": "untriaged",
-    "note": ""
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "path": "/guides/spanner/automatic-migrations",

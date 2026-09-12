@@ -14,7 +14,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Upstream repositories pinned by commit in `third-party-repos.json`, fetched with git so the object hashes are verified; measured against `atlas community version v1.3.0`
 - Ptah at `ptah.run v0.5.0`
-- Outcomes: **3 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **9 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -28,6 +28,12 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| — | ok | third-party | `chainloop-dev/chainloop` | migrate hash | exit 0 on both binaries; app/controlplane/pkg/data/ent/migrate/migrations/atlas.sum byte-identical to the upstream commit |  |
+| — | ok | third-party | `chainloop-dev/chainloop` | migrate validate | exit 0 on both binaries; app/controlplane/pkg/data/ent/migrate/migrations/atlas.sum byte-identical to the upstream commit |  |
+| — | ok | third-party | `chainloop-dev/chainloop` | schema fmt | exit 0 on both binaries; app/controlplane/atlas.hcl byte-identical to the upstream commit |  |
+| — | ok | third-party | `diggerhq/digger` | migrate hash | exit 0 on both binaries; backend/migrations/atlas.sum byte-identical to the upstream commit |  |
+| — | ok | third-party | `diggerhq/digger` | migrate validate | exit 0 on both binaries; backend/migrations/atlas.sum byte-identical to the upstream commit |  |
+| — | ok | third-party | `diggerhq/digger` | schema fmt | exit 0 on both binaries; backend/atlas.hcl byte-identical to the upstream commit |  |
 | — | ok | third-party | `go-faster/bot` | migrate hash | exit 0 on both binaries; migrations/atlas.sum byte-identical to the upstream commit |  |
 | — | ok | third-party | `go-faster/bot` | migrate validate | exit 0 on both binaries; migrations/atlas.sum byte-identical to the upstream commit |  |
 | — | ok | third-party | `go-faster/bot` | schema fmt | exit 0 on both binaries; atlas.hcl byte-identical to the upstream commit |  |

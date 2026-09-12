@@ -19,5 +19,47 @@
     "stage": "schema fmt",
     "outcome": "ok",
     "detail": "exit 0 on both binaries; atlas.hcl byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "chainloop-dev/chainloop",
+    "stage": "migrate hash",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; app/controlplane/pkg/data/ent/migrate/migrations/atlas.sum byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "chainloop-dev/chainloop",
+    "stage": "migrate validate",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; app/controlplane/pkg/data/ent/migrate/migrations/atlas.sum byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "chainloop-dev/chainloop",
+    "stage": "schema fmt",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; app/controlplane/atlas.hcl byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "diggerhq/digger",
+    "stage": "migrate hash",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; backend/migrations/atlas.sum byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "diggerhq/digger",
+    "stage": "migrate validate",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; backend/migrations/atlas.sum byte-identical to the upstream commit"
+  },
+  {
+    "probe": "third-party",
+    "fixture": "diggerhq/digger",
+    "stage": "schema fmt",
+    "outcome": "ok",
+    "detail": "exit 0 on both binaries; backend/atlas.hcl byte-identical to the upstream commit"
   }
 ]

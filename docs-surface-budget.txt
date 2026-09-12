@@ -21,4 +21,18 @@
 # matrix rather than decided here: Documented and Native become `open`, Partial
 # becomes `partial`. Twenty pages had an area in that matrix; nothing else did,
 # and inventing the rest is what this backlog exists to prevent.
-318
+# 2026-09-12: 318 -> 271. Second batch, and every verdict follows from
+# something already decided rather than from a judgment taken here. Twelve
+# /guides pages name an engine core/platform.NormalizeDialect does not accept
+# -- redshift, snowflake, dsql, databricks, horizondb, azure-fabric -- so the
+# page documents a target Ptah does not have, and adding one is a product step
+# rather than a docs gap. Thirty-five /guides/orms pages are onboarding or
+# landing text for running Atlas beside a third-party ORM, which Ptah does not
+# publish: it declares a schema from Go annotations.
+#
+# The twenty-one /guides/orms pages that name a capability instead -- RLS,
+# composite, domain and enum types, triggers, views, linting -- are deliberately
+# left untriaged. They are about what Ptah models, not about the ORM in their
+# path, and an out-of-scope there would hide the gap this backlog exists to
+# name.
+271
