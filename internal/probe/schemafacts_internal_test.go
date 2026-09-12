@@ -1,5 +1,9 @@
 package probe
 
+// White-box testing required: `factsFromDatabase` and `diffTableFacts` are
+// unexported, and they are the comparison itself -- what the exported API
+// reports is their verdict, not the facts they compared.
+
 import (
 	"strings"
 	"testing"

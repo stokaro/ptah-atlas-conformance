@@ -1,5 +1,9 @@
 package probe
 
+// White-box testing required: the budget's identity for a finding is
+// `waiverKey`, which is unexported. Two findings that key the same way are
+// one waiver, and nothing exported reports the key a finding produced.
+
 import (
 	"testing"
 

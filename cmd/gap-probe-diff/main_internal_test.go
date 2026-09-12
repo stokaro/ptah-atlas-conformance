@@ -1,5 +1,11 @@
 package main
 
+// White-box testing required: the probe's entry point and its target
+// resolution are unexported -- `main`, `resolveAtlas`,
+// `configuredDifferentialTargets` and the `differentialTarget` it builds.
+// A command package publishes no import path, so there is no exported
+// surface to reach them through.
+
 import (
 	"os"
 	"os/exec"

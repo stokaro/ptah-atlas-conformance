@@ -1,5 +1,12 @@
 package probe
 
+// White-box testing required: this file drives the probe internals directly.
+// It reaches 48 unexported package symbols -- the Atlas CLI sentinels and verb
+// tables, the column type and identifier mappings, the inspect options and the
+// fixture kinds among them. Each is a decision the exported Probe API applies
+// rather than reports, so a test on the exported result can say a probe
+// disagreed but not which decision made it disagree.
+
 import (
 	"encoding/json"
 	"errors"

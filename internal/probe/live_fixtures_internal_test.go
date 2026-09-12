@@ -1,5 +1,9 @@
 package probe
 
+// White-box testing required: the manifest a live fixture is discovered by is
+// named by the unexported `liveFixtureManifestName`, and a fixture tree that
+// names its manifest differently is invisible rather than reported.
+
 import (
 	"os"
 	"path/filepath"
