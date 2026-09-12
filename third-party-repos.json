@@ -7,5 +7,23 @@
     "config": "atlas.hcl",
     "migrations": "migrations",
     "note": "Root atlas.hcl with an ent:// source and a hashed migration directory. The ent source and the docker:// dev database are out of the offline command set, so this tier measures only what needs neither."
+  },
+  {
+    "name": "chainloop-dev/chainloop",
+    "clone_url": "https://github.com/chainloop-dev/chainloop",
+    "commit": "81429254e7076688fbd9b44f3d056f98acae2ff1",
+    "license": "Apache-2.0",
+    "config": "app/controlplane/atlas.hcl",
+    "migrations": "app/controlplane/pkg/data/ent/migrate/migrations",
+    "note": "A control plane whose atlas.hcl sits under app/controlplane rather than at the root, with 141 files in its hashed migration directory -- an order of magnitude more than the first repository, which is what makes it worth pinning."
+  },
+  {
+    "name": "diggerhq/digger",
+    "clone_url": "https://github.com/diggerhq/digger",
+    "commit": "330f4beabd3c8848289c307b3ee950a0b52ce359",
+    "license": "MIT",
+    "config": "backend/atlas.hcl",
+    "migrations": "backend/migrations",
+    "note": "The first non-Apache repository in this tier, and the first whose migration directory is a plain backend/migrations rather than one an ORM generates."
   }
 ]
