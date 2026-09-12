@@ -35,4 +35,19 @@
 # left untriaged. They are about what Ptah models, not about the ORM in their
 # path, and an out-of-scope there would hide the gap this backlog exists to
 # name.
-271
+# 2026-09-12: 271 -> 200. Seventy-one guide pages triaged in one pass. Every
+# verdict is grounded in a measurement rather than in a reading of the page: a
+# `ptah` or `ptah-compat` invocation with its output quoted, or the declaration
+# that parses, renders and compares the construct.
+#
+# Ten pages name something Ptah does not model at all and are recorded as gap:
+# unlogged tables, ALTER DEFAULT PRIVILEGES, Oracle VECTOR, Spanner protobuf
+# columns, ClickHouse named collections and WASM functions, YugabyteDB
+# colocation and pre-splitting, PostgreSQL template databases for schema tests,
+# and a Terraform provider. Forty-four are partial and seventeen open.
+#
+# Eleven more pages carry a proposed verdict that the verification pass did not
+# confirm, and they stay untriaged. An unconfirmed verdict in this file is worth
+# less than the absence it would replace. Seven of them are /guides/orms
+# capability pages, which the entry above already held back for the same reason.
+200
