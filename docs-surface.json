@@ -436,9 +436,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/azure-fabric",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
@@ -667,9 +667,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/databricks/automatic-migrations",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
@@ -842,16 +842,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/dsql/automatic-migrations",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/dsql/token-generator",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
@@ -989,9 +989,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/horizondb/automatic-migrations",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
@@ -1213,30 +1213,30 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/beego",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/bun",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/django",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/django/getting-started",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1248,30 +1248,30 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/doctrine",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/drizzle",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/drizzle/existing-project",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/drizzle/getting-started",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1283,23 +1283,23 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/drizzle/visualize",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/efcore",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/gorm",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1332,23 +1332,23 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/gorm/generate-models",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/gorm/getting-started",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/gorm/program",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1360,9 +1360,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/gorm/standalone",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1381,37 +1381,37 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/gorm/visualize",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/hibernate",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/prisma",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/prisma/existing-project",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/prisma/getting-started",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1423,9 +1423,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/prisma/postgresql-partial-indexes",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1444,23 +1444,23 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/prisma/vector-index",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/prisma/visualize",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sequelize",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1486,16 +1486,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sequelize/generate-models",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sequelize/getting-started",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1507,16 +1507,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sequelize/script",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sequelize/standalone",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1535,16 +1535,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sequelize/visualize",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sqlalchemy",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1556,9 +1556,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sqlalchemy/getting-started",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1570,16 +1570,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sqlalchemy/script",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/sqlalchemy/standalone",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1591,16 +1591,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/typeorm",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/orms/typeorm/generate-entities",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding."
   },
   {
     "probe": "docs-surface",
@@ -1724,30 +1724,30 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/redshift/automatic-migrations",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/redshift/lineage-graph",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/redshift/security-declarative",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/redshift/security-versioned",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
@@ -1801,23 +1801,23 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/snowflake/automatic-migrations",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/snowflake/lineage-graph",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/snowflake/security-declarative",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
   },
   {
     "probe": "docs-surface",

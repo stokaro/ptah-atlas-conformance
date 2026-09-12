@@ -8,16 +8,16 @@ page from `docs-surface-registry.json`, so parity is measured against the full
 Atlas documentation surface: an untriaged, unregistered, or vanished page is a
 gap until the registry catches up.
 
-## Status: NOT DONE — 318 non-OK observation(s)
+## Status: NOT DONE — 271 non-OK observation(s)
 
 The full docs-surface gate is red until every atlasgo.io docs page is triaged
 and the registry matches the sitemap universe.
 
 - Docs universe: **365 page(s)** from the atlasgo.io sitemap (committed snapshot `docs-surface-snapshot.txt`)
 - Ptah at `ptah.run v0.5.0`
-- Outcomes: **47 ok**, **318 gap**, **0 fail**, **0 panic**
-- Full gate: **318 non-OK** (fails CI)
-- Regression budget input: **318 unwaived non-OK**, 0 waived
+- Outcomes: **94 ok**, **271 gap**, **0 fail**, **0 panic**
+- Full gate: **271 non-OK** (fails CI)
+- Regression budget input: **271 unwaived non-OK**, 0 waived
 
 ## Docs Universe Summary
 
@@ -32,8 +32,8 @@ Universe: **365 page(s)** after the docs-universe filter.
 | gap | 0 |
 | pro | 0 |
 | cloud | 27 |
-| out-of-scope | 0 |
-| untriaged | 318 |
+| out-of-scope | 47 |
+| untriaged | 271 |
 
 ### Pages per docs section
 
@@ -113,7 +113,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/atlas-vs-liquibase` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/atlas-vs-schemachange` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/atlas-vs-ssdt` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/azure-fabric` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/backup-continuity-migration-versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/backup-continuity-schema-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/ci-platforms/azure-devops-github` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -146,7 +145,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/database-per-tenant/rollout` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-per-tenant/target-groups` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/database-schema-as-context` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/databricks/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/dbt/atlas-vs-dbt` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/dbt/clickhouse` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/dbt/drift-detection` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -171,8 +169,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/deploying/secrets` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/destructive-change-policy` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/drift-detection` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/dsql/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/dsql/token-generator` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/environment-promotion` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/environment-promotion-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/evaluation/advanced-topics` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -192,7 +188,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/go-templates` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/go-templates/exporter` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/graphql-with-atlas` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/horizondb/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/liquibase-diff-alternative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/liquibase-rollback-alternative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/lock-safe-not-null` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -224,62 +219,27 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/oracle/security-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/oracle/security-versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/oracle/vector` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/beego` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/bun` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/django` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/django/getting-started` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/django/linting` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/doctrine` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/drizzle` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/drizzle/existing-project` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/drizzle/getting-started` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/drizzle/triggers` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/drizzle/visualize` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/efcore` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/gorm` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/gorm/composite-types` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/gorm/domain-types` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/gorm/enum-types` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/gorm/extensions` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/gorm/generate-models` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/gorm/getting-started` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/gorm/program` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/gorm/row-level-security` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/gorm/standalone` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/gorm/triggers` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/gorm/views` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/gorm/visualize` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/hibernate` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/prisma` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/prisma/existing-project` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/prisma/getting-started` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/prisma/lint-naming` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/prisma/postgresql-partial-indexes` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/prisma/row-level-security` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/prisma/triggers` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/prisma/vector-index` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/prisma/visualize` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sequelize` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sequelize/composite-types` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sequelize/declarative-migrations-with-actions` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sequelize/domain-types` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sequelize/generate-models` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sequelize/getting-started` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sequelize/row-level-security` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sequelize/script` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sequelize/standalone` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sequelize/triggers` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sequelize/views` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sequelize/visualize` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sqlalchemy` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sqlalchemy/extensions` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sqlalchemy/getting-started` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sqlalchemy/row-level-security` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sqlalchemy/script` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/sqlalchemy/standalone` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/orms/sqlalchemy/triggers` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/typeorm` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/orms/typeorm/generate-entities` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/postgres/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/postgres/descending-indexes` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/postgres/functional-indexes` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -297,10 +257,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/postgres/seed-data` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/postgres/serial-columns` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/postgres/unlogged-tables` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/redshift/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/redshift/lineage-graph` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/redshift/security-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/redshift/security-versioned` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/reviewed-approved-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/rls-policy` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/schema-health-check` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -308,9 +264,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/security-as-code` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/security-scan` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/seed-data-as-code` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/snowflake/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/snowflake/lineage-graph` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/snowflake/security-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/spanner/automatic-migrations` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/spanner/proto-columns` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/sqlite/descending-indexes` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -415,6 +368,53 @@ content is stored in this repository.
 | — | ok | docs-surface | `/declarative/diff` | triage | partial |  |
 | — | ok | docs-surface | `/docs` | triage | open |  |
 | — | ok | docs-surface | `/features` | triage | partial — No single coverage-matrix area owns this page; it is cited as evidence across several. Ptah covers part of what it lists. |  |
+| — | ok | docs-surface | `/guides/azure-fabric` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/databricks/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/dsql/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/dsql/token-generator` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/horizondb/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/orms/beego` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/bun` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/django` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/django/getting-started` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/doctrine` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/drizzle` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/drizzle/existing-project` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/drizzle/getting-started` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/drizzle/visualize` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/efcore` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/gorm` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/gorm/generate-models` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/gorm/getting-started` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/gorm/program` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/gorm/standalone` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/gorm/visualize` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/hibernate` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/prisma` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/prisma/existing-project` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/prisma/getting-started` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/prisma/postgresql-partial-indexes` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/prisma/vector-index` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/prisma/visualize` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sequelize` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sequelize/generate-models` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sequelize/getting-started` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sequelize/script` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sequelize/standalone` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sequelize/visualize` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sqlalchemy` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sqlalchemy/getting-started` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sqlalchemy/script` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/sqlalchemy/standalone` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/typeorm` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/orms/typeorm/generate-entities` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
+| — | ok | docs-surface | `/guides/redshift/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/redshift/lineage-graph` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/redshift/security-declarative` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/redshift/security-versioned` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/snowflake/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/snowflake/lineage-graph` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/snowflake/security-declarative` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/inspect` | triage | partial |  |
 | — | ok | docs-surface | `/monitoring` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/bitbucket-quickstart` | triage | cloud |  |
