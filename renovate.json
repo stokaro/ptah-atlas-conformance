@@ -10,18 +10,35 @@
       "managerFilePatterns": [
         "/^atlas\\.version$/"
       ],
-      "matchStrings": ["^(?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*$"],
+      "matchStrings": [
+        "^(?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*$"
+      ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "ariga/atlas"
     }
   ],
   "packageRules": [
     {
-      "matchDepNames": ["ariga/atlas"],
+      "matchDepNames": [
+        "ariga/atlas"
+      ],
       "commitMessageTopic": "Atlas CE",
       "commitMessageAction": "Bump",
       "semanticCommitType": "chore",
-      "labels": ["conformance", "atlas-release"]
+      "labels": [
+        "conformance",
+        "atlas-release"
+      ]
     }
-  ]
+  ],
+  "pip-compile": {
+    "description": "Update the SQLAlchemy fixture through its compile source so the lock and the source move in one pull request. pip_requirements sees the lock alone, which is how requirements.txt reached 2.0.54 while requirements.in still asked for 2.0.52 and the provider tier went red.",
+    "managerFilePatterns": [
+      "/^testdata/workflows/external-schema/orm/sqlalchemy/requirements\\.txt$/"
+    ]
+  },
+  "pip_requirements": {
+    "description": "Disabled because it would propose the same upgrade against the lock alone, next to the pip-compile pull request that carries both files. The repository has one requirements pair and pip-compile owns it.",
+    "enabled": false
+  }
 }
