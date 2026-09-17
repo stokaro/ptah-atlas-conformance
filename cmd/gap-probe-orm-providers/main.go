@@ -51,7 +51,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		ProviderCommandTimeout: *providerTimeout,
 		PtahCommandTimeout:     *ptahTimeout,
 	}.Run()
-	markdown := probe.RenderORMProviderMarkdown(results, probe.PtahVersion(), reportCommand)
+	pins := probe.SQLAlchemyPinsForFixtures(*fixtureRoot)
+	markdown := probe.RenderORMProviderMarkdown(results, pins, probe.PtahVersion(), reportCommand)
 	if err := os.WriteFile(*mdOut, []byte(markdown), 0o644); err != nil {
 		fmt.Fprintln(stderr, "write markdown report:", err)
 		return 2
