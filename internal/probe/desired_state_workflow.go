@@ -50,6 +50,8 @@ func (p DesiredStateWorkflowProbe) Run(fx Fixture) []Result {
 	m := &desiredStateWorkflow{proWorkflowRuntime: &migrateDiffRuntime}
 	return w.runSteps([]func() Result{
 		d.databaseURLDiffSource,
+		d.databaseURLDiffWithoutDevDatabase,
+		d.databaseURLDiffWithoutDevDatabaseIsAPolicy,
 		d.databaseURLApplySource,
 		d.migrationDirReplay,
 		d.migrationDirWithoutDevDatabase,
@@ -95,23 +97,94 @@ func (d *desiredStateWorkflow) databaseURLDiffSource() Result {
 		"schema", "diff",
 		"--from", sqliteURL(sourceDB),
 		"--to", "file://to.sql",
+		"--dev-url", sqliteURL(filepath.Join(d.runRoot, "dev-diff.db")),
 	)
 	if failure != nil {
 		return *failure
 	}
-	if gap := d.expectExit(fixture, stage, result, 0); gap != nil {
+	if gap := d.expectAuditLogsOnlyDiff(fixture, stage, result); gap != nil {
 		return *gap
+	}
+	return d.ok(fixture, stage,
+		"`schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file")
+}
+
+// expectAuditLogsOnlyDiff checks that a diff from the seeded source database
+// to to.sql plans the missing audit_logs table and leaves users alone.
+func (d *desiredStateWorkflow) expectAuditLogsOnlyDiff(fixture, stage string, result ptahCommandResult) *Result {
+	if gap := d.expectExit(fixture, stage, result, 0); gap != nil {
+		return gap
 	}
 	if gap := d.expectFragments(fixture, stage, "stdout", result.stdout, []string{
 		`CREATE TABLE "audit_logs"`,
 	}); gap != nil {
-		return *gap
+		return gap
 	}
 	if strings.Contains(result.stdout, `CREATE TABLE "users"`) {
-		return d.gap(fixture, stage, "the diff re-creates the users table the database-URL source already holds: "+oneLine(result.stdout))
+		gap := d.gap(fixture, stage, "the diff re-creates the users table the database-URL source already holds: "+oneLine(result.stdout))
+		return &gap
+	}
+	return nil
+}
+
+// databaseURLDiffWithoutDevDatabase pins the Atlas CE refusal: `schema diff`
+// with a SQL file on either side needs a dev database to normalize it
+// (stokaro/ptah#3684).
+func (d *desiredStateWorkflow) databaseURLDiffWithoutDevDatabase() Result {
+	const (
+		fixture = "atlas schema diff"
+		stage   = "SQL file target without dev database"
+	)
+	sourceDB, harness := d.seedSourceDatabase(stage)
+	if harness != nil {
+		return *harness
+	}
+	result, failure := d.runCLI(stage,
+		"schema", "diff",
+		"--from", sqliteURL(sourceDB),
+		"--to", "file://to.sql",
+	)
+	if failure != nil {
+		return *failure
+	}
+	if gap := d.expectExit(fixture, stage, result, 1); gap != nil {
+		return *gap
+	}
+	if gap := d.expectFragments(fixture, stage, "stderr", result.stderr, []string{
+		"--dev-url cannot be empty",
+	}); gap != nil {
+		return *gap
 	}
 	return d.ok(fixture, stage,
-		"`schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file")
+		"a SQL desired file compared with a database URL and no --dev-url was refused, as Atlas CE refuses it")
+}
+
+// databaseURLDiffWithoutDevDatabaseIsAPolicy pins the other half of
+// stokaro/ptah#3684: the refusal is a policy, and the comparison without a
+// dev database stays reachable under PTAH_ATLAS_DIFF_WITHOUT_DEV_URL.
+func (d *desiredStateWorkflow) databaseURLDiffWithoutDevDatabaseIsAPolicy() Result {
+	const (
+		fixture = "atlas schema diff"
+		stage   = "SQL file target without dev database, capability restored"
+	)
+	sourceDB, harness := d.seedSourceDatabase(stage)
+	if harness != nil {
+		return *harness
+	}
+	result, failure := d.runCLIWithEnv(stage,
+		[]string{"PTAH_ATLAS_DIFF_WITHOUT_DEV_URL=1"},
+		"schema", "diff",
+		"--from", sqliteURL(sourceDB),
+		"--to", "file://to.sql",
+	)
+	if failure != nil {
+		return *failure
+	}
+	if gap := d.expectAuditLogsOnlyDiff(fixture, stage, result); gap != nil {
+		return *gap
+	}
+	return d.ok(fixture, stage,
+		"the diff refusal is a policy an operator can lift, not a lost capability: the same invocation plans only the missing audit_logs table when it is")
 }
 
 func (d *desiredStateWorkflow) databaseURLApplySource() Result {
@@ -201,7 +274,9 @@ func (d *desiredStateWorkflow) migrationDirWithoutDevDatabase() Result {
 		return *gap
 	}
 	if gap := d.expectFragments(fixture, stage, "stderr", result.stderr, []string{
-		"is a migration directory; --dev-url is required to replay it on a dev database",
+		// Atlas CE's sentence and link for a migration directory without a
+		// dev database (stokaro/ptah#3680).
+		"--dev-url cannot be empty. See: https://atlasgo.io/atlas-schema/sql#dev-database",
 	}); gap != nil {
 		return *gap
 	}
@@ -209,7 +284,7 @@ func (d *desiredStateWorkflow) migrationDirWithoutDevDatabase() Result {
 		return *gap
 	}
 	return d.ok(fixture, stage,
-		"a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted")
+		"a migration-directory desired state without --dev-url was refused with Atlas CE's diagnostic before the target database was contacted")
 }
 
 // The three rows below and their control measure one axis the corpus never

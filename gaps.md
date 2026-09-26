@@ -12,8 +12,8 @@ not yet support or a first-party workflow contract Ptah failed to preserve.
 Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
-- Ptah at `ptah.run v0.7.0`
-- Outcomes: **814 ok**, **0 gap**, **0 fail**, **0 panic**
+- Ptah at `ptah.run v0.9.0`
+- Outcomes: **816 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -108,7 +108,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | checkpoint-workflow | `SQLite schema facts` | post-checkpoint schema equivalence | the full-history path (1-3 then 5) and the checkpoint bootstrap path (4 then 5) converged to structurally identical schemas |  |
 | — | ok | checkpoint-workflow | `ptah migrations checkpoint` | checkpoint creation | the shadow replay produced the deterministic version-4 checkpoint pair with the cumulative schema, and ptah.sum was rewritten to cover it |  |
 | — | ok | checkpoint-workflow | `ptah migrations down` | rollback boundary guard | rolling back below the checkpoint boundary was refused with exit code 2 and an actionable error, leaving the database untouched |  |
-| — | ok | checkpoint-workflow | `ptah migrations down` | rollback to zero | rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history |  |
+| — | ok | checkpoint-workflow | `ptah migrations down` | rollback to zero | rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history, and the migration log kept the rollback |  |
 | — | ok | checkpoint-workflow | `ptah migrations status` | status convergence | status reflects the bootstrap decision on both databases: the checkpoint is not pending on the already-migrated one, and the bootstrapped one is complete at revision 4 |  |
 | — | ok | checkpoint-workflow | `ptah migrations up` | full history application | the three-migration history applied in full, recording versions 1-3 individually |  |
 | — | ok | checkpoint-workflow | `ptah migrations up` | fresh bootstrap | a fresh database bootstrapped from the checkpoint alone, recording only revision 4 with the squashed history satisfied |  |
@@ -339,13 +339,15 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | desired-state-workflow | `atlas migrate diff` | desired and dev path alias rejected | textually different SQLite URLs resolving to the same desired/dev database were rejected before destructive replay; the source table and data survived and no migration directory was created |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | database-url --to source | `schema apply --to sqlite://...` mirrored the live source database onto the target: the desired state was another database's introspected schema |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source replay | `schema apply --to file://migrations` replayed the atlas.sum-covered migration directory on the dev database and applied the materialized schema to the target |  |
-| — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted |  |
+| — | ok | desired-state-workflow | `atlas schema apply` | migration-dir source without dev database | a migration-directory desired state without --dev-url was refused with Atlas CE's diagnostic before the target database was contacted |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | declarative file source without dev database | a declarative desired state applied without --dev-url and the target carries the table it describes |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | SQL file source without dev database | a SQL desired state without --dev-url was refused before the target database was created |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | mixed declarative and SQL sources without dev database | a desired state mixing declarative and SQL sources needs a dev database: the set must be declarative in full, not in part |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | SQL file source without dev database, capability restored | the SQL refusal is a policy an operator can lift, not a lost capability: the same invocation applies both tables when it is |  |
 | — | ok | desired-state-workflow | `atlas schema apply` | env:// source resolution | `schema apply --to env://src` resolved the desired state through the evaluated atlas.hcl environment's src attribute and applied it to the target |  |
 | — | ok | desired-state-workflow | `atlas schema diff` | database-url --from source | `schema diff --from sqlite://...` introspected the live source database and planned only the missing audit_logs table against the local desired file |  |
+| — | ok | desired-state-workflow | `atlas schema diff` | SQL file target without dev database | a SQL desired file compared with a database URL and no --dev-url was refused, as Atlas CE refuses it |  |
+| — | ok | desired-state-workflow | `atlas schema diff` | SQL file target without dev database, capability restored | the diff refusal is a policy an operator can lift, not a lost capability: the same invocation plans only the missing audit_logs table when it is |  |
 | — | ok | external-schema-workflow | `SQLite external schema facts` | live schema facts | SQLite preserved tables, columns, primary keys, unique/index facts, and the cascading foreign key |  |
 | — | ok | external-schema-workflow | `configured external schema` | allowed config render | desired schema rendered with all expected SQLite facts |  |
 | — | ok | external-schema-workflow | `external hcl schema` | explicit command render | desired schema rendered with all expected SQLite facts |  |

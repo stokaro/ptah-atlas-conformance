@@ -510,12 +510,24 @@ func (w *checkpointWorkflow) rollbackToZero() Result {
 	if err != nil {
 		return checkpointHarnessFailure(stage, err)
 	}
-	if !slices.Equal(tables, []string{"schema_migrations"}) {
+	if !slices.Equal(tables, []string{"schema_migrations", "schema_migrations_log"}) {
 		return checkpointGap(fixture, stage, fmt.Sprintf(
-			"rolling back to zero left tables %v, want only the empty revision table", tables))
+			"rolling back to zero left tables %v, want only the empty revision table and the migration log", tables))
+	}
+	// The migration log (stokaro/ptah#3406) outlives the revision row: it is
+	// the record that version 4 was applied and then rolled back.
+	var rolledBack int
+	if err := db.QueryRow(
+		`SELECT COUNT(*) FROM schema_migrations_log WHERE version = 4 AND operation = 'down' AND state = 'rolled_back'`,
+	).Scan(&rolledBack); err != nil {
+		return checkpointHarnessFailure(stage, err)
+	}
+	if rolledBack != 1 {
+		return checkpointGap(fixture, stage, fmt.Sprintf(
+			"the migration log holds %d rolled_back entries for the checkpoint, want 1", rolledBack))
 	}
 	return checkpointOK(fixture, stage,
-		"rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history")
+		"rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history, and the migration log kept the rollback")
 }
 
 func (w *checkpointWorkflow) postCheckpointContinuation() Result {
