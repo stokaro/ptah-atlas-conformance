@@ -558,7 +558,7 @@ func RenderORMProviderMarkdown(results []Result, pins SQLAlchemyPins, ptahVersio
 		fmt.Fprintf(&b, "- SQLAlchemy provider: `%s==%s`\n", sqlAlchemyProviderPackage, pins.Provider)
 		fmt.Fprintf(&b, "- SQLAlchemy: `%s==%s`\n", sqlAlchemyPackage, pins.ORM)
 	}
-	fmt.Fprintf(&b, "- Ptah at `%s`\n", ptahVersion)
+	b.WriteString(ptahStamp(ptahVersion))
 	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n\n",
 		summary.OK, summary.Gap, summary.Fail, summary.Panic)
 

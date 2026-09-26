@@ -211,6 +211,15 @@ type markdownReportOptions struct {
 	FactCategories []string
 }
 
+// ptahStamp renders the header line naming the Ptah implementation a report
+// measured. See PtahVersion for why the pinned version is not spelled out.
+func ptahStamp(version string) string {
+	if version == PinnedPtah {
+		return "- Ptah at the `ptah.run` version `go.mod` requires\n"
+	}
+	return fmt.Sprintf("- Ptah at `%s`\n", version)
+}
+
 func renderMarkdownWithOptions(results []Result, w *Waivers, opts markdownReportOptions) string {
 	s := summarize(results)
 	nonOK := NonOK(results)
@@ -235,7 +244,7 @@ func renderMarkdownWithOptions(results []Result, w *Waivers, opts markdownReport
 		fmt.Fprintf(&b, "- %s\n", line)
 	}
 	if opts.PtahVersion != "" {
-		fmt.Fprintf(&b, "- Ptah at `%s`\n", opts.PtahVersion)
+		b.WriteString(ptahStamp(opts.PtahVersion))
 	}
 	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n", s.OK, s.Gap, s.Fail, s.Panic)
 	fmt.Fprintf(&b, "- Full gate: **%d non-OK** (%s)\n",
