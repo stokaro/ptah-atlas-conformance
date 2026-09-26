@@ -27,8 +27,17 @@ const PinnedPtah = "go.mod"
 // digest of each binary. A report generated against one then differs from the
 // pinned regeneration, which is what the staleness check reads.
 func PtahVersion() string {
-	linkedVersion, pinned := linkedPtahVersion()
-	overrides := ptahBinaryOverrides()
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		info = nil
+	}
+	return ptahVersionFrom(info, ptahBinaryOverrides())
+}
+
+// ptahVersionFrom is PtahVersion over an explicit build record and override
+// list. A nil info is a binary built without module support.
+func ptahVersionFrom(info *debug.BuildInfo, overrides []string) string {
+	linkedVersion, pinned := linkedPtahVersion(info)
 	if len(overrides) == 0 {
 		if pinned {
 			return PinnedPtah
@@ -40,9 +49,8 @@ func PtahVersion() string {
 
 // linkedPtahVersion reports the linked ptah.run module and whether it is the
 // version go.mod requires, with no replace directive.
-func linkedPtahVersion() (string, bool) {
-	info, ok := debug.ReadBuildInfo()
-	if !ok {
+func linkedPtahVersion(info *debug.BuildInfo) (string, bool) {
+	if info == nil {
 		return ptahVersionUnknown(), false
 	}
 	for _, dep := range info.Deps {

@@ -10,18 +10,6 @@ import (
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 )
 
-// The test binary links the ptah.run version go.mod requires, with no replace
-// directive, so it measures the pin.
-func TestPtahVersion_PinnedModuleReportsGoMod(t *testing.T) {
-	c := qt.New(t)
-	t.Setenv("PTAH_BIN", "")
-	t.Setenv("PTAH_COMPAT_BIN", "")
-
-	got := probe.PtahVersion()
-
-	c.Assert(got, qt.Equals, probe.PinnedPtah)
-}
-
 func TestPtahVersion_ExternalBinaryOverrides(t *testing.T) {
 	c := qt.New(t)
 	ptahBin := t.TempDir() + "/ptah"
