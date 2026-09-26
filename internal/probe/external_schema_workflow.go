@@ -511,7 +511,9 @@ func (w *externalSchemaWorkflow) liveFacts() Result {
 	if err != nil {
 		return externalSchemaHarnessFailure("live schema facts", err)
 	}
-	wantTables := []string{"posts", "schema_migrations", "users"}
+	// schema_migrations_log is Ptah's migration log (stokaro/ptah#3406), which
+	// the native revision format writes beside the revision table.
+	wantTables := []string{"posts", "schema_migrations", "schema_migrations_log", "users"}
 	if !slices.Equal(tables, wantTables) {
 		return externalSchemaGap(
 			"SQLite external schema facts",

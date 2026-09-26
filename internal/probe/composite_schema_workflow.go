@@ -507,7 +507,9 @@ func compositeSQLiteStateResult(
 	if err != nil {
 		return compositeSchemaHarnessFailure("live schema facts", err)
 	}
-	wantTables := []string{"orders", "schema_migrations", "users"}
+	// schema_migrations_log is Ptah's migration log (stokaro/ptah#3406), which
+	// the native revision format writes beside the revision table.
+	wantTables := []string{"orders", "schema_migrations", "schema_migrations_log", "users"}
 	if !slices.Equal(tables, wantTables) {
 		return compositeSchemaGap(
 			"SQLite schema facts",

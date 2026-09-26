@@ -5248,7 +5248,7 @@
     "fixture": "ptah migrations down",
     "stage": "rollback to zero",
     "outcome": "ok",
-    "detail": "rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history"
+    "detail": "rolling back to zero ran the checkpoint's down body, dropping the cumulative schema and clearing the revision history, and the migration log kept the rollback"
   },
   {
     "probe": "checkpoint-workflow",
@@ -5525,6 +5525,20 @@
   },
   {
     "probe": "desired-state-workflow",
+    "fixture": "atlas schema diff",
+    "stage": "SQL file target without dev database",
+    "outcome": "ok",
+    "detail": "a SQL desired file compared with a database URL and no --dev-url was refused, as Atlas CE refuses it"
+  },
+  {
+    "probe": "desired-state-workflow",
+    "fixture": "atlas schema diff",
+    "stage": "SQL file target without dev database, capability restored",
+    "outcome": "ok",
+    "detail": "the diff refusal is a policy an operator can lift, not a lost capability: the same invocation plans only the missing audit_logs table when it is"
+  },
+  {
+    "probe": "desired-state-workflow",
     "fixture": "atlas schema apply",
     "stage": "database-url --to source",
     "outcome": "ok",
@@ -5542,7 +5556,7 @@
     "fixture": "atlas schema apply",
     "stage": "migration-dir source without dev database",
     "outcome": "ok",
-    "detail": "a migration-directory desired state without --dev-url was refused with the deterministic diagnostic before the target database was contacted"
+    "detail": "a migration-directory desired state without --dev-url was refused with Atlas CE's diagnostic before the target database was contacted"
   },
   {
     "probe": "desired-state-workflow",
