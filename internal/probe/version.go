@@ -11,29 +11,54 @@ import (
 
 const ptahModulePath = "ptah.run"
 
-// PtahVersion reports the Ptah module version linked into the running probe
-// binary. Reports include this value so generated conformance artifacts identify
-// the implementation they actually exercised.
+// PinnedPtah is what PtahVersion reports when the probe measures the ptah.run
+// version go.mod requires: the module is linked without a replace directive
+// and no external binary stands in for it.
+const PinnedPtah = "go.mod"
+
+// PtahVersion identifies the Ptah implementation the running probe measures.
+// Reports stamp it so a generated artifact says what it exercised.
+//
+// The version go.mod requires is reported as PinnedPtah rather than spelled
+// out. A report is committed beside go.mod, so the version adds nothing a
+// reader cannot see there, and spelling it out would make every ptah.run bump
+// rewrite every report even when no result moves. A departure from the pin is
+// spelled out: a replace directive, or PTAH_BIN and PTAH_COMPAT_BIN with the
+// digest of each binary. A report generated against one then differs from the
+// pinned regeneration, which is what the staleness check reads.
 func PtahVersion() string {
-	linkedVersion := linkedPtahVersion()
-	overrides := ptahBinaryOverrides()
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		info = nil
+	}
+	return ptahVersionFrom(info, ptahBinaryOverrides())
+}
+
+// ptahVersionFrom is PtahVersion over an explicit build record and override
+// list. A nil info is a binary built without module support.
+func ptahVersionFrom(info *debug.BuildInfo, overrides []string) string {
+	linkedVersion, pinned := linkedPtahVersion(info)
 	if len(overrides) == 0 {
+		if pinned {
+			return PinnedPtah
+		}
 		return linkedVersion
 	}
 	return linkedVersion + "; external binary overrides: " + strings.Join(overrides, ", ")
 }
 
-func linkedPtahVersion() string {
-	info, ok := debug.ReadBuildInfo()
-	if !ok {
-		return ptahVersionUnknown()
+// linkedPtahVersion reports the linked ptah.run module and whether it is the
+// version go.mod requires, with no replace directive.
+func linkedPtahVersion(info *debug.BuildInfo) (string, bool) {
+	if info == nil {
+		return ptahVersionUnknown(), false
 	}
 	for _, dep := range info.Deps {
 		if dep.Path == ptahModulePath {
-			return ptahModulePath + " " + moduleVersion(dep)
+			return ptahModulePath + " " + moduleVersion(dep), dep.Replace == nil && dep.Version != ""
 		}
 	}
-	return ptahVersionUnknown()
+	return ptahVersionUnknown(), false
 }
 
 func ptahBinaryOverrides() []string {
