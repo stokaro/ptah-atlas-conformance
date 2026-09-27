@@ -548,5 +548,5 @@ func TestRenderCEGatingMarkdown_Header(t *testing.T) {
 	c.Check(md, qt.Contains, "v1.3.0 additions measured on 2026-08-02")
 	c.Check(md, qt.Contains, "every row was measured against Atlas CE v1.3.0 on 2026-08-02")
 	// This tier measures the Atlas binary only; Ptah must not be claimed.
-	c.Check(md, qt.Not(qt.Contains), "Ptah at `")
+	c.Check(md, qt.Not(qt.Contains), "- Ptah at")
 }

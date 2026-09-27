@@ -38,7 +38,7 @@ func RenderCLISurfaceMarkdown(results []Result, w *Waivers, inventory CLISurface
 	}
 
 	fmt.Fprintf(&b, "- Atlas CE binary: `%s`\n", inventory.AtlasVersion)
-	fmt.Fprintf(&b, "- Ptah at `%s`\n", ptahVersion)
+	b.WriteString(ptahStamp(ptahVersion))
 	fmt.Fprintf(&b, "- Outcomes: **%d ok**, **%d gap**, **%d fail**, **%d panic**\n", s.OK, s.Gap, s.Fail, s.Panic)
 	fmt.Fprintf(&b, "- Full gate: **%d non-OK** (%s)\n", len(nonOK), conformanceGateStatus(len(nonOK)))
 	fmt.Fprintf(&b, "- Regression budget input: **%d unwaived non-OK**, %d waived\n",

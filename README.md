@@ -196,6 +196,11 @@ differs from the same report regenerated without them, and the pull-request
 staleness check reads that difference as a stale report. Use them to probe a
 candidate build; unset them before regenerating anything you intend to commit.
 
+With neither set and no `replace` directive, the stamp names `go.mod` rather
+than the version it requires. The version is visible in `go.mod` itself, and
+leaving it out of the reports means a `ptah.run` bump that moves no result
+changes no report, so the bump passes the staleness check on its own.
+
 Local live runs are explicit per networked dialect. Set whichever service URLs
 you want to exercise; unset networked dialects are skipped. SQLite always runs,
 using `CONFORMANCE_SQLITE_URL` when set or a fresh temporary database otherwise:

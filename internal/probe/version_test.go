@@ -10,17 +10,6 @@ import (
 	"github.com/stokaro/ptah-atlas-conformance/internal/probe"
 )
 
-func TestPtahVersion_LinkedModuleOnly(t *testing.T) {
-	c := qt.New(t)
-	t.Setenv("PTAH_BIN", "")
-	t.Setenv("PTAH_COMPAT_BIN", "")
-
-	got := probe.PtahVersion()
-
-	c.Assert(got, qt.Contains, "ptah.run ")
-	c.Assert(got, qt.Not(qt.Contains), "external binary overrides")
-}
-
 func TestPtahVersion_ExternalBinaryOverrides(t *testing.T) {
 	c := qt.New(t)
 	ptahBin := t.TempDir() + "/ptah"
