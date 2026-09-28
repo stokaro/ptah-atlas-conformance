@@ -20,10 +20,11 @@ const schemaApplyLockUnsupportedNote = `note: schema apply locking is not suppor
 // ApplySimulationWorkflowProbe executes the `schema apply` guard rails from
 // stokaro/ptah#812 through the real `atlas ...` CLI on ephemeral SQLite:
 // `--lock-timeout` is accepted (an explicit noted no-op on lockless SQLite),
-// `--dev-url` rehearses the exact plan on a reset dev database before the
-// target is touched, a failing rehearsal refuses the apply with the target
+// `--dev-url` rehearses the exact plan on a clean dev database before the
+// target is touched, a dev database that still holds a table is refused before
+// anything is reset, a failing rehearsal refuses the apply with the target
 // left unchanged, and pointing `--dev-url` at the target itself is refused
-// before the destructive dev reset.
+// before the destructive dev reset, whether the target holds a table or not.
 type ApplySimulationWorkflowProbe struct {
 	// FixtureRoot contains the committed desired-schema source file. Relative
 	// paths are resolved from the probe process directory.
@@ -49,8 +50,10 @@ func (p ApplySimulationWorkflowProbe) Run(fx Fixture) []Result {
 	return w.runSteps([]func() Result{
 		s.lockTimeoutNotedNoOp,
 		s.simulationSuccess,
+		s.dirtyDevDatabaseRefused,
 		s.simulationFailureRefusesTarget,
-		s.devURLMustDifferFromTarget,
+		s.devURLIsTargetHoldingTable,
+		s.devURLIsEmptyTarget,
 	})
 }
 
@@ -104,10 +107,6 @@ func (s *applySimulationWorkflow) simulationSuccess() Result {
 	)
 	targetDB := filepath.Join(s.runRoot, "sim-target.db")
 	devDB := filepath.Join(s.runRoot, "sim-dev.db")
-	// Pre-litter the dev database: the simulation must reset it first.
-	if err := execSQLiteStatement(devDB, "CREATE TABLE sim_stale (id INTEGER PRIMARY KEY)"); err != nil {
-		return s.harnessFailure(stage, err)
-	}
 	result, failure := s.runCLI(stage,
 		"schema", "apply",
 		"--url", sqliteURL(targetDB),
@@ -137,7 +136,49 @@ func (s *applySimulationWorkflow) simulationSuccess() Result {
 		return *gap
 	}
 	return s.ok(fixture, stage,
-		"`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0")
+		"`schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0")
+}
+
+// dirtyDevDatabaseRefused pins what Atlas CE v1.3.0 does with a dev database
+// that still holds a table: it refuses before taking its snapshot, with the
+// error below, and neither database changes. Ptah refuses it the same way
+// since stokaro/ptah#3827.
+func (s *applySimulationWorkflow) dirtyDevDatabaseRefused() Result {
+	const (
+		fixture = "atlas schema apply --dev-url"
+		stage   = "dirty dev database refused"
+	)
+	targetDB := filepath.Join(s.runRoot, "dirty-target.db")
+	devDB := filepath.Join(s.runRoot, "dirty-dev.db")
+	if err := execSQLiteStatement(devDB, "CREATE TABLE sim_stale (id INTEGER PRIMARY KEY)"); err != nil {
+		return s.harnessFailure(stage, err)
+	}
+	result, failure := s.runCLI(stage,
+		"schema", "apply",
+		"--url", sqliteURL(targetDB),
+		"--to", "file://schema.sql",
+		"--dev-url", sqliteURL(devDB),
+		"--auto-approve",
+	)
+	if failure != nil {
+		return *failure
+	}
+	if gap := s.expectExit(fixture, stage, result, 1); gap != nil {
+		return *gap
+	}
+	if gap := s.expectFragments(fixture, stage, "stderr", result.stderr, []string{
+		`sql/migrate: taking database snapshot: sql/migrate: connected database is not clean: found table "sim_stale"`,
+	}); gap != nil {
+		return *gap
+	}
+	if gap := s.expectSQLiteTablesAt(fixture, stage, devDB, []string{"sim_stale"}); gap != nil {
+		return *gap
+	}
+	if gap := s.expectSQLiteTablesAt(fixture, stage, targetDB, nil); gap != nil {
+		return *gap
+	}
+	return s.ok(fixture, stage,
+		"`schema apply --dev-url` refused a dev database that still held a table with Atlas CE v1.3.0's error, left the table in place, and created nothing on the target")
 }
 
 func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
@@ -187,10 +228,13 @@ func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
 		"PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly)")
 }
 
-func (s *applySimulationWorkflow) devURLMustDifferFromTarget() Result {
+// devURLIsTargetHoldingTable points --dev-url at a target that holds a
+// table. Atlas CE v1.3.0 refuses it with the clean check that also guards any
+// dirty dev database, and Ptah refuses it the same way: the table survives.
+func (s *applySimulationWorkflow) devURLIsTargetHoldingTable() Result {
 	const (
 		fixture = "atlas schema apply --dev-url"
-		stage   = "dev database must differ from target"
+		stage   = "dev database is the target, holding a table"
 	)
 	targetDB := filepath.Join(s.runRoot, "sim-same.db")
 	// The marker table proves afterwards that the target was not reset.
@@ -211,7 +255,7 @@ func (s *applySimulationWorkflow) devURLMustDifferFromTarget() Result {
 		return *gap
 	}
 	if gap := s.expectFragments(fixture, stage, "stderr", result.stderr, []string{
-		"--dev-url must not point at the target database",
+		`sql/migrate: taking database snapshot: sql/migrate: connected database is not clean: found table "keepme"`,
 	}); gap != nil {
 		return *gap
 	}
@@ -219,5 +263,41 @@ func (s *applySimulationWorkflow) devURLMustDifferFromTarget() Result {
 		return *gap
 	}
 	return s.ok(fixture, stage,
-		"pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched")
+		"pointing --dev-url at a target that holds a table is refused before any reset with Atlas CE v1.3.0's clean check: the target's existing table survived untouched")
+}
+
+// devURLIsEmptyTarget points --dev-url at an empty target, where the clean
+// check passes. Atlas CE v1.3.0 applies the schema there, using the target as
+// its own dev database. Ptah refuses it by name instead, deliberately stricter:
+// its dev-database rehearsal resets the dev database destructively, and the
+// feature matrix row "Dev-database rehearsal before apply" records the abort.
+func (s *applySimulationWorkflow) devURLIsEmptyTarget() Result {
+	const (
+		fixture = "atlas schema apply --dev-url"
+		stage   = "dev database is the target, empty"
+	)
+	targetDB := filepath.Join(s.runRoot, "sim-same-empty.db")
+	result, failure := s.runCLI(stage,
+		"schema", "apply",
+		"--url", sqliteURL(targetDB),
+		"--to", "file://schema.sql",
+		"--dev-url", sqliteURL(targetDB),
+		"--auto-approve",
+	)
+	if failure != nil {
+		return *failure
+	}
+	if gap := s.expectExit(fixture, stage, result, 1); gap != nil {
+		return *gap
+	}
+	if gap := s.expectFragments(fixture, stage, "stderr", result.stderr, []string{
+		"--dev-url must not point at the target database",
+	}); gap != nil {
+		return *gap
+	}
+	if gap := s.expectSQLiteTablesAt(fixture, stage, targetDB, nil); gap != nil {
+		return *gap
+	}
+	return s.ok(fixture, stage,
+		"pointing --dev-url at an empty target is refused by name before the destructive dev reset, and nothing is applied to the target")
 }

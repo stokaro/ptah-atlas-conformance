@@ -13,7 +13,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **816 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **818 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -22,9 +22,11 @@ Every fixture is covered. The conformance gate is green.
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dirty dev database refused | `schema apply --dev-url` refused a dev database that still held a table with Atlas CE v1.3.0's error, left the table in place, and created nothing on the target |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
-| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database must differ from target | pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database is the target, holding a table | pointing --dev-url at a target that holds a table is refused before any reset with Atlas CE v1.3.0's clean check: the target's existing table survived untouched |  |
+| — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dev database is the target, empty | pointing --dev-url at an empty target is refused by name before the destructive dev reset, and nothing is applied to the target |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --lock-timeout` | lockless dialect note | `schema apply --lock-timeout` is accepted on lockless SQLite as an explicit no-op with a deterministic stderr note, and the apply proceeds |  |
 | — | ok | atlas-cli-flags | `atlas migrate apply` | flags | accepts all essential Atlas flags: --url --dir --dry-run --tx-mode --revisions-schema |  |
 | — | ok | atlas-cli-flags | `atlas migrate diff` | flags | accepts all essential Atlas flags: --to --dev-url --dir --format --schema |  |
