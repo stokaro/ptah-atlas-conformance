@@ -5626,7 +5626,14 @@
     "fixture": "atlas schema apply --dev-url",
     "stage": "plan simulation success",
     "outcome": "ok",
-    "detail": "`schema apply --dev-url` reset the pre-littered dev database, rehearsed the plan before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0"
+    "detail": "`schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0"
+  },
+  {
+    "probe": "apply-simulation-workflow",
+    "fixture": "atlas schema apply --dev-url",
+    "stage": "dirty dev database refused",
+    "outcome": "ok",
+    "detail": "`schema apply --dev-url` refused a dev database that still held a table with Atlas CE v1.3.0's error, left the table in place, and created nothing on the target"
   },
   {
     "probe": "apply-simulation-workflow",
@@ -5638,9 +5645,16 @@
   {
     "probe": "apply-simulation-workflow",
     "fixture": "atlas schema apply --dev-url",
-    "stage": "dev database must differ from target",
+    "stage": "dev database is the target, holding a table",
     "outcome": "ok",
-    "detail": "pointing --dev-url at the target database is refused before the destructive dev reset: the target's existing table survived untouched"
+    "detail": "pointing --dev-url at a target that holds a table is refused before any reset with Atlas CE v1.3.0's clean check: the target's existing table survived untouched"
+  },
+  {
+    "probe": "apply-simulation-workflow",
+    "fixture": "atlas schema apply --dev-url",
+    "stage": "dev database is the target, empty",
+    "outcome": "ok",
+    "detail": "pointing --dev-url at an empty target is refused by name before the destructive dev reset, and nothing is applied to the target"
   },
   {
     "probe": "schema-scope-workflow",

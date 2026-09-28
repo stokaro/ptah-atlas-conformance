@@ -63,12 +63,14 @@ func TestApplySimulationWorkflowProbe_HappyPath(t *testing.T) {
 		Name: "_capability/apply-simulation-workflow/SENTINEL",
 	})
 
-	c.Assert(results, qt.HasLen, 4)
+	c.Assert(results, qt.HasLen, 6)
 	assertWorkflowContours(c, "apply-simulation-workflow", results, []string{
 		"atlas schema apply --lock-timeout|lockless dialect note",
 		"atlas schema apply --dev-url|plan simulation success",
+		"atlas schema apply --dev-url|dirty dev database refused",
 		"atlas schema apply --dev-url|failed simulation refuses the target",
-		"atlas schema apply --dev-url|dev database must differ from target",
+		"atlas schema apply --dev-url|dev database is the target, holding a table",
+		"atlas schema apply --dev-url|dev database is the target, empty",
 	})
 }
 
