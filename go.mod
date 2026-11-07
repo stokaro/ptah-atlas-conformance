@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/zclconf/go-cty v1.19.0
-	modernc.org/sqlite v1.61.0
+	modernc.org/sqlite v1.62.0
 	ptah.run v0.12.0
 )
 
@@ -61,7 +61,7 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
-	modernc.org/libc v1.79.0 // indirect
+	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
