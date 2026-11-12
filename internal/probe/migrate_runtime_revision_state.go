@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"sort"
 	"strings"
 	"time"
 
+	"ptah.run/core/schemaext"
 	"ptah.run/dbschema"
 )
 
@@ -777,19 +779,122 @@ func typedDatabaseSchemaSnapshot(conn *dbschema.DatabaseConnection, schema strin
 	if err != nil {
 		return "", err
 	}
-	data, err := json.Marshal(state)
+	runtime, err := bundledRuntime()
 	if err != nil {
 		return "", err
 	}
-	var generic any
-	if err := json.Unmarshal(data, &generic); err != nil {
+	value, err := catalogSnapshotValue(context.Background(), runtime.Codecs(), reflect.ValueOf(state))
+	if err != nil {
 		return "", err
 	}
-	canonical, err := json.Marshal(canonicalizeJSONOrder(generic))
+	canonical, err := json.Marshal(canonicalizeJSONOrder(value))
 	if err != nil {
 		return "", err
 	}
 	return string(canonical), nil
+}
+
+// catalogSnapshotValue keeps owned feature data in the schema comparison.
+// Ptah requires the runtime's codecs for facets, objects, and coverage; plain
+// json.Marshal on a catalog.Database refuses those values.
+func catalogSnapshotValue(ctx context.Context, codecs schemaext.Registry, value reflect.Value) (any, error) {
+	if !value.IsValid() {
+		return nil, nil
+	}
+	if value.Kind() == reflect.Interface || value.Kind() == reflect.Pointer {
+		if value.IsNil() {
+			return nil, nil
+		}
+		return catalogSnapshotValue(ctx, codecs, value.Elem())
+	}
+	if value.CanInterface() {
+		switch typed := value.Interface().(type) {
+		case schemaext.Facets:
+			encoded, err := codecs.EncodeFacets(ctx, schemaext.Observed, typed)
+			return snapshotJSONValue(encoded, err)
+		case schemaext.Objects:
+			encoded, err := codecs.EncodeObjects(ctx, schemaext.Observed, typed)
+			return snapshotJSONValue(encoded, err)
+		case schemaext.Coverage:
+			encoded, err := codecs.EncodeCoverage(ctx, schemaext.Observed, typed)
+			return snapshotJSONValue(encoded, err)
+		case json.Marshaler:
+			return snapshotJSONValue(typed, nil)
+		}
+	}
+	switch value.Kind() {
+	case reflect.Struct:
+		out := make(map[string]any, value.NumField())
+		for i := range value.NumField() {
+			field := value.Type().Field(i)
+			if !field.IsExported() || field.Tag.Get("json") == "-" {
+				continue
+			}
+			name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
+			if name == "" {
+				name = field.Name
+			}
+			item, err := catalogSnapshotValue(ctx, codecs, value.Field(i))
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", name, err)
+			}
+			out[name] = item
+		}
+		return out, nil
+	case reflect.Slice, reflect.Array:
+		if value.Kind() == reflect.Slice && value.IsNil() {
+			return nil, nil
+		}
+		if value.Type().Elem().Kind() == reflect.Uint8 {
+			return snapshotJSONValue(value.Interface(), nil)
+		}
+		out := make([]any, value.Len())
+		for i := range value.Len() {
+			item, err := catalogSnapshotValue(ctx, codecs, value.Index(i))
+			if err != nil {
+				return nil, err
+			}
+			out[i] = item
+		}
+		return out, nil
+	case reflect.Map:
+		if value.IsNil() {
+			return nil, nil
+		}
+		if value.Type().Key().Kind() != reflect.String {
+			return nil, fmt.Errorf("unsupported catalog map key %s", value.Type().Key())
+		}
+		out := make(map[string]any, value.Len())
+		iter := value.MapRange()
+		for iter.Next() {
+			item, err := catalogSnapshotValue(ctx, codecs, iter.Value())
+			if err != nil {
+				return nil, err
+			}
+			out[iter.Key().String()] = item
+		}
+		return out, nil
+	default:
+		if value.CanInterface() {
+			return value.Interface(), nil
+		}
+		return nil, fmt.Errorf("unsupported catalog value %s", value.Type())
+	}
+}
+
+func snapshotJSONValue(value any, encodeErr error) (any, error) {
+	if encodeErr != nil {
+		return nil, encodeErr
+	}
+	data, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+	var decoded any
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return nil, err
+	}
+	return decoded, nil
 }
 
 // canonicalizeJSONOrder recursively sorts every array by its elements'

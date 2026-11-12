@@ -6,10 +6,16 @@ package probe
 // consumes the canonical form and emits only whether two snapshots matched.
 
 import (
+	"context"
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
+
+	"ptah.run/catalog"
+	"ptah.run/core/schemaext"
+	"ptah.run/dialect/mysql/mysqlschema"
 )
 
 // canonicalJSON is the comparison the probe actually performs: unmarshal,
@@ -21,6 +27,28 @@ func canonicalJSON(c *qt.C, document string) string {
 	encoded, err := json.Marshal(canonicalizeJSONOrder(value))
 	c.Assert(err, qt.IsNil)
 	return string(encoded)
+}
+
+func TestCatalogSnapshotValuePreservesOwnedFacetsAndOrder(t *testing.T) {
+	c := qt.New(t)
+	runtime, err := bundledRuntime()
+	c.Assert(err, qt.IsNil)
+	utf8, err := schemaext.NewFacets(&mysqlschema.ObservedTable{Charset: "utf8mb4"})
+	c.Assert(err, qt.IsNil)
+	latin1, err := schemaext.NewFacets(&mysqlschema.ObservedTable{Charset: "latin1"})
+	c.Assert(err, qt.IsNil)
+	first := &catalog.Database{Tables: []catalog.Table{{Name: "users", Facets: utf8}, {Name: "posts"}}}
+	reordered := &catalog.Database{Tables: []catalog.Table{{Name: "posts"}, {Name: "users", Facets: utf8}}}
+	changed := &catalog.Database{Tables: []catalog.Table{{Name: "users", Facets: latin1}, {Name: "posts"}}}
+	encode := func(db *catalog.Database) string {
+		value, err := catalogSnapshotValue(context.Background(), runtime.Codecs(), reflect.ValueOf(db))
+		c.Assert(err, qt.IsNil)
+		data, err := json.Marshal(canonicalizeJSONOrder(value))
+		c.Assert(err, qt.IsNil)
+		return string(data)
+	}
+	c.Assert(encode(first), qt.Equals, encode(reordered))
+	c.Assert(encode(first), qt.Not(qt.Equals), encode(changed))
 }
 
 // TestCanonicalizeJSONOrder_CollapsesReordering pins what the canonicalizer is
