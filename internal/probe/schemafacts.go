@@ -120,19 +120,19 @@ func tableMetaFact(t schemamodel.Table) string {
 	if engine := normIdent(t.Engine); engine != "" {
 		parts = append(parts, "engine="+engine)
 	}
-	if value := strings.TrimSpace(t.AutoIncrement); value != "" {
+	if value := strings.TrimSpace(mysqlTableOptions(t.Facets).AutoIncrement); value != "" {
 		parts = append(parts, "auto_increment="+value)
 	}
-	if charset := normIdent(t.Charset); charset != "" {
+	if charset := normIdent(mysqlTableOptions(t.Facets).Charset); charset != "" {
 		parts = append(parts, "charset="+charset)
 	}
 	if collate := normIdent(t.Collate); collate != "" {
 		parts = append(parts, "collate="+collate)
 	}
-	if t.Strict {
+	if sqliteTableOptions(t.Facets).Strict {
 		parts = append(parts, "strict=true")
 	}
-	if t.WithoutRowID {
+	if sqliteTableOptions(t.Facets).WithoutRowID {
 		parts = append(parts, "without_rowid=true")
 	}
 	if comment := normComment(t.Comment); comment != "" {
@@ -219,10 +219,10 @@ func fieldSignature(f schemamodel.Field, isPK bool) string {
 	if identity := identitySignature(f); identity != "" {
 		sig += " identity=" + identity
 	}
-	if update := normExpr(f.UpdateExpression); update != "" {
+	if update := normExpr(mysqlColumnOptions(f.Facets).OnUpdate); update != "" {
 		sig += " on_update=" + update
 	}
-	if charset := normIdent(f.Charset); charset != "" {
+	if charset := normIdent(mysqlColumnOptions(f.Facets).Charset); charset != "" {
 		sig += " charset=" + charset
 	}
 	if collate := normIdent(f.Collate); collate != "" {
@@ -330,8 +330,8 @@ func indexFactSignature(idx schemamodel.Index, cols string) string {
 	if storage := storageParamsSignature(idx.StorageParams); storage != "" {
 		sig += " storage=" + storage
 	}
-	if idx.Granularity != 0 {
-		sig += " granularity=" + strconv.Itoa(idx.Granularity)
+	if granularity := clickhouseIndexGranularity(idx.Facets); granularity != 0 {
+		sig += " granularity=" + strconv.FormatUint(granularity, 10)
 	}
 	if comment := normComment(idx.Comment); comment != "" {
 		sig += " comment=" + comment
@@ -344,7 +344,7 @@ func indexFactCoreSignature(idx schemamodel.Index, cols string) string {
 	if typ := normIndexType(idx.Type); typ != "" {
 		sig += " type=" + typ
 	}
-	if parser := normIdent(idx.Parser); parser != "" {
+	if parser := normIdent(mysqlIndexParser(idx.Facets)); parser != "" {
 		sig += " parser=" + parser
 	}
 	if operator := normIdent(idx.Operator); operator != "" {

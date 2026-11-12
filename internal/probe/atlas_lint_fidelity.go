@@ -35,7 +35,7 @@ func lintSingleChange(sql string, opts lint.Options) ([]lint.Finding, error) {
 		lintFidelityFile:        {Data: []byte(sql)},
 		"0000000001_x.down.sql": {Data: []byte("-- down\n")},
 	}
-	findings, err := lint.LintFS(files, opts)
+	findings, err := lintFS(files, opts)
 	if err != nil {
 		return nil, err
 	}

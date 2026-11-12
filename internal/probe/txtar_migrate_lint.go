@@ -49,12 +49,16 @@ func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 	if err != nil {
 		return txtarCommandResult{err: err}, true
 	}
+	// A replay error prevents the lint report from existing. Record that root
+	// failure once instead of treating each following stdout assertion as an
+	// independent mismatch.
+	blocked := run.failed && run.stdout == "" && strings.Contains(run.stderr, "error validating migration SQL on dev database")
 	if plan.redirect != "" {
 		runtime.files[plan.redirect] = run.stdout
 		runtime.addParentDirs(plan.redirect)
-		return txtarCommandResult{stderr: run.stderr, failed: run.failed, err: run.err}, true
+		return txtarCommandResult{stderr: run.stderr, failed: run.failed, assertionsBlocked: blocked, err: run.err}, true
 	}
-	return txtarCommandResult{stdout: run.stdout, stderr: run.stderr, failed: run.failed, err: run.err}, true
+	return txtarCommandResult{stdout: run.stdout, stderr: run.stderr, failed: run.failed, assertionsBlocked: blocked, err: run.err}, true
 }
 
 // txtarMigrateLintPlan is the parsed shell form of a `migrate lint` command:

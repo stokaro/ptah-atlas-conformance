@@ -194,7 +194,7 @@ func (c analyzerCase) run() Result {
 	var findings []lint.Finding
 	var err error
 	panicked, pmsg := guard(func() {
-		findings, err = lint.LintFS(files, lint.Options{Dialect: c.Dialect})
+		findings, err = lintFS(files, lint.Options{Dialect: c.Dialect})
 	})
 	label := "Atlas " + c.AtlasCode + " (" + c.Concern + ")"
 	matched := substantiveChangeFindings(findings, lintChangeFile)

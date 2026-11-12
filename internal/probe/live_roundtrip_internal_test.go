@@ -9,24 +9,32 @@ import (
 
 	qt "github.com/frankban/quicktest"
 
+	"ptah.run/core/schemaext"
 	"ptah.run/core/schemamodel"
+	"ptah.run/feature/pgextension"
+	"ptah.run/feature/pgtype"
 )
 
 func TestRoundTripObjectSummary(t *testing.T) {
 	c := qt.New(t)
+	objects, err := schemaext.NewObjects(
+		schemaext.Object{Ref: pgextension.Ref("citext"), Value: &pgextension.DesiredExtension{}},
+		schemaext.Object{Ref: pgtype.Ref(pgtype.DomainKind, "", "email"), Value: &pgtype.DesiredDomain{BaseType: "text"}},
+		schemaext.Object{Ref: pgtype.Ref(pgtype.DomainKind, "", "pincode"), Value: &pgtype.DesiredDomain{BaseType: "text"}},
+		schemaext.Object{Ref: pgtype.Ref(pgtype.CompositeKind, "", "money_amount"), Value: &pgtype.DesiredComposite{Attributes: []pgtype.Attribute{{Name: "amount", Type: "numeric"}}}},
+		schemaext.Object{Ref: pgtype.Ref(pgtype.RangeKind, "", "floatrange"), Value: &pgtype.DesiredRange{Subtype: "float"}},
+	)
+	c.Assert(err, qt.IsNil)
 
 	db := &schemamodel.Database{
+		FeatureObjects:    objects,
 		Tables:            []schemamodel.Table{{Name: "accounts"}},
 		Fields:            []schemamodel.Field{{Name: "id"}},
 		Indexes:           []schemamodel.Index{{Name: "accounts_email_idx"}},
 		Constraints:       []schemamodel.Constraint{{Name: "accounts_email_check"}},
 		Enums:             []schemamodel.Enum{{Name: "account_status"}},
-		Extensions:        []schemamodel.Extension{{Name: "citext"}},
 		Functions:         []schemamodel.Function{{Name: "normalize_email"}},
 		Sequences:         []schemamodel.Sequence{{Name: "account_id_seq"}},
-		Domains:           []schemamodel.Domain{{Name: "email"}, {Name: "pincode"}},
-		CompositeTypes:    []schemamodel.CompositeType{{Name: "money_amount"}},
-		Ranges:            []schemamodel.Range{{Name: "floatrange"}},
 		Views:             []schemamodel.View{{Name: "active_accounts"}},
 		MaterializedViews: []schemamodel.MaterializedView{{Name: "account_totals"}},
 		Triggers:          []schemamodel.Trigger{{Name: "accounts_updated_at"}},

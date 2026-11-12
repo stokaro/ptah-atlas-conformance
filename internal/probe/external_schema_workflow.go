@@ -17,7 +17,7 @@ import (
 const (
 	externalSchemaWorkflowSentinel = "_capability/external-schema-workflow/SENTINEL"
 	externalSchemaWorkflowIssue    = "stokaro/ptah#669"
-	externalSchemaTrustError       = "ptah.yaml external_schema is disabled by default; pass --allow-external-schema to execute it"
+	externalSchemaTrustError       = "ptah.yaml external_schema runs schema-provider: a program named in a project file does not run without permission; pass --allow-config-exec to run it"
 )
 
 // ExternalSchemaWorkflowProbe exercises static SQL and external-program desired
@@ -467,7 +467,7 @@ func (w *externalSchemaWorkflow) generate() Result {
 			)
 		}
 	}
-	for _, fragment := range []string{`DROP TABLE IF EXISTS "posts"`, `DROP TABLE IF EXISTS "users"`} {
+	for _, fragment := range []string{`DROP TABLE "posts";`, `DROP TABLE "users";`} {
 		if !strings.Contains(down, fragment) {
 			return externalSchemaGap(
 				"external schema migration generation",

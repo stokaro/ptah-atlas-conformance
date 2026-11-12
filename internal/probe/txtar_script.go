@@ -2,6 +2,7 @@ package probe
 
 import (
 	"cmp"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,6 +20,9 @@ import (
 
 	"ptah.run/atlascompat"
 	"ptah.run/core/ast"
+	"ptah.run/core/platform/capability"
+	"ptah.run/dialect/postgres/pgtable"
+	"ptah.run/feature/pgtype"
 	"ptah.run/migration/migrationfile"
 )
 
@@ -191,6 +195,11 @@ func (r txtarRunSummary) results(fx Fixture) []Result {
 	}
 
 	var out []Result
+	issue := "stokaro/ptah#285"
+	if txtarFixtureFamily(fx) == "sqlite" && (path.Base(fx.Name) == "cli-migrate-lint-destructive.txtar" ||
+		path.Base(fx.Name) == "cli-migrate-lint-project.txtar") {
+		issue = "stokaro/ptah#5952"
+	}
 	for _, failure := range r.failures {
 		out = append(out, Result{
 			Probe:   "txtar-script",
@@ -198,7 +207,7 @@ func (r txtarRunSummary) results(fx Fixture) []Result {
 			Stage:   "script-runtime",
 			Outcome: Fail,
 			Detail:  failure,
-			Issue:   "stokaro/ptah#285",
+			Issue:   issue,
 		})
 	}
 	for _, unsupported := range r.unsupported {
@@ -208,7 +217,7 @@ func (r txtarRunSummary) results(fx Fixture) []Result {
 			Stage:   "script-runtime",
 			Outcome: Gap,
 			Detail:  "unsupported: " + unsupported,
-			Issue:   "stokaro/ptah#285",
+			Issue:   issue,
 		})
 	}
 	return out
@@ -239,11 +248,12 @@ func (r txtarRunSummary) detail() string {
 }
 
 type txtarCommandResult struct {
-	stdout      string
-	stderr      string
-	unsupported string
-	failed      bool
-	err         error
+	stdout            string
+	stderr            string
+	unsupported       string
+	failed            bool
+	assertionsBlocked bool
+	err               error
 }
 
 type txtarRuntime struct {
@@ -297,7 +307,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			summary.unsupported = append(summary.unsupported, txtarDirectiveKey(trimmed))
 			continue
 		case strings.HasPrefix(trimmed, "! stdout "):
-			if last.unsupported != "" {
+			if last.unsupported != "" || last.assertionsBlocked {
 				continue
 			}
 			summary.checked++
@@ -310,7 +320,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			}
 			continue
 		case strings.HasPrefix(trimmed, "! stderr "):
-			if last.unsupported != "" {
+			if last.unsupported != "" || last.assertionsBlocked {
 				continue
 			}
 			summary.checked++
@@ -323,7 +333,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			}
 			continue
 		case strings.HasPrefix(trimmed, "stdout "):
-			if last.unsupported != "" {
+			if last.unsupported != "" || last.assertionsBlocked {
 				continue
 			}
 			summary.checked++
@@ -339,7 +349,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			}
 			continue
 		case strings.HasPrefix(trimmed, "stderr "):
-			if last.unsupported != "" {
+			if last.unsupported != "" || last.assertionsBlocked {
 				continue
 			}
 			summary.checked++
@@ -460,6 +470,8 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		switch {
 		case expectedFailure && !failed:
 			summary.failures = append(summary.failures, "expected command failure, but command succeeded")
+		case expectedFailure && result.assertionsBlocked:
+			summary.failures = append(summary.failures, txtarFailureDetail(result))
 		case !expectedFailure && failed:
 			summary.failures = append(summary.failures, txtarFailureDetail(result))
 		}
@@ -4207,11 +4219,11 @@ func txtarExpectedApplyFailure(
 }
 
 func txtarPostgresPartitionChangeFailure(fx Fixture, current, next *ast.CreateTableNode) string {
-	if txtarFixtureFamily(fx) != "postgres" || current.Partition == nil || next.Partition == nil {
+	if txtarFixtureFamily(fx) != "postgres" || txtarPartition(current) == nil || txtarPartition(next) == nil {
 		return ""
 	}
-	currentSQL, currentOK := renderAtlasPostgresPartitionSQL(current.Partition, atlasIdentifierQuoter("postgresql"))
-	nextSQL, nextOK := renderAtlasPostgresPartitionSQL(next.Partition, atlasIdentifierQuoter("postgresql"))
+	currentSQL, currentOK := renderAtlasPostgresPartitionSQL(txtarPartition(current), atlasIdentifierQuoter("postgresql"))
+	nextSQL, nextOK := renderAtlasPostgresPartitionSQL(txtarPartition(next), atlasIdentifierQuoter("postgresql"))
 	if !currentOK || !nextOK || currentSQL == nextSQL {
 		return ""
 	}
@@ -4477,8 +4489,8 @@ func txtarPostgresVirtualApplyStateSupportedWithTypes(statements, current []ast.
 			continue
 		case *ast.EnumNode:
 			continue
-		case *ast.CreateTypeNode:
-			if _, ok := node.TypeDef.(*ast.DomainTypeDef); !ok {
+		case *ast.ExtensionStatement:
+			if _, ok := node.Payload.(*pgtype.CreateDomain); !ok {
 				return false
 			}
 		case *ast.CreateTableNode:
@@ -4501,7 +4513,7 @@ func txtarPostgresVirtualApplyStateSupportedWithTypes(statements, current []ast.
 }
 
 func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[string]bool, enums map[string]*ast.EnumNode) bool {
-	if table.SelectBody != "" || !txtarPostgresApplyPartitionSupported(table.Partition) {
+	if table.SelectBody != "" || !txtarPostgresApplyPartitionSupported(txtarPartition(table)) {
 		return false
 	}
 	for _, column := range table.Columns {
@@ -4531,7 +4543,7 @@ func txtarPostgresApplyTableSupported(table *ast.CreateTableNode, domains map[st
 	return true
 }
 
-func txtarPostgresApplyPartitionSupported(partition *ast.PartitionSpec) bool {
+func txtarPostgresApplyPartitionSupported(partition *pgtable.Partition) bool {
 	if partition == nil {
 		return true
 	}
@@ -4590,15 +4602,23 @@ func txtarPostgresEnumsByName(statements []ast.Node) map[string]*ast.EnumNode {
 func txtarPostgresDomainNames(statements []ast.Node) map[string]bool {
 	domains := map[string]bool{}
 	for _, stmt := range statements {
-		createType, ok := stmt.(*ast.CreateTypeNode)
-		if !ok {
-			continue
-		}
-		if _, ok := createType.TypeDef.(*ast.DomainTypeDef); ok {
-			domains[atlasSQLIdentifier(createType.Name)] = true
+		if name, ok := txtarDomainName(stmt); ok {
+			domains[atlasSQLIdentifier(name)] = true
 		}
 	}
 	return domains
+}
+
+func txtarDomainName(stmt ast.Node) (string, bool) {
+	extension, ok := stmt.(*ast.ExtensionStatement)
+	if !ok {
+		return "", false
+	}
+	domain, ok := extension.Payload.(*pgtype.CreateDomain)
+	if !ok {
+		return "", false
+	}
+	return domain.Target.QualifiedName(), true
 }
 
 func txtarPostgresRetainDomainTypes(current, next []ast.Node) []ast.Node {
@@ -4607,12 +4627,8 @@ func txtarPostgresRetainDomainTypes(current, next []ast.Node) []ast.Node {
 	}
 	retained := make([]ast.Node, 0, len(current)+len(next))
 	for _, stmt := range current {
-		createType, ok := stmt.(*ast.CreateTypeNode)
-		if !ok {
-			continue
-		}
-		if _, ok := createType.TypeDef.(*ast.DomainTypeDef); ok {
-			retained = append(retained, createType)
+		if _, ok := txtarDomainName(stmt); ok {
+			retained = append(retained, stmt)
 		}
 	}
 	return append(retained, next...)
@@ -4836,7 +4852,7 @@ func txtarMySQLApplyTableSupported(dialect string, table *ast.CreateTableNode) b
 	if table.SelectBody != "" || table.Comment != "" {
 		return false
 	}
-	if !txtarMySQLApplyTableOptionsSupported(dialect, table.Options) {
+	if !txtarMySQLApplyTableOptionsSupported(dialect, mysqlASTTableOptions(table)) {
 		return false
 	}
 	for _, column := range table.Columns {
@@ -4937,7 +4953,7 @@ func txtarMySQLApplyIndexSupported(dialect string, index *ast.IndexNode) bool {
 	if !txtarMySQLApplyIndexTypeSupported(index.Type) {
 		return false
 	}
-	if index.Parser != "" && !strings.EqualFold(index.Type, "FULLTEXT") {
+	if mysqlIndexParser(index.Facets) != "" && !strings.EqualFold(index.Type, "FULLTEXT") {
 		return false
 	}
 	for _, part := range index.EffectiveParts() {
@@ -4957,11 +4973,22 @@ func txtarMySQLApplyIndexTypeSupported(indexType string) bool {
 
 func txtarHCLStatements(fx Fixture, name, data string) ([]ast.Node, error) {
 	data = txtarNormalizeAtlasHCL(fx, data)
-	db, err := atlascompat.ParseAtlasHCL([]byte(data), name)
+	runtime, err := bundledRuntime()
+	if err != nil {
+		return nil, err
+	}
+	dialect := txtarFixtureDialect(fx)
+	db, err := atlascompat.ParseAtlasHCLWithOptions(context.Background(), []byte(data), name, atlascompat.ParseHCLOptions{
+		Dialect: dialect,
+		HCL:     runtime.HCL(),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("%w: parse HCL file: %v", errUnsupportedInspectHCL, err)
 	}
-	list := atlascompat.SchemaToAST(*db, txtarFixtureDialect(fx))
+	list, err := atlascompat.SchemaToAST(context.Background(), runtime, *db, dialect, capability.ForDialect(dialect))
+	if err != nil {
+		return nil, err
+	}
 	return txtarOrderHCLStatementsByTableBlocks(fx, data, list.Statements), nil
 }
 
@@ -5053,7 +5080,11 @@ func runTxtarExecSQL(fx Fixture, runtime *txtarRuntime, fields []string) (txtarC
 			runtime.partitionChildren[tableName]++
 			return txtarCommandResult{}, true
 		}
-		list, err := atlascompat.ParseSQL(fields[1], atlascompat.ParseSQLOptions{})
+		owner, err := bundledRuntime()
+		if err != nil {
+			return txtarCommandResult{err: err}, true
+		}
+		list, err := atlascompat.ParseSQL(fields[1], atlascompat.ParseSQLOptions{Dialect: "postgresql", SQL: owner.SQL()})
 		if err != nil || !txtarPostgresVirtualApplyStateSupported(list.Statements) {
 			return txtarCommandResult{unsupported: "execsql"}, true
 		}
@@ -5447,7 +5478,7 @@ func txtarTableNeedsSQLShowCompare(fx Fixture, statements []ast.Node, name strin
 			return true
 		}
 	}
-	return table.Partition != nil
+	return txtarPartition(table) != nil
 }
 
 func txtarCmpShowSQL(
@@ -5565,7 +5596,7 @@ func atlasNormalizeMariaDBJSONColumns(dialect string, statements []ast.Node) {
 				continue
 			}
 			column.Type = "json"
-			column.Charset = ""
+			column.Facets = clearMySQLColumnCharset(column.Facets)
 			column.Collate = ""
 			column.Check = ""
 			normalizedJSONChecks[column.Name] = true
@@ -5581,7 +5612,7 @@ func atlasNormalizeMariaDBJSONColumns(dialect string, statements []ast.Node) {
 
 func atlasMariaDBJSONStorageColumn(column *ast.ColumnNode) bool {
 	return strings.EqualFold(column.Type, "longtext") &&
-		strings.EqualFold(column.Charset, "utf8mb4") &&
+		strings.EqualFold(mysqlColumnOptions(column.Facets).Charset, "utf8mb4") &&
 		strings.EqualFold(column.Collate, "utf8mb4_bin")
 }
 
@@ -5715,7 +5746,7 @@ func txtarWritePostgresTableShowSQL(
 ) {
 	tableName := atlasHCLTableIdentifier(table.Name, schemaName)
 	enums := txtarPostgresEnumsByName(statements)
-	if table.Partition == nil {
+	if txtarPartition(table) == nil {
 		fmt.Fprintf(out, "Table %q\n", schemaName+"."+tableName)
 	} else {
 		fmt.Fprintf(out, "Partitioned table %q\n", schemaName+"."+tableName)
@@ -5743,8 +5774,8 @@ func txtarWritePostgresTableShowSQL(
 			defaultValue,
 		)
 	}
-	if table.Partition != nil {
-		partitionKey, ok := txtarPostgresShowPartitionKey(table.Partition)
+	if txtarPartition(table) != nil {
+		partitionKey, ok := txtarPostgresShowPartitionKey(txtarPartition(table))
 		if !ok {
 			return
 		}
@@ -5779,7 +5810,7 @@ func txtarWritePostgresTableShowSQL(
 	}
 }
 
-func txtarPostgresShowPartitionKey(partition *ast.PartitionSpec) (string, bool) {
+func txtarPostgresShowPartitionKey(partition *pgtable.Partition) (string, bool) {
 	if partition == nil || len(partition.Parts) == 0 {
 		return "", false
 	}
@@ -8067,8 +8098,8 @@ func renderAtlasInspectHCL(dialect, schemaName string, statements []ast.Node) (s
 				return "", fmt.Errorf("%w: statement %T", errUnsupportedInspectHCL, stmt)
 			}
 			enumList = append(enumList, node)
-		case *ast.CreateTypeNode:
-			if _, ok := node.TypeDef.(*ast.DomainTypeDef); ok && dialect == "postgresql" {
+		case *ast.ExtensionStatement:
+			if _, ok := node.Payload.(*pgtype.CreateDomain); ok && dialect == "postgresql" {
 				continue
 			}
 			return "", fmt.Errorf("%w: statement %T", errUnsupportedInspectHCL, stmt)
@@ -8140,14 +8171,14 @@ func renderAtlasTableHCL(
 			fmt.Fprintf(b, "    type = %s\n", atlasColumnHCLType(dialect, schemaName, inspectColumn, domains, enums))
 		}
 		if dialect == "mysql" || dialect == "mariadb" {
-			if column.Charset != "" {
-				fmt.Fprintf(b, "    charset = %q\n", column.Charset)
+			if mysqlColumnOptions(column.Facets).Charset != "" {
+				fmt.Fprintf(b, "    charset = %q\n", mysqlColumnOptions(column.Facets).Charset)
 			}
 			if column.Collate != "" {
 				fmt.Fprintf(b, "    collate = %q\n", column.Collate)
 			}
-			if column.UpdateExpression != "" {
-				fmt.Fprintf(b, "    on_update = %s\n", atlasSQLExpressionHCL(column.UpdateExpression))
+			if mysqlColumnOptions(column.Facets).OnUpdate != "" {
+				fmt.Fprintf(b, "    on_update = %s\n", atlasSQLExpressionHCL(mysqlColumnOptions(column.Facets).OnUpdate))
 			}
 			if column.GeneratedExpression != "" {
 				fmt.Fprintf(b, "    as {\n")
@@ -8242,7 +8273,7 @@ func renderAtlasTableHCL(
 		return err
 	}
 	if dialect == "postgresql" {
-		if err := renderAtlasPostgresPartitionHCL(b, table.Partition); err != nil {
+		if err := renderAtlasPostgresPartitionHCL(b, txtarPartition(table)); err != nil {
 			return err
 		}
 	}
@@ -8250,7 +8281,7 @@ func renderAtlasTableHCL(
 	return nil
 }
 
-func renderAtlasPostgresPartitionHCL(b *strings.Builder, partition *ast.PartitionSpec) error {
+func renderAtlasPostgresPartitionHCL(b *strings.Builder, partition *pgtable.Partition) error {
 	if partition == nil {
 		return nil
 	}
@@ -8285,7 +8316,7 @@ func renderAtlasPostgresPartitionHCL(b *strings.Builder, partition *ast.Partitio
 	return nil
 }
 
-func atlasPartitionCanUseColumnsAttr(parts []ast.PartitionPart) bool {
+func atlasPartitionCanUseColumnsAttr(parts []pgtable.PartitionPart) bool {
 	for _, part := range parts {
 		if part.Name == "" || part.Expr != "" {
 			return false
@@ -8474,14 +8505,15 @@ func renderAtlasMySQLTableHCLAttrs(b *strings.Builder, dialect string, table *as
 	if dialect != "mysql" && dialect != "mariadb" {
 		return
 	}
-	if engine := table.Options["ENGINE"]; engine != "" && !strings.EqualFold(engine, "InnoDB") {
+	options := mysqlASTTableOptions(table)
+	if engine := options["ENGINE"]; engine != "" && !strings.EqualFold(engine, "InnoDB") {
 		fmt.Fprintf(b, "  engine = %s\n", engine)
 	}
 	defaultAttrs := atlasDefaultSchemaAttrs(dialect)
-	if charset := table.Options["CHARSET"]; charset != "" && charset != defaultAttrs.charset {
+	if charset := options["CHARSET"]; charset != "" && charset != defaultAttrs.charset {
 		fmt.Fprintf(b, "  charset = %q\n", charset)
 	}
-	if collate := table.Options["COLLATE"]; collate != "" && collate != defaultAttrs.collate {
+	if collate := options["COLLATE"]; collate != "" && collate != defaultAttrs.collate {
 		fmt.Fprintf(b, "  collate = %q\n", collate)
 	}
 }
@@ -8923,8 +8955,8 @@ func renderAtlasUniqueHCL(b *strings.Builder, unique *atlasHCLUnique) error {
 }
 
 func renderAtlasIndexHCL(b *strings.Builder, index *ast.IndexNode) error {
-	if !atlasIndexTypeSupportedHCL(index.Type) || index.Parser != "" || index.Operator != "" ||
-		index.Comment != "" || index.Concurrently || index.Granularity != 0 {
+	if !atlasIndexTypeSupportedHCL(index.Type) || mysqlIndexParser(index.Facets) != "" || index.Operator != "" ||
+		index.Comment != "" || index.Concurrently || clickhouseIndexGranularity(index.Facets) != 0 {
 		return fmt.Errorf("%w: index %s", errUnsupportedInspectHCL, index.Name)
 	}
 
@@ -9466,7 +9498,7 @@ func renderAtlasCreateTableSQL(
 		b.WriteString(options)
 	}
 	if dialect == "mysql" || dialect == "mariadb" {
-		if autoIncrement := table.Options["AUTO_INCREMENT"]; autoIncrement != "" {
+		if autoIncrement := mysqlASTTableOptions(table)["AUTO_INCREMENT"]; autoIncrement != "" {
 			fmt.Fprintf(b, " AUTO_INCREMENT=%s", autoIncrement)
 		}
 	}
@@ -9478,8 +9510,8 @@ func renderAtlasCreateTableSQL(
 			fmt.Fprintf(b, " COLLATE %s", tableAttrs.collate)
 		}
 	}
-	if dialect == "postgresql" && table.Partition != nil {
-		partitionSQL, ok := renderAtlasPostgresPartitionSQL(table.Partition, quote)
+	if dialect == "postgresql" && txtarPartition(table) != nil {
+		partitionSQL, ok := renderAtlasPostgresPartitionSQL(txtarPartition(table), quote)
 		if !ok {
 			return fmt.Errorf("%w: table partition", errUnsupportedInspectSQL)
 		}
@@ -9501,7 +9533,7 @@ func renderAtlasCreateTableSQL(
 	return nil
 }
 
-func renderAtlasPostgresPartitionSQL(partition *ast.PartitionSpec, quote func(string) string) (string, bool) {
+func renderAtlasPostgresPartitionSQL(partition *pgtable.Partition, quote func(string) string) (string, bool) {
 	if partition == nil || len(partition.Parts) == 0 {
 		return "", false
 	}
@@ -9531,10 +9563,11 @@ func atlasTableSchemaAttrs(dialect string, table *ast.CreateTableNode, inherited
 	if attrs.charset == "" && attrs.collate == "" {
 		attrs = atlasDefaultSchemaAttrs(dialect)
 	}
-	if charset := table.Options["CHARSET"]; charset != "" {
+	options := mysqlASTTableOptions(table)
+	if charset := options["CHARSET"]; charset != "" {
 		attrs.charset = charset
 	}
-	if collate := table.Options["COLLATE"]; collate != "" {
+	if collate := options["COLLATE"]; collate != "" {
 		attrs.collate = collate
 	}
 	return attrs
@@ -9608,8 +9641,8 @@ func renderAtlasColumnSQL(
 	if column.Default != nil {
 		fmt.Fprintf(&b, " DEFAULT %s", atlasDefaultSQL(dialect, column.Default))
 	}
-	if column.UpdateExpression != "" {
-		fmt.Fprintf(&b, " ON UPDATE %s", atlasSQLExpression(dialect, column.UpdateExpression))
+	if mysqlColumnOptions(column.Facets).OnUpdate != "" {
+		fmt.Fprintf(&b, " ON UPDATE %s", atlasSQLExpression(dialect, mysqlColumnOptions(column.Facets).OnUpdate))
 	}
 	if opts.mariaDBJSONStorage && atlasMariaDBJSONColumn(dialect, column) {
 		fmt.Fprintf(&b, " CHECK (json_valid(%s))", quote(column.Name))
@@ -9648,7 +9681,7 @@ func atlasWriteColumnCharsetCollate(
 	column *ast.ColumnNode,
 	opts atlasInspectSQLOptions,
 ) {
-	charset := column.Charset
+	charset := mysqlColumnOptions(column.Facets).Charset
 	collate := column.Collate
 	if opts.mariaDBJSONStorage && atlasMariaDBJSONColumn(dialect, column) {
 		if charset == "" {
@@ -9685,7 +9718,7 @@ func atlasColumnCollateIsImplicitDefault(dialect string, column *ast.ColumnNode)
 }
 
 func atlasDefaultCollateForColumn(dialect string, column *ast.ColumnNode) string {
-	charset := strings.ToLower(column.Charset)
+	charset := strings.ToLower(mysqlColumnOptions(column.Facets).Charset)
 	switch charset {
 	case "hebrew":
 		return "hebrew_general_ci"
@@ -9810,8 +9843,8 @@ func renderAtlasIndexSQL(dialect string, quote func(string) string, index *ast.I
 		b.WriteString(" ")
 		b.WriteString(renderAtlasIndexStorageParamsSQL(index.StorageParams))
 	}
-	if index.Parser != "" {
-		fmt.Fprintf(&b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
+	if mysqlIndexParser(index.Facets) != "" {
+		fmt.Fprintf(&b, " /*!50100 WITH PARSER %s */", quote(mysqlIndexParser(index.Facets)))
 	}
 	return b.String()
 }
@@ -9888,8 +9921,8 @@ func renderAtlasStandaloneIndexSQL(b *strings.Builder, dialect string, index *as
 		b.WriteString(" ")
 		b.WriteString(renderAtlasIndexStorageParamsSQL(index.StorageParams))
 	}
-	if index.Parser != "" {
-		fmt.Fprintf(b, " /*!50100 WITH PARSER %s */", quote(index.Parser))
+	if mysqlIndexParser(index.Facets) != "" {
+		fmt.Fprintf(b, " /*!50100 WITH PARSER %s */", quote(mysqlIndexParser(index.Facets)))
 	}
 	if index.Condition != "" {
 		fmt.Fprintf(b, " WHERE %s;\n", index.Condition)

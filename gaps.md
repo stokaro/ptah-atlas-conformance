@@ -7,21 +7,28 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: PARITY on the current corpus
+## Status: NOT DONE — 6 non-OK observation(s)
 
-Every fixture is covered. The conformance gate is green.
+The conformance gate is **red** and stays red until these close. This is by
+design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **818 ok**, **0 gap**, **0 fail**, **0 panic**
-- Full gate: **0 non-OK** (passes CI)
-- Regression budget input: **0 unwaived non-OK**, 0 waived
+- Outcomes: **814 ok**, **2 gap**, **4 fail**, **0 panic**
+- Full gate: **6 non-OK** (fails CI)
+- Regression budget input: **6 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | atlas migrate lint exited 1: Error: error validating migration SQL on dev database: replay migration 1 on dev database: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: cannot rename to rowid alias: oid (1) SQ… | #5952 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | atlas migrate lint exited 1: Error: error validating migration SQL on dev database: replay migration 1 on dev database: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: cannot rename to rowid alias: oid (1) SQ… | #5952 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | atlas migrate lint exited 1: 3.sql | #5952 |
+| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | atlas migrate lint exited 1: 2 | #5952 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding | #5953 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding | #5953 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dirty dev database refused | `schema apply --dev-url` refused a dev database that still held a table with Atlas CE v1.3.0's error, left the table in place, and created nothing on the target |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
@@ -464,11 +471,9 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/goose_gold` | lint | content findings: DD101, AC101, SA101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase` | lint | DROP TABLE appears only in down/rollback SQL, so no destructive up finding is expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/import/liquibase_gold` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | content findings: TX101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | content findings: BC103, DS101 |  |
-| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | content findings: BC103, DS101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | no substantive lint findings expected |  |
@@ -569,7 +574,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/multi-tenants/migrations/20240116003831.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/internal/e2e/testdata/versioned-basic/migrations/20240112070806.sql` | round-trip | parsed 1 statement(s) |  |
-| — | ok | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | expected-invalid | parser rejected Atlas negative SQL fixture: unsupported SQL statement: BROKEN at position 0 |  |
+| — | ok | sql-parse | `atlasexec/testdata/broken/20231029112426.sql` | expected-invalid | parser rejected Atlas negative SQL fixture: line 1, column 1: unsupported SQL statement: BROKEN |  |
 | — | ok | sql-parse | `atlasexec/testdata/migrations/20230727105553_init.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/testdata/migrations/20230727105615_t2.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `atlasexec/testdata/migrations/20230926085734_destructive-change.sql` | round-trip | parsed 1 statement(s) |  |
@@ -609,7 +614,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104614_initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite/20220318104615_second.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104614_initial.sql` | round-trip | parsed 1 statement(s) |  |
-| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql` | expected-invalid | parser rejected Atlas negative SQL fixture: unsupported SQL statement: ASDASD at position 38 |  |
+| — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql` | expected-invalid | parser rejected Atlas negative SQL fixture: line 2, column 1: unsupported SQL statement: ASDASD |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925092817_initial.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094021_second.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/sqlitetx/20220925094437_third.sql` | round-trip | parsed 3 statement(s) |  |
@@ -625,7 +630,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | sql-parse | `cmd/atlas/internal/cmdapi/testdata/templatedir/shared/users.sql` | round-trip | Atlas SQL template support file rendered no standalone statements |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/1.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/2.sql` | round-trip | parsed 1 statement(s) |  |
-| — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/3.sql` | expected-invalid | parser rejected Atlas negative SQL fixture: unsupported SQL statement: THIS at position 53 |  |
+| — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/broken/3.sql` | expected-invalid | parser rejected Atlas negative SQL fixture: line 2, column 1: unsupported SQL statement: THIS |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/1.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/2.sql` | round-trip | parsed 1 statement(s) |  |
 | — | ok | sql-parse | `cmd/atlas/internal/migrate/testdata/fixed/3.sql` | round-trip | parsed 2 statement(s) |  |
@@ -824,10 +829,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | script surface: atlas migrate diff=2, atlas schema diff=1, cmpmig=1, executed 3 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | script surface: atlas migrate diff=3, cmpmig=1, mkdir=1, executed 4 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar` | script-runtime | script surface: atlas migrate lint=1, executed 1 supported command(s), checked 17 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | script surface: atlas migrate lint=2, executed 2 supported command(s), checked 35 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar` | script-runtime | script surface: atlas migrate lint=6, executed 6 supported command(s), checked 57 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar` | script-runtime | script surface: atlas migrate lint=1, executed 1 supported command(s), checked 18 assertion(s) |  |
-| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | script surface: atlas migrate lint=2, executed 2 supported command(s), checked 2 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | script surface: atlas migrate diff=3, cmpmig=3, rm=2, executed 5 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | script surface: atlas migrate validate=3, cmpmig=2, atlas migrate diff=1, atlas migrate hash=1, atlas migrate new=1, mkdir=1, touch=1, executed 8 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | script surface: atlas migrate set=9, atlas migrate apply=7, atlas migrate hash=2, clearSchema=2, mv=1, executed 21 supported command(s), checked 12 assertion(s) |  |
@@ -840,3 +843,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-expr.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/index-partial.txtar` | script-runtime | script surface: apply=2, cmpshow=2, executed 4 supported command(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/table-options.txtar` | script-runtime | script surface: cmpshow=4, apply=2, executed 6 supported command(s) |  |
+
+## Gaps by related issue
+
+- **stokaro/ptah#5952** — 4 finding(s)
+- **stokaro/ptah#5953** — 2 finding(s)

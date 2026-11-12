@@ -1306,7 +1306,7 @@
     "fixture": "atlasexec/testdata/broken/20231029112426.sql",
     "stage": "expected-invalid",
     "outcome": "ok",
-    "detail": "parser rejected Atlas negative SQL fixture: unsupported SQL statement: BROKEN at position 0"
+    "detail": "parser rejected Atlas negative SQL fixture: line 1, column 1: unsupported SQL statement: BROKEN"
   },
   {
     "probe": "sql-parse",
@@ -1586,7 +1586,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlite2/20220318104615_second.sql",
     "stage": "expected-invalid",
     "outcome": "ok",
-    "detail": "parser rejected Atlas negative SQL fixture: unsupported SQL statement: ASDASD at position 38"
+    "detail": "parser rejected Atlas negative SQL fixture: line 2, column 1: unsupported SQL statement: ASDASD"
   },
   {
     "probe": "sql-parse",
@@ -1698,7 +1698,7 @@
     "fixture": "cmd/atlas/internal/migrate/testdata/broken/3.sql",
     "stage": "expected-invalid",
     "outcome": "ok",
-    "detail": "parser rejected Atlas negative SQL fixture: unsupported SQL statement: THIS at position 53"
+    "detail": "parser rejected Atlas negative SQL fixture: line 2, column 1: unsupported SQL statement: THIS"
   },
   {
     "probe": "sql-parse",
@@ -3055,8 +3055,17 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
     "stage": "script-runtime",
-    "outcome": "ok",
-    "detail": "script surface: atlas migrate lint=2, executed 2 supported command(s), checked 35 assertion(s)"
+    "outcome": "fail",
+    "detail": "atlas migrate lint exited 1: Error: error validating migration SQL on dev database: replay migration 1 on dev database: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: cannot rename to rowid alias: oid (1) SQ…",
+    "issue": "stokaro/ptah#5952"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "atlas migrate lint exited 1: Error: error validating migration SQL on dev database: replay migration 1 on dev database: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: cannot rename to rowid alias: oid (1) SQ…",
+    "issue": "stokaro/ptah#5952"
   },
   {
     "probe": "txtar-script",
@@ -3076,8 +3085,17 @@
     "probe": "txtar-script",
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
     "stage": "script-runtime",
-    "outcome": "ok",
-    "detail": "script surface: atlas migrate lint=2, executed 2 supported command(s), checked 2 assertion(s)"
+    "outcome": "fail",
+    "detail": "atlas migrate lint exited 1: 3.sql",
+    "issue": "stokaro/ptah#5952"
+  },
+  {
+    "probe": "txtar-script",
+    "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
+    "stage": "script-runtime",
+    "outcome": "fail",
+    "detail": "atlas migrate lint exited 1: 2",
+    "issue": "stokaro/ptah#5952"
   },
   {
     "probe": "txtar-script",
@@ -3631,7 +3649,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "no substantive lint findings expected"
+    "detail": "content findings: TX101"
   },
   {
     "probe": "lint-parity",
@@ -3651,15 +3669,17 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "lint",
-    "outcome": "ok",
-    "detail": "content findings: BC103, DS101"
+    "outcome": "gap",
+    "detail": "Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding",
+    "issue": "stokaro/ptah#5953"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
     "stage": "lint",
-    "outcome": "ok",
-    "detail": "content findings: BC103, DS101"
+    "outcome": "gap",
+    "detail": "Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding",
+    "issue": "stokaro/ptah#5953"
   },
   {
     "probe": "lint-parity",

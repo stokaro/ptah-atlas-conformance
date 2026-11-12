@@ -10,19 +10,26 @@ import (
 
 	qt "github.com/frankban/quicktest"
 
+	"ptah.run/core/schemaext"
 	"ptah.run/core/schemamodel"
+	"ptah.run/dialect/mysql/mysqlschema"
 )
 
 func TestFoldDefaultSchema_RemovesConnectionDefaultQualification(t *testing.T) {
 	c := qt.New(t)
+	facet := func(value schemaext.Value) schemaext.Facets {
+		facets, err := schemaext.NewFacets(value)
+		c.Assert(err, qt.IsNil)
+		return facets
+	}
 	db := &schemamodel.Database{
 		Schemas: []schemamodel.Schema{{Name: "conf", Charset: "utf8mb4", Collate: "utf8mb4_0900_ai_ci"}, {Name: "audit"}},
 		Tables: []schemamodel.Table{
-			{StructName: "User", Schema: "conf", Name: "users", Charset: "utf8mb4", Collate: "utf8mb4_0900_ai_ci"},
-			{StructName: "Log", Schema: "audit", Name: "logs", Charset: "latin1", Collate: "latin1_swedish_ci"},
+			{StructName: "User", Schema: "conf", Name: "users", Facets: facet(&mysqlschema.DesiredTable{Charset: "utf8mb4"}), Collate: "utf8mb4_0900_ai_ci"},
+			{StructName: "Log", Schema: "audit", Name: "logs", Facets: facet(&mysqlschema.DesiredTable{Charset: "latin1"}), Collate: "latin1_swedish_ci"},
 		},
 		Fields: []schemamodel.Field{
-			{StructName: "User", Name: "id", Type: "integer", Foreign: "conf.accounts(id)", Charset: "utf8mb4", Collate: "utf8mb4_0900_ai_ci"},
+			{StructName: "User", Name: "id", Type: "integer", Foreign: "conf.accounts(id)", Facets: facet(&mysqlschema.DesiredColumnSettings{Charset: "utf8mb4"}), Collate: "utf8mb4_0900_ai_ci"},
 			{StructName: "Log", Name: "user_id", Type: "integer", Foreign: "conf.users(id)"},
 		},
 		Indexes: []schemamodel.Index{{Name: "idx_users_id", TableName: "conf.users", Fields: []string{"id"}}},
@@ -35,13 +42,13 @@ func TestFoldDefaultSchema_RemovesConnectionDefaultQualification(t *testing.T) {
 
 	c.Assert(got.Schemas, qt.DeepEquals, []schemamodel.Schema{{Name: "audit"}})
 	c.Assert(got.Tables[0].Schema, qt.Equals, "")
-	c.Assert(got.Tables[0].Charset, qt.Equals, "")
+	c.Assert(mysqlTableOptions(got.Tables[0].Facets).Charset, qt.Equals, "")
 	c.Assert(got.Tables[0].Collate, qt.Equals, "")
 	c.Assert(got.Tables[1].Schema, qt.Equals, "audit")
-	c.Assert(got.Tables[1].Charset, qt.Equals, "latin1")
+	c.Assert(mysqlTableOptions(got.Tables[1].Facets).Charset, qt.Equals, "latin1")
 	c.Assert(got.Tables[1].Collate, qt.Equals, "latin1_swedish_ci")
 	c.Assert(got.Fields[0].Foreign, qt.Equals, "accounts(id)")
-	c.Assert(got.Fields[0].Charset, qt.Equals, "")
+	c.Assert(mysqlColumnOptions(got.Fields[0].Facets).Charset, qt.Equals, "")
 	c.Assert(got.Fields[0].Collate, qt.Equals, "")
 	c.Assert(got.Fields[1].Foreign, qt.Equals, "users(id)")
 	c.Assert(got.Indexes[0].TableName, qt.Equals, "users")
