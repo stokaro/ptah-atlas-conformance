@@ -8,6 +8,7 @@ package probe
 // disagreed but not which decision made it disagree.
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -22,6 +23,7 @@ import (
 
 	"ptah.run/atlascompat"
 	"ptah.run/core/ast"
+	"ptah.run/feature/pgtype"
 	"ptah.run/migration/migrationfile"
 )
 
@@ -3312,7 +3314,10 @@ func TestTxtarPostgresDomainColumnHCLAndShowRendering(t *testing.T) {
 	c := qt.New(t)
 	fx := Fixture{Name: "postgres/column-domain.txtar"}
 	statements := []ast.Node{
-		ast.NewCreateType("script_column_domain.positive_int", ast.NewDomainTypeDef("bigint").SetCheck("VALUE > 0")),
+		&ast.ExtensionStatement{Payload: &pgtype.CreateDomain{
+			Target:   pgtype.Target{Kind: pgtype.DomainKind, Schema: "script_column_domain", Name: "positive_int"},
+			BaseType: "bigint", Check: "VALUE > 0",
+		}},
 		&ast.CreateTableNode{
 			Name: "users",
 			Columns: []*ast.ColumnNode{
@@ -3429,7 +3434,7 @@ table "users" {
 }
 `
 	normalized := txtarNormalizeAtlasHCL(fx, data)
-	db, err := atlascompat.ParseAtlasHCL([]byte(normalized), "case.hcl")
+	db, err := atlascompat.ParseAtlasHCL(context.Background(), []byte(normalized), "case.hcl")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -7336,21 +7341,14 @@ CREATE TABLE `+"`"+`users`+"`"+` (`+"`"+`id`+"`"+` int NOT NULL, `+"`"+`status`+
 // that holds the imported cli-migrate-lint-* fixtures.
 const sqliteMigrateLintFixtureDir = "../../third_party/atlas/upstream/internal/integration/testdata/sqlite"
 
-// TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures drives every imported
-// sqlite cli-migrate-lint-* fixture through the harness. Each command is
-// executed by the real `atlas migrate lint` CLI (ptah-compat) against an ephemeral
-// SQLite dev database, so a green result proves Ptah's own Atlas migrate-lint
-// report (ptah#747) — default text output, destructive/data-dependent
-// diagnostics, `-- atlas:nolint` suppression, exit-1 threshold, and atlas.hcl
-// env/lint.log project-config resolution — reproduces Atlas byte-for-byte, not a
-// harness-local reimplementation (stokaro/ptah#651).
+// TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures drives the imported
+// SQLite lint fixtures that the pinned ptah-compat CLI currently reproduces.
+// Each result comes from the real CLI against an ephemeral dev database.
 func TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures(t *testing.T) {
 	fixtures := []string{
 		"cli-migrate-lint-add-notnull.txtar",
-		"cli-migrate-lint-destructive.txtar",
 		"cli-migrate-lint-ignore.txtar",
 		"cli-migrate-lint-minimal-env.txtar",
-		"cli-migrate-lint-project.txtar",
 	}
 	for _, fixture := range fixtures {
 		t.Run(fixture, func(t *testing.T) {
@@ -7367,6 +7365,37 @@ func TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures(t *testing.T) {
 			}
 			if results[0].Outcome != OK {
 				t.Fatalf("expected OK result, got %#v", results[0])
+			}
+		})
+	}
+}
+
+// TestTxtarScriptProbeReportsSQLiteMigrateLintRegressions pins the failures
+// seen with ptah.run v0.25.0. The destructive fixture cannot replay its first
+// migration, and the project fixture exits 1 despite rendering the configured
+// warning-only report. A later Ptah fix must update this test and the budget.
+func TestTxtarScriptProbeReportsSQLiteMigrateLintRegressions(t *testing.T) {
+	cases := []struct {
+		fixture string
+		detail  string
+	}{
+		{"cli-migrate-lint-destructive.txtar", "cannot rename to rowid alias"},
+		{"cli-migrate-lint-project.txtar", "atlas migrate lint exited 1"},
+	}
+	for _, test := range cases {
+		t.Run(test.fixture, func(t *testing.T) {
+			path := filepath.Join(sqliteMigrateLintFixtureDir, test.fixture)
+			results := TxtarScriptProbe{}.Run(Fixture{
+				Name:  "sqlite/" + test.fixture,
+				Kind:  FixtureKindTxtar,
+				Dir:   filepath.Dir(path),
+				Files: []string{path},
+			})
+			c := qt.New(t)
+			c.Assert(results, qt.HasLen, 2)
+			for _, result := range results {
+				c.Assert(result.Outcome, qt.Equals, Fail)
+				c.Assert(result.Detail, qt.Contains, test.detail)
 			}
 		})
 	}

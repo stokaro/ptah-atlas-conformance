@@ -7,6 +7,7 @@ import (
 	qt "github.com/frankban/quicktest"
 
 	"ptah.run/core/goschema"
+	"ptah.run/engine/builtin"
 )
 
 func TestLiveFixtures_ParseIndexes(t *testing.T) {
@@ -48,7 +49,9 @@ func TestLiveFixtures_ParseIndexes(t *testing.T) {
 		c.Run(tt.name, func(c *qt.C) {
 			dir := filepath.Join("..", "..", "testdata", "live", tt.fixture)
 
-			db, err := goschema.ParseDir(dir)
+			annotations, err := builtin.Annotations()
+			c.Assert(err, qt.IsNil)
+			db, err := goschema.ParseDir(annotations, dir)
 
 			c.Assert(err, qt.IsNil)
 			c.Assert(db.Indexes, qt.HasLen, 1)

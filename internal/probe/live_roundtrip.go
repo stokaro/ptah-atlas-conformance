@@ -7,12 +7,15 @@ import (
 	"sort"
 	"strings"
 
-	"ptah.run/core/goschema"
-	"ptah.run/core/renderer"
+	"ptah.run/core/difftypes"
+	"ptah.run/core/schemaext"
 	"ptah.run/core/schemamodel"
 	"ptah.run/dbschema"
+	"ptah.run/engine/builtin"
+	"ptah.run/feature/oratype"
+	"ptah.run/feature/pgextension"
+	"ptah.run/feature/pgtype"
 	"ptah.run/migration/schemadiff"
-	difftypes "ptah.run/migration/schemadiff/difftypes"
 )
 
 // RunRoundTrip is the behavioral self-consistency check that a drop-in needs: it
@@ -29,7 +32,7 @@ import (
 // not contaminate each other.
 func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, dir string) []Result {
 	dialect := conn.Info().Dialect
-	desired, err := goschema.ParseDir(dir)
+	desired, err := parseGoDir(dir)
 	if err != nil {
 		return []Result{{"roundtrip-consistency", name, "parse", Fail, oneLine(err.Error()), ""}}
 	}
@@ -40,7 +43,7 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 
 	var stmts []string
 	var renderErr error
-	panicked, pmsg := guard(func() { stmts, renderErr = renderer.GetOrderedCreateStatements(desired, dialect) })
+	panicked, pmsg := guard(func() { stmts, renderErr = builtin.GetOrderedCreateStatements(desired, dialect) })
 	if panicked {
 		return []Result{{"roundtrip-consistency", name, "render", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
 	}
@@ -60,9 +63,17 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 	}
 
 	var diff *difftypes.SchemaDiff
-	panicked, pmsg = guard(func() { diff = schemadiff.CompareWithDialect(desired, got, dialect) })
+	runtime, err := builtin.New()
+	if err != nil {
+		return []Result{{"roundtrip-consistency", name, "diff", Fail, oneLine(err.Error()), ""}}
+	}
+	var diffErr error
+	panicked, pmsg = guard(func() { diff, diffErr = schemadiff.CompareWithDialect(ctx, desired, got, dialect, runtime) })
 	if panicked {
 		return []Result{{"roundtrip-consistency", name, "diff", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
+	}
+	if diffErr != nil {
+		return []Result{{"roundtrip-consistency", name, "diff", Fail, oneLine(diffErr.Error()), ""}}
 	}
 	if diff != nil && diff.HasChanges() {
 		return []Result{{"roundtrip-consistency", name, "roundtrip", Gap,
@@ -73,6 +84,19 @@ func RunRoundTrip(ctx context.Context, conn *dbschema.DatabaseConnection, name, 
 }
 
 func roundTripObjectSummary(db *schemamodel.Database) string {
+	featureCounts := map[string]int{}
+	for _, ref := range db.FeatureObjects.Refs() {
+		switch schemaext.Kind(ref.Kind) {
+		case pgextension.ExtensionKind:
+			featureCounts["extensions"]++
+		case pgtype.DomainKind, oratype.DomainKind:
+			featureCounts["domains"]++
+		case pgtype.CompositeKind, oratype.ObjectTypeKind:
+			featureCounts["composite_types"]++
+		case pgtype.RangeKind:
+			featureCounts["ranges"]++
+		}
+	}
 	// Keep this list aligned with the object families compared by
 	// schemadiff.CompareWithDialect. A count in a successful report row is
 	// evidence only when the clean diff proves that object family survived.
@@ -85,12 +109,12 @@ func roundTripObjectSummary(db *schemamodel.Database) string {
 		{"indexes", len(db.Indexes)},
 		{"constraints", len(db.Constraints)},
 		{"enums", len(db.Enums)},
-		{"extensions", len(db.Extensions)},
+		{"extensions", featureCounts["extensions"]},
 		{"functions", len(db.Functions)},
 		{"sequences", len(db.Sequences)},
-		{"domains", len(db.Domains)},
-		{"composite_types", len(db.CompositeTypes)},
-		{"ranges", len(db.Ranges)},
+		{"domains", featureCounts["domains"]},
+		{"composite_types", featureCounts["composite_types"]},
+		{"ranges", featureCounts["ranges"]},
 		{"views", len(db.Views)},
 		{"materialized_views", len(db.MaterializedViews)},
 		{"triggers", len(db.Triggers)},

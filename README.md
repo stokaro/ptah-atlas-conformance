@@ -388,6 +388,13 @@ make gate-third-party     # every pinned repository must work with ptah-compat i
 This is a measured corpus, not a claim of complete Atlas feature parity. CI
 publishes two separate pipelines:
 
+The Ptah v0.25.0 offline report has six unwaived observations. Four come from
+the imported SQLite `migrate lint` fixtures: a dev-database replay refusal and
+warning-only reports that exit 1 ([ptah#5952](https://github.com/stokaro/ptah/issues/5952)).
+The other two are SQLite table rebuilds where Atlas CE reports a dropped
+column and Ptah's linter reports nothing ([ptah#5953](https://github.com/stokaro/ptah/issues/5953)).
+The regression budget records these failures; the full offline gate remains red.
+
 - [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses a committed offline corpus gap budget so progress PRs fail only when the
   current report gets worse or stale. The budget counts all unwaived non-OK

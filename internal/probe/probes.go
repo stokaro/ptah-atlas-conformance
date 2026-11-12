@@ -172,7 +172,7 @@ func (AtlasHCLProbe) Run(fx Fixture) []Result {
 	var fieldCount int
 	var parseErr error
 	panicked, pmsg := guard(func() {
-		db, err := atlascompat.ParseAtlasHCL(data, fx.Files[0])
+		db, err := atlascompat.ParseAtlasHCL(context.Background(), data, fx.Files[0])
 		parseErr = err
 		if db != nil {
 			tableCount = len(db.Tables)
@@ -579,7 +579,7 @@ func (LintProbe) Run(fx Fixture) []Result {
 	var findings []lint.Finding
 	var err error
 	panicked, pmsg := guard(func() {
-		findings, err = lint.LintFS(os.DirFS(fx.Dir), lint.Options{Dialect: "postgres"})
+		findings, err = lintFS(os.DirFS(fx.Dir), lint.Options{Dialect: "postgres"})
 	})
 	switch {
 	case panicked:
@@ -601,6 +601,12 @@ func (LintProbe) Run(fx Fixture) []Result {
 	hasDrop := fixtureContains(fx, "DROP TABLE")
 	hasRelevantDrop := fixtureContainsLintRelevantDrop(fx)
 	switch {
+	case (fx.Name == "cmd/atlas/internal/cmdapi/testdata/sqlitetx" ||
+		fx.Name == "cmd/atlas/internal/cmdapi/testdata/sqlitetx2") &&
+		!slices.Contains(content, "DS102") && !slices.Contains(content, "DS103"):
+		return []Result{{"lint-parity", fx.Name, "lint", Gap,
+			"Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding",
+			"stokaro/ptah#5953"}}
 	case len(content) > 0:
 		return []Result{{"lint-parity", fx.Name, "lint", OK,
 			"content findings: " + strings.Join(dedup(content), ", "), ""}}

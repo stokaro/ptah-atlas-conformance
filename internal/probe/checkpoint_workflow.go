@@ -245,8 +245,8 @@ func (w *checkpointWorkflow) checkpointCreation() Result {
 		}
 	}
 	for _, fragment := range []string{
-		`DROP TABLE IF EXISTS "posts"`,
-		`DROP TABLE IF EXISTS "users"`,
+		`DROP TABLE "posts";`,
+		`DROP TABLE "users";`,
 	} {
 		if !strings.Contains(string(down), fragment) {
 			return checkpointGap(fixture, stage,

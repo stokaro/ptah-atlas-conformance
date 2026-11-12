@@ -10,10 +10,9 @@ import (
 	"strings"
 
 	"ptah.run/atlascompat"
-	"ptah.run/core/goschema"
-	"ptah.run/core/renderer"
 	"ptah.run/core/schemamodel"
 	"ptah.run/dbschema"
+	"ptah.run/engine/builtin"
 )
 
 // RunSchemaDiff is the differential-vs-Atlas tier: it measures whether Ptah and
@@ -43,7 +42,7 @@ import (
 func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlasBin, dbURL, name, dir string) []Result {
 	dialect := conn.Info().Dialect
 
-	desired, err := goschema.ParseDir(dir)
+	desired, err := parseGoDir(dir)
 	if err != nil {
 		return []Result{{"atlas-differential", name, "parse", Fail, oneLine(err.Error()), ""}}
 	}
@@ -54,7 +53,7 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 
 	var stmts []string
 	var renderErr error
-	if panicked, pmsg := guard(func() { stmts, renderErr = renderer.GetOrderedCreateStatements(desired, dialect) }); panicked {
+	if panicked, pmsg := guard(func() { stmts, renderErr = builtin.GetOrderedCreateStatements(desired, dialect) }); panicked {
 		return []Result{{"atlas-differential", name, "render", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
 	}
 	if renderErr != nil {
@@ -75,7 +74,7 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 		return []Result{{"atlas-differential", name, "atlas-inspect", Fail, oneLine(err.Error()), ""}}
 	}
 	var atlasDB *schemamodel.Database
-	if panicked, pmsg := guard(func() { atlasDB, err = atlascompat.ParseAtlasHCL(atlasHCL, "atlas.hcl") }); panicked {
+	if panicked, pmsg := guard(func() { atlasDB, err = atlascompat.ParseAtlasHCL(ctx, atlasHCL, "atlas.hcl") }); panicked {
 		return []Result{{"atlas-differential", name, "atlas-hcl", Panic, oneLine(pmsg), "stokaro/ptah#276"}}
 	}
 	if err != nil {
@@ -92,10 +91,21 @@ func RunSchemaDiff(ctx context.Context, conn *dbschema.DatabaseConnection, atlas
 		return []Result{{"atlas-differential", name, "introspect", Fail, oneLine(err.Error()), ""}}
 	}
 	var ptahFacts tableFacts
+	runtime, err := bundledRuntime()
+	if err != nil {
+		return []Result{{"atlas-differential", name, "ptah-convert", Fail, oneLine(err.Error()), ""}}
+	}
 	if panicked, pmsg := guard(func() {
-		ptahFacts = factsFromDatabase(foldDefaultSchema(atlascompat.DBSchemaToGoSchema(got), schemas[0], defaultAttrs))
+		var converted *schemamodel.Database
+		converted, err = atlascompat.DBSchemaToGoSchema(ctx, got, dialect, runtime)
+		if err == nil {
+			ptahFacts = factsFromDatabase(foldDefaultSchema(converted, schemas[0], defaultAttrs))
+		}
 	}); panicked {
 		return []Result{{"atlas-differential", name, "ptah-convert", Panic, oneLine(pmsg), "stokaro/ptah#128"}}
+	}
+	if err != nil {
+		return []Result{{"atlas-differential", name, "ptah-convert", Fail, oneLine(err.Error()), ""}}
 	}
 
 	if len(atlasFacts) == 0 {
@@ -178,8 +188,8 @@ func foldDefaultSchema(db *schemamodel.Database, defaultSchema string, attrs def
 		if normSchema(db.Tables[i].Schema) == defaultSchema {
 			db.Tables[i].Schema = ""
 		}
-		if normIdent(db.Tables[i].Charset) == attrs.charset {
-			db.Tables[i].Charset = ""
+		if normIdent(mysqlTableOptions(db.Tables[i].Facets).Charset) == attrs.charset {
+			db.Tables[i].Facets = clearMySQLTableCharset(db.Tables[i].Facets)
 		}
 		if normIdent(db.Tables[i].Collate) == attrs.collate {
 			db.Tables[i].Collate = ""
@@ -187,8 +197,8 @@ func foldDefaultSchema(db *schemamodel.Database, defaultSchema string, attrs def
 	}
 	for i := range db.Fields {
 		db.Fields[i].Foreign = foldDefaultSchemaRef(db.Fields[i].Foreign, defaultSchema)
-		if normIdent(db.Fields[i].Charset) == attrs.charset {
-			db.Fields[i].Charset = ""
+		if normIdent(mysqlColumnOptions(db.Fields[i].Facets).Charset) == attrs.charset {
+			db.Fields[i].Facets = clearMySQLColumnCharset(db.Fields[i].Facets)
 		}
 		if normIdent(db.Fields[i].Collate) == attrs.collate {
 			db.Fields[i].Collate = ""
