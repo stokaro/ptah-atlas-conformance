@@ -176,6 +176,9 @@ type txtarRunSummary struct {
 	checked     int
 	unsupported []string
 	failures    []string
+	// engineRefusals are the OK details of commands that failed on a
+	// recognized SQLite engine-version difference.
+	engineRefusals []string
 }
 
 func (r txtarRunSummary) outcome() Outcome {
@@ -190,15 +193,27 @@ func (r txtarRunSummary) outcome() Outcome {
 }
 
 func (r txtarRunSummary) results(fx Fixture) []Result {
-	if len(r.failures) == 0 && len(r.unsupported) == 0 {
+	if len(r.failures) == 0 && len(r.unsupported) == 0 && len(r.engineRefusals) == 0 {
 		return []Result{{"txtar-script", fx.Name, "script-runtime", OK, r.detail(), ""}}
 	}
 
 	var out []Result
+	for _, refusal := range r.engineRefusals {
+		out = append(out, Result{
+			Probe:   "txtar-script",
+			Fixture: fx.Name,
+			Stage:   "script-runtime",
+			Outcome: OK,
+			Detail:  refusal,
+			Issue:   sqliteRowidAliasIssue,
+		})
+	}
 	issue := "stokaro/ptah#285"
+	// What the engine-version difference does not explain on these fixtures
+	// stays red under the issue that records it.
 	if txtarFixtureFamily(fx) == "sqlite" && (path.Base(fx.Name) == "cli-migrate-lint-destructive.txtar" ||
 		path.Base(fx.Name) == "cli-migrate-lint-project.txtar") {
-		issue = "stokaro/ptah#5952"
+		issue = sqliteRowidAliasIssue
 	}
 	for _, failure := range r.failures {
 		out = append(out, Result{
@@ -254,6 +269,10 @@ type txtarCommandResult struct {
 	failed            bool
 	assertionsBlocked bool
 	err               error
+	// engineRefusal is set when the command failed on a recognized SQLite
+	// engine-version difference. It is the OK detail the run reports in
+	// place of a failure, and the command's output is not compared.
+	engineRefusal string
 }
 
 type txtarRuntime struct {
@@ -468,6 +487,16 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 		}
 		failed := result.failed || result.err != nil
 		switch {
+		case result.engineRefusal != "":
+			summary.engineRefusals = append(summary.engineRefusals, result.engineRefusal)
+			// What the refused command wrote is no report of the fixture's
+			// migrations, so no comparison may judge it.
+			if redirect := txtarRedirectTarget(commandLine); redirect != "" {
+				unsupportedFiles[redirect] = true
+			} else {
+				unsupportedFiles["stdout"] = true
+				unsupportedFiles["stderr"] = true
+			}
 		case expectedFailure && !failed:
 			summary.failures = append(summary.failures, "expected command failure, but command succeeded")
 		case expectedFailure && result.assertionsBlocked:

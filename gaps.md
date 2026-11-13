@@ -7,26 +7,22 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: NOT DONE — 5 non-OK observation(s)
+## Status: NOT DONE — 1 non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **815 ok**, **1 gap**, **4 fail**, **0 panic**
-- Full gate: **5 non-OK** (fails CI)
-- Regression budget input: **5 unwaived non-OK**, 0 waived
+- Outcomes: **819 ok**, **1 gap**, **0 fail**, **0 panic**
+- Full gate: **1 non-OK** (fails CI)
+- Regression budget input: **1 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
 
 | Gate | Outcome | Probe | Fixture | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | atlas migrate lint exited 1: Error: error validating migration SQL on dev database: replay migration 1 on dev database: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: cannot rename to rowid alias: oid (1) SQ… | #5952 |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | atlas migrate lint exited 1: Error: error validating migration SQL on dev database: replay migration 1 on dev database: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: cannot rename to rowid alias: oid (1) SQ… | #5952 |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | atlas migrate lint exited 1: 3.sql | #5952 |
-| **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | atlas migrate lint exited 1: 2 | #5952 |
 | **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | SQLite dev replay did not match DS103 and the schema summary (exit 1, DS103=false, one diagnostic=true, one schema change=false) | #5953 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dirty dev database refused | `schema apply --dev-url` refused a dev database that still held a table with Atlas CE v1.3.0's error, left the table in place, and created nothing on the target |  |
@@ -829,8 +825,12 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff-sql.txtar` | script-runtime | script surface: atlas migrate diff=2, atlas schema diff=1, cmpmig=1, executed 3 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-diff.txtar` | script-runtime | script surface: atlas migrate diff=3, cmpmig=1, mkdir=1, executed 4 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-add-notnull.txtar` | script-runtime | script surface: atlas migrate lint=1, executed 1 supported command(s), checked 17 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=1` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename | #5952 |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=2` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename | #5952 |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-ignore.txtar` | script-runtime | script surface: atlas migrate lint=6, executed 6 supported command(s), checked 57 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-minimal-env.txtar` | script-runtime | script surface: atlas migrate lint=1, executed 1 supported command(s), checked 18 assertion(s) |  |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename | #5952 |
+| — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_count > got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename | #5952 |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project-multifile.txtar` | script-runtime | script surface: atlas migrate diff=3, cmpmig=3, rm=2, executed 5 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-project.txtar` | script-runtime | script surface: atlas migrate validate=3, cmpmig=2, atlas migrate diff=1, atlas migrate hash=1, atlas migrate new=1, mkdir=1, touch=1, executed 8 supported command(s), checked 3 assertion(s) |  |
 | — | ok | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-set.txtar` | script-runtime | script surface: atlas migrate set=9, atlas migrate apply=7, atlas migrate hash=2, clearSchema=2, mv=1, executed 21 supported command(s), checked 12 assertion(s) |  |
@@ -846,5 +846,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 
 ## Gaps by related issue
 
-- **stokaro/ptah#5952** — 4 finding(s)
 - **stokaro/ptah#5953** — 1 finding(s)

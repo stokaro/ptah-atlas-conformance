@@ -49,7 +49,7 @@ vendored file are in [`third_party/atlas/PROVENANCE.md`](./third_party/atlas/PRO
 | `corpus-inventory` | Is every vendored Atlas test artifact visible in the generated report, including still-unmeasured `.hcl`/other fixtures? | harness |
 | `sql-parse` | Can Ptah's DDL parser represent Atlas's SQL in its AST? (round-trip / `read-db` / `compare` — **not** apply, which execs raw SQL) | `core/parser` |
 | `migdir-ingest` | Does Ptah's migrator recognize the files in an Atlas migration directory? | `migration/migrator` |
-| `txtar-script` | Does the harness parse Atlas integration txtar scripts, execute the command subset currently mapped to Ptah APIs, publish the fixture-level script surface, and keep unsupported runtime commands red? The sqlite `cli-migrate-lint-*` fixtures run end to end through the real `atlas migrate lint` CLI (the ptah-compat binary) against ephemeral SQLite. The harness evaluates the assertions in the upstream scripts directly against the actual CLI streams and files; it does not translate Atlas prose into Ptah-specific semantic codes or maintain a second expected-output model. | harness, `core/parser`, `core/renderer`, the built `ptah-compat` binary (`migrate lint`) |
+| `txtar-script` | Does the harness parse Atlas integration txtar scripts, execute the command subset currently mapped to Ptah APIs, publish the fixture-level script surface, and keep unsupported runtime commands red? The sqlite `cli-migrate-lint-*` fixtures run end to end through the real `atlas migrate lint` CLI (the ptah-compat binary) against ephemeral SQLite. The harness evaluates the assertions in the upstream scripts directly against the actual CLI streams and files; it does not translate Atlas prose into Ptah-specific semantic codes or maintain a second expected-output model. One measured exception is reported OK rather than compared: when the SQLite that ptah-compat links refuses a fixture's migration as a rename to a rowid alias and the command exits 1, the difference is an intentional engine-version one ([ptah#5952](https://github.com/stokaro/ptah/issues/5952)). | harness, `core/parser`, `core/renderer`, the built `ptah-compat` binary (`migrate lint`) |
 | `txtar-down` | Does Ptah load Atlas txtar migrations with an embedded `down.sql` section? | `migration/migrator` |
 | `sum-compat` | Can Ptah parse `atlas.sum`, and does Ptah's own hash reproduce it? | `migration/migratesum` |
 | `lint-parity` | Does Ptah's linter analyze an Atlas migration's content, or only its file names? | `migration/lint` |
@@ -388,19 +388,31 @@ make gate-third-party     # every pinned repository must work with ptah-compat i
 This is a measured corpus, not a claim of complete Atlas feature parity. CI
 publishes two separate pipelines:
 
-The Ptah v0.25.0 offline report has six unwaived observations. Four come from
-the imported SQLite `migrate lint` fixtures: a dev-database replay refusal and
-warning-only reports that exit 1 ([ptah#5952](https://github.com/stokaro/ptah/issues/5952)).
-A SQLite table rebuild accounts for the remaining gap: Atlas CE reports a
-dropped column and Ptah v0.25.0 does not. The conformance probe replays its
-preceding migrations on a temporary SQLite dev database before checking
-Ptah's compatibility CLI for DS103 and one schema change
+The Ptah v0.25.0 offline report has one unwaived observation. A SQLite table
+rebuild accounts for it: Atlas CE reports a dropped column and Ptah v0.25.0
+does not. The conformance probe replays its preceding migrations on a
+temporary SQLite dev database before checking Ptah's compatibility CLI for
+DS103 and one schema change
 ([ptah#5953](https://github.com/stokaro/ptah/issues/5953),
 [ptah#5984](https://github.com/stokaro/ptah/issues/5984)). A sibling fixture
 adds an orphaned foreign-key row. Ptah deliberately refuses its commit; Atlas
 CE accepts it. The probe checks that exact refusal as an intentional safety
-difference. The regression budget records five open observations; the full offline gate
-remains red.
+difference.
+
+Two imported SQLite `migrate lint` fixtures, `cli-migrate-lint-destructive`
+and `cli-migrate-lint-project`, rename a column to `oid` in their first
+migration ([ptah#5952](https://github.com/stokaro/ptah/issues/5952)). SQLite
+3.54.0 forbids renaming a column to a rowid alias. ptah-compat lints on the
+SQLite that modernc.org/sqlite embeds, 3.54.1, which refuses the rename;
+Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts it. Ptah keeps the
+refusal, so this is an intentional engine-version difference, and the
+vendored fixtures stay unchanged. The probe replays the fixture's migrations
+on the SQLite it links, checks from the ptah-compat build record that the
+binary links the same driver version, and reports a lint command OK when that
+engine refuses the rename and the command exits 1. It does not read Ptah's
+error text or the command's output, so the result holds for either report
+shape. Any other failure on those fixtures stays red. The regression budget
+records one open observation; the full offline gate remains red.
 
 - [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses a committed offline corpus gap budget so progress PRs fail only when the
