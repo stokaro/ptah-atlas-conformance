@@ -67,10 +67,15 @@ func (p LintProbe) sqliteRebuildLint(fx Fixture) []Result {
 	columnDrop := strings.Contains(stdout, `L4: Dropping non-virtual column "name"`) &&
 		strings.Contains(stdout, "lint/analyzers#DS103")
 	oneDiagnostic := strings.Contains(stdout, "-- 1 diagnostic\n")
-	if exitCode == 1 && columnDrop && oneDiagnostic {
+	oneSchemaChange := strings.Contains(stdout, "-- 1 schema change\n")
+	if exitCode == 1 && columnDrop && oneDiagnostic && oneSchemaChange {
 		return result(OK, "SQLite dev replay reported one DS103 for the name column lost by the final table rebuild")
 	}
+	if exitCode == 1 && columnDrop && oneDiagnostic {
+		return []Result{{"lint-parity", fx.Name, "lint", Gap,
+			"SQLite dev replay reported DS103 but counted more than one schema change", "stokaro/ptah#5984"}}
+	}
 	return result(Gap, fmt.Sprintf(
-		"SQLite dev replay did not report one DS103 for the lost name column (exit %d, DS103=%t, one diagnostic=%t)",
-		exitCode, columnDrop, oneDiagnostic))
+		"SQLite dev replay did not match DS103 and the schema summary (exit %d, DS103=%t, one diagnostic=%t, one schema change=%t)",
+		exitCode, columnDrop, oneDiagnostic, oneSchemaChange))
 }
