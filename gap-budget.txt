@@ -1,5 +1,5 @@
 # Maximum allowed unwaived non-OK observations in gaps.json.
 # Lower this whenever Ptah support or harness fidelity improves; CI fails on regressions above it.
-# Ptah v0.25.0 has four SQLite migrate-lint failures and two dropped-column lint gaps.
+# Ptah v0.25.0 has four SQLite migrate-lint failures and one dropped-column lint gap.
 # See stokaro/ptah#5952 and stokaro/ptah#5953; the full gate stays red.
-6
+5

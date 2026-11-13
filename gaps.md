@@ -7,16 +7,16 @@ first-party capability workflows executed through Ptah's public API and CLI.
 It is not a quality score: a `gap` records either an Atlas construct Ptah does
 not yet support or a first-party workflow contract Ptah failed to preserve.
 
-## Status: NOT DONE — 6 non-OK observation(s)
+## Status: NOT DONE — 5 non-OK observation(s)
 
 The conformance gate is **red** and stays red until these close. This is by
 design: the report is a spec Ptah has not met yet, not a passing test log.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **814 ok**, **2 gap**, **4 fail**, **0 panic**
-- Full gate: **6 non-OK** (fails CI)
-- Regression budget input: **6 unwaived non-OK**, 0 waived
+- Outcomes: **815 ok**, **1 gap**, **4 fail**, **0 panic**
+- Full gate: **5 non-OK** (fails CI)
+- Regression budget input: **5 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
 
 ## Findings
@@ -27,8 +27,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar` | script-runtime | atlas migrate lint exited 1: Error: error validating migration SQL on dev database: replay migration 1 on dev database: failed to execute migration SQL: sqlite: SQL execution failed: SQL logic error: cannot rename to rowid alias: oid (1) SQ… | #5952 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | atlas migrate lint exited 1: 3.sql | #5952 |
 | **RED** | **fail** | txtar-script | `internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar` | script-runtime | atlas migrate lint exited 1: 2 | #5952 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding | #5953 |
-| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding | #5953 |
+| **RED** | **gap** | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx` | lint | SQLite dev replay did not report one DS103 for the lost name column (exit 1, DS103=false, one diagnostic=true) | #5953 |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | plan simulation success | `schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0 |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | dirty dev database refused | `schema apply --dev-url` refused a dev database that still held a table with Atlas CE v1.3.0's error, left the table in place, and created nothing on the target |  |
 | — | ok | apply-simulation-workflow | `atlas schema apply --dev-url` | failed simulation refuses the target | PTAH-SIDE PIN (diagnostic wording has no Atlas artifact behind it): a plan whose rehearsal fails on the dev database refuses the apply with exit 1, naming the simulation failure, and leaves the target without any user table (verified by reading the target directly) |  |
@@ -474,6 +473,7 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/mysql` | lint | content findings: TX101 |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlite2` | lint | no substantive lint findings expected |  |
+| — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx2` | lint | Ptah refused the orphaned friendship row before commit; Atlas CE accepts this invalid rebuild |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx3` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/sqlitetx4` | lint | no substantive lint findings expected |  |
 | — | ok | lint-parity | `cmd/atlas/internal/cmdapi/testdata/templatedir` | lint | no substantive lint findings expected |  |
@@ -847,4 +847,4 @@ design: the report is a spec Ptah has not met yet, not a passing test log.
 ## Gaps by related issue
 
 - **stokaro/ptah#5952** — 4 finding(s)
-- **stokaro/ptah#5953** — 2 finding(s)
+- **stokaro/ptah#5953** — 1 finding(s)
