@@ -394,8 +394,9 @@ warning-only reports that exit 1 ([ptah#5952](https://github.com/stokaro/ptah/is
 A SQLite table rebuild accounts for the remaining gap: Atlas CE reports a
 dropped column and Ptah v0.25.0 does not. The conformance probe replays its
 preceding migrations on a temporary SQLite dev database before checking
-Ptah's compatibility CLI for DS103
-([ptah#5953](https://github.com/stokaro/ptah/issues/5953)). A sibling fixture
+Ptah's compatibility CLI for DS103 and one schema change
+([ptah#5953](https://github.com/stokaro/ptah/issues/5953),
+[ptah#5984](https://github.com/stokaro/ptah/issues/5984)). A sibling fixture
 adds an orphaned foreign-key row. Ptah deliberately refuses its commit; Atlas
 CE accepts it. The probe checks that exact refusal as an intentional safety
 difference. The regression budget records five open observations; the full offline gate

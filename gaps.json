@@ -3670,7 +3670,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "SQLite dev replay did not report one DS103 for the lost name column (exit 1, DS103=false, one diagnostic=true)",
+    "detail": "SQLite dev replay did not match DS103 and the schema summary (exit 1, DS103=false, one diagnostic=true, one schema change=false)",
     "issue": "stokaro/ptah#5953"
   },
   {
