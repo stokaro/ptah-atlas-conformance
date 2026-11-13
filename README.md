@@ -391,9 +391,15 @@ publishes two separate pipelines:
 The Ptah v0.25.0 offline report has six unwaived observations. Four come from
 the imported SQLite `migrate lint` fixtures: a dev-database replay refusal and
 warning-only reports that exit 1 ([ptah#5952](https://github.com/stokaro/ptah/issues/5952)).
-The other two are SQLite table rebuilds where Atlas CE reports a dropped
-column and Ptah's linter reports nothing ([ptah#5953](https://github.com/stokaro/ptah/issues/5953)).
-The regression budget records these failures; the full offline gate remains red.
+A SQLite table rebuild accounts for the remaining gap: Atlas CE reports a
+dropped column and Ptah v0.25.0 does not. The conformance probe replays its
+preceding migrations on a temporary SQLite dev database before checking
+Ptah's compatibility CLI for DS103
+([ptah#5953](https://github.com/stokaro/ptah/issues/5953)). A sibling fixture
+adds an orphaned foreign-key row. Ptah deliberately refuses its commit; Atlas
+CE accepts it. The probe checks that exact refusal as an intentional safety
+difference. The regression budget records five open observations; the full offline gate
+remains red.
 
 - [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses a committed offline corpus gap budget so progress PRs fail only when the

@@ -553,16 +553,18 @@ func (SumProbe) Run(fx Fixture) []Result {
 	return out
 }
 
-// LintProbe runs Ptah's linter over an Atlas migration directory and reports
-// what it flags. The destructive-change fixture is the interesting case: Atlas
-// classifies DROP TABLE as a destructive change (its DS family); Ptah should
-// too. It also exposes whether Ptah can lint a directory whose files it does
-// not recognize at all.
-type LintProbe struct{}
+// LintProbe reports findings from Atlas migration directories. SQLite table
+// rebuilds run through the compatibility CLI with a dev database so the linter
+// can compare columns before and after the replacement. Other directories use
+// text-only linting to measure content findings and file recognition.
+type LintProbe struct {
+	// Binary overrides the pinned ptah-compat build for focused checks.
+	Binary string
+}
 
 func (LintProbe) Name() string { return "lint-parity" }
 
-func (LintProbe) Run(fx Fixture) []Result {
+func (p LintProbe) Run(fx Fixture) []Result {
 	if fx.Kind != FixtureKindSQLDir {
 		return nil
 	}
@@ -575,6 +577,10 @@ func (LintProbe) Run(fx Fixture) []Result {
 	// Skip pure directive fixtures with no migration semantics.
 	if fx.SumFile == "" && !looksVersioned(fx) {
 		return nil
+	}
+	if fx.Name == "cmd/atlas/internal/cmdapi/testdata/sqlitetx" ||
+		fx.Name == "cmd/atlas/internal/cmdapi/testdata/sqlitetx2" {
+		return p.sqliteRebuildLint(fx)
 	}
 	var findings []lint.Finding
 	var err error
@@ -601,12 +607,6 @@ func (LintProbe) Run(fx Fixture) []Result {
 	hasDrop := fixtureContains(fx, "DROP TABLE")
 	hasRelevantDrop := fixtureContainsLintRelevantDrop(fx)
 	switch {
-	case (fx.Name == "cmd/atlas/internal/cmdapi/testdata/sqlitetx" ||
-		fx.Name == "cmd/atlas/internal/cmdapi/testdata/sqlitetx2") &&
-		!slices.Contains(content, "DS102") && !slices.Contains(content, "DS103"):
-		return []Result{{"lint-parity", fx.Name, "lint", Gap,
-			"Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding",
-			"stokaro/ptah#5953"}}
 	case len(content) > 0:
 		return []Result{{"lint-parity", fx.Name, "lint", OK,
 			"content findings: " + strings.Join(dedup(content), ", "), ""}}

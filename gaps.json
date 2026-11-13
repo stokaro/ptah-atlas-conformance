@@ -3670,16 +3670,15 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "lint",
     "outcome": "gap",
-    "detail": "Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding",
+    "detail": "SQLite dev replay did not report one DS103 for the lost name column (exit 1, DS103=false, one diagnostic=true)",
     "issue": "stokaro/ptah#5953"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx2",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "Atlas CE reports DS103 for the name column lost by this SQLite table rebuild; Ptah emitted no matching dropped-column finding",
-    "issue": "stokaro/ptah#5953"
+    "outcome": "ok",
+    "detail": "Ptah refused the orphaned friendship row before commit; Atlas CE accepts this invalid rebuild"
   },
   {
     "probe": "lint-parity",
