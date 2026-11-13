@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime/debug"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -64,7 +66,9 @@ type sqliteEngineRefusal struct {
 // and redirect target are not compared, because no report of that directory
 // can reproduce Atlas CE's. The decision reads only the exit code, never Ptah's
 // wording or output, so it holds whether Ptah reports the replay failure on
-// stderr or inside the lint report.
+// stderr or inside the lint report. The cost is stated rather than hidden: on
+// such a directory, a run that exits 1 for another reason -- a bad flag, a
+// configuration error, a finding on a later file -- is reported OK as well.
 //
 // Any other exit stays red. Exit 0 means Ptah passed a migration its own engine
 // refuses; another non-zero code is a crash or a timeout, not this difference.
@@ -91,12 +95,22 @@ type sqliteMigrationFile struct {
 	sql  string
 }
 
-// measureSQLiteEngineRefusal replays the migration directory a lint command
-// reads on the SQLite engine the harness links. It reports a refusal only when
-// the engine refuses a file with the rowid alias error and the binary under
-// measurement links the same engine, since only then does the harness's
-// measurement describe the binary's replay.
-func measureSQLiteEngineRefusal(runtime *txtarRuntime, plan txtarMigrateLintPlan, bin string) (sqliteEngineRefusal, bool) {
+// sqliteEngineVerdict judges a lint run of bin over the directory plan reads.
+// ordinary is the result the run gets without the measurement. The harness
+// replays the directory on the SQLite it links; when that engine refuses a file
+// with the rowid alias error and bin links the same driver version, classify
+// decides the run.
+//
+// When the driver version cannot be verified, the harness's measurement says
+// nothing about bin, so it fails closed: the run keeps its ordinary result and
+// is never reported OK, and every failure it records names the reason.
+func sqliteEngineVerdict(
+	runtime *txtarRuntime,
+	plan txtarMigrateLintPlan,
+	bin, command string,
+	run txtarMigrateLintRun,
+	ordinary txtarCommandResult,
+) txtarCommandResult {
 	dir := txtarMigrateCommandRuntimeDir(runtime, plan.cliArgs)
 	var files []sqliteMigrationFile
 	for _, name := range txtarMigrationApplySQLFilesInDir(runtime, dir) {
@@ -104,14 +118,16 @@ func measureSQLiteEngineRefusal(runtime *txtarRuntime, plan txtarMigrateLintPlan
 	}
 	refusal, refused, err := replaySQLiteMigrations(files)
 	if err != nil || !refused {
-		return sqliteEngineRefusal{}, false
+		return ordinary
 	}
-	module, shared := sqliteEngineShared(bin)
-	if !shared {
-		return sqliteEngineRefusal{}, false
+	module, err := sqliteDriverLink(bin, harnessSQLiteModule)
+	if err != nil {
+		ordinary.note = fmt.Sprintf("SQLite %s refuses %s, driver version unverified: %v",
+			refusal.engine, refusal.file, err)
+		return ordinary
 	}
 	refusal.module = module
-	return refusal, true
+	return refusal.classify(command, run)
 }
 
 // replaySQLiteMigrations runs files in order on a fresh in-memory database of
@@ -150,47 +166,78 @@ func replaySQLiteMigrations(files []sqliteMigrationFile) (sqliteEngineRefusal, b
 	return sqliteEngineRefusal{}, false, nil
 }
 
-// sqliteEngineShared reports the modernc.org/sqlite version bin links, and
-// whether it is the version this module's build list selects, which is the
-// engine replaySQLiteMigrations runs on. A replaced module on either side, a
-// binary without a build record, or one that links no such module is not
-// shared.
-func sqliteEngineShared(bin string) (string, bool) {
-	harness, err := harnessSQLiteModule()
+// sqliteDriverLink returns the modernc.org/sqlite version bin links when it is
+// the version harness reports for this module, which is the engine
+// replaySQLiteMigrations runs on. Any other answer is an error saying why the
+// link is unverified.
+func sqliteDriverLink(bin string, harness func() (string, error)) (string, error) {
+	version, err := harness()
 	if err != nil {
-		return "", false
+		return "", err
 	}
 	info, err := buildinfo.ReadFile(bin)
 	if err != nil {
-		return "", false
+		return "", fmt.Errorf("reading the ptah-compat build record: %w", err)
 	}
-	for _, dep := range info.Deps {
-		if dep.Path == sqliteDriverModule {
-			return dep.Version, dep.Replace == nil && dep.Version != "" && dep.Version == harness
-		}
-	}
-	return "", false
+	return sqliteDriverMatch(info.Deps, version)
 }
 
-// harnessSQLiteModule asks the go command which modernc.org/sqlite version
-// this module links. It does not read the running binary's build record: a
-// test binary built by Go 1.26 records no dependencies at all.
+// sqliteDriverMatch decides from the dependencies a build record lists whether
+// the binary links modernc.org/sqlite at version harness, and returns that
+// version. A replaced module, a missing one and one recorded without a version
+// cannot be shown to embed the engine the harness measured.
+func sqliteDriverMatch(deps []*debug.Module, harness string) (string, error) {
+	i := slices.IndexFunc(deps, func(dep *debug.Module) bool { return dep.Path == sqliteDriverModule })
+	if i < 0 {
+		return "", fmt.Errorf("ptah-compat links no %s", sqliteDriverModule)
+	}
+	dep := deps[i]
+	switch {
+	case dep.Replace != nil:
+		return "", fmt.Errorf("ptah-compat replaces %s %s with %s", sqliteDriverModule, dep.Version,
+			strings.TrimSpace(dep.Replace.Path+" "+dep.Replace.Version))
+	case dep.Version == "":
+		return "", fmt.Errorf("ptah-compat records no %s version", sqliteDriverModule)
+	case dep.Version != harness:
+		return "", fmt.Errorf("ptah-compat links %s %s, this harness links %s", sqliteDriverModule, dep.Version, harness)
+	}
+	return dep.Version, nil
+}
+
+// harnessSQLiteModule is the modernc.org/sqlite version this module links, as
+// the go command reports it. It does not read the running binary's build
+// record: a test binary built by Go 1.26 records no dependencies at all.
 var harnessSQLiteModule = sync.OnceValues(func() (string, error) {
-	cmd := exec.Command("go", "list", "-m", "-json", sqliteDriverModule)
+	return listSQLiteModule("go")
+})
+
+// listSQLiteModule asks goCommand which modernc.org/sqlite version this module
+// links.
+func listSQLiteModule(goCommand string) (string, error) {
+	cmd := exec.Command(goCommand, "list", "-m", "-json", sqliteDriverModule)
 	cmd.Env = append(os.Environ(), "GOWORK=off")
 	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("reading the linked %s module: %w", sqliteDriverModule, err)
 	}
+	return parseSQLiteModuleList(out)
+}
+
+// parseSQLiteModuleList decodes `go list -m -json modernc.org/sqlite`. A
+// replaced module or one without a version names no engine release.
+func parseSQLiteModuleList(payload []byte) (string, error) {
 	var listed struct {
 		Version string
 		Replace *struct{}
 	}
-	if err := json.Unmarshal(out, &listed); err != nil {
+	if err := json.Unmarshal(payload, &listed); err != nil {
 		return "", fmt.Errorf("decoding the %s module list: %w", sqliteDriverModule, err)
 	}
-	if listed.Replace != nil || listed.Version == "" {
-		return "", fmt.Errorf("%s is replaced or has no version in the build list", sqliteDriverModule)
+	switch {
+	case listed.Replace != nil:
+		return "", fmt.Errorf("this module replaces %s", sqliteDriverModule)
+	case listed.Version == "":
+		return "", fmt.Errorf("this module lists no %s version", sqliteDriverModule)
 	}
 	return listed.Version, nil
-})
+}

@@ -411,8 +411,13 @@ on the SQLite it links, checks from the ptah-compat build record that the
 binary links the same driver version, and reports a lint command OK when that
 engine refuses the rename and the command exits 1. It does not read Ptah's
 error text or the command's output, so the result holds for either report
-shape. Any other failure on those fixtures stays red. The regression budget
-records one open observation; the full offline gate remains red.
+shape. On a directory the engine refuses, a lint command is therefore judged
+only by its exit code, and its output is not compared: a command that exits 1
+there for another reason is reported OK too. A clean exit or another exit code
+stays red, as does any failure the refusal does not cover. When the harness
+cannot verify the driver version, for example because `go list` fails outside
+this module, the rows stay red and say why. The regression budget records one
+open observation; the full offline gate remains red.
 
 - [`conformance-regression`](./.github/workflows/conformance-regression.yml)
   uses a committed offline corpus gap budget so progress PRs fail only when the

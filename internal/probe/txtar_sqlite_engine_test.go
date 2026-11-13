@@ -205,3 +205,68 @@ func TestTxtarScriptProbe_SQLiteRenameTheEngineAccepts_IsJudgedByTheFixture(t *t
 		Detail:  "script surface: atlas migrate lint=2, executed 2 supported command(s), checked 35 assertion(s)",
 	}})
 }
+
+// unverifiedDriver matches the note a command carries when the engine refuses
+// migrations/1.sql but the binary has no Go build record to show its driver.
+const unverifiedDriver = ` \(SQLite 3\.\d+\.\d+ refuses migrations/1\.sql, ` +
+	`driver version unverified: reading the ptah-compat build record: .+\)`
+
+// TestTxtarScriptProbe_SQLiteRowidAliasRefusal_UnverifiedDriverStaysRed fails
+// closed. The stand-in binary is a shell script, so nothing shows that it
+// links the engine the harness measured: the run is judged as if nothing was
+// measured, and its red row says why the difference was not recognized.
+func TestTxtarScriptProbe_SQLiteRowidAliasRefusal_UnverifiedDriverStaysRed(t *testing.T) {
+	tests := []struct {
+		name       string
+		script     string
+		binary     string
+		wantDetail string
+	}{
+		{
+			name:       "the command's own failure",
+			script:     "atlas migrate lint --dir file://migrations --dev-url URL --latest=1\n",
+			binary:     "#!/bin/sh\necho boom >&2\nexit 1\n",
+			wantDetail: `atlas migrate lint exited 1: boom` + unverifiedDriver,
+		},
+		{
+			name: "an assertion on the command's report",
+			script: "! atlas migrate lint --dir file://migrations --dev-url URL --latest=1\n" +
+				"stdout 'Dropping table \"users\"'\n",
+			binary: "#!/bin/sh\n" +
+				"printf 'Analyzing changes from version 1 to 2 (1 migration in total):\\n\\n" +
+				"  Error: executing statement: cannot rename to rowid alias: oid\\n'\n" +
+				"exit 1\n",
+			wantDetail: `stdout assertion .+ did not match .+` + unverifiedDriver,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+			dir := c.TempDir()
+			binary := filepath.Join(dir, "atlas")
+			c.Assert(os.WriteFile(binary, []byte(test.binary), 0o700), qt.IsNil)
+			path := filepath.Join(dir, "cli-migrate-lint-destructive.txtar")
+			c.Assert(os.WriteFile(path, []byte(test.script+`
+-- migrations/1.sql --
+CREATE TABLE users (id int);
+
+ALTER TABLE users RENAME COLUMN id TO oid;
+
+-- migrations/2.sql --
+DROP TABLE users;
+`), 0o600), qt.IsNil)
+
+			results := probe.TxtarScriptProbe{Binary: binary}.Run(probe.Fixture{
+				Name:  "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
+				Kind:  probe.FixtureKindTxtar,
+				Dir:   dir,
+				Files: []string{path},
+			})
+
+			c.Assert(observationsOf(results), qt.DeepEquals, []observation{
+				{"txtar-script", "script-runtime", probe.Fail, rowidAliasIssue},
+			})
+			c.Assert(results[0].Detail, qt.Matches, test.wantDetail)
+		})
+	}
+}

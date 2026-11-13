@@ -2,15 +2,17 @@ package probe
 
 // White-box testing required: whether a failed lint run is the SQLite
 // engine-version difference is decided by the unexported classify,
-// replaySQLiteMigrations and sqliteEngineShared. The exported TxtarScriptProbe
-// can drive only the pinned ptah-compat, whose replay failure has one output
-// shape, on the one engine this module links, which refuses the rename. The
-// other output shapes, exit codes and engine answers can only be driven here.
+// replaySQLiteMigrations, sqliteDriverLink and sqliteDriverMatch. The exported
+// TxtarScriptProbe can drive only the pinned ptah-compat, whose replay failure
+// has one output shape, on the one engine this module links, which refuses the
+// rename, with one go command that lists one driver version. The other output
+// shapes, exit codes, engine answers and build records can only be driven here.
 
 import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
@@ -164,17 +166,155 @@ func TestReplaySQLiteMigrations_OtherAnswersAreNotARefusal(t *testing.T) {
 	}
 }
 
-// TestSQLiteEngineShared_FailurePath: a file without a Go build record cannot
-// show that it links the engine the harness measured.
-func TestSQLiteEngineShared_FailurePath(t *testing.T) {
+// TestSQLiteDriverMatch_HappyPath: a build record that lists the driver at the
+// harness's version, unreplaced, links the engine the harness measured.
+func TestSQLiteDriverMatch_HappyPath(t *testing.T) {
 	c := qt.New(t)
-	path := filepath.Join(c.TempDir(), "atlas")
-	c.Assert(os.WriteFile(path, []byte("#!/bin/sh\nexit 1\n"), 0o600), qt.IsNil)
 
-	module, shared := sqliteEngineShared(path)
+	got, err := sqliteDriverMatch([]*debug.Module{
+		{Path: "ptah.run", Version: "v0.25.0"},
+		{Path: "modernc.org/sqlite", Version: "v1.62.0"},
+	}, "v1.62.0")
 
-	c.Assert(shared, qt.IsFalse)
-	c.Assert(module, qt.Equals, "")
+	c.Assert(err, qt.IsNil)
+	c.Assert(got, qt.Equals, "v1.62.0")
+}
+
+// TestSQLiteDriverMatch_FailurePath: each answer that cannot show the binary
+// embeds the measured engine is refused with its own reason.
+func TestSQLiteDriverMatch_FailurePath(t *testing.T) {
+	tests := []struct {
+		name    string
+		deps    []*debug.Module
+		wantErr string
+	}{
+		{
+			name:    "another version",
+			deps:    []*debug.Module{{Path: "modernc.org/sqlite", Version: "v1.50.0"}},
+			wantErr: `ptah-compat links modernc\.org/sqlite v1\.50\.0, this harness links v1\.62\.0`,
+		},
+		{
+			name: "replaced module",
+			deps: []*debug.Module{{
+				Path: "modernc.org/sqlite", Version: "v1.62.0",
+				Replace: &debug.Module{Path: "../sqlite"},
+			}},
+			wantErr: `ptah-compat replaces modernc\.org/sqlite v1\.62\.0 with \.\./sqlite`,
+		},
+		{
+			name:    "no driver",
+			deps:    []*debug.Module{{Path: "ptah.run", Version: "v0.25.0"}},
+			wantErr: `ptah-compat links no modernc\.org/sqlite`,
+		},
+		{
+			name:    "no version",
+			deps:    []*debug.Module{{Path: "modernc.org/sqlite"}},
+			wantErr: `ptah-compat records no modernc\.org/sqlite version`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+
+			got, err := sqliteDriverMatch(test.deps, "v1.62.0")
+
+			c.Assert(err, qt.ErrorMatches, test.wantErr)
+			c.Assert(got, qt.Equals, "")
+		})
+	}
+}
+
+// errGoList stands in for a go command that cannot list the module, as when
+// the probe runs outside this module.
+var errGoList = errors.New("go list failed")
+
+// TestSQLiteDriverLink_FailurePath: neither a failed listing of the harness's
+// driver nor a file without a Go build record verifies the link.
+func TestSQLiteDriverLink_FailurePath(t *testing.T) {
+	tests := []struct {
+		name    string
+		harness func() (string, error)
+		wantErr string
+	}{
+		{
+			name:    "go list fails",
+			harness: func() (string, error) { return "", errGoList },
+			wantErr: `go list failed`,
+		},
+		{
+			name:    "no build record",
+			harness: func() (string, error) { return "v1.62.0", nil },
+			wantErr: `reading the ptah-compat build record: .+`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+			bin := filepath.Join(c.TempDir(), "atlas")
+			c.Assert(os.WriteFile(bin, []byte("#!/bin/sh\nexit 1\n"), 0o600), qt.IsNil)
+
+			got, err := sqliteDriverLink(bin, test.harness)
+
+			c.Assert(err, qt.ErrorMatches, test.wantErr)
+			c.Assert(got, qt.Equals, "")
+		})
+	}
+}
+
+// TestListSQLiteModule_FailurePath: a go command that cannot run says so.
+func TestListSQLiteModule_FailurePath(t *testing.T) {
+	c := qt.New(t)
+
+	got, err := listSQLiteModule(filepath.Join(c.TempDir(), "go"))
+
+	c.Assert(err, qt.ErrorMatches, `reading the linked modernc\.org/sqlite module: .+`)
+	c.Assert(got, qt.Equals, "")
+}
+
+// TestParseSQLiteModuleList_HappyPath reads the version the go command lists.
+func TestParseSQLiteModuleList_HappyPath(t *testing.T) {
+	c := qt.New(t)
+
+	got, err := parseSQLiteModuleList([]byte(`{"Path": "modernc.org/sqlite", "Version": "v1.62.0"}`))
+
+	c.Assert(err, qt.IsNil)
+	c.Assert(got, qt.Equals, "v1.62.0")
+}
+
+// TestParseSQLiteModuleList_FailurePath: a listing that names no engine
+// release is refused.
+func TestParseSQLiteModuleList_FailurePath(t *testing.T) {
+	tests := []struct {
+		name    string
+		payload string
+		wantErr string
+	}{
+		{
+			name:    "not JSON",
+			payload: `go: not a module`,
+			wantErr: `decoding the modernc\.org/sqlite module list: .+`,
+		},
+		{
+			name:    "replaced module",
+			payload: `{"Path": "modernc.org/sqlite", "Version": "v1.62.0", "Replace": {"Path": "../sqlite"}}`,
+			wantErr: `this module replaces modernc\.org/sqlite`,
+		},
+		{
+			name:    "no version",
+			payload: `{"Path": "modernc.org/sqlite"}`,
+			wantErr: `this module lists no modernc\.org/sqlite version`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+
+			got, err := parseSQLiteModuleList([]byte(test.payload))
+
+			c.Assert(err, qt.ErrorMatches, test.wantErr)
+			c.Assert(got, qt.Equals, "")
+		})
+	}
 }
 
 // TestTxtarRunSummaryResults_KeepsWhatTheRefusalDoesNotExplainRed: a recognized

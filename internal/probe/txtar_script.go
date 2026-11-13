@@ -45,11 +45,16 @@ var (
 // mapped OSS command/runtime subset against a virtual fixture runtime. Its OK
 // rows include the script surface per fixture so the report is an inventory of
 // what was actually exercised or asserted, not just a green aggregate count.
-type TxtarScriptProbe struct{}
+type TxtarScriptProbe struct {
+	// Binary overrides the go.mod-pinned ptah-compat build that `atlas migrate
+	// lint` commands run, for focused tests. The zero value builds the pinned
+	// CLI.
+	Binary string
+}
 
 func (TxtarScriptProbe) Name() string { return "txtar-script" }
 
-func (TxtarScriptProbe) Run(fx Fixture) []Result {
+func (p TxtarScriptProbe) Run(fx Fixture) []Result {
 	if fx.Kind != FixtureKindTxtar {
 		return nil
 	}
@@ -68,7 +73,7 @@ func (TxtarScriptProbe) Run(fx Fixture) []Result {
 			"txtar script has no executable commands", ""}}
 	}
 
-	run := runTxtarScript(fx, string(data), commands)
+	run := runTxtarScript(fx, string(data), commands, p.Binary)
 	if run.hasWork() {
 		return run.results(fx)
 	}
@@ -273,6 +278,17 @@ type txtarCommandResult struct {
 	// engine-version difference. It is the OK detail the run reports in
 	// place of a failure, and the command's output is not compared.
 	engineRefusal string
+	// note says why a measured difference was not applied to the command. It
+	// is appended to every failure the command or its assertions record.
+	note string
+}
+
+// annotate appends the command's note to a failure it caused.
+func (r txtarCommandResult) annotate(failure string) string {
+	if r.note == "" {
+		return failure
+	}
+	return failure + " (" + r.note + ")"
 }
 
 type txtarRuntime struct {
@@ -284,6 +300,9 @@ type txtarRuntime struct {
 	partitionChildren map[string]int
 	appliedMigrations map[string]bool
 	appliedVersion    string
+	// compatBinary is the ptah-compat binary `atlas migrate lint` runs; empty
+	// builds the pinned one.
+	compatBinary string
 }
 
 type txtarVirtualRow map[string]string
@@ -305,8 +324,9 @@ func (r *txtarRuntime) replaceDBStatements(statements []ast.Node) {
 	r.partitionChildren = nil
 }
 
-func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary {
+func runTxtarScript(fx Fixture, data string, commands []string, compatBinary string) txtarRunSummary {
 	runtime := newTxtarRuntime(data)
+	runtime.compatBinary = compatBinary
 	unsupportedFiles := map[string]bool{}
 	dbStateUnsupported := false
 	summary := txtarRunSummary{commands: commands}
@@ -335,7 +355,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			case err != nil:
 				summary.failures = append(summary.failures, "stdout assertion regexp failed: "+oneLine(err.Error()))
 			case matched:
-				summary.failures = append(summary.failures, "negative stdout assertion matched")
+				summary.failures = append(summary.failures, last.annotate("negative stdout assertion matched"))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "! stderr "):
@@ -348,7 +368,7 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			case err != nil:
 				summary.failures = append(summary.failures, "stderr assertion regexp failed: "+oneLine(err.Error()))
 			case matched:
-				summary.failures = append(summary.failures, "negative stderr assertion matched")
+				summary.failures = append(summary.failures, last.annotate("negative stderr assertion matched"))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "stdout "):
@@ -361,10 +381,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			case err != nil:
 				summary.failures = append(summary.failures, "stdout assertion regexp failed: "+oneLine(err.Error()))
 			case !matched:
-				summary.failures = append(summary.failures, fmt.Sprintf(
+				summary.failures = append(summary.failures, last.annotate(fmt.Sprintf(
 					"stdout assertion %q did not match %q",
 					txtarAssertionText(trimmed), oneLine(last.stdout),
-				))
+				)))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "stderr "):
@@ -377,10 +397,10 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 			case err != nil:
 				summary.failures = append(summary.failures, "stderr assertion regexp failed: "+oneLine(err.Error()))
 			case !matched:
-				summary.failures = append(summary.failures, fmt.Sprintf(
+				summary.failures = append(summary.failures, last.annotate(fmt.Sprintf(
 					"stderr assertion %q did not match %q",
 					txtarAssertionText(trimmed), oneLine(last.stderr),
-				))
+				)))
 			}
 			continue
 		case strings.HasPrefix(trimmed, "cmp "):
@@ -498,11 +518,11 @@ func runTxtarScript(fx Fixture, data string, commands []string) txtarRunSummary 
 				unsupportedFiles["stderr"] = true
 			}
 		case expectedFailure && !failed:
-			summary.failures = append(summary.failures, "expected command failure, but command succeeded")
+			summary.failures = append(summary.failures, result.annotate("expected command failure, but command succeeded"))
 		case expectedFailure && result.assertionsBlocked:
-			summary.failures = append(summary.failures, txtarFailureDetail(result))
+			summary.failures = append(summary.failures, result.annotate(txtarFailureDetail(result)))
 		case !expectedFailure && failed:
-			summary.failures = append(summary.failures, txtarFailureDetail(result))
+			summary.failures = append(summary.failures, result.annotate(txtarFailureDetail(result)))
 		}
 	}
 	if summary.executed == 0 && summary.checked == 0 && len(summary.unsupported) == 0 {

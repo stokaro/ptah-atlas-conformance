@@ -42,11 +42,15 @@ func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
 	}
 
-	bin, err := ptahCompatAtlasBinary()
-	if err != nil {
-		// A build failure here is environmental (the go build ./... gate catches
-		// genuine breakage); degrade to unsupported rather than a false red.
-		return txtarCommandResult{unsupported: "atlas migrate lint (ptah-compat CLI unavailable: " + oneLine(err.Error()) + ")"}, true
+	bin := runtime.compatBinary
+	if bin == "" {
+		var err error
+		bin, err = ptahCompatAtlasBinary()
+		if err != nil {
+			// A build failure here is environmental (the go build ./... gate catches
+			// genuine breakage); degrade to unsupported rather than a false red.
+			return txtarCommandResult{unsupported: "atlas migrate lint (ptah-compat CLI unavailable: " + oneLine(err.Error()) + ")"}, true
+		}
 	}
 
 	run, err := txtarExecMigrateLint(runtime, bin, plan)
@@ -59,9 +63,7 @@ func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 	// independent mismatch.
 	result.assertionsBlocked = run.failed && run.stdout == "" &&
 		strings.Contains(run.stderr, "error validating migration SQL on dev database")
-	if refusal, ok := measureSQLiteEngineRefusal(runtime, plan, bin); ok {
-		result = refusal.classify(strings.Join(fields, " "), run)
-	}
+	result = sqliteEngineVerdict(runtime, plan, bin, strings.Join(fields, " "), run, result)
 	if plan.redirect != "" {
 		runtime.files[plan.redirect] = run.stdout
 		runtime.addParentDirs(plan.redirect)
