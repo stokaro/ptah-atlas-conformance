@@ -25,6 +25,10 @@ import (
 // Atlas-binary-free. Non-SQLite families need an Atlas HCL-inspect-backed dev
 // URL that this offline tier does not provide, and remain explicitly
 // unsupported.
+//
+// One measured difference is classified instead of compared: a directory the
+// SQLite that ptah-compat links refuses as a rename to a rowid alias
+// (sqlite_engine_refusal.go).
 func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "lint" {
 		return txtarCommandResult{}, false
@@ -38,27 +42,34 @@ func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (tx
 		return txtarCommandResult{unsupported: "atlas migrate lint"}, true
 	}
 
-	bin, err := ptahCompatAtlasBinary()
-	if err != nil {
-		// A build failure here is environmental (the go build ./... gate catches
-		// genuine breakage); degrade to unsupported rather than a false red.
-		return txtarCommandResult{unsupported: "atlas migrate lint (ptah-compat CLI unavailable: " + oneLine(err.Error()) + ")"}, true
+	bin := runtime.compatBinary
+	if bin == "" {
+		var err error
+		bin, err = ptahCompatAtlasBinary()
+		if err != nil {
+			// A build failure here is environmental (the go build ./... gate catches
+			// genuine breakage); degrade to unsupported rather than a false red.
+			return txtarCommandResult{unsupported: "atlas migrate lint (ptah-compat CLI unavailable: " + oneLine(err.Error()) + ")"}, true
+		}
 	}
 
 	run, err := txtarExecMigrateLint(runtime, bin, plan)
 	if err != nil {
 		return txtarCommandResult{err: err}, true
 	}
+	result := txtarCommandResult{stdout: run.stdout, stderr: run.stderr, failed: run.failed, err: run.err}
 	// A replay error prevents the lint report from existing. Record that root
 	// failure once instead of treating each following stdout assertion as an
 	// independent mismatch.
-	blocked := run.failed && run.stdout == "" && strings.Contains(run.stderr, "error validating migration SQL on dev database")
+	result.assertionsBlocked = run.failed && run.stdout == "" &&
+		strings.Contains(run.stderr, "error validating migration SQL on dev database")
+	result = sqliteEngineVerdict(runtime, plan, bin, strings.Join(fields, " "), run, result)
 	if plan.redirect != "" {
 		runtime.files[plan.redirect] = run.stdout
 		runtime.addParentDirs(plan.redirect)
-		return txtarCommandResult{stderr: run.stderr, failed: run.failed, assertionsBlocked: blocked, err: run.err}, true
+		result.stdout = ""
 	}
-	return txtarCommandResult{stdout: run.stdout, stderr: run.stderr, failed: run.failed, assertionsBlocked: blocked, err: run.err}, true
+	return result, true
 }
 
 // txtarMigrateLintPlan is the parsed shell form of a `migrate lint` command:
@@ -123,8 +134,10 @@ func txtarPlanMigrateLint(fields []string) (txtarMigrateLintPlan, bool) {
 type txtarMigrateLintRun struct {
 	stdout string
 	stderr string
-	failed bool
-	err    error
+	// failed is a non-zero exit, and exitCode is its value.
+	failed   bool
+	exitCode int
+	err      error
 }
 
 func txtarExecMigrateLint(runtime *txtarRuntime, bin string, plan txtarMigrateLintPlan) (txtarMigrateLintRun, error) {
@@ -153,6 +166,7 @@ func txtarExecMigrateLint(runtime *txtarRuntime, bin string, plan txtarMigrateLi
 		// error: surface it as a failed command so `! atlas migrate lint` matches
 		// and a bare command records the finding detail.
 		run.failed = true
+		run.exitCode = exitErr.ExitCode()
 		run.err = fmt.Errorf("atlas migrate lint exited %d: %s", exitErr.ExitCode(), oneLine(firstNonEmpty(stderr, stdout)))
 		return run, nil
 	}

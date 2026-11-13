@@ -7370,37 +7370,6 @@ func TestTxtarScriptProbeExecutesSQLiteMigrateLintFixtures(t *testing.T) {
 	}
 }
 
-// TestTxtarScriptProbeReportsSQLiteMigrateLintRegressions pins the failures
-// seen with ptah.run v0.25.0. The destructive fixture cannot replay its first
-// migration, and the project fixture exits 1 despite rendering the configured
-// warning-only report. A later Ptah fix must update this test and the budget.
-func TestTxtarScriptProbeReportsSQLiteMigrateLintRegressions(t *testing.T) {
-	cases := []struct {
-		fixture string
-		detail  string
-	}{
-		{"cli-migrate-lint-destructive.txtar", "cannot rename to rowid alias"},
-		{"cli-migrate-lint-project.txtar", "atlas migrate lint exited 1"},
-	}
-	for _, test := range cases {
-		t.Run(test.fixture, func(t *testing.T) {
-			path := filepath.Join(sqliteMigrateLintFixtureDir, test.fixture)
-			results := TxtarScriptProbe{}.Run(Fixture{
-				Name:  "sqlite/" + test.fixture,
-				Kind:  FixtureKindTxtar,
-				Dir:   filepath.Dir(path),
-				Files: []string{path},
-			})
-			c := qt.New(t)
-			c.Assert(results, qt.HasLen, 2)
-			for _, result := range results {
-				c.Assert(result.Outcome, qt.Equals, Fail)
-				c.Assert(result.Detail, qt.Contains, test.detail)
-			}
-		})
-	}
-}
-
 // TestTxtarScriptProbeMigrateLintBrokenTurnsRed proves the migrate-lint probe
 // cannot be false-green: because the assertions are matched against the real
 // Ptah CLI's output, a deliberately wrong expectation turns the fixture red. The
