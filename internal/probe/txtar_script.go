@@ -275,8 +275,9 @@ type txtarCommandResult struct {
 	assertionsBlocked bool
 	err               error
 	// engineRefusal is set when the command failed on a recognized SQLite
-	// engine-version difference. It is the OK detail the run reports in
-	// place of a failure, and the command's output is not compared.
+	// engine-version difference and printed the report Atlas CE prints for
+	// it. It is the OK detail the run reports in place of a failure, and the
+	// fixture's assertions on the command's output are not evaluated.
 	engineRefusal string
 	// note says why a measured difference was not applied to the command. It
 	// is appended to every failure the command or its assertions record.
@@ -509,8 +510,9 @@ func runTxtarScript(fx Fixture, data string, commands []string, compatBinary str
 		switch {
 		case result.engineRefusal != "":
 			summary.engineRefusals = append(summary.engineRefusals, result.engineRefusal)
-			// What the refused command wrote is no report of the fixture's
-			// migrations, so no comparison may judge it.
+			// What the refused command wrote was compared with the refusal's
+			// report. It is no report of the analysis the fixture asserts, so
+			// no fixture comparison may judge it.
 			if redirect := txtarRedirectTarget(commandLine); redirect != "" {
 				unsupportedFiles[redirect] = true
 			} else {

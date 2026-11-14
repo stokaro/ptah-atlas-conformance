@@ -26,9 +26,9 @@ import (
 // URL that this offline tier does not provide, and remain explicitly
 // unsupported.
 //
-// One measured difference is classified instead of compared: a directory the
-// SQLite that ptah-compat links refuses as a rename to a rowid alias
-// (sqlite_engine_refusal.go).
+// One measured difference is compared against a report the harness works out
+// instead of the fixture's: a directory the SQLite that ptah-compat links
+// refuses as a rename to a rowid alias (sqlite_engine_refusal.go).
 func runTxtarMigrateLint(fx Fixture, runtime *txtarRuntime, fields []string) (txtarCommandResult, bool) {
 	if len(fields) < 3 || fields[0] != "atlas" || fields[1] != "migrate" || fields[2] != "lint" {
 		return txtarCommandResult{}, false

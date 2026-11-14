@@ -3056,7 +3056,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=1` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=1` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); stdout reports \"Error: executing statement:\" with that answer and stderr is empty, as Atlas CE reports a refused replay; Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3064,7 +3064,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=2` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=2` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); stdout reports \"Error: executing statement:\" with that answer and stderr is empty, as Atlas CE reports a refused replay; Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3086,7 +3086,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_name \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_name \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); the lint log template printed \"1.sql\\n\" for the refused file alone and stderr is empty, as Atlas CE reports a refused replay; Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3094,7 +3094,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_count \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_count \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); the lint log template printed \"1\\n\" for the refused file alone and stderr is empty, as Atlas CE reports a refused replay; Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3669,9 +3669,8 @@
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/sqlitetx",
     "stage": "lint",
-    "outcome": "gap",
-    "detail": "SQLite dev replay did not match DS103 and the schema summary (exit 1, DS103=false, one diagnostic=true, one schema change=false)",
-    "issue": "stokaro/ptah#5953"
+    "outcome": "ok",
+    "detail": "SQLite dev replay reported one DS103 for the name column lost by the final table rebuild"
   },
   {
     "probe": "lint-parity",

@@ -55,10 +55,11 @@ func (p LintProbe) sqliteRebuildLint(fx Fixture) []Result {
 		exitCode = exitErr.ExitCode()
 	}
 	// Atlas CE accepts the orphaned friendship row in sqlitetx2. Ptah
-	// deliberately checks foreign keys before commit and rolls it back.
+	// deliberately checks foreign keys before commit and rolls it back, and
+	// reports the refusal as Atlas CE reports a replay it cannot finish: an
+	// Error line inside the lint report on stdout, nothing on stderr, exit 1.
 	if fx.Name == "cmd/atlas/internal/cmdapi/testdata/sqlitetx2" &&
-		exitCode == 1 && stdout == "" &&
-		strings.Contains(stderr, "rebuild left 1 unresolved foreign-key reference(s): friendships references missing users") {
+		exitCode == 1 && stderr == "" && reportsOrphanedFriendshipRefusal(stdout) {
 		return result(OK, "Ptah refused the orphaned friendship row before commit; Atlas CE accepts this invalid rebuild")
 	}
 	if stderr != "" {
@@ -78,4 +79,21 @@ func (p LintProbe) sqliteRebuildLint(fx Fixture) []Result {
 	return result(Gap, fmt.Sprintf(
 		"SQLite dev replay did not match DS103 and the schema summary (exit %d, DS103=%t, one diagnostic=%t, one schema change=%t)",
 		exitCode, columnDrop, oneDiagnostic, oneSchemaChange))
+}
+
+// sqliteOrphanRefusal is Ptah's own text for the foreign-key check that
+// refuses sqlitetx2's rebuild. Atlas CE accepts the rebuild, so there is no
+// Atlas wording to compare it with.
+const sqliteOrphanRefusal = "rebuild left 1 unresolved foreign-key reference(s): friendships references missing users"
+
+// reportsOrphanedFriendshipRefusal reports whether a lint report on stdout
+// names the refusal on one of its Error lines.
+func reportsOrphanedFriendshipRefusal(stdout string) bool {
+	for line := range strings.Lines(stdout) {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "Error: ") && strings.Contains(line, sqliteOrphanRefusal) {
+			return true
+		}
+	}
+	return false
 }

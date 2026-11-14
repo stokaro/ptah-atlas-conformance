@@ -1,7 +1,9 @@
 # Maximum allowed unwaived non-OK observations in gaps.json.
 # Lower this whenever Ptah support or harness fidelity improves; CI fails on regressions above it.
-# Ptah v0.25.0 has one dropped-column lint gap on a SQLite table rebuild.
-# See stokaro/ptah#5953 and stokaro/ptah#5984; the full gate stays red.
+# 1 -> 0. The dropped-column lint gap on the sqlitetx table rebuild is closed:
+# Ptah reports the one DS103 and the one schema change Atlas CE reports
+# (stokaro/ptah#5953, stokaro/ptah#5984).
 # The SQLite rowid alias refusals of stokaro/ptah#5952 are an intentional
-# engine-version difference and report OK.
-1
+# engine-version difference and report OK when the run prints the report
+# Atlas CE prints for the refused replay.
+0
