@@ -61,18 +61,23 @@ type sqliteEngineRefusal struct {
 }
 
 // classify decides a migrate lint run over a directory the linked engine
-// refuses; command is the run as the fixture spells it. Exit 1 is the
-// recognized engine-version difference: the run is reported OK, and its streams
-// and redirect target are not compared, because no report of that directory
-// can reproduce Atlas CE's. The decision reads only the exit code, never Ptah's
-// wording or output, so it holds whether Ptah reports the replay failure on
-// stderr or inside the lint report. The cost is stated rather than hidden: on
-// such a directory, a run that exits 1 for another reason -- a bad flag, a
-// configuration error, a finding on a later file -- is reported OK as well.
+// refuses; command is the run as the fixture spells it, and report is what
+// Atlas CE prints for a replay that stops at that refusal
+// (sqlite_refusal_report.go). The run is the recognized engine-version
+// difference when it exits 1, writes nothing to stderr, and its stdout is that
+// report. It is then reported OK, and the fixture's own assertions on its
+// streams and redirect target are not evaluated, because they describe Atlas
+// CE's analysis of a directory its older engine accepts.
 //
-// Any other exit stays red. Exit 0 means Ptah passed a migration its own engine
-// refuses; another non-zero code is a crash or a timeout, not this difference.
-func (r sqliteEngineRefusal) classify(command string, run txtarMigrateLintRun) txtarCommandResult {
+// Anything else stays red. Exit 0 means Ptah passed a migration its own engine
+// refuses; another non-zero code is a crash or a timeout. A run that exits 1
+// with another report, or with the bare error on stderr, failed for a reason
+// the refusal does not show.
+func (r sqliteEngineRefusal) classify(
+	command string,
+	report sqliteRefusalReport,
+	run txtarMigrateLintRun,
+) txtarCommandResult {
 	result := txtarCommandResult{stdout: run.stdout, stderr: run.stderr, failed: true, assertionsBlocked: true}
 	switch {
 	case !run.failed:
@@ -80,11 +85,18 @@ func (r sqliteEngineRefusal) classify(command string, run txtarMigrateLintRun) t
 			r.engine, r.file, r.reason)
 	case run.exitCode != 1:
 		result.err = fmt.Errorf("%v (SQLite %s refuses %s, but that difference exits 1)", run.err, r.engine, r.file)
+	case run.stderr != "":
+		result.err = fmt.Errorf("`%s`: Atlas CE reports the refusal of %s on stdout alone; the run wrote %q to stderr",
+			command, r.file, oneLine(run.stderr))
+	case !report.matches(run.stdout):
+		result.err = fmt.Errorf("`%s`: Atlas CE prints %s for the refusal of %s; the run printed %q",
+			command, report.want(), r.file, oneLine(run.stdout))
 	default:
 		result.engineRefusal = fmt.Sprintf(
 			"engine-version difference: `%s` exited 1 because SQLite %s (%s %s, which ptah-compat links) "+
-				"refuses %s: %s; Atlas CE v1.3.0 embeds SQLite %s, which accepts the rename",
-			command, r.engine, sqliteDriverModule, r.module, r.file, r.reason, atlasCESQLite)
+				"refuses %s: %s; %s and stderr is empty, as Atlas CE reports a refused replay; "+
+				"Atlas CE v1.3.0 embeds SQLite %s, which accepts the rename",
+			command, r.engine, sqliteDriverModule, r.module, r.file, r.reason, report.found(), atlasCESQLite)
 	}
 	return result
 }
@@ -99,11 +111,12 @@ type sqliteMigrationFile struct {
 // ordinary is the result the run gets without the measurement. The harness
 // replays the directory on the SQLite it links; when that engine refuses a file
 // with the rowid alias error and bin links the same driver version, classify
-// decides the run.
+// decides the run against the report that refusal produces.
 //
 // When the driver version cannot be verified, the harness's measurement says
 // nothing about bin, so it fails closed: the run keeps its ordinary result and
-// is never reported OK, and every failure it records names the reason.
+// is never reported OK, and every failure it records names the reason. A
+// report the harness cannot work out fails closed too, and the run is red.
 func sqliteEngineVerdict(
 	runtime *txtarRuntime,
 	plan txtarMigrateLintPlan,
@@ -127,7 +140,15 @@ func sqliteEngineVerdict(
 		return ordinary
 	}
 	refusal.module = module
-	return refusal.classify(command, run)
+	report, err := sqliteRefusalReportFor(runtime, plan, refusal)
+	if err != nil {
+		return txtarCommandResult{
+			stdout: run.stdout, stderr: run.stderr, failed: true, assertionsBlocked: true,
+			err: fmt.Errorf("`%s`: cannot work out Atlas CE's report of the refusal of %s: %w",
+				command, refusal.file, err),
+		}
+	}
+	return refusal.classify(command, report, run)
 }
 
 // replaySQLiteMigrations runs files in order on a fresh in-memory database of

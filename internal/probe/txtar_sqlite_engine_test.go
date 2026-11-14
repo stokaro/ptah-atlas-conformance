@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -40,12 +41,24 @@ func observationsOf(results []probe.Result) []observation {
 // engine-version difference.
 var refusedRun = observation{"txtar-script", "script-runtime", probe.OK, rowidAliasIssue}
 
+// reportedRefusal matches the part of a detail saying the run printed the
+// default text report of the refusal.
+const reportedRefusal = `stdout reports "Error: executing statement:" with that answer`
+
+// templatedRefusal matches the part of a detail saying the run's lint log
+// template printed log for the refused file alone.
+func templatedRefusal(log string) string {
+	return `the lint log template printed ` + regexp.QuoteMeta(strconv.Quote(log)) + ` for the refused file alone`
+}
+
 // rowidAliasRefusalDetail matches the detail reported for command when the
-// engine refuses the rename in migrations/1.sql.
-func rowidAliasRefusalDetail(command string) string {
+// engine refuses the rename in migrations/1.sql and the run printed the report
+// that report matches.
+func rowidAliasRefusalDetail(command, report string) string {
 	return "engine-version difference: `" + regexp.QuoteMeta(command) + "` exited 1 because " +
 		`SQLite 3\.\d+\.\d+ \(modernc\.org/sqlite v\S+, which ptah-compat links\) refuses migrations/1\.sql: ` +
 		`SQL logic error: cannot rename to rowid alias: oid \(1\); ` +
+		report + ` and stderr is empty, as Atlas CE reports a refused replay; ` +
 		`Atlas CE v1\.3\.0 embeds SQLite 3\.49\.1, which accepts the rename`
 }
 
@@ -63,27 +76,46 @@ func runTxtar(c *qt.C, name, script string) []probe.Result {
 	})
 }
 
+// lintRun is one lint command of a fixture and the report its detail names.
+// line is the command as the script spells it and command as a detail spells
+// it, with the shell quotes removed.
+type lintRun struct {
+	line    string
+	command string
+	report  string
+}
+
 // TestTxtarScriptProbe_SQLiteRowidAliasRefusal_IsRecognized drives the two
 // vendored fixtures whose first migration renames a column to oid. The SQLite
 // that ptah-compat links refuses that rename, Atlas CE's older SQLite accepts
-// it, and each lint command is reported OK as that difference.
+// it, and each lint command is reported OK as that difference because it
+// printed the report Atlas CE prints for the refusal: the default report naming
+// the replay's answer, and the project's log templates over the refused file.
 func TestTxtarScriptProbe_SQLiteRowidAliasRefusal_IsRecognized(t *testing.T) {
 	tests := []struct {
-		fixture  string
-		commands []string
+		fixture string
+		runs    []lintRun
 	}{
 		{
 			fixture: "cli-migrate-lint-destructive.txtar",
-			commands: []string{
-				"atlas migrate lint --dir file://migrations --dev-url URL --latest=1",
-				"atlas migrate lint --dir file://migrations --dev-url URL --latest=2",
+			runs: []lintRun{
+				{"atlas migrate lint --dir file://migrations --dev-url URL --latest=1", "atlas migrate lint --dir file://migrations --dev-url URL --latest=1", reportedRefusal},
+				{"atlas migrate lint --dir file://migrations --dev-url URL --latest=2", "atlas migrate lint --dir file://migrations --dev-url URL --latest=2", reportedRefusal},
 			},
 		},
 		{
 			fixture: "cli-migrate-lint-project.txtar",
-			commands: []string{
-				"atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt",
-				"atlas migrate lint --dir file://migrations --dev-url URL --env=log_count > got.txt",
+			runs: []lintRun{
+				{
+					"atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt",
+					"atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt",
+					templatedRefusal("1.sql\n"),
+				},
+				{
+					"atlas migrate lint --dir file://migrations --dev-url URL --env=log_count > got.txt",
+					"atlas migrate lint --dir file://migrations --dev-url URL --env=log_count > got.txt",
+					templatedRefusal("1\n"),
+				},
 			},
 		},
 	}
@@ -100,26 +132,17 @@ func TestTxtarScriptProbe_SQLiteRowidAliasRefusal_IsRecognized(t *testing.T) {
 			})
 
 			c.Assert(observationsOf(results), qt.DeepEquals, []observation{refusedRun, refusedRun})
-			for i, command := range test.commands {
-				c.Assert(results[i].Detail, qt.Matches, rowidAliasRefusalDetail(command))
+			for i, run := range test.runs {
+				c.Assert(results[i].Detail, qt.Matches, rowidAliasRefusalDetail(run.command, run.report))
 			}
 		})
 	}
 }
 
-// TestTxtarScriptProbe_SQLiteRowidAliasRefusal_IgnoresTheRefusedOutput pins
-// that the recognition does not depend on what the refused command printed.
-// ptah-compat v0.25.0 writes the analyzed file, 2.sql, through the log
-// template; the community report shape names only the failing file, 1.sql.
-// The fixture expects the second, and the refused run is still OK, because no
-// comparison judges its output.
-func TestTxtarScriptProbe_SQLiteRowidAliasRefusal_IgnoresTheRefusedOutput(t *testing.T) {
-	c := qt.New(t)
-	command := "atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt"
-
-	results := runTxtar(c, "sqlite/cli-migrate-lint-refused-log.txtar", command+`
-cmp got.txt expected.txt
-
+// refusedDirectory is a migration directory whose base file renames a column
+// to oid, and a project file whose global lint block sets a log template that
+// its envs may override.
+const refusedDirectory = `
 -- migrations/1.sql --
 CREATE TABLE users (id int);
 
@@ -128,14 +151,10 @@ ALTER TABLE users RENAME COLUMN id TO oid;
 -- migrations/2.sql --
 DROP TABLE users;
 
--- expected.txt --
-1.sql
 -- atlas.hcl --
 lint {
     latest = 1
-    destructive {
-        error = false
-    }
+    log = "{{ len .Files | println }}"
 }
 
 env "log_name" {
@@ -143,10 +162,136 @@ env "log_name" {
         log = "{{ range .Files }}{{ println .Name }}{{ end }}"
     }
 }
-`)
 
-	c.Assert(observationsOf(results), qt.DeepEquals, []observation{refusedRun})
-	c.Assert(results[0].Detail, qt.Matches, rowidAliasRefusalDetail(command))
+env "log_steps" {
+    lint {
+        log = "{{ range .Steps }}{{ println .Name }}{{ end }}"
+    }
+}
+
+env "log_format" {
+    format {
+        migrate {
+            lint = "{{ len .Files | println }}"
+        }
+    }
+}
+
+env "plain" {
+}
+`
+
+// TestTxtarScriptProbe_SQLiteRowidAliasRefusal_SelectsTheTemplateAsAtlasDoes
+// covers the template sources the vendored fixtures do not use, each in the
+// precedence the pinned Atlas CE binary showed over a refused base file:
+// --format wins over the env's lint log, the env's lint log wins over the
+// global one, an env without one inherits the global one, and without --env
+// the project file is not read and the default report is printed. Each run is
+// judged by the template it selects.
+func TestTxtarScriptProbe_SQLiteRowidAliasRefusal_SelectsTheTemplateAsAtlasDoes(t *testing.T) {
+	tests := []struct {
+		name string
+		run  lintRun
+	}{
+		{
+			name: "format flag",
+			run: lintRun{
+				"atlas migrate lint --dir file://migrations --dev-url URL --latest=1 " +
+					"--format '{{ range .Files }}{{ println .Name }}{{ end }}' > got.txt",
+				"atlas migrate lint --dir file://migrations --dev-url URL --latest=1 " +
+					"--format {{ range .Files }}{{ println .Name }}{{ end }} > got.txt",
+				templatedRefusal("1.sql\n"),
+			},
+		},
+		{
+			name: "format flag over the env's lint log",
+			run: lintRun{
+				"atlas migrate lint --dir file://migrations --dev-url URL --env=log_name " +
+					"--format '{{ len .Files | println }}' > got.txt",
+				"atlas migrate lint --dir file://migrations --dev-url URL --env=log_name " +
+					"--format {{ len .Files | println }} > got.txt",
+				templatedRefusal("1\n"),
+			},
+		},
+		{
+			name: "env lint log over the global one",
+			run: lintRun{
+				"atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt",
+				"atlas migrate lint --dir file://migrations --dev-url URL --env=log_name > got.txt",
+				templatedRefusal("1.sql\n"),
+			},
+		},
+		{
+			name: "global lint log in an env without one",
+			run: lintRun{
+				"atlas migrate lint --dir file://migrations --dev-url URL --env=plain > got.txt",
+				"atlas migrate lint --dir file://migrations --dev-url URL --env=plain > got.txt",
+				templatedRefusal("1\n"),
+			},
+		},
+		{
+			name: "no env",
+			run: lintRun{
+				"atlas migrate lint --dir file://migrations --dev-url URL --latest=1",
+				"atlas migrate lint --dir file://migrations --dev-url URL --latest=1",
+				reportedRefusal,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+			results := runTxtar(c, "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
+				test.run.line+"\n"+refusedDirectory)
+
+			c.Assert(observationsOf(results), qt.DeepEquals, []observation{refusedRun})
+			c.Assert(results[0].Detail, qt.Matches, rowidAliasRefusalDetail(test.run.command, test.run.report))
+		})
+	}
+}
+
+// TestTxtarScriptProbe_SQLiteRowidAliasRefusal_UnresolvedReportStaysRed fails
+// closed. When the harness cannot work out what Atlas CE prints for the
+// refusal -- a template reading more than the refused file's name, an env the
+// project does not define, a format block it does not resolve -- the run is
+// red and says why, whatever it printed.
+func TestTxtarScriptProbe_SQLiteRowidAliasRefusal_UnresolvedReportStaysRed(t *testing.T) {
+	tests := []struct {
+		name       string
+		env        string
+		wantReason string
+	}{
+		{
+			name:       "template reading the steps",
+			env:        "log_steps",
+			wantReason: `template: log:1:9: executing "log" at <\.Steps>: map has no entry for key "Steps"`,
+		},
+		{
+			name:       "env the project does not define",
+			env:        "missing",
+			wantReason: `atlas\.hcl defines no env "missing"`,
+		},
+		{
+			name:       "env format block",
+			env:        "log_format",
+			wantReason: `env "log_format" has a format block, which this harness does not read`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := qt.New(t)
+			command := "atlas migrate lint --dir file://migrations --dev-url URL --env=" + test.env + " > got.txt"
+
+			results := runTxtar(c, "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
+				command+"\n"+refusedDirectory)
+
+			c.Assert(observationsOf(results), qt.DeepEquals, []observation{
+				{"txtar-script", "script-runtime", probe.Fail, rowidAliasIssue},
+			})
+			c.Assert(results[0].Detail, qt.Matches, "`"+regexp.QuoteMeta(command)+"`: cannot work out "+
+				`Atlas CE's report of the refusal of migrations/1\.sql: `+test.wantReason)
+		})
+	}
 }
 
 // TestTxtarScriptProbe_SQLiteRowidAliasRefusal_UnrelatedFailureStaysRed keeps
@@ -181,7 +326,7 @@ DROP TABLE users;
 		refusedRun,
 		{"txtar-script", "script-runtime", probe.Fail, rowidAliasIssue},
 	})
-	c.Assert(results[0].Detail, qt.Matches, rowidAliasRefusalDetail(refused))
+	c.Assert(results[0].Detail, qt.Matches, rowidAliasRefusalDetail(refused, reportedRefusal))
 	c.Assert(results[1].Detail, qt.Contains, "no such table: missing")
 }
 
