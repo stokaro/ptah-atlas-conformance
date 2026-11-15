@@ -54,8 +54,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status` | execute | `atlas migrate status` defaults to Atlas directory format and reads atlas.sum-backed migrations |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --dir-format goose` | execute | `atlas migrate status --dir-format goose` reads the hashed Goose directory and reports one pending file |  |
 | — | ok | atlas-cli-metadata-runtime | `atlas migrate status --revisions-schema` | execute | `atlas migrate status --revisions-schema main` executed successfully |  |
-| — | ok | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | `atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields |  |
-| — | ok | atlas-cli-report-format | `atlas migrate apply --format json` | format | `atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values |  |
+| — | ok | atlas-cli-report-format | `atlas migrate apply --dry-run --format json` | format | `atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL, pending and planned migration fields |  |
+| — | ok | atlas-cli-report-format | `atlas migrate apply --format json` | format | `atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields and leaves out the members that have no value |  |
 | — | ok | atlas-cli-report-format | `atlas migrate status --format json` | format | `atlas migrate status --format '{{ json . }}'` exposes Atlas-shaped applied revision entries |  |
 | — | ok | atlas-cli-report-format | `atlas schema clean --dry-run --format json` | format | `atlas schema clean --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and dry-run report fields |  |
 | — | ok | atlas-cli-schema-clean-runtime | `atlas schema clean --dry-run --format` | execute | `atlas schema clean --dry-run --format '{{ json . }}'` emits structured redacted JSON and does not mutate SQLite |  |

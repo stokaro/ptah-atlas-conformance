@@ -4160,14 +4160,14 @@
     "fixture": "atlas migrate apply --dry-run --format json",
     "stage": "format",
     "outcome": "ok",
-    "detail": "`atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields"
+    "detail": "`atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL, pending and planned migration fields"
   },
   {
     "probe": "atlas-cli-report-format",
     "fixture": "atlas migrate apply --format json",
     "stage": "format",
     "outcome": "ok",
-    "detail": "`atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values"
+    "detail": "`atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields and leaves out the members that have no value"
   },
   {
     "probe": "atlas-cli-report-format",

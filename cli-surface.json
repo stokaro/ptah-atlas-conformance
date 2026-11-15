@@ -206,9 +206,8 @@
     "probe": "atlas-cli-surface-ptah-compat",
     "fixture": "atlas migrate diff",
     "stage": "flags",
-    "outcome": "gap",
-    "detail": "flag mismatch: extra --exclude",
-    "issue": "stokaro/ptah#514"
+    "outcome": "ok",
+    "detail": "long flags match Atlas CE: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var"
   },
   {
     "probe": "atlas-cli-surface-ptah-compat",

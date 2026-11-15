@@ -14,16 +14,15 @@ the dedicated CE-gating report. Rows under `atlas-cli-pro-surface-ptah-compat`
 separately require the long flags documented by the public Atlas CLI Reference
 but absent from CE help, so CE parity cannot hide missing full-distribution surface.
 
-## Status: NOT DONE — 1 non-OK observation(s)
+## Status: CLI SURFACE PARITY
 
-The full CLI-surface gate is red until Ptah's drop-in compatibility binary
-matches the pinned Atlas CE help surface and documented Pro-surface flags.
+Every discovered OSS Atlas CE command and documented Pro-surface flag is present.
 
 - Atlas CE binary: `atlas community version v1.3.0`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **111 ok**, **1 gap**, **0 fail**, **0 panic**
-- Full gate: **1 non-OK** (fails CI)
-- Regression budget input: **1 unwaived non-OK**, 0 waived
+- Outcomes: **112 ok**, **0 gap**, **0 fail**, **0 panic**
+- Full gate: **0 non-OK** (passes CI)
+- Regression budget input: **0 unwaived non-OK**, 0 waived
 
 ## Atlas CE Inventory
 
@@ -53,7 +52,6 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 
 | Gate | Outcome | Probe | Command | Stage | Detail | Related |
 | --- | --- | --- | --- | --- | --- | --- |
-| **RED** | **gap** | atlas-cli-surface-ptah-compat | `atlas migrate diff` | flags | flag mismatch: extra --exclude | #514 |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas migrate apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lock --to-version |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema apply` | required-flags | documented Pro-surface flags are present: --lock-name --skip-lint --skip-lock |  |
 | — | ok | atlas-cli-pro-surface-ptah-compat | `atlas schema clean` | required-flags | documented Pro-surface flags are present: --exclude --include |  |
@@ -86,6 +84,7 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate` | usage | usage matches Atlas: `atlas migrate [command]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | flags | long flags match Atlas CE: --allow-dirty --baseline --config --dir --dry-run --env --exec-order --format --lock-timeout --revisions-schema --tx-mode --url --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate apply` | usage | usage matches Atlas: `atlas migrate apply [flags] [amount]` |  |
+| — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | flags | long flags match Atlas CE: --config --dev-url --dir --dir-format --edit --env --format --lock-timeout --qualifier --schema --to --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate diff` | usage | usage matches Atlas: `atlas migrate diff [flags] [name]` |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | flags | long flags match Atlas CE: --config --dir --dir-format --env --var |  |
 | — | ok | atlas-cli-surface-ptah-compat | `atlas migrate hash` | usage | usage matches Atlas: `atlas migrate hash [flags]` |  |
@@ -165,7 +164,3 @@ matches the pinned Atlas CE help surface and documented Pro-surface flags.
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | availability-boundary | `atlas schema test` does not return either unavailable-command sentinel; command registration is checked by help/usage and behavior is checked by the matching workflow probe |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | flags | exposes the first-party required long flags: --dev-url --run --url (extra flags are allowed; Atlas CE has no flag oracle for this verb) |  |
 | — | ok | ptah-non-oss-sentinel | `atlas schema test` | usage | usage matches the first-party open-capability contract: `atlas schema test [flags] [paths]` (Atlas CE has no help for this verb) |  |
-
-## Gaps by related issue
-
-- **stokaro/ptah#514** — 1 finding(s)

@@ -227,8 +227,11 @@ func (q *qualifierTxModeWorkflow) concurrentIndexArtifactReplays() Result {
 	if gap := q.expectExit(fixture, stage, result, 0); gap != nil {
 		return *gap
 	}
+	// The generated version is a timestamp, so the header is matched without
+	// it. Both lines are the ones Atlas CE prints for a one-file directory.
 	if gap := q.expectFragments(fixture, stage, "stdout", result.stdout, []string{
-		"Migration complete. Current version:",
+		"(1 migrations in total):",
+		"-- 1 migration\n",
 	}); gap != nil {
 		return *gap
 	}
