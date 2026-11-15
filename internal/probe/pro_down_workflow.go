@@ -70,8 +70,11 @@ func (d *proDownWorkflow) atlasFormatApplication() Result {
 	if gap := d.expectExit(fixture, stage, result, 0); gap != nil {
 		return *gap
 	}
+	// The header and the summary line of Atlas CE's per-version report, as
+	// the pinned binary prints them for this directory.
 	if gap := d.expectFragments(fixture, stage, "stdout", result.stdout, []string{
-		"Migration complete. Current version: 20260101000002",
+		"Migrating to version 20260101000002 (2 migrations in total):",
+		"-- 2 migrations",
 	}); gap != nil {
 		return *gap
 	}

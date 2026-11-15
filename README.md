@@ -286,10 +286,9 @@ The regression budget is [`cli-surface-budget.txt`](./cli-surface-budget.txt).
 `make budget-cli-surface` must stay green when Ptah preserves the current known
 CLI surface. `make gate-cli-surface` is the full-parity signal for the pinned
 Atlas CE OSS help/flag surface plus the public documented Pro flags. Every
-documented Pro flag is present. The gate is red on one row: ptah-compat
-registers `--exclude` on `atlas migrate diff`, which the pinned CE binary
-refuses as an unknown flag and the public Atlas CLI Reference does not list for
-that command. The regression budget of one holds that row.
+documented Pro flag is present, and the gate is green: every CE command has
+the usage line and the long flags the pinned CE binary registers. The
+regression budget is zero.
 
 Refresh this tier whenever [`atlas.version`](./atlas.version) changes, or after
 bumping Ptah in `go.mod`:

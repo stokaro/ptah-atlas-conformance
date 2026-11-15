@@ -204,10 +204,10 @@ workflow probes are fixture-driven and make only the claims listed below.
   message are all gaps. Resolution proves only the CLI surface; dedicated workflow probes
   own behavioral evidence for extra Ptah capabilities. Separate
   `atlas-cli-pro-surface-ptah-compat` rows require the public documented
-  Pro-only flags, and all of them are present. The full gate is red on one
-  CE-surface row: ptah-compat registers `--exclude` on `atlas migrate diff`,
-  which the pinned CE binary refuses as an unknown flag and the public Atlas
-  CLI Reference does not list for that command. Future Atlas changes
+  Pro-only flags, and all of them are present. The full gate is green on the
+  pinned Atlas CE surface: every CE command has the usage line and the long
+  flags CE registers, and `atlas migrate diff` refuses `--exclude` as an
+  unknown flag, as CE does. Future Atlas changes
   should either preserve parity or create explicit tracked gaps instead of
   dropping commands or flags from the inventory.
 - **`ce-gating.md`** is the **executed** counterpart to the CLI-surface

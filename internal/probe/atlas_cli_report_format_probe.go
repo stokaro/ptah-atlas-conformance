@@ -107,14 +107,48 @@ func runAtlasMigrateApplyDryRunReportShape(bin string, fixture atlasReportFormat
 	if detail := requireAtlasMigrationFile(report.Pending[0]); detail != "" {
 		return atlasReportFormatGap(name, "format", detail)
 	}
-	if len(report.Applied) != 0 {
-		return atlasReportFormatGap(name, "dry-run", "dry-run apply unexpectedly reported applied files")
+	// Atlas CE v1.3.0 reports a dry run as the run it would make: the pending
+	// file is listed under Applied with the statements it would execute, and
+	// Message names the target. The real apply that follows still finds the
+	// file pending, which is what shows the dry run wrote nothing.
+	if len(report.Applied) != 1 {
+		return atlasReportFormatGap(name, "dry-run", fmt.Sprintf("dry-run apply Applied length = %d, want 1", len(report.Applied)))
 	}
-	if report.Message != "" {
-		return atlasReportFormatGap(name, "format", "dry-run apply emitted a non-empty Message for pending migrations")
+	if detail := requireAtlasAppliedFile(report.Applied[0]); detail != "" {
+		return atlasReportFormatGap(name, "dry-run", "dry-run "+detail)
+	}
+	if !strings.Contains(report.Message, "Migrated to version 20240101000000") {
+		return atlasReportFormatGap(name, "format", "dry-run apply Message does not describe the planned target: "+oneLine(report.Message))
 	}
 	return Result{"atlas-cli-report-format", name, "format", OK,
-		"`atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL and pending migration fields", ""}
+		"`atlas migrate apply --dry-run --format '{{ json . }}'` exposes Atlas-shaped URL, pending and planned migration fields", ""}
+}
+
+// requireAtlasAppliedFile holds one Applied entry of a migrate apply report to
+// the shape Atlas CE v1.3.0 writes for the report-format fixture: the file,
+// its start and end, its one statement, and no Skipped, Checks or Error
+// member, because Atlas CE leaves out every member that has no value.
+func requireAtlasAppliedFile(applied atlasMigrateApplyAppliedFile) string {
+	if detail := requireAtlasMigrationFile(applied.atlasMigrationFileReport); detail != "" {
+		return detail
+	}
+	switch {
+	case applied.Start == "":
+		return "applied migration Start is empty"
+	case applied.End == "":
+		return "applied migration End is empty"
+	case applied.Skipped != nil:
+		return fmt.Sprintf("applied migration carries Skipped = %d; Atlas CE leaves the member out when nothing was skipped", *applied.Skipped)
+	case len(applied.Applied) != 1:
+		return fmt.Sprintf("applied migration Applied statement count = %d, want 1", len(applied.Applied))
+	case applied.Applied[0] != "CREATE TABLE users (id INTEGER PRIMARY KEY);":
+		return "applied migration statement mismatch: " + oneLine(applied.Applied[0])
+	case len(applied.Checks) != 0:
+		return "applied migration carries Checks = " + oneLine(string(applied.Checks)) + "; Atlas CE leaves the member out when no check ran"
+	case len(applied.Error) != 0:
+		return "applied migration carries Error = " + oneLine(string(applied.Error)) + "; Atlas CE leaves the member out when the file succeeded"
+	}
+	return ""
 }
 
 func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {
@@ -146,31 +180,14 @@ func runAtlasMigrateApplyAppliedReportShape(bin string, fixture atlasReportForma
 	if len(report.Applied) != 1 {
 		return atlasReportFormatGap(name, "format", fmt.Sprintf("apply Applied length = %d, want 1", len(report.Applied)))
 	}
-	if detail := requireAtlasMigrationFile(report.Applied[0].atlasMigrationFileReport); detail != "" {
+	if detail := requireAtlasAppliedFile(report.Applied[0]); detail != "" {
 		return atlasReportFormatGap(name, "format", detail)
-	}
-	applied := report.Applied[0]
-	switch {
-	case applied.Start == "":
-		return atlasReportFormatGap(name, "format", "applied migration Start is empty")
-	case applied.End == "":
-		return atlasReportFormatGap(name, "format", "applied migration End is empty")
-	case applied.Skipped == nil:
-		return atlasReportFormatGap(name, "format", "applied migration Skipped field is missing")
-	case *applied.Skipped != 0:
-		return atlasReportFormatGap(name, "format", fmt.Sprintf("applied migration Skipped = %d, want 0", *applied.Skipped))
-	case len(applied.Applied) != 1:
-		return atlasReportFormatGap(name, "format", fmt.Sprintf("applied migration Applied statement count = %d, want 1", len(applied.Applied)))
-	case string(applied.Checks) != "null":
-		return atlasReportFormatGap(name, "format", "applied migration Checks is not present as JSON null")
-	case string(applied.Error) != "null":
-		return atlasReportFormatGap(name, "format", "applied migration Error is not present as JSON null")
 	}
 	if !strings.Contains(report.Message, "Migrated to version 20240101000000") {
 		return atlasReportFormatGap(name, "format", "apply Message does not describe the applied target: "+oneLine(report.Message))
 	}
 	return Result{"atlas-cli-report-format", name, "format", OK,
-		"`atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields, nulls, and zero values", ""}
+		"`atlas migrate apply --format '{{ json . }}'` exposes Atlas-shaped applied migration fields and leaves out the members that have no value", ""}
 }
 
 func runAtlasMigrateStatusAppliedReportShape(bin string, fixture atlasReportFormatFixture) Result {

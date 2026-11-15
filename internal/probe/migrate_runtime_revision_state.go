@@ -82,8 +82,8 @@ func sqliteMigrateApplyDryRunReadsStoredState(bin string) Result {
 	if detail := compareMigrationVersions(report.Pending, []string{"3"}); detail != "" {
 		return migrateRuntimeGap(fixture, "report", "pending "+detail)
 	}
-	if len(report.Applied) != 0 {
-		return migrateRuntimeGap(fixture, "report", fmt.Sprintf("dry-run reported %d applied migration(s), want 0", len(report.Applied)))
+	if detail := compareMigrationVersions(appliedMigrationFiles(report.Applied), []string{"3"}); detail != "" {
+		return migrateRuntimeGap(fixture, "report", "planned "+detail)
 	}
 
 	if detail := compareSQLiteRevisionStateSnapshot(db, beforePendingDryRun); detail != "" {
@@ -737,10 +737,23 @@ func inspectStoredStateApplyReport(stdout string, wantPending []string) string {
 	if detail := compareMigrationVersions(report.Pending, wantPending); detail != "" {
 		return "pending " + detail
 	}
-	if len(report.Applied) != 0 {
-		return fmt.Sprintf("dry-run reported %d applied migration(s), want 0", len(report.Applied))
+	if detail := compareMigrationVersions(appliedMigrationFiles(report.Applied), wantPending); detail != "" {
+		return "planned " + detail
 	}
 	return ""
+}
+
+// appliedMigrationFiles lists the files of a migrate apply report's Applied
+// entries. Atlas CE v1.3.0 fills Applied on a dry run too, with every file the
+// run would execute, so a dry run is held to Applied naming exactly the
+// pending files; the revision and table snapshots are what show it wrote
+// nothing.
+func appliedMigrationFiles(applied []atlasMigrateApplyAppliedFile) []atlasMigrationFileReport {
+	files := make([]atlasMigrationFileReport, len(applied))
+	for i, file := range applied {
+		files[i] = file.atlasMigrationFileReport
+	}
+	return files
 }
 
 type completeRevisionFact struct {
