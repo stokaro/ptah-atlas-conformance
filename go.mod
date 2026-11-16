@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/zclconf/go-cty v1.20.0
 	modernc.org/sqlite v1.62.0
-	ptah.run v0.29.2
+	ptah.run v0.29.3
 )
 
 require (
@@ -61,9 +61,9 @@ require (
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/text v0.44.0 // indirect
 	golang.org/x/tools v0.52.1-0.20261113204035-cba9b8046c90 // indirect
-	modernc.org/libc v1.81.1 // indirect
+	modernc.org/libc v1.81.2 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.12.1 // indirect
+	modernc.org/memory v1.13.0 // indirect
 	ptah.run/sqlsyntax v0.2.0 // indirect
 )
 
