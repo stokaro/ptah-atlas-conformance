@@ -560,13 +560,13 @@ case "$*" in
     exit 1
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s main --dry-run"|"schema apply --url sqlite://"*" --to file://"*" --schema main --dry-run")
-    printf 'Planned schema changes:\nCREATE TABLE "users" (\n  "id" INTEGER PRIMARY KEY\n);\n'
+    printf '%s\n' '-- Planned Changes:' '-- Create "users" table' 'CREATE TABLE "users" (' '  "id" integer NULL,' '  PRIMARY KEY ("id")' ');'
     ;;
   "schema apply --url sqlite://"*" --to file://"*" -s "*" --dry-run")
     printf 'Schema is synced, no changes to be made\n'
     ;;
   "schema apply --url sqlite://"*)
-    printf 'Planned schema changes:\nCREATE TABLE users (id INTEGER PRIMARY KEY);\n'
+    printf '%s\n' '-- Planned Changes:' '-- Create "users" table' 'CREATE TABLE "users" ("id" integer NULL, PRIMARY KEY ("id"));'
     ;;
   "schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" -s main"|"schema diff -f file://"*" --to file://"*" --dev-url sqlite://"*" --schema main")
     printf 'ALTER TABLE "users" ADD COLUMN "email" TEXT;\n'

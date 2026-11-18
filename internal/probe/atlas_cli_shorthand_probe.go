@@ -140,7 +140,7 @@ func runAtlasSchemaApplySchemaShorthand(bin string) Result {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema apply -s main` exited non-zero: " + oneLine(shortOut), "stokaro/ptah#813"}
 	}
-	if !strings.Contains(shortOut, "Planned schema changes:") || !strings.Contains(shortOut, "CREATE TABLE") {
+	if !strings.Contains(shortOut, "-- Planned Changes:") || !strings.Contains(shortOut, "CREATE TABLE") {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema apply -s main` did not plan the in-scope table: " + oneLine(shortOut), "stokaro/ptah#813"}
 	}
@@ -212,7 +212,7 @@ func runAtlasSchemaApplyHiddenFileShorthand(bin string) Result {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema apply -f` exited non-zero: " + oneLine(output), "stokaro/ptah#621"}
 	}
-	if !strings.Contains(output, "Planned schema changes:") || !strings.Contains(output, "CREATE TABLE") {
+	if !strings.Contains(output, "-- Planned Changes:") || !strings.Contains(output, "CREATE TABLE") {
 		return Result{"atlas-cli-shorthands", fixture, "execute", Gap,
 			"`atlas schema apply -f` did not print the expected dry-run plan: " + oneLine(output), "stokaro/ptah#621"}
 	}
