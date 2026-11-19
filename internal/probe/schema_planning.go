@@ -105,6 +105,20 @@ func (c planningCase) runPostgres(bin, dbURL string) (result Result) {
 	if detail := resetPostgresPublic(dbURL); detail != "" {
 		return Result{planningProbeName, fixture, "reset", Fail, detail, ""}
 	}
+	// Each path leaves its schema in public. The check empties it again, so a
+	// check after it, or the next run on the same server, finds the clean
+	// database Atlas CE requires before it applies a directory.
+	defer func() {
+		detail := resetPostgresPublic(dbURL)
+		if detail == "" {
+			return
+		}
+		if result.Outcome == OK {
+			result = Result{planningProbeName, fixture, "cleanup", Fail, detail, ""}
+			return
+		}
+		result.Detail += "; cleanup failed: " + detail
+	}()
 	if detail := createPostgresDatabase(dbURL, devDatabase); detail != "" {
 		return Result{planningProbeName, fixture, "reset-dev", Fail, detail, ""}
 	}
