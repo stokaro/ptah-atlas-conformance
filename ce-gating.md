@@ -13,7 +13,7 @@ for example after an atlas.version bump — not that Ptah changed.
 
 Every fixture is covered. The conformance gate is green.
 
-- Atlas CE binary under test: `atlas community version v1.3.0`, built from the release tag pinned in `atlas.version`
+- Atlas CE binary under test: `atlas community version v1.4.0`, built from the release tag pinned in `atlas.version`
 - Isolation: every scenario runs logged out — scratch `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` in a fresh temp dir, plus `ATLAS_NO_UPDATE_NOTIFIER=1` and `ATLAS_NO_ANON_TELEMETRY=1` — so a developer's real Atlas login can never leak into the measurement.
 - Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02.
 - Outcomes: **75 ok**, **0 gap**, **0 fail**, **0 panic**
