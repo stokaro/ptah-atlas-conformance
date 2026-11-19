@@ -50,6 +50,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `liquibase/import-roundtrip` | import | liquibase import split formatted-SQL changesets into Ptah up/down pairs (rollback as down) that validate accepts |  |
 | — | ok | migrate-runtime | `mariadb/apply-dry-run-stored-state` | inspect | MariaDB apply dry-run read the custom-schema stored revision, planned only version 2, and left tables and revision identity state unchanged |  |
 | — | ok | migrate-runtime | `mariadb/apply-state` | inspect | apply created expected MariaDB tables and Atlas revision rows |  |
+| — | ok | migrate-runtime | `mariadb/modified-check-plan` | plan | Atlas CE and ptah-compat both replaced the modified MariaDB CHECK with DROP CONSTRAINT and ADD CONSTRAINT, and MariaDB applied each plan and stored `qty` > 0 |  |
 | — | ok | migrate-runtime | `mariadb/txtar-check-comment-semantics` | inspect | MariaDB executable comments and short numeric comment bodies retained their SQL semantics in named checks |  |
 | — | ok | migrate-runtime | `mariadb/txtar-check-hidden-statements` | inspect | MariaDB rejected multiple statements hidden in an executable comment before query execution; migration.sql did not run |  |
 | — | ok | migrate-runtime | `mariadb/txtar-check-short-numeric-body` | inspect | MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed |  |

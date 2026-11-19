@@ -146,6 +146,9 @@ func RunMigrateRuntime() MigrateRuntimeRun {
 				func(bin string) Result { return mysqlMigrateTxtarCheckHiddenStatements(bin, target.URL, label) },
 				func(bin string) Result { return mysqlMigrateTxtarCheckNumericBody(bin, target.URL, label) },
 			)
+			if label == "mariadb" {
+				checks = append(checks, func(bin string) Result { return mariadbModifiedCheckPlan(bin, atlasBin, target.URL) })
+			}
 		}
 	}
 	out := gooseMigrateIntegrityOracle(compatBin, atlasBin)
