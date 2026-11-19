@@ -584,8 +584,13 @@ func (p LintProbe) Run(fx Fixture) []Result {
 	}
 	var findings []lint.Finding
 	var err error
+	// These directories are Atlas's, and a run over them records versions in
+	// the Atlas revision table, as ptah-compat does. Ptah's own table records
+	// numbers, so linted against it a directory holding a version such as 1.a
+	// reports MF105P, the refusal a native run over that table issues, rather
+	// than anything about the migrations' content.
 	panicked, pmsg := guard(func() {
-		findings, err = lintFS(os.DirFS(fx.Dir), lint.Options{Dialect: "postgres"})
+		findings, err = lintFS(os.DirFS(fx.Dir), lint.Options{Dialect: "postgres", AtlasRevisionTable: true})
 	})
 	switch {
 	case panicked:

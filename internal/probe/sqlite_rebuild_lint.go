@@ -84,7 +84,7 @@ func (p LintProbe) sqliteRebuildLint(fx Fixture) []Result {
 // sqliteOrphanRefusal is Ptah's own text for the foreign-key check that
 // refuses sqlitetx2's rebuild. Atlas CE accepts the rebuild, so there is no
 // Atlas wording to compare it with.
-const sqliteOrphanRefusal = "rebuild left 1 unresolved foreign-key reference(s): friendships references missing users"
+const sqliteOrphanRefusal = "rebuild leaves rows that violate a foreign key: 1 row(s) of friendships violate the foreign key to users"
 
 // reportsOrphanedFriendshipRefusal reports whether a lint report on stdout
 // names the refusal on one of its Error lines.

@@ -91,8 +91,8 @@ func TestLintProbe_SQLiteRebuild_PinnedPtah(t *testing.T) {
 // refuses sqlitetx2's rebuild: the refusal on an Error line of the report, as
 // Atlas CE reports a replay it cannot finish.
 const orphanedFriendshipReport = "Analyzing changes from version 20220925094021 to 20220925094437 (1 migration in total):\n\n" +
-	"  Error: failed to commit migration 20220925094437: sqlite: rebuild left 1 unresolved " +
-	"foreign-key reference(s): friendships references missing users\n\n" +
+	"  Error: failed to commit migration 20220925094437: sqlite: rebuild leaves rows that " +
+	"violate a foreign key: 1 row(s) of friendships violate the foreign key to users\n\n" +
 	"  -------------------------\n  -- 39µs\n  -- 1 version with errors\n"
 
 // TestLintProbe_SQLiteRebuildRefusal_HappyPath: the refusal inside the lint
@@ -129,8 +129,8 @@ func TestLintProbe_SQLiteRebuildRefusal_FailurePath(t *testing.T) {
 		{
 			name: "bare error on stderr",
 			stderr: "Error: error validating migration SQL on dev database: replay migration 20220925094437 " +
-				"on dev database: failed to commit migration 20220925094437: sqlite: rebuild left 1 " +
-				"unresolved foreign-key reference(s): friendships references missing users\n",
+				"on dev database: failed to commit migration 20220925094437: sqlite: rebuild leaves rows " +
+				"that violate a foreign key: 1 row(s) of friendships violate the foreign key to users\n",
 			code:        1,
 			wantOutcome: probe.Fail,
 			wantDetail:  `SQLite lint replay failed: Error: error validating migration SQL on dev database: .+`,
@@ -163,7 +163,7 @@ func TestLintProbe_SQLiteRebuildRefusal_FailurePath(t *testing.T) {
 			name: "refusal outside an Error line",
 			stdout: "Analyzing changes from version 20220925094021 to 20220925094437 (1 migration in total):\n\n" +
 				"  -- analyzing version 20220925094437\n" +
-				"    -- rebuild left 1 unresolved foreign-key reference(s): friendships references missing users\n",
+				"    -- rebuild leaves rows that violate a foreign key: 1 row(s) of friendships violate the foreign key to users\n",
 			code:        1,
 			wantOutcome: probe.Gap,
 			wantDetail: `SQLite dev replay did not match DS103 and the schema summary ` +
