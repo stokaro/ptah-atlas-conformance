@@ -310,6 +310,40 @@ var cliExitCatalog = []cliExitCase{
 		Issue:       "stokaro/ptah#725",
 	},
 	{
+		// An unregistered verb is named whatever flags follow it. Measured on
+		// Atlas CE v1.3.0 and v1.4.0 on 2026-11-19: `security scan --url
+		// sqlite://x.db` exits 1 with exactly the bytes below. Atlas documents
+		// `security scan`, so this is a line users type; a surface that parses
+		// the root's flags first answers `unknown flag: --url` instead and
+		// never names the verb.
+		Name: "unknown subcommand before an unknown flag",
+		Build: func(string) ([]string, error) {
+			return []string{"security", "scan", "--url", "sqlite://x.db"}, nil
+		},
+		Want:       exitFail,
+		WantStream: exitStreamStderr,
+		ExactStderr: "Error: unknown command \"security\" for \"atlas\"\n" +
+			"Run 'atlas --help' for usage.\n",
+		StderrClass: "unknown command",
+		Issue:       "stokaro/ptah#6325",
+	},
+	{
+		// --help after an unregistered verb does not print help: measured on
+		// Atlas CE v1.3.0 and v1.4.0 on 2026-11-19, `security --help` exits 1
+		// with the unknown-command diagnostic, while `--help security` prints
+		// the root help at exit 0.
+		Name: "unknown subcommand before help",
+		Build: func(string) ([]string, error) {
+			return []string{"security", "--help"}, nil
+		},
+		Want:       exitFail,
+		WantStream: exitStreamStderr,
+		ExactStderr: "Error: unknown command \"security\" for \"atlas\"\n" +
+			"Run 'atlas --help' for usage.\n",
+		StderrClass: "unknown command",
+		Issue:       "stokaro/ptah#6325",
+	},
+	{
 		Name: "migrate group extra token shows help",
 		Build: func(string) ([]string, error) {
 			return []string{"migrate", "aplly"}, nil
