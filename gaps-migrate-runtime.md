@@ -14,7 +14,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles measured against `atlas community version v1.4.0`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **96 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **97 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
@@ -66,6 +66,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `postgres/txtar-check-session-isolation` | inspect | the check ran on a disposable PostgreSQL session: migration.sql applied and its advisory lock was available afterward |  |
 | — | ok | migrate-runtime | `sqlite/apply-dry-run-fresh-target` | inspect | apply dry-run planned version 1 on a fresh target without creating schema objects or revision metadata |  |
 | — | ok | migrate-runtime | `sqlite/apply-dry-run-stored-state` | inspect | apply dry-run read stored revisions without mutation, planned only version 3 when pending, and planned nothing once fully applied |  |
+| — | ok | migrate-runtime | `sqlite/apply-duplicate-version` | ptah-better | retained divergence: Atlas CE ran 20260101000000_a.sql, recorded revision 20260101000000 and panicked with exit 2, and its next apply exited 0 with nothing to execute, so 20260101000000_b.sql never ran; ptah-compat refused the directory with exit 1 on both applies and left the database empty | #6324 |
 | — | ok | migrate-runtime | `sqlite/apply-state` | inspect | apply created expected SQLite tables, Atlas revision rows, and applied status |  |
 | — | ok | migrate-runtime | `sqlite/checkpoint-fresh-bootstrap` | inspect | fresh-database apply executed only the checkpoint, wrote the single type=2 Atlas revision row, and reported a clean status |  |
 | — | ok | migrate-runtime | `sqlite/checkpoint-pre-existing-skip` | inspect | pre-checkpoint database skipped the checkpoint silently with no new revision row and a clean status |  |

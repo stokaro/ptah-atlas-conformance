@@ -454,6 +454,14 @@
   },
   {
     "probe": "migrate-runtime",
+    "fixture": "sqlite/apply-duplicate-version",
+    "stage": "ptah-better",
+    "outcome": "ok",
+    "detail": "retained divergence: Atlas CE ran 20260101000000_a.sql, recorded revision 20260101000000 and panicked with exit 2, and its next apply exited 0 with nothing to execute, so 20260101000000_b.sql never ran; ptah-compat refused the directory with exit 1 on both applies and left the database empty",
+    "issue": "stokaro/ptah#6324"
+  },
+  {
+    "probe": "migrate-runtime",
     "fixture": "golang-migrate/import-roundtrip",
     "stage": "import",
     "outcome": "ok",
