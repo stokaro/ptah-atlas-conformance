@@ -54,7 +54,7 @@ func TestRunMigrateRuntime_RejectsMismatchedAtlasVersion(t *testing.T) {
 		Fixture: "atlas-runtime-oracle",
 		Stage:   "atlas-version",
 		Outcome: probe.Fail,
-		Detail:  `Atlas binary reports "atlas community version v0.0.0", want atlas.version "v1.3.0"`,
+		Detail:  `Atlas binary reports "atlas community version v0.0.0", want atlas.version "v1.4.0"`,
 	}})
 }
 
