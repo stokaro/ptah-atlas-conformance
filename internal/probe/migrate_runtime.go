@@ -1237,7 +1237,7 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, atlasBin, dbURL string) Re
 		return fileTxModeGapForIssue(fixture, "atlas-inspect", detail, fileTxModeNoSeparatorIssue)
 	}
 	if detail := comparePostgresRevisions(atlasConn, atlasSchema, []sqliteRevisionFact{
-		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Atlas CLI v1.3.0"},
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Atlas CLI v1.4.0"},
 	}); detail != "" {
 		return fileTxModeGapForIssue(fixture, "atlas-revisions", detail, fileTxModeNoSeparatorIssue)
 	}
