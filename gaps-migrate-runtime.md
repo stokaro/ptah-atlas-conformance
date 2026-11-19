@@ -12,7 +12,7 @@ apply and Goose checksum integrity use pinned Atlas CE as independent runtime or
 
 Every fixture is covered. The conformance gate is green.
 
-- Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles measured against `atlas community version v1.3.0`
+- Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles measured against `atlas community version v1.4.0`
 - Ptah at the `ptah.run` version `go.mod` requires
 - Outcomes: **96 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
@@ -104,7 +104,7 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/selection/baseline-two` | compare | baseline 2 skipped validation and execution of the invalid baseline migration while both binaries applied version 3 |  |
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/txtar-down-extension` | ptah-better | Ptah-side live evidence proved migration.sql=file and down.sql=none remain independent: the successful first down statement persisted, the failing statement stopped execution, and the revision retained 1/2 rollback progress, its partial hash, failure, and down direction for repair |  |
 | — | ok | migrate-runtime | `sqlite/per-file-txmode/txtar-up-extension` | classify | Atlas CE v1.3 ignored section-local txtar txmode and rolled back the up body; Ptah intentionally extends txtar by applying migration.sql mode independently |  |
-| — | ok | migrate-runtime | `sqlite/project-config-apply-oracle` | compare | atlas community version v1.3.0 created a one-migration brownfield database, Atlas CE and Ptah independently applied the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision metadata, and storage classes matched the Atlas control; measured timing invariants, Ptah full-duration nanosecond units, producer identity, and Atlas CE reading Ptah state all passed |  |
+| — | ok | migrate-runtime | `sqlite/project-config-apply-oracle` | compare | atlas community version v1.4.0 created a one-migration brownfield database, Atlas CE and Ptah independently applied the remainder from untouched atlas.hcl clones, and status facts, end schema, stable full revision metadata, and storage classes matched the Atlas control; measured timing invariants, Ptah full-duration nanosecond units, producer identity, and Atlas CE reading Ptah state all passed |  |
 | — | ok | migrate-runtime | `sqlite/revision-metadata-row` | inspect | status, migrate set and a tx-mode none apply all skip two `.atlas_cloud_identifier` metadata rows in their version math, and both rows survive byte-identically |  |
 | — | ok | migrate-runtime | `sqlite/set-repair-state` | inspect | set recorded repair state and apply executed only the remaining migration |  |
 | — | ok | migrate-runtime | `sqlite/tampered-sum-apply-refusal` | apply | apply refused the tampered hashed directory with the Atlas checksum-mismatch shape before creating or touching the target database |  |

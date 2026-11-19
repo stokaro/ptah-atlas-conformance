@@ -92,7 +92,7 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 				Applied:         1,
 				Total:           2,
 				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
-				OperatorVersion: "Atlas CLI v1.3.0",
+				OperatorVersion: "Atlas CLI v1.4.0",
 			},
 		},
 	}

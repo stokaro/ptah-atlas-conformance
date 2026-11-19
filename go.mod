@@ -1,6 +1,6 @@
 module github.com/stokaro/ptah-atlas-conformance
 
-go 1.26.7
+go 1.26.10
 
 require (
 	github.com/frankban/quicktest v1.14.6
