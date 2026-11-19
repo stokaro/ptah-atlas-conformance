@@ -135,7 +135,7 @@ func RenderMigrateRuntimeMarkdownWithCommand(results []Result, atlasVersion, pta
 			"Migration set: repair-state rows and subsequent application of only remaining migrations.",
 			"Atlas project configuration: cloned Atlas CE brownfield state, independent remainder apply, end schema, full revision metadata, and status facts.",
 			"Goose checksum integrity: byte-identical Atlas CE/Ptah atlas.sum generation, cross-validation of each other's checksum, explicit measurement of Atlas CE's stateful first-error advisory, and byte-identical stable rejection after tampering.",
-			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`; the Atlas CE v1.3 global/file-directive precedence matrix; exact validation diagnostics; selected-only amount/baseline validation; converted golang-migrate pairs; and Ptah-side txtar/down controls behind Atlas CE's measured community boundary.",
+			"Transaction modes: rollback/partial-apply semantics after failed SQLite migrations for `all`, `file`, and `none`; the Atlas CE global/file-directive precedence matrix; exact validation diagnostics; selected-only amount/baseline validation; converted golang-migrate pairs; and Ptah-side txtar/down controls behind Atlas CE's measured community boundary.",
 			"Pre-migration checks: checks.sql and ordered checks/*.sql groups run before migration.sql; oneof groups, including empty groups, fail closed; every assertion must return exactly one row and one column; blocked migrations write no revision row.",
 			"Check isolation and dialect semantics: PostgreSQL E-strings and advisory-lock release; MySQL and MariaDB executable comments, short numeric comment bodies, and hidden-statement rejection before query execution.",
 			"Failed rollback bookkeeping: Ptah intentionally records a dirty down revision with exact progress, failure, timing, and direction while preserving unrelated and Atlas Pro metadata rows, so status exposes repairable state instead of hiding the failed rollback.",
@@ -193,7 +193,7 @@ func RenderCEGatingMarkdownWithCommand(results []Result, atlasVersion, command s
 			// which the binary-under-test line above cannot convey. It must be
 			// extended whenever the baseline is re-confirmed against a new
 			// pin, otherwise the report implies the pin was never re-measured.
-			"Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02.",
+			"Expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 additions measured on 2026-08-02; every row was measured against Atlas CE v1.3.0 on 2026-08-02 and re-confirmed unchanged against Atlas CE v1.4.0 on 2026-11-19.",
 		},
 	})
 }

@@ -77,6 +77,10 @@ type fileTxModePair struct {
 }
 
 func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result {
+	atlasOperator, err := pinnedAtlasOperatorVersion()
+	if err != nil {
+		return []Result{migrateRuntimeFail("sqlite/per-file-txmode/matrix", "atlas-oracle", err)}
+	}
 	atlasRolledBack := fileTxModeExpectedState{
 		Tables:    []string{"atlas_schema_revisions"},
 		Revisions: []fileTxModeRevisionFact{},
@@ -92,7 +96,7 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 				Applied:         1,
 				Total:           2,
 				ErrorStatement:  "INSERT INTO txmode_missing (id) VALUES (1);",
-				OperatorVersion: "Atlas CLI v1.3.0",
+				OperatorVersion: atlasOperator,
 			},
 		},
 	}
@@ -223,7 +227,7 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 			DirectiveLabel:        `none (empty separator with CRLF)`,
 			AtlasExpected:         atlasRolledBack,
 			PtahExpected:          ptahNoTransaction,
-			IntentionalDivergence: "Atlas CE v1.3 drops the explicit txmode directive when the empty separator uses CRLF; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent",
+			IntentionalDivergence: "Atlas CE drops the explicit txmode directive when the empty separator uses CRLF; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent",
 			Issue:                 fileTxModeWhitespaceIssue,
 		},
 		{
@@ -233,7 +237,7 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 			DirectiveLabel:        `none (mixed whitespace with CRLF)`,
 			AtlasExpected:         atlasRolledBack,
 			PtahExpected:          ptahNoTransaction,
-			IntentionalDivergence: "Atlas CE v1.3 drops the explicit txmode directive when the whitespace separator contains a carriage return; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent",
+			IntentionalDivergence: "Atlas CE drops the explicit txmode directive when the whitespace separator contains a carriage return; Ptah honors it instead of copying line-ending-sensitive behavior that discards user intent",
 			Issue:                 fileTxModeWhitespaceIssue,
 		},
 		{
@@ -243,7 +247,7 @@ func sqliteMigrateFileTxModeOracle(ptahBin, nativeBin, atlasBin string) []Result
 			DirectiveLabel:        "none (no separator)",
 			AtlasExpected:         atlasRolledBack,
 			PtahExpected:          ptahNoTransaction,
-			IntentionalDivergence: "Atlas CE v1.3 drops the explicit txmode directive when the statement immediately follows it; Ptah honors it instead of copying behavior that discards user intent",
+			IntentionalDivergence: "Atlas CE drops the explicit txmode directive when the statement immediately follows it; Ptah honors it instead of copying behavior that discards user intent",
 			Issue:                 fileTxModeNoSeparatorIssue,
 		},
 	}
@@ -492,7 +496,7 @@ func compareFileTxModeMatrixCase(
 		directive = "absent"
 	}
 	return Result{migrateRuntimeProbeName, fixture, "compare", OK,
-		fmt.Sprintf("global %s plus file directive %s matched Atlas CE v1.3 on exit, validation, and SQLite body state", tc.GlobalMode, directive), ""}
+		fmt.Sprintf("global %s plus file directive %s matched Atlas CE on exit, validation, and SQLite body state", tc.GlobalMode, directive), ""}
 }
 
 func compareFileTxModeMatrixObservation(
@@ -838,7 +842,7 @@ func fileTxModeSplitFileUpOracle(ptahBin, atlasBin string) Result {
 		))
 	}
 	return Result{migrateRuntimeProbeName, fixture, fileTxModePtahBetterStage, OK,
-		"Atlas CE v1.3 discarded the explicit source .up.sql txmode directive during golang-migrate format conversion and rolled back the body (0 revision rows); Ptah preserved the directive, kept the successful statement, and recorded the failed nontransactional migration (1 revision row)",
+		"Atlas CE discarded the explicit source .up.sql txmode directive during golang-migrate format conversion and rolled back the body (0 revision rows); Ptah preserved the directive, kept the successful statement, and recorded the failed nontransactional migration (1 revision row)",
 		"stokaro/ptah#1082"}
 }
 
@@ -892,7 +896,7 @@ func fileTxModeSplitFileDownControl(ptahBin, atlasBin string) Result {
 		return fileTxModeGap(fixture, "ptah-down-state", detail)
 	}
 	return Result{migrateRuntimeProbeName, fixture, "ptah-control", OK,
-		"Atlas CE v1.3 applied the split up migration, but its community migrate down command rejects execution before runtime flags can be supplied; the Ptah-side live control discarded the source .down.sql directive during golang-migrate conversion and rolled back the failing down without changing tables or stable revision metadata", ""}
+		"Atlas CE applied the split up migration, but its community migrate down command rejects execution before runtime flags can be supplied; the Ptah-side live control discarded the source .down.sql directive during golang-migrate conversion and rolled back the failing down without changing tables or stable revision metadata", ""}
 }
 
 func sqliteNativeNoTransactionOracle(nativeBin string) Result {
@@ -1019,7 +1023,7 @@ DROP TABLE txtar_up_partial;
 		return fileTxModeGap(fixture, "ptah", "Ptah did not apply the migration.sql section-local none mode")
 	}
 	return Result{migrateRuntimeProbeName, fixture, "classify", OK,
-		"Atlas CE v1.3 ignored section-local txtar txmode and rolled back the up body; Ptah intentionally extends txtar by applying migration.sql mode independently", ""}
+		"Atlas CE ignored section-local txtar txmode and rolled back the up body; Ptah intentionally extends txtar by applying migration.sql mode independently", ""}
 }
 
 func fileTxModeTxtarDownOracle(ptahBin string) Result {

@@ -83,7 +83,7 @@ is **"unknown — not measured"**, not "works".
 | DDL parse/round-trip **breadth** | **Measured over all vendored `.sql` files** | still parser-only, not apply/runtime equivalence |
 | The migration **apply** path | **Partially** — migrate-runtime checks Atlas-compatible apply behavior, including an Atlas CE control versus Ptah project-config apply differential from identical brownfield state, checkpoint-directive bootstrap-or-skip semantics on both first-party and Atlas-authored directories, and apply-time `atlas.sum` verification on both hashed and never-hashed directories; `atlasexec-project-workflow` executes the vendored versioned-basic and multi-tenants project configurations against live SQLite, including partial failure and retry; `dbtest-workflow` checks native migration up/down on SQLite | broader Atlas fixture execution and failure-state equivalence; parser gaps remain distinct because apply executes migration SQL directly |
 
-The SQLite transaction-mode runtime matrix now covers all 12 Atlas CE v1.3
+The SQLite transaction-mode runtime matrix now covers all 12 Atlas CE
 global/file-directive combinations, malformed and misplaced directives,
 exact LF, CRLF, space, tab, mixed-whitespace, and missing-separator header
 boundaries, amount and baseline selection, complete stable revision metadata,

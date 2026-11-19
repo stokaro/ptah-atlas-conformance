@@ -3,6 +3,7 @@ package probe_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
@@ -54,8 +55,27 @@ func TestRunMigrateRuntime_RejectsMismatchedAtlasVersion(t *testing.T) {
 		Fixture: "atlas-runtime-oracle",
 		Stage:   "atlas-version",
 		Outcome: probe.Fail,
-		Detail:  `Atlas binary reports "atlas community version v0.0.0", want atlas.version "v1.3.0"`,
+		Detail:  `Atlas binary reports "atlas community version v0.0.0", want atlas.version "` + readPinnedAtlasVersion(c) + `"`,
 	}})
+}
+
+// TestAtlasOperatorVersion names the operator_version a Community release
+// writes into a revision row. The value comes from a real row: the pinned
+// v1.4.0 binary wrote `Atlas CLI v1.4.0` into atlas_schema_revisions on
+// SQLite and PostgreSQL 18, measured 2026-11-19.
+func TestAtlasOperatorVersion(t *testing.T) {
+	c := qt.New(t)
+
+	c.Assert(probe.AtlasOperatorVersion("v1.4.0"), qt.Equals, "Atlas CLI v1.4.0")
+}
+
+// readPinnedAtlasVersion reads atlas.version from the repository root the
+// caller has changed into.
+func readPinnedAtlasVersion(c *qt.C) string {
+	c.Helper()
+	data, err := os.ReadFile("atlas.version")
+	c.Assert(err, qt.IsNil)
+	return strings.TrimSpace(string(data))
 }
 
 func TestDefaultAtlasBinary_RepositoryLocalPathIsAbsolute(t *testing.T) {

@@ -14,9 +14,9 @@ import (
 // asserts about the CE column, and classifies each observed outcome. The
 // expected classes combine the hand-measured 2026-08-01 Atlas CE v1.2.0
 // baseline with v1.3.0 additions measured on 2026-08-02. Every row was
-// measured against Atlas CE v1.3.0; a renovate bump of atlas.version that
-// changes gating behavior turns the gate red instead of silently invalidating
-// the matrix.
+// measured against Atlas CE v1.3.0 and re-confirmed unchanged against v1.4.0 on
+// 2026-11-19; a renovate bump of atlas.version that changes gating behavior
+// turns the gate red instead of silently invalidating the matrix.
 //
 // The v1.3.0 re-measurement found no class changes in the pre-existing rows and
 // added explicit scenarios for the newly announced surfaces. That distinction
@@ -259,7 +259,7 @@ type CEGatingScenario struct {
 
 // CEGatingScenarioTable returns the fixed scenario table combining the Atlas CE
 // v1.2.0 baseline with v1.3.0 additions. Every row was measured against v1.3.0
-// on 2026-08-02.
+// on 2026-08-02 and re-confirmed against v1.4.0 on 2026-11-19.
 func CEGatingScenarioTable() []CEGatingScenario {
 	scenarios := ceGatingScenarios()
 	table := make([]CEGatingScenario, len(scenarios))
@@ -951,8 +951,9 @@ func setupCEGatingDeclarativeState(rt *ceGatingRuntime, extraFiles map[string]st
 
 // ceGatingScenarios is the fixed scenario table. Expected classes combine the
 // hand-measured 2026-08-01 Atlas CE v1.2.0 baseline with v1.3.0 rows and
-// controls added on 2026-08-02. Every row was measured against v1.3.0; do not
-// edit an expectation without re-measuring against the real binary.
+// controls added on 2026-08-02. Every row was measured against v1.3.0 and
+// re-confirmed against v1.4.0 on 2026-11-19; do not edit an expectation without
+// re-measuring against the real binary.
 //
 // Rows whose fixture name starts with "control:" are not capability
 // assertions — they are the reference shapes that make the capability rows
