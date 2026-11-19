@@ -98,11 +98,10 @@ func projectConfigCommand(
 }
 
 func validatePinnedAtlasBinary(atlasBin string) (string, error) {
-	pinnedData, err := os.ReadFile("atlas.version")
+	pinned, err := pinnedAtlasVersion()
 	if err != nil {
-		return "", fmt.Errorf("read atlas.version: %w", err)
+		return "", err
 	}
-	pinned := strings.TrimSpace(string(pinnedData))
 	observed, err := atlasVersionLine(atlasBin)
 	if err != nil {
 		return "", err
@@ -117,4 +116,32 @@ func validatePinnedAtlasBinary(atlasBin string) (string, error) {
 // Community release selected by atlas.version.
 func AtlasVersionMatchesPin(observed, pinned string) bool {
 	return pinned != "" && strings.TrimSpace(observed) == "atlas community version "+pinned
+}
+
+// AtlasOperatorVersion is the operator_version a Community release writes into
+// each revision row it applies, for the release tag pinned in atlas.version.
+// A check that reads a row the oracle wrote compares against this rather than
+// a literal, so a repin moves the expectation with the pin.
+func AtlasOperatorVersion(pinned string) string {
+	return "Atlas CLI " + pinned
+}
+
+// pinnedAtlasVersion reads the release tag atlas.version selects, relative to
+// the repository root the probes run from.
+func pinnedAtlasVersion() (string, error) {
+	pinnedData, err := os.ReadFile("atlas.version")
+	if err != nil {
+		return "", fmt.Errorf("read atlas.version: %w", err)
+	}
+	return strings.TrimSpace(string(pinnedData)), nil
+}
+
+// pinnedAtlasOperatorVersion is AtlasOperatorVersion for the release
+// atlas.version selects.
+func pinnedAtlasOperatorVersion() (string, error) {
+	pinned, err := pinnedAtlasVersion()
+	if err != nil {
+		return "", err
+	}
+	return AtlasOperatorVersion(pinned), nil
 }

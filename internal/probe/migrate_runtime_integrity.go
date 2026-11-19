@@ -141,11 +141,11 @@ func compareAtlasFirstErrorAdvisory(atlas integrityProcessResult) Result {
 	}
 	if atlas != want {
 		return migrateRuntimeGap(gooseIntegrityFixture, "Atlas first-error advisory",
-			"Atlas CE first tamper response differs from the pinned v1.3.0 stateful process contract: "+
+			"Atlas CE first tamper response differs from the pinned stateful process contract: "+
 				integrityProcessDetail(atlas))
 	}
 	return Result{migrateRuntimeProbeName, gooseIntegrityFixture, "Atlas first-error advisory", OK,
-		"Atlas CE emitted the pinned v1.3.0 community-build advisory on the first error in an isolated HOME; the stable checksum contract is compared on the repeated error", ""}
+		"Atlas CE emitted the pinned community-build advisory on the first error in an isolated HOME; the stable checksum contract is compared on the repeated error", ""}
 }
 
 func compareGooseHashProcesses(atlas, ptah integrityProcessResult) Result {
@@ -188,7 +188,7 @@ func compareGooseCleanValidation(atlas, ptah integrityProcessResult) Result {
 func compareGooseTamperedValidation(atlas, ptah integrityProcessResult) Result {
 	if atlas.exitCode != 1 || atlas.stdout != gooseIntegrityTamperStdout || atlas.stderr != gooseIntegrityTamperStderr {
 		return migrateRuntimeGap(gooseIntegrityFixture, "tamper detection",
-			"Atlas CE tamper response differs from the pinned v1.3.0 process contract: "+
+			"Atlas CE tamper response differs from the pinned process contract: "+
 				integrityProcessDetail(atlas))
 	}
 	if atlas != ptah {
@@ -197,7 +197,7 @@ func compareGooseTamperedValidation(atlas, ptah integrityProcessResult) Result {
 				" Ptah="+integrityProcessDetail(ptah))
 	}
 	return Result{migrateRuntimeProbeName, gooseIntegrityFixture, "tamper detection", OK,
-		"Atlas CE and ptah-compat rejected the same tampered Goose directory with the pinned v1.3.0 stable exit/stdout/stderr contract after the Atlas-only first-error advisory was measured separately", ""}
+		"Atlas CE and ptah-compat rejected the same tampered Goose directory with the pinned stable exit/stdout/stderr contract after the Atlas-only first-error advisory was measured separately", ""}
 }
 
 func integrityProcessDetail(result integrityProcessResult) string {

@@ -1236,8 +1236,12 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, atlasBin, dbURL string) Re
 	if detail := comparePostgresIndexes(atlasConn, atlasSchema, "users", []string{"users_pkey"}); detail != "" {
 		return fileTxModeGapForIssue(fixture, "atlas-inspect", detail, fileTxModeNoSeparatorIssue)
 	}
+	atlasOperator, err := pinnedAtlasOperatorVersion()
+	if err != nil {
+		return migrateRuntimeFail(fixture, "atlas-revisions", err)
+	}
 	if detail := comparePostgresRevisions(atlasConn, atlasSchema, []sqliteRevisionFact{
-		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: "Atlas CLI v1.3.0"},
+		{Version: "1", Description: "first", Applied: 1, Total: 1, OperatorVersion: atlasOperator},
 	}); detail != "" {
 		return fileTxModeGapForIssue(fixture, "atlas-revisions", detail, fileTxModeNoSeparatorIssue)
 	}
@@ -1269,7 +1273,7 @@ func postgresMigrateNoTransactionConcurrentIndex(bin, atlasBin, dbURL string) Re
 		return fileTxModeGapForIssue(fixture, "ptah-revisions", detail, fileTxModeNoSeparatorIssue)
 	}
 	return Result{migrateRuntimeProbeName, fixture, fileTxModePtahBetterStage, OK,
-		"on live PostgreSQL, Atlas CE v1.3 dropped `-- atlas:txmode none` directly above CREATE INDEX CONCURRENTLY, failed, and left one revision with no concurrent index; Ptah honored the directive, created the index outside a transaction, and recorded both revisions",
+		"on live PostgreSQL, Atlas CE dropped `-- atlas:txmode none` directly above CREATE INDEX CONCURRENTLY, failed, and left one revision with no concurrent index; Ptah honored the directive, created the index outside a transaction, and recorded both revisions",
 		"stokaro/ptah#1081"}
 }
 

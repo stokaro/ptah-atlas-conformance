@@ -2,6 +2,8 @@ module github.com/stokaro/ptah-atlas-conformance
 
 go 1.26.7
 
+toolchain go1.27.4
+
 require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/google/go-cmp v0.7.0

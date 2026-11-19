@@ -322,7 +322,8 @@ func TestClassifyCEGating(t *testing.T) {
 
 // TestCEGatingScenarioTable_MatchesMeasuredBaseline pins the scenario table to
 // the v1.2.0 baseline plus v1.3.0 additions, all measured against Atlas CE
-// v1.3.0. Changing the table without re-measuring the real binary must fail.
+// v1.3.0 and re-confirmed against v1.4.0. Changing the table without
+// re-measuring the real binary must fail.
 func TestCEGatingScenarioTable_MatchesMeasuredBaseline(t *testing.T) {
 	c := qt.New(t)
 	table := probe.CEGatingScenarioTable()
@@ -547,6 +548,7 @@ func TestRenderCEGatingMarkdown_Header(t *testing.T) {
 	c.Check(md, qt.Contains, "2026-08-01 Atlas CE v1.2.0 baseline")
 	c.Check(md, qt.Contains, "v1.3.0 additions measured on 2026-08-02")
 	c.Check(md, qt.Contains, "every row was measured against Atlas CE v1.3.0 on 2026-08-02")
+	c.Check(md, qt.Contains, "re-confirmed unchanged against Atlas CE v1.4.0 on 2026-11-19")
 	// This tier measures the Atlas binary only; Ptah must not be claimed.
 	c.Check(md, qt.Not(qt.Contains), "- Ptah at")
 }
