@@ -14,7 +14,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Runtime checks: first-party Atlas migration command scenarios against live SQLite, PostgreSQL, MySQL, and MariaDB databases; Atlas CE apply and Goose hash/validate oracles measured against `atlas community version v1.4.0`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **97 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **98 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 
