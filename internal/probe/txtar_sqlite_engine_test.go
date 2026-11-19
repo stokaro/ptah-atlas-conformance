@@ -59,7 +59,7 @@ func rowidAliasRefusalDetail(command, report string) string {
 		`SQLite 3\.\d+\.\d+ \(modernc\.org/sqlite v\S+, which ptah-compat links\) refuses migrations/1\.sql: ` +
 		`SQL logic error: cannot rename to rowid alias: oid \(1\); ` +
 		report + ` and stderr is empty, as Atlas CE reports a refused replay; ` +
-		`Atlas CE v1\.3\.0 embeds SQLite 3\.49\.1, which accepts the rename`
+		`the pinned Atlas CE embeds SQLite 3\.49\.1, which accepts the rename`
 }
 
 // runTxtar runs the txtar probe over script written to a temporary file under
