@@ -128,7 +128,7 @@ func (s *applySimulationWorkflow) simulationSuccess() Result {
 	if gap := s.expectSQLiteTablesAt(fixture, stage, targetDB, []string{"users"}); gap != nil {
 		return *gap
 	}
-	// Atlas CE v1.3.0 cleans the dev database after a successful rehearsal.
+	// Atlas CE cleans the dev database after a successful rehearsal.
 	// The failed-rehearsal step below proves plan execution independently; this
 	// assertion pins the successful cleanup contract and proves the stale table
 	// was not restored.
@@ -136,13 +136,13 @@ func (s *applySimulationWorkflow) simulationSuccess() Result {
 		return *gap
 	}
 	return s.ok(fixture, stage,
-		"`schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE v1.3.0")
+		"`schema apply --dev-url` rehearsed the plan on the clean dev database before applying it to the target, and cleaned the dev database afterwards like Atlas CE")
 }
 
-// dirtyDevDatabaseRefused pins what Atlas CE v1.3.0 does with a dev database
-// that still holds a table: it refuses before taking its snapshot, with the
-// error below, and neither database changes. Ptah refuses it the same way
-// since stokaro/ptah#3827.
+// dirtyDevDatabaseRefused pins what Atlas CE does with a dev database that
+// still holds a table: it refuses before taking its snapshot, with the error
+// below, and neither database changes. Ptah refuses it the same way
+// (stokaro/ptah#3827).
 func (s *applySimulationWorkflow) dirtyDevDatabaseRefused() Result {
 	const (
 		fixture = "atlas schema apply --dev-url"
@@ -178,7 +178,7 @@ func (s *applySimulationWorkflow) dirtyDevDatabaseRefused() Result {
 		return *gap
 	}
 	return s.ok(fixture, stage,
-		"`schema apply --dev-url` refused a dev database that still held a table with Atlas CE v1.3.0's error, left the table in place, and created nothing on the target")
+		"`schema apply --dev-url` refused a dev database that still held a table with Atlas CE's error, left the table in place, and created nothing on the target")
 }
 
 func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
@@ -229,7 +229,7 @@ func (s *applySimulationWorkflow) simulationFailureRefusesTarget() Result {
 }
 
 // devURLIsTargetHoldingTable points --dev-url at a target that holds a
-// table. Atlas CE v1.3.0 refuses it with the clean check that also guards any
+// table. Atlas CE refuses it with the clean check that also guards any
 // dirty dev database, and Ptah refuses it the same way: the table survives.
 func (s *applySimulationWorkflow) devURLIsTargetHoldingTable() Result {
 	const (
@@ -263,11 +263,11 @@ func (s *applySimulationWorkflow) devURLIsTargetHoldingTable() Result {
 		return *gap
 	}
 	return s.ok(fixture, stage,
-		"pointing --dev-url at a target that holds a table is refused before any reset with Atlas CE v1.3.0's clean check: the target's existing table survived untouched")
+		"pointing --dev-url at a target that holds a table is refused before any reset with Atlas CE's clean check: the target's existing table survived untouched")
 }
 
 // devURLIsEmptyTarget points --dev-url at an empty target, where the clean
-// check passes. Atlas CE v1.3.0 applies the schema there, using the target as
+// check passes. Atlas CE applies the schema there, using the target as
 // its own dev database. Ptah refuses it by name instead, deliberately stricter:
 // its dev-database rehearsal resets the dev database destructively, and the
 // feature matrix row "Dev-database rehearsal before apply" records the abort.
