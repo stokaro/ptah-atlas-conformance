@@ -676,5 +676,12 @@
     "stage": "inspect",
     "outcome": "ok",
     "detail": "MariaDB treated a short numeric executable-comment prefix as SQL body rather than a version guard; the non-SELECT assertion failed closed"
+  },
+  {
+    "probe": "migrate-runtime",
+    "fixture": "mariadb/modified-check-plan",
+    "stage": "plan",
+    "outcome": "ok",
+    "detail": "Atlas CE and ptah-compat both replaced the modified MariaDB CHECK with DROP CONSTRAINT and ADD CONSTRAINT, and MariaDB applied each plan and stored `qty` \u003e 0"
   }
 ]
