@@ -13,7 +13,7 @@ Every fixture is covered. The conformance gate is green.
 
 - Atlas fixtures pinned at `ariga/atlas@a5e0aecc2bb64143bf522734f8ad88e04885fca6`; first-party capability sentinels under `testdata/atlas/_capability`
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **820 ok**, **0 gap**, **0 fail**, **0 panic**
+- Outcomes: **822 ok**, **0 gap**, **0 fail**, **0 panic**
 - Full gate: **0 non-OK** (passes CI)
 - Regression budget input: **0 unwaived non-OK**, 0 waived
 - Corpus inventory: **158 imported Atlas fixture(s)**, **158 measured**, **0 imported-but-unmeasured**; **17 first-party capability sentinel(s)**
@@ -138,6 +138,8 @@ Every fixture is covered. The conformance gate is green.
 | — | ok | cli-exit-behavior | `ptah-compat/removed-migration` | exit | exit 1, error → stdout and stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-flag` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand-before-an-unknown-flag` | exit | exit 1, error → stderr |  |
+| — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand-before-help` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-compat/unknown-subcommand-suggests-close-verb` | exit | exit 1, error → stderr |  |
 | — | ok | cli-exit-behavior | `ptah-native/atlas-namespace-rejected` | exit | `ptah atlas` exits 2 with the unknown-command diagnostic on stderr; the Atlas surface lives exclusively in the ptah-compat binary |  |
 | — | ok | composite-schema-workflow | `SQLite schema facts` | live schema facts | SQLite contained both tables, every expected column attribute, the cross-source foreign key, and the index |  |

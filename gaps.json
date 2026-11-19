@@ -4752,6 +4752,20 @@
   },
   {
     "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/unknown-subcommand-before-an-unknown-flag",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
+    "fixture": "ptah-compat/unknown-subcommand-before-help",
+    "stage": "exit",
+    "outcome": "ok",
+    "detail": "exit 1, error → stderr"
+  },
+  {
+    "probe": "cli-exit-behavior",
     "fixture": "ptah-compat/migrate-group-extra-token-shows-help",
     "stage": "exit",
     "outcome": "ok",
