@@ -352,16 +352,16 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/ai-tools",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — `ptah mcp` serves Ptah's operations to Claude Code, Cursor, VS Code, Zed and other MCP clients, and `ptah assist` runs a model the user supplies, but Ptah publishes no packaged agent skill or per-assistant instruction file."
   },
   {
     "probe": "docs-surface",
     "fixture": "/guides/ai-tools/agent-skills",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "gap — Ptah publishes no packaged agent skill. An assistant reaches Ptah through the MCP tools `ptah mcp` serves, configured per client on Ptah's Connect an MCP client page."
   },
   {
     "probe": "docs-surface",
@@ -526,6 +526,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/ci-platforms/jenkins",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — Each pipeline step is a native verb that runs as a shell step in any CI with no login: `ptah migrations lint`, `ptah schema plan`, `ptah migrations push` and `ptah schema push` to an OCI registry, `ptah migrations up` and `ptah schema apply`. Ptah ships a GitHub Action and no Jenkins integration."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/clickhouse",
     "stage": "triage",
     "outcome": "ok",
@@ -565,6 +572,13 @@
     "stage": "triage",
     "outcome": "ok",
     "detail": "gap — Ptah does not model ClickHouse named collections: no schema object carries one, no renderer emits `CREATE NAMED COLLECTION`, and the dev-database replay guard refuses such a statement."
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/clickhouse/secrets",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "gap — Ptah models no ClickHouse user: its reader never queries system.users, so no user and no password is read, planned or rendered. ptah-compat reads a credential into atlas.hcl through `getenv`."
   },
   {
     "probe": "docs-surface",
@@ -708,6 +722,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/dbt/snowflake",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/deploying/aws-ecs-fargate",
     "stage": "untriaged",
     "outcome": "gap",
@@ -806,6 +827,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/deploying/on-premise",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open — Every step runs offline with no login or license: the vendor side uses `ptah migrations generate`, `lint`, `test` and `validate`, and the customer side runs `ptah migrations up` and `status` against the hashed directory shipped with the release, which `ptah migrations push` and `pull` can carry as an OCI artifact."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/deploying/rds-iam-migration-role",
     "stage": "untriaged",
     "outcome": "gap",
@@ -835,9 +863,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/drift-detection",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — The pre-apply gate is `ptah migrations up --check-drift --shadow-db`: it replays the applied history on a shadow database and refuses to run when the live schema differs. ptah-compat warns that an atlas.hcl `check \"migrate_apply\"` block is ignored, where Atlas CE ignores it silently. Between deploys, `ptah schema drift` checks the live database against the desired schema; there is no hosted monitoring."
   },
   {
     "probe": "docs-surface",
@@ -866,6 +894,13 @@
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/environment-specific-objects",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open — ptah-compat composes a shared base with an `envs/${atlas.env}` overlay through `data \"composite_schema\"`, so `schema inspect --env dev` and `--env prod` each return the base plus their own objects (measured on SQLite; Atlas CE has no composite_schema handler). `data \"template_dir\"` is evaluated too, and `ptah schema push` publishes to an OCI registry."
   },
   {
     "probe": "docs-surface",
@@ -950,6 +985,13 @@
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/flyway-vs-liquibase",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "out-of-scope — The page compares two third-party migration tools, which is not a capability. Ptah's part in it is `ptah migrations import --from flyway` or `--from liquibase`, and the Atlas features it mentions are triaged on their own pages."
   },
   {
     "probe": "docs-surface",
@@ -1055,6 +1097,13 @@
     "stage": "triage",
     "outcome": "ok",
     "detail": "partial — Ptah connects to, introspects, declaratively applies and versions SQL Server schemas under the canonical dialect `sqlserver`, but it plans only a conservative T-SQL subset: column removal is rejected and default, generated-expression, unique and CHECK changes need a hand-written migration."
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/mssql/lineage-graph",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — `ptah schema lineage --dialect sqlserver` derives column-to-column edges from view bodies, measured on a T-SQL view, and prints them as a table, JSON or a Graphviz digraph, but there is no hosted graph view and no OpenLineage export."
   },
   {
     "probe": "docs-surface",
@@ -1611,6 +1660,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/postgres/databricks-lakebase",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — Lakebase is reached over a postgres:// URL, which Ptah's PostgreSQL connector takes with a native password, and `--exclude` keeps platform-managed objects out of a plan. There is no Databricks token source: ptah-compat refuses `data \"databricks_lakebase_token\"` as an unsupported atlas.hcl construct, and Atlas CE has no handler for it."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/postgres/descending-indexes",
     "stage": "triage",
     "outcome": "ok",
@@ -1716,6 +1772,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/postgres/supabase",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — Ptah connects over a postgres:// URL, declares the RLS policies and grants that gate the platform roles with the limits /guides/postgres/security-declarative records, and accepts the Supabase image as a docker+postgres:// dev database (stokaro/ptah#4033, #4048, #4054, #4067)."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/postgres/unlogged-tables",
     "stage": "triage",
     "outcome": "ok",
@@ -1765,6 +1828,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/guides/routine-complexity-policy",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "gap — `ptah migrations lint` and `ptah sql lint` have no rule that measures a routine: no limit on cyclomatic complexity, nesting depth, statement count or parameter count."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/guides/schema-health-check",
     "stage": "untriaged",
     "outcome": "gap",
@@ -1787,9 +1857,9 @@
   {
     "probe": "docs-surface",
     "fixture": "/guides/security-scan",
-    "stage": "untriaged",
-    "outcome": "gap",
-    "detail": "docs page awaits triage in docs-surface-registry.json"
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — `ptah db vulnerabilities` matches a PostgreSQL server's version and selected bundled contrib modules against a pinned local advisory snapshot and fails CI through `--fail-on`, but it reports MySQL, MariaDB, ClickHouse and SQL Server as incomplete, and third-party extensions such as pgvector have no reviewed matcher."
   },
   {
     "probe": "docs-surface",
@@ -1797,6 +1867,13 @@
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/seed-data-per-environment",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — `ptah seed --env` applies environment-scoped seed files beside shared `.all.sql` files and records each by checksum, and `ptah migrations data` writes a reversible migration from declarative rows, but `ptah seed` cannot revert a seed it applied."
   },
   {
     "probe": "docs-surface",
@@ -1832,6 +1909,13 @@
     "stage": "triage",
     "outcome": "ok",
     "detail": "gap — Ptah models no Spanner protobuf column type and no PROTO BUNDLE object, and reaches Spanner only over its PostgreSQL interface rather than the GoogleSQL dialect the feature is written in."
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/guides/sql-server-to-postgresql",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "open — Ptah runs each step with a native verb and, like the page, translates no T-SQL: `ptah schema inspect --out-dir` exports the live schema as files, `ptah schema apply --dry-run` prints the plan, and `ptah schema validate` and `ptah schema test` check the PostgreSQL target."
   },
   {
     "probe": "docs-surface",
@@ -2143,6 +2227,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/integrations/github-actions/drift-detection",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — Ptah has no scheduled versioned drift report: its versioned check, `ptah migrations up --check-drift`, runs only before an apply. A scheduled job can run `ptah schema drift --format github-actions`, which compares the live database with the desired schema rather than with the migration history."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/integrations/github-actions/pre-approval",
     "stage": "untriaged",
     "outcome": "gap",
@@ -2161,6 +2252,13 @@
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/gitlab-ci-components/drift-detection",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — Ptah has no scheduled versioned drift report: its versioned check, `ptah migrations up --check-drift`, runs only before an apply. A scheduled pipeline can run `ptah schema drift`, which compares the live database with the desired schema rather than with the migration history and exits 1 on drift."
   },
   {
     "probe": "docs-surface",
@@ -2224,6 +2322,13 @@
     "stage": "untriaged",
     "outcome": "gap",
     "detail": "docs page awaits triage in docs-surface-registry.json"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/integrations/kubernetes/security-scan",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "partial — The scan is `ptah db vulnerabilities`, which covers PostgreSQL only (see /guides/security-scan) and grades findings through `--fail-on` and `--suppressions`. No ptah-operator resource schedules it."
   },
   {
     "probe": "docs-surface",
@@ -2374,13 +2479,6 @@
   },
   {
     "probe": "docs-surface",
-    "fixture": "/monitoring/webhooks",
-    "stage": "triage",
-    "outcome": "ok",
-    "detail": "cloud"
-  },
-  {
-    "probe": "docs-surface",
     "fixture": "/orms",
     "stage": "untriaged",
     "outcome": "gap",
@@ -2444,6 +2542,13 @@
   },
   {
     "probe": "docs-surface",
+    "fixture": "/testing/datasets",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "gap — `ptah schema test` and `ptah migrations test` seed a case only through SQL seed files; no step loads rows from a snapshot export or CSV, generates rows, samples them or masks a column."
+  },
+  {
+    "probe": "docs-surface",
     "fixture": "/testing/migrate",
     "stage": "triage",
     "outcome": "ok",
@@ -2455,6 +2560,13 @@
     "stage": "triage",
     "outcome": "ok",
     "detail": "open"
+  },
+  {
+    "probe": "docs-surface",
+    "fixture": "/testing/profile",
+    "stage": "triage",
+    "outcome": "ok",
+    "detail": "gap — `ptah migrations test` and `ptah schema test` take no profiling option and record no locks, table rewrites, or disk, log or CPU use."
   },
   {
     "probe": "docs-surface",
@@ -2503,7 +2615,7 @@
     "fixture": "/versioned/drift-detection",
     "stage": "triage",
     "outcome": "ok",
-    "detail": "open — Atlas lists drift detection as Pro; Ptah has native `ptah schema drift`. Cloud drift monitoring is out of scope."
+    "detail": "partial — Atlas's `migrate drift` is a versioned, report-only check against the schema the applied history produces. Ptah's versioned check is the pre-apply gate `ptah migrations up --check-drift --shadow-db`, which refuses to run on drift; it has no standalone report. `ptah schema drift` is state-based: it compares the live database with the desired schema."
   },
   {
     "probe": "docs-surface",

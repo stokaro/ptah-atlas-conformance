@@ -50,4 +50,17 @@
 # confirm, and they stay untriaged. An unconfirmed verdict in this file is worth
 # less than the absence it would replace. Seven of them are /guides/orms
 # capability pages, which the entry above already held back for the same reason.
-200
+# 2026-11-19: 200 -> 196. Atlas v1.4 published seventeen pages and retired
+# /monitoring/webhooks. Each new page carries a stance, and so do four v1.4
+# pages the snapshot already held: /guides/security-scan,
+# /guides/drift-detection, /guides/ai-tools and /guides/ai-tools/agent-skills.
+# Each note names the Ptah verb measured for it, or the stokaro/ptah issues
+# behind it. /versioned/drift-detection moves from open to partial: Atlas's
+# `migrate drift` is a versioned, report-only check, and Ptah's versioned check
+# is the pre-apply gate `ptah migrations up --check-drift`, while
+# `ptah schema drift` is state-based.
+#
+# Unlike the 2026-09-07 entry, the new pages are triaged even where their
+# siblings stay untriaged. Each stance rests on its own measurement and decides
+# nothing for the rest of its family.
+196

@@ -76,12 +76,14 @@
 /guides/ci-platforms/github-versioned
 /guides/ci-platforms/gitlab-declarative
 /guides/ci-platforms/gitlab-versioned
+/guides/ci-platforms/jenkins
 /guides/clickhouse
 /guides/clickhouse/advanced-hcl-schema
 /guides/clickhouse/clickhouse-cloud-atlas
 /guides/clickhouse/cluster-mode
 /guides/clickhouse/lineage-graph
 /guides/clickhouse/named-collections
+/guides/clickhouse/secrets
 /guides/clickhouse/security-declarative
 /guides/clickhouse/security-versioned
 /guides/clickhouse/seed-data
@@ -102,6 +104,7 @@
 /guides/dbt/drift-detection
 /guides/dbt/large-table-migrations
 /guides/dbt/schema-management
+/guides/dbt/snowflake
 /guides/deploying/aws-ecs-fargate
 /guides/deploying/cloud-sql-via-github-actions
 /guides/deploying/connect-to-db-from-github-actions
@@ -116,6 +119,7 @@
 /guides/deploying/k8s-flux
 /guides/deploying/k8s-init-container
 /guides/deploying/k8s-operator-certs
+/guides/deploying/on-premise
 /guides/deploying/rds-iam-migration-role
 /guides/deploying/remote-directories
 /guides/deploying/secrets
@@ -125,6 +129,7 @@
 /guides/dsql/token-generator
 /guides/environment-promotion
 /guides/environment-promotion-declarative
+/guides/environment-specific-objects
 /guides/evaluation/advanced-topics
 /guides/evaluation/ci-cd
 /guides/evaluation/connect
@@ -137,6 +142,7 @@
 /guides/evaluation/verify-atlas
 /guides/flyway-snapshot-alternative
 /guides/flyway-undo-alternative
+/guides/flyway-vs-liquibase
 /guides/frameworks/sqlc-declarative
 /guides/frameworks/sqlc-versioned
 /guides/go-templates
@@ -152,6 +158,7 @@
 /guides/migration-tools/goose-import
 /guides/modern-database-ci-cd
 /guides/mssql
+/guides/mssql/lineage-graph
 /guides/mssql/security-declarative
 /guides/mssql/security-versioned
 /guides/mssql/seed-data
@@ -231,6 +238,7 @@
 /guides/orms/typeorm
 /guides/orms/typeorm/generate-entities
 /guides/postgres/automatic-migrations
+/guides/postgres/databricks-lakebase
 /guides/postgres/descending-indexes
 /guides/postgres/functional-indexes
 /guides/postgres/included-columns
@@ -246,6 +254,7 @@
 /guides/postgres/security-versioned
 /guides/postgres/seed-data
 /guides/postgres/serial-columns
+/guides/postgres/supabase
 /guides/postgres/unlogged-tables
 /guides/redshift/automatic-migrations
 /guides/redshift/lineage-graph
@@ -253,16 +262,19 @@
 /guides/redshift/security-versioned
 /guides/reviewed-approved-migrations
 /guides/rls-policy
+/guides/routine-complexity-policy
 /guides/schema-health-check
 /guides/schema-ownership
 /guides/security-as-code
 /guides/security-scan
 /guides/seed-data-as-code
+/guides/seed-data-per-environment
 /guides/snowflake/automatic-migrations
 /guides/snowflake/lineage-graph
 /guides/snowflake/security-declarative
 /guides/spanner/automatic-migrations
 /guides/spanner/proto-columns
+/guides/sql-server-to-postgresql
 /guides/sqlite/descending-indexes
 /guides/sqlite/functional-indexes
 /guides/sqlite/partial-indexes
@@ -307,9 +319,11 @@
 /integrations/circleci-orbs
 /integrations/github-actions
 /integrations/github-actions/ad-hoc-approval
+/integrations/github-actions/drift-detection
 /integrations/github-actions/pre-approval
 /integrations/gitlab-ci-components
 /integrations/gitlab-ci-components/ad-hoc-approval
+/integrations/gitlab-ci-components/drift-detection
 /integrations/gitlab-ci-components/pre-approval
 /integrations/go-sdk
 /integrations/kubernetes
@@ -319,6 +333,7 @@
 /integrations/kubernetes/pre-approval
 /integrations/kubernetes/project-configuration
 /integrations/kubernetes/quickstart
+/integrations/kubernetes/security-scan
 /integrations/kubernetes/versioned
 /integrations/kubernetes/versioned-quickstart
 /integrations/terraform-provider
@@ -340,7 +355,6 @@
 /monitoring/quickstart
 /monitoring/security
 /monitoring/terraform
-/monitoring/webhooks
 /orms
 /orms/why-atlas-for-your-orm
 /scripts
@@ -350,8 +364,10 @@
 /scripts/masking
 /scripts/query
 /scripts/testing
+/testing/datasets
 /testing/migrate
 /testing/plan
+/testing/profile
 /testing/schema
 /versioned/apply
 /versioned/checkpoint

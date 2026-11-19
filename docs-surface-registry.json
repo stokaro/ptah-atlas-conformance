@@ -251,13 +251,13 @@
   },
   {
     "path": "/guides/ai-tools",
-    "status": "untriaged",
-    "note": ""
+    "status": "partial",
+    "note": "`ptah mcp` serves Ptah's operations to Claude Code, Cursor, VS Code, Zed and other MCP clients, and `ptah assist` runs a model the user supplies, but Ptah publishes no packaged agent skill or per-assistant instruction file."
   },
   {
     "path": "/guides/ai-tools/agent-skills",
-    "status": "untriaged",
-    "note": ""
+    "status": "gap",
+    "note": "Ptah publishes no packaged agent skill. An assistant reaches Ptah through the MCP tools `ptah mcp` serves, configured per client on Ptah's Connect an MCP client page."
   },
   {
     "path": "/guides/ai-tools/claude-code-instructions",
@@ -375,6 +375,11 @@
     "note": ""
   },
   {
+    "path": "/guides/ci-platforms/jenkins",
+    "status": "partial",
+    "note": "Each pipeline step is a native verb that runs as a shell step in any CI with no login: `ptah migrations lint`, `ptah schema plan`, `ptah migrations push` and `ptah schema push` to an OCI registry, `ptah migrations up` and `ptah schema apply`. Ptah ships a GitHub Action and no Jenkins integration."
+  },
+  {
     "path": "/guides/clickhouse",
     "status": "partial",
     "note": "Ptah reads a live ClickHouse schema, applies a declarative diff and generates versioned migrations against certified release lines, but it has no hosted registry to push a migration directory to and draws diagrams locally instead."
@@ -403,6 +408,11 @@
     "path": "/guides/clickhouse/named-collections",
     "status": "gap",
     "note": "Ptah does not model ClickHouse named collections: no schema object carries one, no renderer emits `CREATE NAMED COLLECTION`, and the dev-database replay guard refuses such a statement."
+  },
+  {
+    "path": "/guides/clickhouse/secrets",
+    "status": "gap",
+    "note": "Ptah models no ClickHouse user: its reader never queries system.users, so no user and no password is read, planned or rendered. ptah-compat reads a credential into atlas.hcl through `getenv`."
   },
   {
     "path": "/guides/clickhouse/security-declarative",
@@ -505,6 +515,11 @@
     "note": ""
   },
   {
+    "path": "/guides/dbt/snowflake",
+    "status": "out-of-scope",
+    "note": "The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap."
+  },
+  {
     "path": "/guides/deploying/aws-ecs-fargate",
     "status": "untriaged",
     "note": ""
@@ -575,6 +590,11 @@
     "note": ""
   },
   {
+    "path": "/guides/deploying/on-premise",
+    "status": "open",
+    "note": "Every step runs offline with no login or license: the vendor side uses `ptah migrations generate`, `lint`, `test` and `validate`, and the customer side runs `ptah migrations up` and `status` against the hashed directory shipped with the release, which `ptah migrations push` and `pull` can carry as an OCI artifact."
+  },
+  {
     "path": "/guides/deploying/rds-iam-migration-role",
     "status": "untriaged",
     "note": ""
@@ -596,8 +616,8 @@
   },
   {
     "path": "/guides/drift-detection",
-    "status": "untriaged",
-    "note": ""
+    "status": "partial",
+    "note": "The pre-apply gate is `ptah migrations up --check-drift --shadow-db`: it replays the applied history on a shadow database and refuses to run when the live schema differs. ptah-compat warns that an atlas.hcl `check \"migrate_apply\"` block is ignored, where Atlas CE ignores it silently. Between deploys, `ptah schema drift` checks the live database against the desired schema; there is no hosted monitoring."
   },
   {
     "path": "/guides/dsql/automatic-migrations",
@@ -618,6 +638,11 @@
     "path": "/guides/environment-promotion-declarative",
     "status": "untriaged",
     "note": ""
+  },
+  {
+    "path": "/guides/environment-specific-objects",
+    "status": "open",
+    "note": "ptah-compat composes a shared base with an `envs/${atlas.env}` overlay through `data \"composite_schema\"`, so `schema inspect --env dev` and `--env prod` each return the base plus their own objects (measured on SQLite; Atlas CE has no composite_schema handler). `data \"template_dir\"` is evaluated too, and `ptah schema push` publishes to an OCI registry."
   },
   {
     "path": "/guides/evaluation/advanced-topics",
@@ -678,6 +703,11 @@
     "path": "/guides/flyway-undo-alternative",
     "status": "untriaged",
     "note": ""
+  },
+  {
+    "path": "/guides/flyway-vs-liquibase",
+    "status": "out-of-scope",
+    "note": "The page compares two third-party migration tools, which is not a capability. Ptah's part in it is `ptah migrations import --from flyway` or `--from liquibase`, and the Atlas features it mentions are triaged on their own pages."
   },
   {
     "path": "/guides/frameworks/sqlc-declarative",
@@ -753,6 +783,11 @@
     "path": "/guides/mssql",
     "status": "partial",
     "note": "Ptah connects to, introspects, declaratively applies and versions SQL Server schemas under the canonical dialect `sqlserver`, but it plans only a conservative T-SQL subset: column removal is rejected and default, generated-expression, unique and CHECK changes need a hand-written migration."
+  },
+  {
+    "path": "/guides/mssql/lineage-graph",
+    "status": "partial",
+    "note": "`ptah schema lineage --dialect sqlserver` derives column-to-column edges from view bodies, measured on a T-SQL view, and prints them as a table, JSON or a Graphviz digraph, but there is no hosted graph view and no OpenLineage export."
   },
   {
     "path": "/guides/mssql/security-declarative",
@@ -1150,6 +1185,11 @@
     "note": "Ptah plans and applies PostgreSQL schema change both declaratively and as versioned migrations, but it does not implement the guide's Atlas Cloud publication step and pushes migration directories to OCI registries instead."
   },
   {
+    "path": "/guides/postgres/databricks-lakebase",
+    "status": "partial",
+    "note": "Lakebase is reached over a postgres:// URL, which Ptah's PostgreSQL connector takes with a native password, and `--exclude` keeps platform-managed objects out of a plan. There is no Databricks token source: ptah-compat refuses `data \"databricks_lakebase_token\"` as an unsupported atlas.hcl construct, and Atlas CE has no handler for it."
+  },
+  {
     "path": "/guides/postgres/descending-indexes",
     "status": "open",
     "note": "Ptah parses a descending index part, renders DESC on the PostgreSQL key column, and compares the direction when deciding whether an index changed."
@@ -1225,6 +1265,11 @@
     "note": "Ptah renders smallserial, serial and bigserial columns and keeps their implicit sequences out of the standalone-sequence diff, but it plans no transition between serial widths or between an integer column and a serial one, because the type normalizer folds every serial spelling to \"integer\" and the width comparison does not rank them."
   },
   {
+    "path": "/guides/postgres/supabase",
+    "status": "partial",
+    "note": "Ptah connects over a postgres:// URL, declares the RLS policies and grants that gate the platform roles with the limits /guides/postgres/security-declarative records, and accepts the Supabase image as a docker+postgres:// dev database (stokaro/ptah#4033, #4048, #4054, #4067)."
+  },
+  {
     "path": "/guides/postgres/unlogged-tables",
     "status": "gap",
     "note": "Ptah's table model carries no persistence flag: an `unlogged = true` HCL attribute and a `CREATE UNLOGGED TABLE` statement in a SQL desired schema are both refused, and the only place Ptah understands the keyword is the PG307 lint rule about changing persistence."
@@ -1260,6 +1305,11 @@
     "note": ""
   },
   {
+    "path": "/guides/routine-complexity-policy",
+    "status": "gap",
+    "note": "`ptah migrations lint` and `ptah sql lint` have no rule that measures a routine: no limit on cyclomatic complexity, nesting depth, statement count or parameter count."
+  },
+  {
     "path": "/guides/schema-health-check",
     "status": "untriaged",
     "note": ""
@@ -1276,13 +1326,18 @@
   },
   {
     "path": "/guides/security-scan",
-    "status": "untriaged",
-    "note": ""
+    "status": "partial",
+    "note": "`ptah db vulnerabilities` matches a PostgreSQL server's version and selected bundled contrib modules against a pinned local advisory snapshot and fails CI through `--fail-on`, but it reports MySQL, MariaDB, ClickHouse and SQL Server as incomplete, and third-party extensions such as pgvector have no reviewed matcher."
   },
   {
     "path": "/guides/seed-data-as-code",
     "status": "untriaged",
     "note": ""
+  },
+  {
+    "path": "/guides/seed-data-per-environment",
+    "status": "partial",
+    "note": "`ptah seed --env` applies environment-scoped seed files beside shared `.all.sql` files and records each by checksum, and `ptah migrations data` writes a reversible migration from declarative rows, but `ptah seed` cannot revert a seed it applied."
   },
   {
     "path": "/guides/snowflake/automatic-migrations",
@@ -1308,6 +1363,11 @@
     "path": "/guides/spanner/proto-columns",
     "status": "gap",
     "note": "Ptah models no Spanner protobuf column type and no PROTO BUNDLE object, and reaches Spanner only over its PostgreSQL interface rather than the GoogleSQL dialect the feature is written in."
+  },
+  {
+    "path": "/guides/sql-server-to-postgresql",
+    "status": "open",
+    "note": "Ptah runs each step with a native verb and, like the page, translates no T-SQL: `ptah schema inspect --out-dir` exports the live schema as files, `ptah schema apply --dry-run` prints the plan, and `ptah schema validate` and `ptah schema test` check the PostgreSQL target."
   },
   {
     "path": "/guides/sqlite/descending-indexes",
@@ -1530,6 +1590,11 @@
     "note": ""
   },
   {
+    "path": "/integrations/github-actions/drift-detection",
+    "status": "partial",
+    "note": "Ptah has no scheduled versioned drift report: its versioned check, `ptah migrations up --check-drift`, runs only before an apply. A scheduled job can run `ptah schema drift --format github-actions`, which compares the live database with the desired schema rather than with the migration history."
+  },
+  {
     "path": "/integrations/github-actions/pre-approval",
     "status": "untriaged",
     "note": ""
@@ -1543,6 +1608,11 @@
     "path": "/integrations/gitlab-ci-components/ad-hoc-approval",
     "status": "untriaged",
     "note": ""
+  },
+  {
+    "path": "/integrations/gitlab-ci-components/drift-detection",
+    "status": "partial",
+    "note": "Ptah has no scheduled versioned drift report: its versioned check, `ptah migrations up --check-drift`, runs only before an apply. A scheduled pipeline can run `ptah schema drift`, which compares the live database with the desired schema rather than with the migration history and exits 1 on drift."
   },
   {
     "path": "/integrations/gitlab-ci-components/pre-approval",
@@ -1588,6 +1658,11 @@
     "path": "/integrations/kubernetes/quickstart",
     "status": "untriaged",
     "note": ""
+  },
+  {
+    "path": "/integrations/kubernetes/security-scan",
+    "status": "partial",
+    "note": "The scan is `ptah db vulnerabilities`, which covers PostgreSQL only (see /guides/security-scan) and grades findings through `--fail-on` and `--suppressions`. No ptah-operator resource schedules it."
   },
   {
     "path": "/integrations/kubernetes/versioned",
@@ -1695,11 +1770,6 @@
     "note": ""
   },
   {
-    "path": "/monitoring/webhooks",
-    "status": "cloud",
-    "note": ""
-  },
-  {
     "path": "/orms",
     "status": "untriaged",
     "note": ""
@@ -1745,6 +1815,11 @@
     "note": ""
   },
   {
+    "path": "/testing/datasets",
+    "status": "gap",
+    "note": "`ptah schema test` and `ptah migrations test` seed a case only through SQL seed files; no step loads rows from a snapshot export or CSV, generates rows, samples them or masks a column."
+  },
+  {
     "path": "/testing/migrate",
     "status": "open",
     "note": ""
@@ -1753,6 +1828,11 @@
     "path": "/testing/plan",
     "status": "open",
     "note": ""
+  },
+  {
+    "path": "/testing/profile",
+    "status": "gap",
+    "note": "`ptah migrations test` and `ptah schema test` take no profiling option and record no locks, table rewrites, or disk, log or CPU use."
   },
   {
     "path": "/testing/schema",
@@ -1786,8 +1866,8 @@
   },
   {
     "path": "/versioned/drift-detection",
-    "status": "open",
-    "note": "Atlas lists drift detection as Pro; Ptah has native `ptah schema drift`. Cloud drift monitoring is out of scope."
+    "status": "partial",
+    "note": "Atlas's `migrate drift` is a versioned, report-only check against the schema the applied history produces. Ptah's versioned check is the pre-apply gate `ptah migrations up --check-drift --shadow-db`, which refuses to run on drift; it has no standalone report. `ptah schema drift` is state-based: it compares the live database with the desired schema."
   },
   {
     "path": "/versioned/import",

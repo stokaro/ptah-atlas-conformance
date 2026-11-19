@@ -8,32 +8,32 @@ page from `docs-surface-registry.json`, so parity is measured against the full
 Atlas documentation surface: an untriaged, unregistered, or vanished page is a
 gap until the registry catches up.
 
-## Status: NOT DONE — 200 non-OK observation(s)
+## Status: NOT DONE — 196 non-OK observation(s)
 
 The full docs-surface gate is red until every atlasgo.io docs page is triaged
 and the registry matches the sitemap universe.
 
-- Docs universe: **365 page(s)** from the atlasgo.io sitemap (committed snapshot `docs-surface-snapshot.txt`)
+- Docs universe: **381 page(s)** from the atlasgo.io sitemap (committed snapshot `docs-surface-snapshot.txt`)
 - Ptah at the `ptah.run` version `go.mod` requires
-- Outcomes: **165 ok**, **200 gap**, **0 fail**, **0 panic**
-- Full gate: **200 non-OK** (fails CI)
-- Regression budget input: **200 unwaived non-OK**, 0 waived
+- Outcomes: **185 ok**, **196 gap**, **0 fail**, **0 panic**
+- Full gate: **196 non-OK** (fails CI)
+- Regression budget input: **196 unwaived non-OK**, 0 waived
 
 ## Docs Universe Summary
 
-Universe: **365 page(s)** after the docs-universe filter.
+Universe: **381 page(s)** after the docs-universe filter.
 
 ### Pages per triage status
 
 | Status | Pages |
 | --- | --- |
-| open | 24 |
-| partial | 57 |
-| gap | 10 |
+| open | 26 |
+| partial | 69 |
+| gap | 15 |
 | pro | 0 |
-| cloud | 27 |
-| out-of-scope | 47 |
-| untriaged | 200 |
+| cloud | 26 |
+| out-of-scope | 49 |
+| untriaged | 196 |
 
 ### Pages per docs section
 
@@ -53,15 +53,15 @@ Universe: **365 page(s)** after the docs-universe filter.
 | `docs` | 1 |
 | `features` | 1 |
 | `getting-started` | 9 |
-| `guides` | 230 |
+| `guides` | 242 |
 | `hcl` | 19 |
 | `inspect` | 2 |
-| `integrations` | 26 |
+| `integrations` | 29 |
 | `lint` | 2 |
-| `monitoring` | 12 |
+| `monitoring` | 11 |
 | `orms` | 2 |
 | `scripts` | 7 |
-| `testing` | 3 |
+| `testing` | 5 |
 | `versioned` | 13 |
 
 ### Licensing
@@ -101,8 +101,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/getting-started/sqlite-declarative-hcl` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/getting-started/sqlite-declarative-sql` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/ai-tools` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/ai-tools/agent-skills` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/ai-tools/claude-code-instructions` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/ai-tools/codex-instructions` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/ai-tools/cursor-rules` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -155,7 +153,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/deploying/remote-directories` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/deploying/secrets` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/destructive-change-policy` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/drift-detection` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/environment-promotion` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/environment-promotion-declarative` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/evaluation/advanced-topics` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -199,7 +196,6 @@ content is stored in this repository.
 | **RED** | **gap** | docs-surface | `/guides/schema-health-check` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/schema-ownership` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/security-as-code` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
-| **RED** | **gap** | docs-surface | `/guides/security-scan` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/seed-data-as-code` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/terraform/named-databases` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
 | **RED** | **gap** | docs-surface | `/guides/terraform/opentaco` | untriaged | docs page awaits triage in docs-surface-registry.json |  |
@@ -297,13 +293,17 @@ content is stored in this repository.
 | — | ok | docs-surface | `/declarative/diff` | triage | partial |  |
 | — | ok | docs-surface | `/docs` | triage | open |  |
 | — | ok | docs-surface | `/features` | triage | partial — No single coverage-matrix area owns this page; it is cited as evidence across several. Ptah covers part of what it lists. |  |
+| — | ok | docs-surface | `/guides/ai-tools` | triage | partial — `ptah mcp` serves Ptah's operations to Claude Code, Cursor, VS Code, Zed and other MCP clients, and `ptah assist` runs a model the user supplies, but Ptah publishes no packaged agent skill or per-assistant instruction file. |  |
+| — | ok | docs-surface | `/guides/ai-tools/agent-skills` | triage | gap — Ptah publishes no packaged agent skill. An assistant reaches Ptah through the MCP tools `ptah mcp` serves, configured per client on Ptah's Connect an MCP client page. |  |
 | — | ok | docs-surface | `/guides/azure-fabric` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/ci-platforms/jenkins` | triage | partial — Each pipeline step is a native verb that runs as a shell step in any CI with no login: `ptah migrations lint`, `ptah schema plan`, `ptah migrations push` and `ptah schema push` to an OCI registry, `ptah migrations up` and `ptah schema apply`. Ptah ships a GitHub Action and no Jenkins integration. |  |
 | — | ok | docs-surface | `/guides/clickhouse` | triage | partial — Ptah reads a live ClickHouse schema, applies a declarative diff and generates versioned migrations against certified release lines, but it has no hosted registry to push a migration directory to and draws diagrams locally instead. |  |
 | — | ok | docs-surface | `/guides/clickhouse/advanced-hcl-schema` | triage | partial — Ptah reduces `sql("...")` to raw SQL text in every HCL position it reads a value from and carries a table's ENGINE, ORDER BY, PARTITION BY, PRIMARY KEY, SAMPLE BY, TTL and SETTINGS clauses, but a database-level engine such as `Replicated(...)` is dropped because CREATE DATABASE is rendered without an engine clause. |  |
 | — | ok | docs-surface | `/guides/clickhouse/clickhouse-cloud-atlas` | triage | partial — A ClickHouse URL's query parameters reach the driver unchanged, so `secure=true` connects, and an engine name Ptah does not recognize renders as written, but nothing folds ClickHouse Cloud's `SharedMergeTree`/`Shared` rewrite back onto a declared `MergeTree`/`Atomic`, so such a table would read back as different from its declaration. |  |
 | — | ok | docs-surface | `/guides/clickhouse/cluster-mode` | triage | partial — Ptah lets the revision table be created with a replicated engine, but it emits no `ON CLUSTER` clause, has no cluster connection mode, and its dev-database replay refuses any statement carrying `ON CLUSTER`. |  |
 | — | ok | docs-surface | `/guides/clickhouse/lineage-graph` | triage | partial — `ptah schema lineage` derives column-to-column edges from view and materialized-view bodies for any dialect and prints them as a table, JSON or a Graphviz digraph, and records what it could not resolve, but there is no hosted graph view and no OpenLineage export. |  |
 | — | ok | docs-surface | `/guides/clickhouse/named-collections` | triage | gap — Ptah does not model ClickHouse named collections: no schema object carries one, no renderer emits `CREATE NAMED COLLECTION`, and the dev-database replay guard refuses such a statement. |  |
+| — | ok | docs-surface | `/guides/clickhouse/secrets` | triage | gap — Ptah models no ClickHouse user: its reader never queries system.users, so no user and no password is read, planned or rendered. ptah-compat reads a credential into atlas.hcl through `getenv`. |  |
 | — | ok | docs-surface | `/guides/clickhouse/security-declarative` | triage | partial — Ptah manages ClickHouse roles and database- or table-scoped privilege grants declaratively through the full render, plan, apply, read-back and diff cycle, but it models no user and no role membership, so a `member_of` hierarchy and the accounts granted a role stay outside it. |  |
 | — | ok | docs-surface | `/guides/clickhouse/security-versioned` | triage | partial — The same ClickHouse roles and grants Ptah manages declaratively are rendered into versioned migration files as `CREATE ROLE IF NOT EXISTS`, `GRANT` and `REVOKE`, with roles ordered before grants and revokes before grants; users and role membership are not modeled, so no credential can enter a migration file. |  |
 | — | ok | docs-surface | `/guides/clickhouse/seed-data` | triage | partial — Ptah manages reference rows declaratively, diffing desired rows against the live table into ordered INSERT, UPDATE and DELETE with a destructive-change gate, but the rows come from an external file rather than an inline list, there is no mode selector or row cap, and the DML is plain `UPDATE ... SET` and `DELETE FROM` with no ClickHouse mutation form. |  |
@@ -312,10 +312,16 @@ content is stored in this repository.
 | — | ok | docs-surface | `/guides/clickhouse/wasm` | triage | gap — Ptah does not model ClickHouse user-defined functions or WASM modules: the ClickHouse capability preset declares functions absent and the renderer answers a declared function with a comment saying it is not supported. |  |
 | — | ok | docs-surface | `/guides/cockroachdb/automatic-migrations` | triage | partial — Ptah reaches CockroachDB over the PostgreSQL wire driver and inspects, plans and applies both declarative and versioned migrations against the certified 25.4, 26.2 and 26.3 lines, but it refuses the page's `docker://crdb/v25.1.1/dev` dev database and has no registry behind `atlas login`, `schema push` or `migrate push`. |  |
 | — | ok | docs-surface | `/guides/databricks/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/dbt/snowflake` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/deploying/on-premise` | triage | open — Every step runs offline with no login or license: the vendor side uses `ptah migrations generate`, `lint`, `test` and `validate`, and the customer side runs `ptah migrations up` and `status` against the hashed directory shipped with the release, which `ptah migrations push` and `pull` can carry as an OCI artifact. |  |
+| — | ok | docs-surface | `/guides/drift-detection` | triage | partial — The pre-apply gate is `ptah migrations up --check-drift --shadow-db`: it replays the applied history on a shadow database and refuses to run when the live schema differs. ptah-compat warns that an atlas.hcl `check "migrate_apply"` block is ignored, where Atlas CE ignores it silently. Between deploys, `ptah schema drift` checks the live database against the desired schema; there is no hosted monitoring. |  |
 | — | ok | docs-surface | `/guides/dsql/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/dsql/token-generator` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/environment-specific-objects` | triage | open — ptah-compat composes a shared base with an `envs/${atlas.env}` overlay through `data "composite_schema"`, so `schema inspect --env dev` and `--env prod` each return the base plus their own objects (measured on SQLite; Atlas CE has no composite_schema handler). `data "template_dir"` is evaluated too, and `ptah schema push` publishes to an OCI registry. |  |
+| — | ok | docs-surface | `/guides/flyway-vs-liquibase` | triage | out-of-scope — The page compares two third-party migration tools, which is not a capability. Ptah's part in it is `ptah migrations import --from flyway` or `--from liquibase`, and the Atlas features it mentions are triaged on their own pages. |  |
 | — | ok | docs-surface | `/guides/horizondb/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/mssql` | triage | partial — Ptah connects to, introspects, declaratively applies and versions SQL Server schemas under the canonical dialect `sqlserver`, but it plans only a conservative T-SQL subset: column removal is rejected and default, generated-expression, unique and CHECK changes need a hand-written migration. |  |
+| — | ok | docs-surface | `/guides/mssql/lineage-graph` | triage | partial — `ptah schema lineage --dialect sqlserver` derives column-to-column edges from view bodies, measured on a T-SQL view, and prints them as a table, JSON or a Graphviz digraph, but there is no hosted graph view and no OpenLineage export. |  |
 | — | ok | docs-surface | `/guides/mssql/security-declarative` | triage | partial — Ptah declares, renders, reads back and diffs SQL Server database roles and GRANT/REVOKE on tables, views, schemas and sequences, but it models no database user or login, never plans role membership, and refuses SQL Server alias types, so a grant on a function, procedure or type cannot be declared. |  |
 | — | ok | docs-surface | `/guides/mssql/security-versioned` | triage | partial — Ptah generates and applies migration files for SQL Server role and grant drift through the same comparator and planner it uses declaratively, with the same shortfall: no database user or login object, no role-membership planning, and no grant on a function, procedure or alias type. |  |
 | — | ok | docs-surface | `/guides/mssql/seed-data` | triage | partial — Ptah manages declarative reference rows on SQL Server through `//ptah:schema:data` annotations and `ptah migrations data`, which diffs the declared rows against the live table and writes a reversible migration, but the rows must live in a YAML file rather than inline, and there is no sync-mode selector, no row-count ceiling and no include/exclude filter. |  |
@@ -386,6 +392,7 @@ content is stored in this repository.
 | — | ok | docs-surface | `/guides/orms/typeorm` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
 | — | ok | docs-surface | `/guides/orms/typeorm/generate-entities` | triage | out-of-scope — Atlas alongside a third-party ORM. Ptah declares a schema from Go annotations and does not publish per-ORM onboarding. |  |
 | — | ok | docs-surface | `/guides/postgres/automatic-migrations` | triage | partial — Ptah plans and applies PostgreSQL schema change both declaratively and as versioned migrations, but it does not implement the guide's Atlas Cloud publication step and pushes migration directories to OCI registries instead. |  |
+| — | ok | docs-surface | `/guides/postgres/databricks-lakebase` | triage | partial — Lakebase is reached over a postgres:// URL, which Ptah's PostgreSQL connector takes with a native password, and `--exclude` keeps platform-managed objects out of a plan. There is no Databricks token source: ptah-compat refuses `data "databricks_lakebase_token"` as an unsupported atlas.hcl construct, and Atlas CE has no handler for it. |  |
 | — | ok | docs-surface | `/guides/postgres/descending-indexes` | triage | open — Ptah parses a descending index part, renders DESC on the PostgreSQL key column, and compares the direction when deciding whether an index changed. |  |
 | — | ok | docs-surface | `/guides/postgres/functional-indexes` | triage | open — Ptah parses an index expression, renders it as a parenthesized PostgreSQL index element, and compares expressions when deciding whether an index changed. |  |
 | — | ok | docs-surface | `/guides/postgres/included-columns` | triage | open — Ptah carries INCLUDE payload columns on its index model, renders the clause for PostgreSQL, and reports a change when the payload differs. |  |
@@ -399,16 +406,21 @@ content is stored in this repository.
 | — | ok | docs-surface | `/guides/postgres/security-versioned` | triage | partial — Roles, grants and row-level security policies participate in Ptah's migration generation and reversal for PostgreSQL, with the same limits as the declarative route: no column-, function- or procedure-level grant, no CONNECTION LIMIT, and no declared role membership. |  |
 | — | ok | docs-surface | `/guides/postgres/seed-data` | triage | partial — Ptah declares reference rows with a `//ptah:schema:data` annotation or an HCL `data` block plus a YAML row file and generates a reversible INSERT/UPDATE/DELETE migration from the live drift, but it offers no per-declaration insert/upsert/sync mode, `schema apply` does not synchronize rows, and the generator reads Go annotations only, so an HCL-declared data block reaches no command. |  |
 | — | ok | docs-surface | `/guides/postgres/serial-columns` | triage | partial — Ptah renders smallserial, serial and bigserial columns and keeps their implicit sequences out of the standalone-sequence diff, but it plans no transition between serial widths or between an integer column and a serial one, because the type normalizer folds every serial spelling to "integer" and the width comparison does not rank them. |  |
+| — | ok | docs-surface | `/guides/postgres/supabase` | triage | partial — Ptah connects over a postgres:// URL, declares the RLS policies and grants that gate the platform roles with the limits /guides/postgres/security-declarative records, and accepts the Supabase image as a docker+postgres:// dev database (stokaro/ptah#4033, #4048, #4054, #4067). |  |
 | — | ok | docs-surface | `/guides/postgres/unlogged-tables` | triage | gap — Ptah's table model carries no persistence flag: an `unlogged = true` HCL attribute and a `CREATE UNLOGGED TABLE` statement in a SQL desired schema are both refused, and the only place Ptah understands the keyword is the PG307 lint rule about changing persistence. |  |
 | — | ok | docs-surface | `/guides/redshift/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/redshift/lineage-graph` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/redshift/security-declarative` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/redshift/security-versioned` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
+| — | ok | docs-surface | `/guides/routine-complexity-policy` | triage | gap — `ptah migrations lint` and `ptah sql lint` have no rule that measures a routine: no limit on cyclomatic complexity, nesting depth, statement count or parameter count. |  |
+| — | ok | docs-surface | `/guides/security-scan` | triage | partial — `ptah db vulnerabilities` matches a PostgreSQL server's version and selected bundled contrib modules against a pinned local advisory snapshot and fails CI through `--fail-on`, but it reports MySQL, MariaDB, ClickHouse and SQL Server as incomplete, and third-party extensions such as pgvector have no reviewed matcher. |  |
+| — | ok | docs-surface | `/guides/seed-data-per-environment` | triage | partial — `ptah seed --env` applies environment-scoped seed files beside shared `.all.sql` files and records each by checksum, and `ptah migrations data` writes a reversible migration from declarative rows, but `ptah seed` cannot revert a seed it applied. |  |
 | — | ok | docs-surface | `/guides/snowflake/automatic-migrations` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/snowflake/lineage-graph` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/snowflake/security-declarative` | triage | out-of-scope — The engine is not a dialect core/platform.NormalizeDialect accepts, so the page documents a target Ptah does not have. Adding one is a product step, not a docs gap. |  |
 | — | ok | docs-surface | `/guides/spanner/automatic-migrations` | triage | partial — Ptah drives Cloud Spanner through its PostgreSQL interface only — it renders, plans, applies, reads back and compares a schema there, and keeps a revision table for versioned migrations — but it has no GoogleSQL dialect, no project/instance/database URL form, no Docker-provisioned Spanner dev database, and no Spanner-specific DDL such as interleaved tables. |  |
 | — | ok | docs-surface | `/guides/spanner/proto-columns` | triage | gap — Ptah models no Spanner protobuf column type and no PROTO BUNDLE object, and reaches Spanner only over its PostgreSQL interface rather than the GoogleSQL dialect the feature is written in. |  |
+| — | ok | docs-surface | `/guides/sql-server-to-postgresql` | triage | open — Ptah runs each step with a native verb and, like the page, translates no T-SQL: `ptah schema inspect --out-dir` exports the live schema as files, `ptah schema apply --dry-run` prints the plan, and `ptah schema validate` and `ptah schema test` check the PostgreSQL target. |  |
 | — | ok | docs-surface | `/guides/sqlite/descending-indexes` | triage | partial — Ptah declares a descending SQLite index key in HCL, renders it and reads the direction back, but its SQLite index comparison looks only at the name and the predicate, so changing the direction of an index that already exists plans no change. |  |
 | — | ok | docs-surface | `/guides/sqlite/functional-indexes` | triage | partial — Ptah declares an expression key on a SQLite index in HCL, renders it and reads it back as an expression rather than a column, but its SQLite index comparison looks only at the name and the predicate, so changing the expression of an index that already exists plans no change. |  |
 | — | ok | docs-surface | `/guides/sqlite/partial-indexes` | triage | open — Ptah declares a SQLite partial index's WHERE predicate on every frontend, renders it, reads it back and compares it, so a changed predicate plans a drop and a rebuild. |  |
@@ -416,6 +428,9 @@ content is stored in this repository.
 | — | ok | docs-surface | `/guides/yugabyte/distributed-schema-declarative` | triage | gap — Ptah does not model YugabyteDB distribution attributes: colocation and pre-splitting are parsed and then ignored with a warning, and hash or range sharding on a primary key or index column is refused at parse time. |  |
 | — | ok | docs-surface | `/guides/yugabyte/distributed-schema-versioned` | triage | gap — Ptah's renderer emits no `WITH (colocation = ...)`, `SPLIT INTO n TABLETS` or `SPLIT AT VALUES`, so a generated migration cannot carry a YugabyteDB distribution decision even though the versioned workflow itself works on the dialect. |  |
 | — | ok | docs-surface | `/inspect` | triage | partial |  |
+| — | ok | docs-surface | `/integrations/github-actions/drift-detection` | triage | partial — Ptah has no scheduled versioned drift report: its versioned check, `ptah migrations up --check-drift`, runs only before an apply. A scheduled job can run `ptah schema drift --format github-actions`, which compares the live database with the desired schema rather than with the migration history. |  |
+| — | ok | docs-surface | `/integrations/gitlab-ci-components/drift-detection` | triage | partial — Ptah has no scheduled versioned drift report: its versioned check, `ptah migrations up --check-drift`, runs only before an apply. A scheduled pipeline can run `ptah schema drift`, which compares the live database with the desired schema rather than with the migration history and exits 1 on drift. |  |
+| — | ok | docs-surface | `/integrations/kubernetes/security-scan` | triage | partial — The scan is `ptah db vulnerabilities`, which covers PostgreSQL only (see /guides/security-scan) and grades findings through `--fail-on` and `--suppressions`. No ptah-operator resource schedules it. |  |
 | — | ok | docs-surface | `/monitoring` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/bitbucket-quickstart` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/discovery` | triage | cloud |  |
@@ -427,15 +442,16 @@ content is stored in this repository.
 | — | ok | docs-surface | `/monitoring/quickstart` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/security` | triage | cloud |  |
 | — | ok | docs-surface | `/monitoring/terraform` | triage | cloud |  |
-| — | ok | docs-surface | `/monitoring/webhooks` | triage | cloud |  |
+| — | ok | docs-surface | `/testing/datasets` | triage | gap — `ptah schema test` and `ptah migrations test` seed a case only through SQL seed files; no step loads rows from a snapshot export or CSV, generates rows, samples them or masks a column. |  |
 | — | ok | docs-surface | `/testing/migrate` | triage | open |  |
 | — | ok | docs-surface | `/testing/plan` | triage | open |  |
+| — | ok | docs-surface | `/testing/profile` | triage | gap — `ptah migrations test` and `ptah schema test` take no profiling option and record no locks, table rewrites, or disk, log or CPU use. |  |
 | — | ok | docs-surface | `/testing/schema` | triage | open |  |
 | — | ok | docs-surface | `/versioned/apply` | triage | partial |  |
 | — | ok | docs-surface | `/versioned/checkpoint` | triage | open |  |
 | — | ok | docs-surface | `/versioned/checks` | triage | partial |  |
 | — | ok | docs-surface | `/versioned/down` | triage | partial |  |
-| — | ok | docs-surface | `/versioned/drift-detection` | triage | open — Atlas lists drift detection as Pro; Ptah has native `ptah schema drift`. Cloud drift monitoring is out of scope. |  |
+| — | ok | docs-surface | `/versioned/drift-detection` | triage | partial — Atlas's `migrate drift` is a versioned, report-only check against the schema the applied history produces. Ptah's versioned check is the pre-apply gate `ptah migrations up --check-drift --shadow-db`, which refuses to run on drift; it has no standalone report. `ptah schema drift` is state-based: it compares the live database with the desired schema. |  |
 | — | ok | docs-surface | `/versioned/import` | triage | partial |  |
 | — | ok | docs-surface | `/versioned/intro` | triage | open |  |
 | — | ok | docs-surface | `/versioned/lint` | triage | partial |  |
