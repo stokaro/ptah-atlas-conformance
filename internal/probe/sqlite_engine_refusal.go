@@ -40,10 +40,10 @@ const sqliteDriverModule = "modernc.org/sqlite"
 // to a rowid alias.
 const sqliteRowidAliasRefusal = "cannot rename to rowid alias"
 
-// atlasCESQLite is the SQLite release the pinned Atlas CE v1.3.0 binary
-// embeds. It was read through bin/atlas by applying a migration whose ATTACH
-// path ends in sqlite_version(): the engine names the path in its error. That
-// engine accepts the rename.
+// atlasCESQLite is the SQLite release the pinned Atlas CE binary embeds,
+// 3.49.1 on v1.3.0 and on v1.4.0. It was read through bin/atlas by applying a
+// migration whose ATTACH path ends in sqlite_version(): the engine names the
+// path in its error. That engine accepts the rename.
 const atlasCESQLite = "3.49.1"
 
 // sqliteEngineRefusal is the answer of the SQLite engine the harness links to
@@ -95,7 +95,7 @@ func (r sqliteEngineRefusal) classify(
 		result.engineRefusal = fmt.Sprintf(
 			"engine-version difference: `%s` exited 1 because SQLite %s (%s %s, which ptah-compat links) "+
 				"refuses %s: %s; %s and stderr is empty, as Atlas CE reports a refused replay; "+
-				"Atlas CE v1.3.0 embeds SQLite %s, which accepts the rename",
+				"the pinned Atlas CE embeds SQLite %s, which accepts the rename",
 			command, r.engine, sqliteDriverModule, r.module, r.file, r.reason, report.found(), atlasCESQLite)
 	}
 	return result

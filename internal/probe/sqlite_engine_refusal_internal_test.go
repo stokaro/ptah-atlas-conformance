@@ -95,7 +95,7 @@ func TestSQLiteEngineRefusalClassify_RecognizesTheReport(t *testing.T) {
 				"SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: "+
 				"SQL logic error: cannot rename to rowid alias: oid (1); "+
 				test.wantReport+" and stderr is empty, as Atlas CE reports a refused replay; "+
-				"Atlas CE v1.3.0 embeds SQLite 3.49.1, which accepts the rename")
+				"the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename")
 			c.Assert(got.err, qt.IsNil)
 			c.Assert(got.failed, qt.IsTrue)
 			c.Assert(got.assertionsBlocked, qt.IsTrue)
