@@ -134,6 +134,16 @@ records both products' distinct database states and the user-benefiting
 difference; none of these divergences is omitted or treated as accidental
 parity.
 
+Two files that spell the same version, `20260101000000_a.sql` beside
+`20260101000000_b.sql`, are the same kind of `ptah-better` result. Atlas CE
+runs the first file, records its revision and panics with exit 2, and its next
+apply exits 0 with nothing to execute, so the second file never runs.
+ptah-compat refuses the directory with exit 1 before any migration runs. The
+oracle checks both binaries against those measurements on every run, so a
+change on either side turns the row red. Ptah documents the divergence as
+[Two files for one version](https://github.com/stokaro/ptah/blob/master/docs/site/src/content/docs/atlas/retained-divergences.md#two-files-for-one-version)
+(`stokaro/ptah#6324`).
+
 The migrate-runtime tier also runs a Goose-format checksum differential against
 the pinned Atlas CE binary: both tools must generate byte-identical
 `atlas.sum` files, accept each other's checksum, remain silent on clean

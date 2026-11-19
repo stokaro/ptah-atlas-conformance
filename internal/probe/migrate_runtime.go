@@ -112,6 +112,7 @@ func RunMigrateRuntime() MigrateRuntimeRun {
 		sqliteMigrateApplyTxtarZeroRowFailure,
 		sqliteMigrateStatusToleratesRevisionMetadataRow,
 		sqliteMigrateDownFailureRecordsRepairState,
+		func(bin string) Result { return sqliteMigrateApplyDuplicateVersion(bin, atlasBin) },
 		func(string) Result { return migrationsImportGolangMigrate(nativeBin) },
 		func(string) Result { return migrationsImportGoose(nativeBin) },
 		func(string) Result { return migrationsImportFlyway(nativeBin) },
