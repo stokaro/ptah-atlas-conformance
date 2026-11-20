@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/zclconf/go-cty v1.20.0
 	modernc.org/sqlite v1.62.0
-	ptah.run v0.33.1
+	ptah.run v0.34.0
 )
 
 require (
