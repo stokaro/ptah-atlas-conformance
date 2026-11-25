@@ -371,7 +371,7 @@ func implementedProVerbSurfaces() map[string]implementedProVerbSurface {
 			flags: []string{"--dev-url", "--dir", "--dir-format"},
 		},
 		"migrate down": {
-			usage: "atlas migrate down [flags]",
+			usage: "atlas migrate down [flags] [amount]",
 			flags: []string{
 				"--dev-url", "--dir", "--dry-run", "--format", "--lock-timeout",
 				"--revisions-schema", "--to-version", "--url",

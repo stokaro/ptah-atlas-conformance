@@ -225,7 +225,7 @@ func (c analyzerCase) run() Result {
 }
 
 // substantiveChangeFindings returns the substantive (non file-convention)
-// findings that fired on the change file only. MF rules are Ptah's migration-file
+// findings that fired on the change file only. file-form rules are Ptah's migration-file
 // conventions (naming/pairing) and say nothing about the SQL's safety, so they
 // are excluded; findings on any other file (the setup) are excluded too.
 func substantiveChangeFindings(findings []lint.Finding, changeFile string) []lint.Finding {
@@ -268,4 +268,7 @@ func describeFindings(findings []lint.Finding) string {
 	return strings.Join(parts, ", ")
 }
 
-func isStructuralRule(rule string) bool { return len(rule) >= 2 && rule[:2] == "MF" }
+// isStructuralRule reports a rule of Ptah's file-form category: the checks of
+// the migration file itself (naming, pairing, emptiness), which say nothing
+// about the SQL's safety.
+func isStructuralRule(rule string) bool { return strings.HasPrefix(rule, "file-form/") }

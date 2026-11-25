@@ -306,12 +306,15 @@ func sqliteMigrateDownDryRunReadsStoredState(bin string) Result {
 		return migrateRuntimeFail(fixture, "snapshot", err)
 	}
 
+	// A bare migrate down reverts the last applied file
+	// (https://atlasgo.io/versioned/down), so the amount 2 asks for both.
 	stdout, stderr, err := commandStreams(bin, []string{
 		"migrate", "down",
 		"--url", sqliteURL(dbPath),
 		"--dir", fileURL(migrations),
 		"--dry-run",
 		"--format", "{{ json . }}",
+		"2",
 	}, "")
 	if err != nil {
 		return migrateRuntimeExit(fixture, "dry-run", stdout+stderr, err)
@@ -416,11 +419,11 @@ func sqliteMigrateDownMissingBodyPreservesState(bin string) Result {
 	}{
 		{
 			stage: "dry-run",
-			args:  []string{"migrate", "down", "--url", sqliteURL(dbPath), "--dir", fileURL(migrations), "--dry-run"},
+			args:  []string{"migrate", "down", "--url", sqliteURL(dbPath), "--dir", fileURL(migrations), "--dry-run", "2"},
 		},
 		{
 			stage: "rollback",
-			args:  []string{"migrate", "down", "--url", sqliteURL(dbPath), "--dir", fileURL(migrations)},
+			args:  []string{"migrate", "down", "--url", sqliteURL(dbPath), "--dir", fileURL(migrations), "2"},
 		},
 	} {
 		stdout, stderr, err := commandStreams(bin, attempt.args, "")
