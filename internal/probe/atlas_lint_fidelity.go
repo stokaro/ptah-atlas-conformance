@@ -59,17 +59,17 @@ func lintSuppressionCheck() Result {
 	if err != nil {
 		return lintFidelityFail(fixture, "LintFS error on the baseline: "+oneLine(err.Error()))
 	}
-	suppressed, err := lintSingleChange("-- ptah:nolint DS101\nDROP TABLE t;", lint.Options{})
+	suppressed, err := lintSingleChange("-- ptah:nolint destructive/drop-table\nDROP TABLE t;", lint.Options{})
 	if err != nil {
 		return lintFidelityFail(fixture, "LintFS error on the suppressed change: "+oneLine(err.Error()))
 	}
-	if !slices.Contains(findingCodes(base), "DS101") {
-		return lintFidelityFail(fixture, "baseline broken: expected DS101 on DROP TABLE, got "+joinOrNone(findingCodes(base)))
+	if !slices.Contains(findingCodes(base), "destructive/drop-table") {
+		return lintFidelityFail(fixture, "baseline broken: expected destructive/drop-table on DROP TABLE, got "+joinOrNone(findingCodes(base)))
 	}
-	if slices.Contains(findingCodes(suppressed), "DS101") {
-		return lintFidelityFail(fixture, "`-- ptah:nolint DS101` did not suppress the DS101 finding")
+	if slices.Contains(findingCodes(suppressed), "destructive/drop-table") {
+		return lintFidelityFail(fixture, "`-- ptah:nolint destructive/drop-table` did not suppress the destructive/drop-table finding")
 	}
-	return lintFidelityOK(fixture, "`-- ptah:nolint DS101` removes the DS101 finding that fires without it")
+	return lintFidelityOK(fixture, "`-- ptah:nolint destructive/drop-table` removes the destructive/drop-table finding that fires without it")
 }
 
 // lintDisableCheck asserts that Options.Disabled silences a rule by code.
@@ -79,22 +79,22 @@ func lintDisableCheck() Result {
 	if err != nil {
 		return lintFidelityFail(fixture, "LintFS error with the rule enabled: "+oneLine(err.Error()))
 	}
-	off, err := lintSingleChange("DROP TABLE t;", lint.Options{Disabled: []string{"DS101"}})
+	off, err := lintSingleChange("DROP TABLE t;", lint.Options{Disabled: []string{"destructive/drop-table"}})
 	if err != nil {
 		return lintFidelityFail(fixture, "LintFS error with the rule disabled: "+oneLine(err.Error()))
 	}
-	if !slices.Contains(findingCodes(on), "DS101") {
-		return lintFidelityFail(fixture, "baseline broken: expected DS101 on DROP TABLE, got "+joinOrNone(findingCodes(on)))
+	if !slices.Contains(findingCodes(on), "destructive/drop-table") {
+		return lintFidelityFail(fixture, "baseline broken: expected destructive/drop-table on DROP TABLE, got "+joinOrNone(findingCodes(on)))
 	}
-	if slices.Contains(findingCodes(off), "DS101") {
-		return lintFidelityFail(fixture, "Disabled:[DS101] did not silence the DS101 finding")
+	if slices.Contains(findingCodes(off), "destructive/drop-table") {
+		return lintFidelityFail(fixture, "Disabled:[destructive/drop-table] did not silence the destructive/drop-table finding")
 	}
-	return lintFidelityOK(fixture, "Options.Disabled:[DS101] silences the DS101 finding that fires without it")
+	return lintFidelityOK(fixture, "Options.Disabled:[destructive/drop-table] silences the destructive/drop-table finding that fires without it")
 }
 
 // lintSeverityOverrideCheck asserts that a per-code RuleConfig.Severity override
 // changes a finding's severity. It pins the un-overridden default to error first,
-// so the check cannot pass vacuously if DS101's default ever becomes warning (the
+// so the check cannot pass vacuously if destructive/drop-table's default ever becomes warning (the
 // override would then be a no-op and this must still go red).
 func lintSeverityOverrideCheck() Result {
 	const fixture = "fidelity: config severity override"
@@ -102,27 +102,27 @@ func lintSeverityOverrideCheck() Result {
 	if err != nil {
 		return lintFidelityFail(fixture, "LintFS error on the baseline: "+oneLine(err.Error()))
 	}
-	baseFinding := findByCode(base, "DS101")
+	baseFinding := findByCode(base, "destructive/drop-table")
 	if baseFinding == nil {
-		return lintFidelityFail(fixture, "baseline broken: expected DS101 on DROP TABLE, got "+joinOrNone(findingCodes(base)))
+		return lintFidelityFail(fixture, "baseline broken: expected destructive/drop-table on DROP TABLE, got "+joinOrNone(findingCodes(base)))
 	}
 	if baseFinding.Severity != lint.SeverityError {
-		return lintFidelityFail(fixture, fmt.Sprintf("baseline broken: DS101 default severity is %q, want error (the override test needs a non-warning default)", baseFinding.Severity))
+		return lintFidelityFail(fixture, fmt.Sprintf("baseline broken: destructive/drop-table default severity is %q, want error (the override test needs a non-warning default)", baseFinding.Severity))
 	}
 	overridden, err := lintSingleChange("DROP TABLE t;", lint.Options{
-		RuleConfigs: map[string]lint.RuleConfig{"DS101": {Severity: lint.SeverityWarning}},
+		RuleConfigs: map[string]lint.RuleConfig{"destructive/drop-table": {Severity: lint.SeverityWarning}},
 	})
 	if err != nil {
 		return lintFidelityFail(fixture, "LintFS error with the override: "+oneLine(err.Error()))
 	}
-	f := findByCode(overridden, "DS101")
+	f := findByCode(overridden, "destructive/drop-table")
 	if f == nil {
-		return lintFidelityFail(fixture, "override silenced DS101 entirely; expected it at warning")
+		return lintFidelityFail(fixture, "override silenced destructive/drop-table entirely; expected it at warning")
 	}
 	if f.Severity != lint.SeverityWarning {
-		return lintFidelityFail(fixture, fmt.Sprintf("severity override ignored: DS101 reported %q, want warning", f.Severity))
+		return lintFidelityFail(fixture, fmt.Sprintf("severity override ignored: destructive/drop-table reported %q, want warning", f.Severity))
 	}
-	return lintFidelityOK(fixture, "RuleConfig{DS101: warning} lowers DS101 from its default error severity to warning")
+	return lintFidelityOK(fixture, "RuleConfig{destructive/drop-table: warning} lowers destructive/drop-table from its default error severity to warning")
 }
 
 // lintAttributionCheck asserts that a finding is attributed to the line of the
@@ -133,14 +133,14 @@ func lintAttributionCheck() Result {
 	if err != nil {
 		return lintFidelityFail(fixture, "LintFS error: "+oneLine(err.Error()))
 	}
-	f := findByCode(findings, "DS101")
+	f := findByCode(findings, "destructive/drop-table")
 	if f == nil {
-		return lintFidelityFail(fixture, "baseline broken: expected DS101 on DROP TABLE, got "+joinOrNone(findingCodes(findings)))
+		return lintFidelityFail(fixture, "baseline broken: expected destructive/drop-table on DROP TABLE, got "+joinOrNone(findingCodes(findings)))
 	}
 	if f.Line != 3 {
-		return lintFidelityFail(fixture, fmt.Sprintf("attribution wrong: DS101 reported line %d, want 3", f.Line))
+		return lintFidelityFail(fixture, fmt.Sprintf("attribution wrong: destructive/drop-table reported line %d, want 3", f.Line))
 	}
-	return lintFidelityOK(fixture, "DS101 is attributed to line 3, the offending statement's line, not the file head")
+	return lintFidelityOK(fixture, "destructive/drop-table is attributed to line 3, the offending statement's line, not the file head")
 }
 
 func findByCode(findings []lint.Finding, code string) *lint.Finding {

@@ -3056,7 +3056,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=1` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); stdout reports \"Error: executing statement:\" with that answer and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=1` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.63.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); stdout reports \"Error: executing statement:\" with that answer and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3064,7 +3064,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-destructive.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=2` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); stdout reports \"Error: executing statement:\" with that answer and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --latest=2` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.63.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); stdout reports \"Error: executing statement:\" with that answer and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3086,7 +3086,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_name \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); the lint log template printed \"1.sql\\n\" for the refused file alone and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_name \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.63.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); the lint log template printed \"1.sql\\n\" for the refused file alone and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3094,7 +3094,7 @@
     "fixture": "internal/integration/testdata/sqlite/cli-migrate-lint-project.txtar",
     "stage": "script-runtime",
     "outcome": "ok",
-    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_count \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.62.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); the lint log template printed \"1\\n\" for the refused file alone and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
+    "detail": "engine-version difference: `atlas migrate lint --dir file://migrations --dev-url URL --env=log_count \u003e got.txt` exited 1 because SQLite 3.54.1 (modernc.org/sqlite v1.63.0, which ptah-compat links) refuses migrations/1.sql: SQL logic error: cannot rename to rowid alias: oid (1); the lint log template printed \"1\\n\" for the refused file alone and stderr is empty, as Atlas CE reports a refused replay; the pinned Atlas CE embeds SQLite 3.49.1, which accepts the rename",
     "issue": "stokaro/ptah#5952"
   },
   {
@@ -3544,7 +3544,7 @@
     "fixture": "atlasexec/internal/e2e/testdata/multi-tenants/migrations",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: PG101"
+    "detail": "content findings: data-dependent/add-unique-index, locking/create-index"
   },
   {
     "probe": "lint-parity",
@@ -3565,7 +3565,7 @@
     "fixture": "atlasexec/testdata/migrations",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: BC103, DS101"
+    "detail": "content findings: destructive/drop-table, rollout/drop-table"
   },
   {
     "probe": "lint-parity",
@@ -3600,7 +3600,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/flyway_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101"
+    "detail": "content findings: data-dependent/add-not-null-column"
   },
   {
     "probe": "lint-parity",
@@ -3621,14 +3621,14 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101, AC101, SA101"
+    "detail": "content findings: data-dependent/add-not-null-column, coverage/routine-body, security/dynamic-sql-from-value"
   },
   {
     "probe": "lint-parity",
     "fixture": "cmd/atlas/internal/cmdapi/testdata/import/goose_gold",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101, AC101, SA101"
+    "detail": "content findings: data-dependent/add-not-null-column, coverage/routine-body, security/dynamic-sql-from-value"
   },
   {
     "probe": "lint-parity",
@@ -3649,7 +3649,7 @@
     "fixture": "cmd/atlas/internal/cmdapi/testdata/mysql",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: TX101"
+    "detail": "content findings: transaction/mixed-statements"
   },
   {
     "probe": "lint-parity",
@@ -3747,14 +3747,14 @@
     "fixture": "sql/migrate/testdata/lex",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: AC101, BC103, DS101, PG101, PG308, SA101, PG109"
+    "detail": "content findings: coverage/routine-body, destructive/drop-table, rollout/drop-table, locking/create-index, locking/create-trigger, security/dynamic-sql-from-value, locking/add-exclusion-constraint"
   },
   {
     "probe": "lint-parity",
     "fixture": "sql/migrate/testdata/lexbegintry",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: AC101"
+    "detail": "content findings: coverage/routine-body"
   },
   {
     "probe": "lint-parity",
@@ -3768,7 +3768,7 @@
     "fixture": "sql/migrate/testdata/lexgroup",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: PG308, AC101"
+    "detail": "content findings: locking/create-trigger, coverage/routine-body"
   },
   {
     "probe": "lint-parity",
@@ -3796,7 +3796,7 @@
     "fixture": "sql/migrate/testdata/sqlserver",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: AC101"
+    "detail": "content findings: coverage/routine-body"
   },
   {
     "probe": "lint-parity",
@@ -3817,7 +3817,7 @@
     "fixture": "sql/sqltool/testdata/goose",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "content findings: DD101, AC101, SA101"
+    "detail": "content findings: data-dependent/add-not-null-column, coverage/routine-body, security/dynamic-sql-from-value"
   },
   {
     "probe": "lint-parity",
@@ -4321,329 +4321,329 @@
     "fixture": "Atlas DS101 (drop schema)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS107 (error) at L1 — Ptah groups schema and other database-object drops under DS107."
+    "detail": "covered (mapped): Ptah destructive/drop-object (error) at L1 — Ptah groups schema and other database-object drops under DS107."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS102 (drop table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah BC103 (warning) at L1, DS101 (error) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas)."
+    "detail": "covered (mapped): Ptah destructive/drop-table (error) at L1, rollout/drop-table (warning) at L1 — Ptah's table-drop rule is DS101 (code numbering differs from Atlas)."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas DS103 (drop column)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah BC104 (warning) at L1, DS102 (error) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas)."
+    "detail": "covered (mapped): Ptah destructive/drop-column (error) at L1, rollout/drop-column (warning) at L1 — Ptah's column-drop rule is DS102 (code numbering differs from Atlas)."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF101 (add unique constraint on existing column)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG105 (warning) at L1 — Ptah has no data-dependent uniqueness analyzer; the PG105 access-exclusive-lock rule covers the same statement."
+    "detail": "covered (mapped): Ptah data-dependent/add-unique-index (warning) at L1, locking/add-unique-constraint (warning) at L1 — Ptah has no data-dependent uniqueness analyzer; the PG105 access-exclusive-lock rule covers the same statement."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF103 (add non-nullable column without default)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DD101 (warning) at L1 — Ptah's data-dependent DD101 rule covers this."
+    "detail": "covered (mapped): Ptah data-dependent/add-not-null-column (warning) at L1 — Ptah's data-dependent DD101 rule covers this."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MF104 (modify nullable column to non-nullable)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG303 (warning) at L1 — Ptah's PG303 full-scan rule covers this."
+    "detail": "covered (mapped): Ptah locking/set-not-null (warning) at L1 — Ptah's PG303 full-scan rule covers this."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas BC101 (rename table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah BC101 (warning) at L1"
+    "detail": "covered (mapped): Ptah rollout/rename (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas BC102 (rename column)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah BC101 (warning) at L1 — Ptah reports table and column renames under a single BC101 rename rule."
+    "detail": "covered (mapped): Ptah rollout/rename (warning) at L1 — Ptah reports table and column renames under a single BC101 rename rule."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas CD101 (drop foreign key)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD101 fires on the MySQL DROP FOREIGN KEY form."
+    "detail": "covered (mapped): Ptah integrity/drop-untyped-constraint (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD101 fires on the MySQL DROP FOREIGN KEY form."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas CD102 (drop check constraint)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD102 fires on the MySQL DROP CHECK form."
+    "detail": "covered (mapped): Ptah integrity/drop-untyped-constraint (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD102 fires on the MySQL DROP CHECK form."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas CD103 (drop primary key)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS105 (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD103 fires on the MySQL DROP PRIMARY KEY form."
+    "detail": "covered (mapped): Ptah integrity/drop-untyped-constraint (error) at L1 — PostgreSQL uses ANSI DROP CONSTRAINT, whose type is not in the SQL; Ptah's typed CD103 fires on the MySQL DROP PRIMARY KEY form."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG101 (create index without CONCURRENTLY)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG101 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/create-index (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG102 (drop index without CONCURRENTLY)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG106 (warning) at L1 — Ptah's drop-index rule is PG106; Ptah's own PG102 is an unrelated enum-in-transaction rule."
+    "detail": "covered (mapped): Ptah locking/drop-index (warning) at L1 — Ptah's drop-index rule is PG106; Ptah's own PG102 is an unrelated enum-in-transaction rule."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG103 (missing atlas:txmode none for CONCURRENTLY)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG103 (warning) at L1"
+    "detail": "covered (mapped): Ptah transaction/concurrent-index (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG104 (add primary key takes ACCESS EXCLUSIVE lock)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG104 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/add-primary-key (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG105 (add unique constraint takes ACCESS EXCLUSIVE lock)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG105 (warning) at L1"
+    "detail": "covered (mapped): Ptah data-dependent/add-unique-index (warning) at L1, locking/add-unique-constraint (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG301 (column type change rewrites the table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1 — Ptah's DS103 column-type-change rule covers this."
+    "detail": "covered (mapped): Ptah data-dependent/alter-column-type (warning) at L1 — Ptah's DS103 column-type-change rule covers this."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG302 (add column with volatile default rewrites the table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG302 (warning) at L1"
+    "detail": "covered (mapped): Ptah rewrite/volatile-default (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG303 (modify nullable to non-nullable requires full scan)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG303 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/set-not-null (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG304 (add primary key on nullable columns requires full scan)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah PG104 (warning) at L1 — Ptah folds add-primary-key hazards into PG104."
+    "detail": "covered (mapped): Ptah locking/add-primary-key (warning) at L1 — Ptah folds add-primary-key hazards into PG104."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG305 (add check constraint requires full scan)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG305 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/add-check (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG306 (add foreign key validates existing rows and blocks writes)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG306 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/add-foreign-key (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG307 (change table logging mode rewrites the table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG307 (warning) at L1"
+    "detail": "covered (mapped): Ptah rewrite/set-persistence (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG308 (add trigger takes SHARE ROW EXCLUSIVE lock)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG308 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/create-trigger (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG309 (add stored generated column rewrites the table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG309 (warning) at L1"
+    "detail": "covered (mapped): Ptah rewrite/add-stored-generated-column (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG310 (add identity column rewrites the table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG310 (warning) at L1"
+    "detail": "covered (mapped): Ptah rewrite/add-identity-column (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG311 (change table access method rewrites the table)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG311 (warning) at L1"
+    "detail": "covered (mapped): Ptah rewrite/set-access-method (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas PG110 (create table with non-optimal column alignment)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG110 (warning) at L1"
+    "detail": "covered (mapped): Ptah design/column-alignment (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY101 (add non-nullable column without default)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah DD101 (warning) at L1, MY101 (warning) at L1"
+    "detail": "covered (mapped): Ptah data-dependent/add-not-null-column (warning) at L1, locking/blocking-alter-table (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY102 (inline REFERENCES on added column has no effect)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah MY102 (warning) at L1"
+    "detail": "covered (mapped): Ptah side-effect/inline-reference (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY110 (remove enum value requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
+    "detail": "covered (mapped): Ptah data-dependent/alter-column-type (warning) at L1, locking/blocking-alter-table (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY112 (insert enum value not at the end requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
+    "detail": "covered (mapped): Ptah data-dependent/alter-column-type (warning) at L1, locking/blocking-alter-table (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific enum-copy concern."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY120 (remove set value requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific set-copy concern."
+    "detail": "covered (mapped): Ptah data-dependent/alter-column-type (warning) at L1, locking/blocking-alter-table (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the specific set-copy concern."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY130 (change column type requires table copy)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah DS103 (warning) at L1, MY101 (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the MySQL copy-algorithm concern specifically."
+    "detail": "covered (mapped): Ptah data-dependent/alter-column-type (warning) at L1, locking/blocking-alter-table (warning) at L1 — Ptah flags the underlying column rewrite (DS103 / MY101), not the MySQL copy-algorithm concern specifically."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY131 (add foreign key blocks DML)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah MY131 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/add-foreign-key (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY132 (add primary key rebuilds the table)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah MY132 (warning) at L1"
+    "detail": "covered (mapped): Ptah rewrite/add-primary-key (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY133 (drop primary key copies the table and blocks DML)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah CD103 (error) at L1, MY133 (warning) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form."
+    "detail": "covered (mapped): Ptah integrity/drop-primary-key (error) at L1, rewrite/drop-primary-key (warning) at L1 — Ptah's typed CD103 primary-key-drop rule covers the MySQL DROP PRIMARY KEY form."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY134 (add fulltext index blocks DML)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah MY134 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/add-fulltext-index (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY135 (add spatial index blocks DML)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah MY135 (warning) at L1"
+    "detail": "covered (mapped): Ptah locking/add-spatial-index (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas MY136 (change table character set rebuilds the table)",
     "stage": "mysql",
     "outcome": "ok",
-    "detail": "covered (mapped): Ptah MY101 (warning) at L1 — Ptah's MY101 table-rewrite warning covers the character-set conversion."
+    "detail": "covered (mapped): Ptah locking/blocking-alter-table (warning) at L1 — Ptah's MY101 table-rewrite warning covers the character-set conversion."
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas LT101 (modify nullable to non-nullable without default)",
     "stage": "sqlite",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah LT101 (warning) at L1"
+    "detail": "covered (mapped): Ptah rewrite/set-not-null (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas TX101 (mixing transactional and non-transactional statements)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah PG103 (warning) at L1, TX101 (warning) at L1"
+    "detail": "covered (mapped): Ptah transaction/concurrent-index (warning) at L1, transaction/mixed-statements (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "Atlas TX201 (nested transaction block)",
     "stage": "postgres",
     "outcome": "ok",
-    "detail": "covered (exact): Ptah TX201 (warning) at L1"
+    "detail": "covered (mapped): Ptah transaction/explicit-transaction (warning) at L1"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "fidelity: inline suppression",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "`-- ptah:nolint DS101` removes the DS101 finding that fires without it"
+    "detail": "`-- ptah:nolint destructive/drop-table` removes the destructive/drop-table finding that fires without it"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "fidelity: config disable",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "Options.Disabled:[DS101] silences the DS101 finding that fires without it"
+    "detail": "Options.Disabled:[destructive/drop-table] silences the destructive/drop-table finding that fires without it"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "fidelity: config severity override",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "RuleConfig{DS101: warning} lowers DS101 from its default error severity to warning"
+    "detail": "RuleConfig{destructive/drop-table: warning} lowers destructive/drop-table from its default error severity to warning"
   },
   {
     "probe": "lint-analyzer-catalog",
     "fixture": "fidelity: line attribution",
     "stage": "lint",
     "outcome": "ok",
-    "detail": "DS101 is attributed to line 3, the offending statement's line, not the file head"
+    "detail": "destructive/drop-table is attributed to line 3, the offending statement's line, not the file head"
   },
   {
     "probe": "cli-exit-behavior",
