@@ -676,7 +676,7 @@
     "fixture": "atlas migrate down",
     "stage": "usage",
     "outcome": "ok",
-    "detail": "usage matches the first-party open-capability contract: `atlas migrate down [flags]` (Atlas CE has no help for this verb)"
+    "detail": "usage matches the first-party open-capability contract: `atlas migrate down [flags] [amount]` (Atlas CE has no help for this verb)"
   },
   {
     "probe": "ptah-non-oss-sentinel",
